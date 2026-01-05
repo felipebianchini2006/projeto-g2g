@@ -13,15 +13,20 @@ import { mapZodErrors } from '../../../lib/zod-errors';
 const schema = z.object({
   email: z.string().trim().email('Informe um e-mail valido.'),
   password: z.string().min(8, 'Senha deve ter ao menos 8 caracteres.'),
+  role: z.enum(['USER', 'SELLER'], { required_error: 'Selecione um perfil.' }),
 });
 
 type FormState = z.infer<typeof schema>;
 
 export default function Page() {
-  const searchParams = useSearchParams();
+  const { register } = useAuth();
   const router = useRouter();
-  const { login } = useAuth();
-  const [formData, setFormData] = useState<FormState>({ email: '', password: '' });
+  const searchParams = useSearchParams();
+  const [formData, setFormData] = useState<FormState>({
+    email: '',
+    password: '',
+    role: 'USER',
+  });
   const [errors, setErrors] = useState<Partial<Record<keyof FormState | 'form', string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -29,7 +34,8 @@ export default function Page() {
   const nextPath = rawNextPath.startsWith('/') ? rawNextPath : '/dashboard';
 
   const handleChange =
-    (field: keyof FormState) => (event: ChangeEvent<HTMLInputElement>) => {
+    (field: keyof FormState) =>
+    (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       setFormData((prev) => ({ ...prev, [field]: event.target.value }));
     };
 
@@ -45,13 +51,13 @@ export default function Page() {
 
     setIsSubmitting(true);
     try {
-      await login(result.data);
+      await register(result.data);
       router.push(nextPath);
     } catch (error) {
       if (error instanceof AuthApiError) {
         setErrors({ form: error.message });
       } else {
-        setErrors({ form: 'Nao foi possivel autenticar. Tente novamente.' });
+        setErrors({ form: 'Nao foi possivel criar a conta. Tente novamente.' });
       }
     } finally {
       setIsSubmitting(false);
@@ -61,9 +67,9 @@ export default function Page() {
   return (
     <div className="auth-shell">
       <div className="auth-card">
-        <span className="auth-kicker">Area restrita</span>
-        <h1>Login</h1>
-        <p>Use seu e-mail cadastrado para continuar.</p>
+        <span className="auth-kicker">Nova conta</span>
+        <h1>Cadastro</h1>
+        <p>Crie sua conta para acessar o dashboard.</p>
         <form className="auth-form" onSubmit={handleSubmit}>
           <FormField label="E-mail" htmlFor="email" error={errors.email}>
             <input
@@ -83,20 +89,23 @@ export default function Page() {
               type="password"
               value={formData.password}
               onChange={handleChange('password')}
-              autoComplete="current-password"
+              autoComplete="new-password"
               required
             />
           </FormField>
+          <FormField label="Perfil" htmlFor="role" error={errors.role}>
+            <select id="role" className="auth-input" value={formData.role} onChange={handleChange('role')}>
+              <option value="USER">Comprador</option>
+              <option value="SELLER">Vendedor</option>
+            </select>
+          </FormField>
           {errors.form ? <p className="auth-error">{errors.form}</p> : null}
           <button className="primary-button" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Entrando...' : 'Entrar'}
+            {isSubmitting ? 'Criando...' : 'Criar conta'}
           </button>
           <div className="auth-footer">
-            <Link className="auth-link" href="/forgot">
-              Esqueci minha senha
-            </Link>
-            <Link className="auth-link" href="/register">
-              Criar conta
+            <Link className="auth-link" href="/login">
+              Ja tenho conta
             </Link>
           </div>
         </form>

@@ -841,6 +841,58 @@ img {
     gap: 16px;
 }
 
+.auth-form {
+    display: grid;
+    gap: 14px;
+    text-align: left;
+}
+
+.auth-field {
+    display: grid;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--charcoal);
+}
+
+.auth-input {
+    border: 1px solid rgba(216, 107, 149, 0.3);
+    border-radius: 14px;
+    padding: 12px 14px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--charcoal);
+    background: #fffafc;
+}
+
+.auth-input:focus {
+    outline: 2px solid rgba(216, 107, 149, 0.35);
+    border-color: rgba(216, 107, 149, 0.6);
+}
+
+.auth-error {
+    color: #b42318;
+    font-size: 12px;
+}
+
+.auth-helper {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.auth-footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.auth-link {
+    color: var(--deep-red);
+    font-weight: 600;
+}
+
 .auth-kicker {
     text-transform: uppercase;
     font-size: 12px;

@@ -2,16 +2,15 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, type ChangeEvent, type FormEvent } from 'react';
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import { z } from 'zod';
 
-import { useAuth } from '../../../components/auth/auth-provider';
 import { FormField } from '../../../components/forms/form-field';
-import { AuthApiError } from '../../../lib/auth-api';
+import { AuthApiError, authApi } from '../../../lib/auth-api';
 import { mapZodErrors } from '../../../lib/zod-errors';
 
 const schema = z.object({
-  email: z.string().trim().email('Informe um e-mail valido.'),
+  token: z.string().min(10, 'Token invalido.'),
   password: z.string().min(8, 'Senha deve ter ao menos 8 caracteres.'),
 });
 
@@ -20,13 +19,16 @@ type FormState = z.infer<typeof schema>;
 export default function Page() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { login } = useAuth();
-  const [formData, setFormData] = useState<FormState>({ email: '', password: '' });
+  const [formData, setFormData] = useState<FormState>({ token: '', password: '' });
   const [errors, setErrors] = useState<Partial<Record<keyof FormState | 'form', string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const rawNextPath = searchParams.get('next') ?? '/dashboard';
-  const nextPath = rawNextPath.startsWith('/') ? rawNextPath : '/dashboard';
+  useEffect(() => {
+    const tokenFromQuery = searchParams.get('token');
+    if (tokenFromQuery) {
+      setFormData((prev) => ({ ...prev, token: tokenFromQuery }));
+    }
+  }, [searchParams]);
 
   const handleChange =
     (field: keyof FormState) => (event: ChangeEvent<HTMLInputElement>) => {
@@ -45,13 +47,13 @@ export default function Page() {
 
     setIsSubmitting(true);
     try {
-      await login(result.data);
-      router.push(nextPath);
+      await authApi.resetPassword(result.data);
+      router.push('/login');
     } catch (error) {
       if (error instanceof AuthApiError) {
         setErrors({ form: error.message });
       } else {
-        setErrors({ form: 'Nao foi possivel autenticar. Tente novamente.' });
+        setErrors({ form: 'Nao foi possivel atualizar a senha. Tente novamente.' });
       }
     } finally {
       setIsSubmitting(false);
@@ -61,48 +63,41 @@ export default function Page() {
   return (
     <div className="auth-shell">
       <div className="auth-card">
-        <span className="auth-kicker">Area restrita</span>
-        <h1>Login</h1>
-        <p>Use seu e-mail cadastrado para continuar.</p>
+        <span className="auth-kicker">Nova senha</span>
+        <h1>Reset de senha</h1>
+        <p>Informe o token recebido e defina sua nova senha.</p>
         <form className="auth-form" onSubmit={handleSubmit}>
-          <FormField label="E-mail" htmlFor="email" error={errors.email}>
+          <FormField label="Token" htmlFor="token" error={errors.token}>
             <input
-              id="email"
+              id="token"
               className="auth-input"
-              type="email"
-              value={formData.email}
-              onChange={handleChange('email')}
-              autoComplete="email"
+              type="text"
+              value={formData.token}
+              onChange={handleChange('token')}
               required
             />
           </FormField>
-          <FormField label="Senha" htmlFor="password" error={errors.password}>
+          <FormField label="Nova senha" htmlFor="password" error={errors.password}>
             <input
               id="password"
               className="auth-input"
               type="password"
               value={formData.password}
               onChange={handleChange('password')}
-              autoComplete="current-password"
+              autoComplete="new-password"
               required
             />
           </FormField>
           {errors.form ? <p className="auth-error">{errors.form}</p> : null}
           <button className="primary-button" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Entrando...' : 'Entrar'}
+            {isSubmitting ? 'Salvando...' : 'Atualizar senha'}
           </button>
           <div className="auth-footer">
-            <Link className="auth-link" href="/forgot">
-              Esqueci minha senha
-            </Link>
-            <Link className="auth-link" href="/register">
-              Criar conta
+            <Link className="auth-link" href="/login">
+              Voltar para login
             </Link>
           </div>
         </form>
-        <Link className="ghost-button" href="/">
-          Voltar para home
-        </Link>
       </div>
     </div>
   );

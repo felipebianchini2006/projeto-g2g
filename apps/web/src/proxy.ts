@@ -1,29 +1,19 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
-const DASHBOARD_COOKIE = 'dev_auth';
+const REFRESH_COOKIE = 'g2g_refresh';
 
 export default function proxy(request: NextRequest) {
-  const { pathname, searchParams } = request.nextUrl;
+  const { pathname } = request.nextUrl;
 
   if (!pathname.startsWith('/dashboard')) {
     return NextResponse.next();
   }
 
-  if (searchParams.get('dev') === '1') {
-    const response = NextResponse.next();
-    response.cookies.set(DASHBOARD_COOKIE, '1', {
-      path: '/',
-      httpOnly: true,
-      sameSite: 'lax',
-    });
-    return response;
-  }
-
-  const hasSession = request.cookies.get(DASHBOARD_COOKIE)?.value === '1';
+  const hasSession = Boolean(request.cookies.get(REFRESH_COOKIE)?.value);
   if (!hasSession) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = '/login';
-    loginUrl.searchParams.set('next', pathname);
+    loginUrl.searchParams.set('next', `${pathname}${request.nextUrl.search}`);
     return NextResponse.redirect(loginUrl);
   }
 

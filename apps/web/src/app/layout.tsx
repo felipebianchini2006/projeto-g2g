@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Nunito } from 'next/font/google';
 
+import { Providers } from '../components/providers';
 import './globals.css';
 
 const nunito = Nunito({
@@ -26,7 +27,9 @@ export default function RootLayout({
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         />
       </head>
-      <body className={nunito.className}>{children}</body>
+      <body className={nunito.className}>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }

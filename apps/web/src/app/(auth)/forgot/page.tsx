@@ -1,32 +1,25 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { z } from 'zod';
 
-import { useAuth } from '../../../components/auth/auth-provider';
 import { FormField } from '../../../components/forms/form-field';
-import { AuthApiError } from '../../../lib/auth-api';
+import { AuthApiError, authApi } from '../../../lib/auth-api';
 import { mapZodErrors } from '../../../lib/zod-errors';
 
 const schema = z.object({
   email: z.string().trim().email('Informe um e-mail valido.'),
-  password: z.string().min(8, 'Senha deve ter ao menos 8 caracteres.'),
 });
 
 type FormState = z.infer<typeof schema>;
 
 export default function Page() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const { login } = useAuth();
-  const [formData, setFormData] = useState<FormState>({ email: '', password: '' });
+  const [formData, setFormData] = useState<FormState>({ email: '' });
   const [errors, setErrors] = useState<Partial<Record<keyof FormState | 'form', string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const rawNextPath = searchParams.get('next') ?? '/dashboard';
-  const nextPath = rawNextPath.startsWith('/') ? rawNextPath : '/dashboard';
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [resetToken, setResetToken] = useState<string | null>(null);
 
   const handleChange =
     (field: keyof FormState) => (event: ChangeEvent<HTMLInputElement>) => {
@@ -36,6 +29,8 @@ export default function Page() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setErrors({});
+    setSuccessMessage(null);
+    setResetToken(null);
 
     const result = schema.safeParse(formData);
     if (!result.success) {
@@ -45,13 +40,18 @@ export default function Page() {
 
     setIsSubmitting(true);
     try {
-      await login(result.data);
-      router.push(nextPath);
+      const response = await authApi.forgotPassword(result.data.email);
+      if (response.resetToken) {
+        setResetToken(response.resetToken);
+        setSuccessMessage('Token gerado para dev. Use o link abaixo para testar.');
+      } else {
+        setSuccessMessage('Se o e-mail existir, enviaremos instrucoes de reset.');
+      }
     } catch (error) {
       if (error instanceof AuthApiError) {
         setErrors({ form: error.message });
       } else {
-        setErrors({ form: 'Nao foi possivel autenticar. Tente novamente.' });
+        setErrors({ form: 'Nao foi possivel enviar o reset. Tente novamente.' });
       }
     } finally {
       setIsSubmitting(false);
@@ -61,9 +61,9 @@ export default function Page() {
   return (
     <div className="auth-shell">
       <div className="auth-card">
-        <span className="auth-kicker">Area restrita</span>
-        <h1>Login</h1>
-        <p>Use seu e-mail cadastrado para continuar.</p>
+        <span className="auth-kicker">Recuperacao</span>
+        <h1>Esqueci minha senha</h1>
+        <p>Informe seu e-mail para receber instrucoes.</p>
         <form className="auth-form" onSubmit={handleSubmit}>
           <FormField label="E-mail" htmlFor="email" error={errors.email}>
             <input
@@ -76,33 +76,22 @@ export default function Page() {
               required
             />
           </FormField>
-          <FormField label="Senha" htmlFor="password" error={errors.password}>
-            <input
-              id="password"
-              className="auth-input"
-              type="password"
-              value={formData.password}
-              onChange={handleChange('password')}
-              autoComplete="current-password"
-              required
-            />
-          </FormField>
           {errors.form ? <p className="auth-error">{errors.form}</p> : null}
+          {successMessage ? <p className="auth-helper">{successMessage}</p> : null}
+          {resetToken ? (
+            <Link className="auth-link" href={`/reset?token=${resetToken}`}>
+              Ir para reset com token
+            </Link>
+          ) : null}
           <button className="primary-button" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Entrando...' : 'Entrar'}
+            {isSubmitting ? 'Enviando...' : 'Enviar reset'}
           </button>
           <div className="auth-footer">
-            <Link className="auth-link" href="/forgot">
-              Esqueci minha senha
-            </Link>
-            <Link className="auth-link" href="/register">
-              Criar conta
+            <Link className="auth-link" href="/login">
+              Voltar para login
             </Link>
           </div>
         </form>
-        <Link className="ghost-button" href="/">
-          Voltar para home
-        </Link>
       </div>
     </div>
   );
