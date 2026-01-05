@@ -48,3 +48,10 @@ Se necessario, ative `EFI_WEBHOOK_SKIP_MTLS_CHECKING=true` para enviar o header
 
 Endpoint admin: `GET /webhooks/efi/metrics`.
 Retorna contadores em memoria e totais do banco (`pending`, `processed`, `total`).
+
+### Settlement / reembolsos
+
+- Reembolso Pix usa `PUT /v2/pix/{e2eId}/devolucao/{refundId}`.
+- Cash-out para vendedor usa `POST /v2/gn/pix/send` com `chave` e `valor`.
+- `SETTLEMENT_MODE=cashout` (padrao) preserva reembolso enquanto fundos estao em `HELD`.
+- `SETTLEMENT_MODE=split` deve ser usado somente quando a politica permitir devolucao apos split.

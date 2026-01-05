@@ -18,6 +18,22 @@ type PixCharge = {
   expiresAt: Date;
 };
 
+type PixCashOutInput = {
+  orderId: string;
+  payoutPixKey: string;
+  amountCents: number;
+  currency: string;
+};
+
+type PixRefundInput = {
+  paymentId: string;
+  txid: string;
+  e2eId?: string;
+  amountCents: number;
+  currency: string;
+  reason?: string;
+};
+
 @Injectable()
 export class PaymentsService {
   constructor(
@@ -87,6 +103,50 @@ export class PaymentsService {
     }
 
     return this.createPixCharge(order, payerId);
+  }
+
+  async cashOutPix(input: PixCashOutInput) {
+    if (input.currency !== 'BRL') {
+      throw new BadRequestException('Cashout currency not supported.');
+    }
+
+    const mockMode = this.configService.get<string>('PIX_MOCK_MODE') ?? 'true';
+    const idempotencyKey = `cashout-${input.orderId}`;
+
+    if (mockMode === 'true') {
+      return { status: 'mock', idempotencyKey };
+    }
+
+    return this.efiClient.cashOutPix({
+      payoutPixKey: input.payoutPixKey,
+      amountCents: input.amountCents,
+      description: `Pedido ${input.orderId}`,
+      idempotencyKey,
+    });
+  }
+
+  async refundPix(input: PixRefundInput) {
+    if (input.currency !== 'BRL') {
+      throw new BadRequestException('Refund currency not supported.');
+    }
+
+    const mockMode = this.configService.get<string>('PIX_MOCK_MODE') ?? 'true';
+    const refundId = `refund-${input.paymentId.replace(/-/g, '').slice(0, 26)}`;
+
+    if (mockMode === 'true') {
+      return { status: 'mock', refundId };
+    }
+
+    if (!input.e2eId) {
+      throw new BadRequestException('Missing endToEndId for Pix refund.');
+    }
+
+    return this.efiClient.refundPix({
+      e2eId: input.e2eId,
+      refundId,
+      amountCents: input.amountCents,
+      reason: input.reason,
+    });
   }
 
   private buildMockPix(orderId: string, expiresAtOverride: Date | null): PixCharge {

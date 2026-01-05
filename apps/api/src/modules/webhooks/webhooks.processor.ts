@@ -5,6 +5,7 @@ import { NotificationType, PaymentStatus, Prisma } from '@prisma/client';
 import { AppLogger } from '../logger/logger.service';
 import { OrdersService } from '../orders/orders.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { SettlementService } from '../settlement/settlement.service';
 import { WebhooksJobName, WEBHOOKS_QUEUE } from './webhooks.queue';
 import { WebhookMetricsService } from './webhooks.metrics';
 
@@ -17,6 +18,7 @@ export class WebhooksProcessor {
   constructor(
     private readonly prisma: PrismaService,
     private readonly ordersService: OrdersService,
+    private readonly settlementService: SettlementService,
     private readonly logger: AppLogger,
     private readonly metrics: WebhookMetricsService,
   ) {}
@@ -86,6 +88,19 @@ export class WebhooksProcessor {
           where: { id: order.id },
           include: { buyer: true, seller: true },
         });
+
+        if (orderDetails?.sellerId) {
+          await this.settlementService.createHeldEntry(
+            {
+              orderId: order.id,
+              paymentId: payment.id,
+              sellerId: orderDetails.sellerId,
+              amountCents: payment.amountCents,
+              currency: payment.currency,
+            },
+            tx,
+          );
+        }
 
         const shouldNotify = applied || paymentNeedsUpdate;
 

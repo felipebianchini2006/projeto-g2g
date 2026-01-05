@@ -7,6 +7,7 @@ import { LoggerModule } from '../logger/logger.module';
 import { OrdersModule } from '../orders/orders.module';
 import { PaymentsModule } from '../payments/payments.module';
 import { PrismaModule } from '../prisma/prisma.module';
+import { SettlementModule } from '../settlement/settlement.module';
 import { WebhooksController } from './webhooks.controller';
 import { WebhooksProcessor } from './webhooks.processor';
 import { WebhooksService } from './webhooks.service';
@@ -20,6 +21,7 @@ import { WEBHOOKS_QUEUE } from './webhooks.queue';
     AuthModule,
     OrdersModule,
     PaymentsModule,
+    SettlementModule,
     BullModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({

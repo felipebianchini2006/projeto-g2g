@@ -25,3 +25,25 @@ export type EfiQrCodeResponse = {
   imagemQrcode?: string;
   linkVisualizacao?: string;
 };
+
+export type EfiPixRefundRequest = {
+  valor: string;
+  descricao?: string;
+};
+
+export type EfiPixRefundResponse = {
+  id?: string;
+  status?: string;
+};
+
+export type EfiPixSendRequest = {
+  valor: string;
+  chave: string;
+  solicitacaoPagador?: string;
+};
+
+export type EfiPixSendResponse = {
+  id?: string;
+  status?: string;
+  endToEndId?: string;
+};

@@ -19,4 +19,6 @@ export const envSchema = Joi.object({
   EFI_ENV: Joi.string().valid('sandbox', 'prod').default('sandbox'),
   EFI_PIX_KEY: Joi.string(),
   EFI_WEBHOOK_SKIP_MTLS_CHECKING: Joi.string().valid('true', 'false').default('false'),
+  SETTLEMENT_MODE: Joi.string().valid('cashout', 'split').default('cashout'),
+  SETTLEMENT_RELEASE_DELAY_HOURS: Joi.number().integer().min(0).default(0),
 });

@@ -86,6 +86,18 @@ Variaveis esperadas na API:
 - `EFI_ENV=sandbox`
 - `EFI_PIX_KEY=...`
 - `EFI_WEBHOOK_SKIP_MTLS_CHECKING=false`
+- `SETTLEMENT_MODE=cashout`
+- `SETTLEMENT_RELEASE_DELAY_HOURS=0`
+
+## Escrow operacional
+
+- Pagamento confirmado cria `LedgerEntry` em `HELD` para o vendedor.
+- Pedido `COMPLETED` agenda liberacao via job (`SETTLEMENT_RELEASE_DELAY_HOURS`).
+- Modo `cashout` (padrao): envia Pix ao vendedor no release e mantem reembolso possivel enquanto em `HELD`.
+- Modo `split` (feature flag): use apenas se o provedor permitir devolucao apos repasse. O release nao dispara cashout (espera-se split no Pix).
+- Reembolso:
+  - se ainda em `HELD`, tenta devolucao Pix e registra `REVERSED`.
+  - se ja liberado, abre ticket e bloqueia payout do vendedor (chargeback manual).
 
 ## Prisma (migracoes)
 

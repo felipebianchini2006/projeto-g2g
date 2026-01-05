@@ -3,7 +3,16 @@ import { ConfigService } from '@nestjs/config';
 
 import { AppLogger } from '../../logger/logger.service';
 import { EfiHttpService } from './efi-http.service';
-import type { EfiCobRequest, EfiCobResponse, EfiOauthTokenResponse, EfiQrCodeResponse } from './efi.types';
+import type {
+  EfiCobRequest,
+  EfiCobResponse,
+  EfiOauthTokenResponse,
+  EfiPixRefundRequest,
+  EfiPixRefundResponse,
+  EfiPixSendRequest,
+  EfiPixSendResponse,
+  EfiQrCodeResponse,
+} from './efi.types';
 
 type TokenCache = {
   value: string;
@@ -21,6 +30,20 @@ type PixChargeResult = {
   expiresAt: Date;
   qrCode?: string | null;
   copyPaste?: string | null;
+};
+
+type PixCashOutInput = {
+  payoutPixKey: string;
+  amountCents: number;
+  description?: string;
+  idempotencyKey?: string;
+};
+
+type PixRefundInput = {
+  e2eId: string;
+  refundId: string;
+  amountCents: number;
+  reason?: string;
 };
 
 @Injectable()
@@ -101,6 +124,42 @@ export class EfiClient {
       accessToken,
       headers,
       body: { webhookUrl },
+      timeoutMs: 15000,
+    });
+  }
+
+  async cashOutPix(input: PixCashOutInput) {
+    const accessToken = await this.getAccessToken();
+    const body: EfiPixSendRequest = {
+      valor: this.formatAmount(input.amountCents),
+      chave: input.payoutPixKey,
+      solicitacaoPagador: input.description ?? 'Cashout marketplace',
+    };
+    const headers: Record<string, string> = {};
+    if (input.idempotencyKey) {
+      headers['x-idempotency-key'] = input.idempotencyKey;
+    }
+    return this.httpService.request<EfiPixSendResponse>({
+      method: 'POST',
+      path: '/v2/gn/pix/send',
+      accessToken,
+      headers,
+      body,
+      timeoutMs: 15000,
+    });
+  }
+
+  async refundPix(input: PixRefundInput) {
+    const accessToken = await this.getAccessToken();
+    const body: EfiPixRefundRequest = {
+      valor: this.formatAmount(input.amountCents),
+      descricao: input.reason,
+    };
+    return this.httpService.request<EfiPixRefundResponse>({
+      method: 'PUT',
+      path: `/v2/pix/${input.e2eId}/devolucao/${input.refundId}`,
+      accessToken,
+      body,
       timeoutMs: 15000,
     });
   }

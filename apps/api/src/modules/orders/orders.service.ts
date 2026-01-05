@@ -15,7 +15,9 @@ import {
 
 import type { AuthRequestMeta } from '../auth/auth.types';
 import { InventoryService } from '../listings/inventory.service';
+import { AppLogger } from '../logger/logger.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { SettlementService } from '../settlement/settlement.service';
 import { OrdersQueueService } from './orders.queue.service';
 import { CancelOrderDto } from './dto/cancel-order.dto';
 import { ConfirmReceiptDto } from './dto/confirm-receipt.dto';
@@ -44,6 +46,8 @@ export class OrdersService {
     private readonly inventoryService: InventoryService,
     private readonly ordersQueue: OrdersQueueService,
     private readonly configService: ConfigService,
+    private readonly settlementService: SettlementService,
+    private readonly logger: AppLogger,
   ) {}
 
   async createOrder(buyerId: string, dto: CreateOrderDto, meta: AuthRequestMeta) {
@@ -213,7 +217,7 @@ export class OrdersService {
   }
 
   async confirmReceipt(orderId: string, buyerId: string, dto: ConfirmReceiptDto, meta: AuthRequestMeta) {
-    return this.prisma.$transaction(async (tx) => {
+    const updated = await this.prisma.$transaction(async (tx) => {
       const order = await tx.order.findUnique({ where: { id: orderId } });
       if (!order) {
         throw new NotFoundException('Order not found.');
@@ -240,6 +244,9 @@ export class OrdersService {
 
       return updated;
     });
+
+    await this.scheduleSettlementRelease(updated.id);
+    return updated;
   }
 
   async openDispute(orderId: string, buyerId: string, dto: OpenDisputeDto, meta: AuthRequestMeta) {
@@ -419,7 +426,7 @@ export class OrdersService {
   }
 
   async handleAutoComplete(orderId: string) {
-    return this.prisma.$transaction(async (tx) => {
+    const updated = await this.prisma.$transaction(async (tx) => {
       const order = await tx.order.findUnique({
         where: { id: orderId },
         include: { dispute: true },
@@ -450,6 +457,11 @@ export class OrdersService {
 
       return updated;
     });
+
+    if (updated?.status === OrderStatus.COMPLETED) {
+      await this.scheduleSettlementRelease(updated.id);
+    }
+    return updated;
   }
 
   private async reserveInventoryForOrder(order: { id: string; items: { id: string; listingId: string | null; deliveryType: DeliveryType }[] }) {
@@ -542,5 +554,16 @@ export class OrdersService {
 
   private isAllowedStatus(status: OrderStatus, allowed: OrderStatus[]) {
     return allowed.includes(status);
+  }
+
+  private async scheduleSettlementRelease(orderId: string) {
+    try {
+      await this.settlementService.scheduleRelease(orderId);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Failed to schedule settlement release';
+      const stack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(message, stack, `OrdersService:Settlement:${orderId}`);
+    }
   }
 }

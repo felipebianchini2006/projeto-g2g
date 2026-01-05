@@ -5,15 +5,16 @@ const prisma = new PrismaClient();
 
 const hashPassword = (value) => bcrypt.hash(value, 12);
 
-const upsertUser = async ({ email, role, password }) => {
+const upsertUser = async ({ email, role, password, payoutPixKey }) => {
   const passwordHash = await hashPassword(password);
   return prisma.user.upsert({
     where: { email },
-    update: { role, passwordHash },
+    update: { role, passwordHash, payoutPixKey },
     create: {
       email,
       role,
       passwordHash,
+      payoutPixKey,
     },
   });
 };
@@ -28,6 +29,7 @@ async function main() {
     email: 'seller@email.com',
     role: 'SELLER',
     password: '12345678',
+    payoutPixKey: 'pix-key-seller',
   });
   const buyer = await upsertUser({
     email: 'buyer@email.com',

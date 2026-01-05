@@ -1,6 +1,7 @@
 jest.mock('@nestjs/bullmq', () => ({
   Processor: () => (target: unknown) => target,
   Process: () => () => undefined,
+  InjectQueue: () => () => undefined,
 }));
 
 import { Job } from 'bullmq';
@@ -9,6 +10,7 @@ import { NotificationType, PaymentStatus } from '@prisma/client';
 import { AppLogger } from '../logger/logger.service';
 import { OrdersService } from '../orders/orders.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { SettlementService } from '../settlement/settlement.service';
 import { WebhookMetricsService } from './webhooks.metrics';
 import { WebhooksProcessor } from './webhooks.processor';
 
@@ -16,6 +18,7 @@ describe('WebhooksProcessor', () => {
   let processor: WebhooksProcessor;
   let prismaService: PrismaService;
   let ordersService: OrdersService;
+  let settlementService: SettlementService;
   let metricsService: WebhookMetricsService;
 
   beforeEach(() => {
@@ -45,6 +48,10 @@ describe('WebhooksProcessor', () => {
       handlePaymentSideEffects: jest.fn(),
     } as unknown as OrdersService;
 
+    const settlementMock = {
+      createHeldEntry: jest.fn(),
+    } as unknown as SettlementService;
+
     const loggerMock = {
       log: jest.fn(),
       error: jest.fn(),
@@ -63,12 +70,14 @@ describe('WebhooksProcessor', () => {
     processor = new WebhooksProcessor(
       prismaMock,
       ordersMock,
+      settlementMock,
       loggerMock,
       metricsMock,
     );
 
     prismaService = prismaMock;
     ordersService = ordersMock;
+    settlementService = settlementMock;
     metricsService = metricsMock;
   });
 
@@ -84,6 +93,8 @@ describe('WebhooksProcessor', () => {
       id: 'payment-1',
       orderId: 'order-1',
       status: PaymentStatus.PENDING,
+      amountCents: 1500,
+      currency: 'BRL',
     });
     (ordersService.applyPaymentConfirmation as jest.Mock).mockResolvedValue({
       order: { id: 'order-1', items: [] },
@@ -116,6 +127,7 @@ describe('WebhooksProcessor', () => {
     expect(prismaService.emailOutbox.create).toHaveBeenCalled();
     expect(metricsService.increment).toHaveBeenCalledWith('processed', 'tx-1');
     expect(ordersService.handlePaymentSideEffects).toHaveBeenCalled();
+    expect(settlementService.createHeldEntry).toHaveBeenCalled();
   });
 
   it('skips already processed webhook', async () => {

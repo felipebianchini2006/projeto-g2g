@@ -144,6 +144,9 @@ model User {
   email        String   @unique
   passwordHash String
   role         UserRole @default(USER)
+  payoutPixKey String?
+  payoutBlockedAt DateTime?
+  payoutBlockedReason String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
