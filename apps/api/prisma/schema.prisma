@@ -85,16 +85,21 @@ enum WebhookProvider {
 }
 
 enum LedgerEntryType {
+  CREDIT
+  DEBIT
+}
+
+enum LedgerEntryState {
   HELD
   AVAILABLE
-  RELEASED
   REVERSED
 }
 
-enum LedgerEntryStatus {
-  PENDING
-  POSTED
-  FAILED
+enum LedgerEntrySource {
+  ORDER_PAYMENT
+  REFUND
+  FEE
+  PAYOUT
 }
 
 enum ChatMessageType {
@@ -439,7 +444,8 @@ model LedgerEntry {
   orderId     String?
   paymentId   String?
   type        LedgerEntryType
-  status      LedgerEntryStatus @default(PENDING)
+  state       LedgerEntryState
+  source      LedgerEntrySource
   amountCents Int
   currency    String           @default("BRL")
   description String?
@@ -453,8 +459,9 @@ model LedgerEntry {
 
   @@index([userId])
   @@index([orderId])
-  @@index([status])
+  @@index([state])
   @@index([type])
+  @@index([source])
   @@map("ledger_entries")
 }
 

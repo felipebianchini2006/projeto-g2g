@@ -223,14 +223,15 @@ async function main() {
 
   await prisma.ledgerEntry.upsert({
     where: { id: 'seed-ledger-1' },
-    update: { status: 'POSTED' },
+    update: { state: 'HELD', source: 'ORDER_PAYMENT', type: 'CREDIT' },
     create: {
       id: 'seed-ledger-1',
       userId: seller.id,
       orderId,
       paymentId: payment.id,
-      type: 'HELD',
-      status: 'POSTED',
+      type: 'CREDIT',
+      state: 'HELD',
+      source: 'ORDER_PAYMENT',
       amountCents: listingAuto.priceCents,
       currency: 'BRL',
       description: 'Seed held funds',

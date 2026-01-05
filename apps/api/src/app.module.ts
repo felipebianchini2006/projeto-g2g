@@ -10,6 +10,7 @@ import { LoggerModule } from './modules/logger/logger.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { PrismaModule } from './modules/prisma/prisma.module';
 import { RedisModule } from './modules/redis/redis.module';
+import { WalletModule } from './modules/wallet/wallet.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
 
 @Module({
@@ -33,6 +34,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     HealthModule,
     ListingsModule,
     OrdersModule,
+    WalletModule,
     WebhooksModule,
   ],
 })

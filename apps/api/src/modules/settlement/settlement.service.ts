@@ -8,7 +8,8 @@ import { ConfigService } from '@nestjs/config';
 import { InjectQueue } from '@nestjs/bullmq';
 import {
   AuditAction,
-  LedgerEntryStatus,
+  LedgerEntrySource,
+  LedgerEntryState,
   LedgerEntryType,
   NotificationType,
   OrderEventType,
@@ -86,7 +87,9 @@ export class SettlementService {
       where: {
         orderId: input.orderId,
         paymentId: input.paymentId,
-        type: LedgerEntryType.HELD,
+        type: LedgerEntryType.CREDIT,
+        state: LedgerEntryState.HELD,
+        source: LedgerEntrySource.ORDER_PAYMENT,
       },
     });
 
@@ -99,8 +102,9 @@ export class SettlementService {
         userId: input.sellerId,
         orderId: input.orderId,
         paymentId: input.paymentId,
-        type: LedgerEntryType.HELD,
-        status: LedgerEntryStatus.POSTED,
+        type: LedgerEntryType.CREDIT,
+        state: LedgerEntryState.HELD,
+        source: LedgerEntrySource.ORDER_PAYMENT,
         amountCents: input.amountCents,
         currency: input.currency,
         description: 'Escrow held after payment confirmation.',
@@ -138,7 +142,9 @@ export class SettlementService {
       const existingRelease = await tx.ledgerEntry.findFirst({
         where: {
           orderId: order.id,
-          type: { in: [LedgerEntryType.AVAILABLE, LedgerEntryType.RELEASED] },
+          type: LedgerEntryType.CREDIT,
+          state: LedgerEntryState.AVAILABLE,
+          source: LedgerEntrySource.ORDER_PAYMENT,
         },
       });
       if (existingRelease) {
@@ -149,7 +155,9 @@ export class SettlementService {
         where: {
           orderId: order.id,
           paymentId: payment.id,
-          type: LedgerEntryType.HELD,
+          type: LedgerEntryType.CREDIT,
+          state: LedgerEntryState.HELD,
+          source: LedgerEntrySource.ORDER_PAYMENT,
         },
       });
       if (!heldEntry) {
@@ -186,7 +194,9 @@ export class SettlementService {
       const existingRelease = await tx.ledgerEntry.findFirst({
         where: {
           orderId: result.order.id,
-          type: { in: [LedgerEntryType.AVAILABLE, LedgerEntryType.RELEASED] },
+          type: LedgerEntryType.CREDIT,
+          state: LedgerEntryState.AVAILABLE,
+          source: LedgerEntrySource.ORDER_PAYMENT,
         },
       });
       if (existingRelease) {
@@ -198,8 +208,9 @@ export class SettlementService {
           userId: result.heldEntry.userId,
           orderId: result.order.id,
           paymentId: result.payment.id,
-          type: LedgerEntryType.RELEASED,
-          status: LedgerEntryStatus.POSTED,
+          type: LedgerEntryType.DEBIT,
+          state: LedgerEntryState.HELD,
+          source: LedgerEntrySource.ORDER_PAYMENT,
           amountCents: result.heldEntry.amountCents,
           currency: result.heldEntry.currency,
           description: 'Escrow released after completion.',
@@ -211,13 +222,30 @@ export class SettlementService {
           userId: result.heldEntry.userId,
           orderId: result.order.id,
           paymentId: result.payment.id,
-          type: LedgerEntryType.AVAILABLE,
-          status: LedgerEntryStatus.POSTED,
+          type: LedgerEntryType.CREDIT,
+          state: LedgerEntryState.AVAILABLE,
+          source: LedgerEntrySource.ORDER_PAYMENT,
           amountCents: result.heldEntry.amountCents,
           currency: result.heldEntry.currency,
           description: 'Balance available after release.',
         },
       });
+
+      if (settlementMode === 'cashout') {
+        await tx.ledgerEntry.create({
+          data: {
+            userId: result.heldEntry.userId,
+            orderId: result.order.id,
+            paymentId: result.payment.id,
+            type: LedgerEntryType.DEBIT,
+            state: LedgerEntryState.AVAILABLE,
+            source: LedgerEntrySource.PAYOUT,
+            amountCents: result.heldEntry.amountCents,
+            currency: result.heldEntry.currency,
+            description: 'Pix payout sent to seller.',
+          },
+        });
+      }
 
       await tx.orderEvent.create({
         data: {
@@ -308,7 +336,9 @@ export class SettlementService {
     const releaseExists = await this.prisma.ledgerEntry.findFirst({
       where: {
         orderId: order.id,
-        type: { in: [LedgerEntryType.AVAILABLE, LedgerEntryType.RELEASED] },
+        type: LedgerEntryType.CREDIT,
+        state: LedgerEntryState.AVAILABLE,
+        source: LedgerEntrySource.ORDER_PAYMENT,
       },
     });
 
@@ -375,8 +405,23 @@ export class SettlementService {
           userId: order.sellerId ?? order.buyerId,
           orderId: order.id,
           paymentId: payment.id,
-          type: LedgerEntryType.REVERSED,
-          status: LedgerEntryStatus.POSTED,
+          type: LedgerEntryType.DEBIT,
+          state: LedgerEntryState.HELD,
+          source: LedgerEntrySource.REFUND,
+          amountCents: payment.amountCents,
+          currency: payment.currency,
+          description: 'Held balance reversed for refund.',
+        },
+      });
+
+      await tx.ledgerEntry.create({
+        data: {
+          userId: order.sellerId ?? order.buyerId,
+          orderId: order.id,
+          paymentId: payment.id,
+          type: LedgerEntryType.CREDIT,
+          state: LedgerEntryState.REVERSED,
+          source: LedgerEntrySource.REFUND,
           amountCents: payment.amountCents,
           currency: payment.currency,
           description: 'Refund processed while funds held.',
@@ -464,8 +509,23 @@ export class SettlementService {
           userId: order.sellerId ?? order.buyerId,
           orderId: order.id,
           paymentId: payment.id,
-          type: LedgerEntryType.REVERSED,
-          status: LedgerEntryStatus.PENDING,
+          type: LedgerEntryType.DEBIT,
+          state: LedgerEntryState.AVAILABLE,
+          source: LedgerEntrySource.REFUND,
+          amountCents: payment.amountCents,
+          currency: payment.currency,
+          description: 'Available balance reversed for manual chargeback.',
+        },
+      });
+
+      await tx.ledgerEntry.create({
+        data: {
+          userId: order.sellerId ?? order.buyerId,
+          orderId: order.id,
+          paymentId: payment.id,
+          type: LedgerEntryType.CREDIT,
+          state: LedgerEntryState.REVERSED,
+          source: LedgerEntrySource.REFUND,
           amountCents: payment.amountCents,
           currency: payment.currency,
           description: 'Manual chargeback required after release.',
