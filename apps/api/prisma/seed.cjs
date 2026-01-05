@@ -1,21 +1,22 @@
-const crypto = require('crypto');
 const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcryptjs');
 
 const prisma = new PrismaClient();
 
-const hashPassword = (value) =>
-  crypto.createHash('sha256').update(value).digest('hex');
+const hashPassword = (value) => bcrypt.hash(value, 12);
 
-const upsertUser = async ({ email, role, password }) =>
-  prisma.user.upsert({
+const upsertUser = async ({ email, role, password }) => {
+  const passwordHash = await hashPassword(password);
+  return prisma.user.upsert({
     where: { email },
-    update: { role },
+    update: { role, passwordHash },
     create: {
       email,
       role,
-      passwordHash: hashPassword(password),
+      passwordHash,
     },
   });
+};
 
 async function main() {
   const admin = await upsertUser({
@@ -25,7 +26,7 @@ async function main() {
   });
   const seller = await upsertUser({
     email: 'seller@email.com',
-    role: 'USER',
+    role: 'SELLER',
     password: '123456',
   });
   const buyer = await upsertUser({

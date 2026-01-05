@@ -75,6 +75,9 @@ Variaveis esperadas na API:
 
 - `DATABASE_URL=postgresql://postgres:123456@localhost:5432/projeto_g2g`
 - `REDIS_URL=redis://localhost:6379`
+- `JWT_SECRET=uma-chave-forte`
+- `TOKEN_TTL=900`
+- `REFRESH_TTL=2592000`
 
 ## Prisma (migracoes)
 

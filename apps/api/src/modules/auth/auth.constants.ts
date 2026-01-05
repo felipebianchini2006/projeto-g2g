@@ -1,0 +1,2 @@
+export const PASSWORD_RESET_TTL_SECONDS = 60 * 60;
+export const BCRYPT_SALT_ROUNDS = 12;
