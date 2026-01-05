@@ -85,6 +85,7 @@ Variaveis esperadas na API:
 - `EFI_CERT_PATH=/caminho/para/certificado.p12`
 - `EFI_ENV=sandbox`
 - `EFI_PIX_KEY=...`
+- `EFI_WEBHOOK_SKIP_MTLS_CHECKING=false`
 
 ## Prisma (migracoes)
 

@@ -31,3 +31,20 @@ Isso depende das regras do provedor e nao ocorre em producao.
 
 `POST /payments/pix/create` com `orderId`, autenticado via JWT.
 Retorna `txid`, `copyPaste` e `qrCode` para o frontend.
+
+### Webhook Pix
+
+Endpoint publico: `POST /webhooks/efi/pix`.
+O payload e registrado em `WebhookEvent` e processado de forma assincrona via BullMQ.
+
+### Registro de webhook (admin)
+
+Endpoint admin: `POST /webhooks/efi/register` com `{ "webhookUrl": "https://..." }`.
+
+Se necessario, ative `EFI_WEBHOOK_SKIP_MTLS_CHECKING=true` para enviar o header
+`x-skip-mtls-checking: true` durante o registro.
+
+### Metrics de webhook
+
+Endpoint admin: `GET /webhooks/efi/metrics`.
+Retorna contadores em memoria e totais do banco (`pending`, `processed`, `total`).

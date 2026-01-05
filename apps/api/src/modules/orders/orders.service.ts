@@ -28,6 +28,15 @@ type OrderMeta = AuthRequestMeta & {
   reason?: string;
 };
 
+type PaymentConfirmationResult = {
+  order: {
+    id: string;
+    status: OrderStatus;
+    items: { id: string; listingId: string | null; deliveryType: DeliveryType }[];
+  };
+  applied: boolean;
+};
+
 @Injectable()
 export class OrdersService {
   constructor(
@@ -155,6 +164,10 @@ export class OrdersService {
             inventoryItems: true,
             deliveryEvidence: true,
           },
+        },
+        payments: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
         },
         events: { orderBy: { createdAt: 'asc' } },
         dispute: true,
@@ -292,7 +305,26 @@ export class OrdersService {
   }
 
   async markPaid(orderId: string, actorId?: string, meta?: OrderMeta) {
-    const order = await this.prisma.order.findUnique({
+    const result = await this.applyPaymentConfirmation(orderId, actorId, meta);
+    if (result.applied) {
+      await this.handlePaymentSideEffects(result.order, actorId, meta);
+    }
+    return result.order;
+  }
+
+  async applyPaymentConfirmation(
+    orderId: string,
+    actorId?: string | null,
+    meta?: OrderMeta,
+    tx?: Prisma.TransactionClient,
+  ): Promise<PaymentConfirmationResult> {
+    if (!tx) {
+      return this.prisma.$transaction((innerTx) =>
+        this.applyPaymentConfirmation(orderId, actorId, meta, innerTx),
+      );
+    }
+
+    const order = await tx.order.findUnique({
       where: { id: orderId },
       include: { items: true },
     });
@@ -301,47 +333,52 @@ export class OrdersService {
     }
 
     if (order.status === OrderStatus.PAID || order.status === OrderStatus.IN_DELIVERY) {
-      return order;
+      return { order, applied: false };
     }
 
     if (!this.isAllowedStatus(order.status, [OrderStatus.CREATED, OrderStatus.AWAITING_PAYMENT])) {
       throw new BadRequestException('Order cannot be marked as paid.');
     }
 
-    const updated = await this.prisma.$transaction(async (tx) => {
-      const paid = await tx.order.update({
-        where: { id: order.id },
-        data: { status: OrderStatus.PAID },
-      });
-
-      await this.createEvent(
-        tx,
-        order.id,
-        actorId,
-        OrderEventType.PAID,
-        this.buildMetadata(meta, order.status, OrderStatus.PAID),
-      );
-
-      const inDelivery = await tx.order.update({
-        where: { id: order.id },
-        data: { status: OrderStatus.IN_DELIVERY },
-      });
-
-      await this.createEvent(
-        tx,
-        order.id,
-        actorId,
-        OrderEventType.IN_DELIVERY,
-        this.buildMetadata(meta, OrderStatus.PAID, OrderStatus.IN_DELIVERY),
-      );
-
-      return inDelivery;
+    await tx.order.update({
+      where: { id: order.id },
+      data: { status: OrderStatus.PAID },
     });
 
-    await this.reserveInventoryForOrder(order);
-    await this.handleAutoDelivery(order, actorId, meta);
+    await this.createEvent(
+      tx,
+      order.id,
+      actorId ?? undefined,
+      OrderEventType.PAID,
+      this.buildMetadata(meta, order.status, OrderStatus.PAID),
+    );
 
-    return updated;
+    const inDelivery = await tx.order.update({
+      where: { id: order.id },
+      data: { status: OrderStatus.IN_DELIVERY },
+    });
+
+    await this.createEvent(
+      tx,
+      order.id,
+      actorId ?? undefined,
+      OrderEventType.IN_DELIVERY,
+      this.buildMetadata(meta, OrderStatus.PAID, OrderStatus.IN_DELIVERY),
+    );
+
+    return {
+      order: { ...inDelivery, items: order.items },
+      applied: true,
+    };
+  }
+
+  async handlePaymentSideEffects(
+    order: { id: string; items: { id: string; listingId: string | null; deliveryType: DeliveryType }[] },
+    actorId?: string | null,
+    meta?: OrderMeta,
+  ) {
+    await this.reserveInventoryForOrder(order);
+    await this.handleAutoDelivery(order, actorId ?? undefined, meta);
   }
 
   async handleOrderExpiration(orderId: string) {

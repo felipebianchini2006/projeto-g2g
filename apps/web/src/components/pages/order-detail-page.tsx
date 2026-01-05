@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 
 import { ApiClientError } from '../../lib/api-client';
-import { ordersApi, type Order } from '../../lib/orders-api';
+import { ordersApi, type Order, type PaymentStatus } from '../../lib/orders-api';
 import { useAuth } from '../auth/auth-provider';
 
 type OrderDetailContentProps = {
@@ -45,6 +45,14 @@ const eventLabel: Record<string, string> = {
   NOTE: 'Atualizacao',
 };
 
+const paymentStatusLabel: Record<PaymentStatus, string> = {
+  PENDING: 'Pendente',
+  CONFIRMED: 'Confirmado',
+  EXPIRED: 'Expirado',
+  REFUNDED: 'Reembolsado',
+  FAILED: 'Falhou',
+};
+
 const formatCurrency = (value: number, currency = 'BRL') =>
   new Intl.NumberFormat('pt-BR', {
     style: 'currency',
@@ -61,14 +69,21 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
 
   const detailPrefix = scope === 'seller' ? '/dashboard/vendas' : '/dashboard/pedidos';
 
-  const loadOrder = async () => {
+  const loadOrder = async (silent = false) => {
     if (!accessToken) {
       return;
     }
-    setState((prev) => ({ ...prev, status: 'loading', actionError: undefined, actionSuccess: undefined }));
+    if (!silent) {
+      setState((prev) => ({
+        ...prev,
+        status: 'loading',
+        actionError: undefined,
+        actionSuccess: undefined,
+      }));
+    }
     try {
       const order = await ordersApi.getOrder(accessToken, orderId);
-      setState({ status: 'ready', order });
+      setState((prev) => ({ ...prev, status: 'ready', order }));
     } catch (error) {
       const message =
         error instanceof ApiClientError
@@ -85,6 +100,19 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
       loadOrder();
     }
   }, [accessToken, orderId]);
+
+  useEffect(() => {
+    if (!accessToken || !state.order) {
+      return;
+    }
+    if (state.order.status !== 'AWAITING_PAYMENT') {
+      return;
+    }
+    const interval = setInterval(() => {
+      loadOrder(true);
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [accessToken, state.order?.status, orderId]);
 
   const handleAction = async (action: () => Promise<Order>, successMessage: string) => {
     if (!accessToken) {
@@ -133,6 +161,13 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
       manualItems,
       revealAllowed,
     };
+  }, [state.order]);
+
+  const paymentSummary = useMemo(() => {
+    if (!state.order?.payments?.length) {
+      return null;
+    }
+    return state.order.payments[0];
   }, [state.order]);
 
   if (loading) {
@@ -292,6 +327,40 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
           </div>
 
           <div className="order-card">
+            <h3>Pagamento</h3>
+            {paymentSummary ? (
+              <div className="payment-summary">
+                <div>
+                  <span className="summary-label">Status</span>
+                  <strong className={`payment-pill payment-${paymentSummary.status.toLowerCase()}`}>
+                    {paymentStatusLabel[paymentSummary.status]}
+                  </strong>
+                </div>
+                <div>
+                  <span className="summary-label">Txid</span>
+                  <strong className="mono">{paymentSummary.txid}</strong>
+                </div>
+                <div>
+                  <span className="summary-label">Pago em</span>
+                  <strong>
+                    {paymentSummary.paidAt
+                      ? new Date(paymentSummary.paidAt).toLocaleString('pt-BR')
+                      : 'Aguardando'}
+                  </strong>
+                </div>
+                <div>
+                  <span className="summary-label">Expira em</span>
+                  <strong>
+                    {paymentSummary.expiresAt
+                      ? new Date(paymentSummary.expiresAt).toLocaleString('pt-BR')
+                      : 'Nao informado'}
+                  </strong>
+                </div>
+              </div>
+            ) : (
+              <p className="auth-helper">Nenhuma cobranca registrada ainda.</p>
+            )}
+
             <h3>Timeline</h3>
             <div className="timeline">
               {state.order.events?.map((event) => (

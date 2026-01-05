@@ -10,6 +10,7 @@ import { LoggerModule } from './modules/logger/logger.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { PrismaModule } from './modules/prisma/prisma.module';
 import { RedisModule } from './modules/redis/redis.module';
+import { WebhooksModule } from './modules/webhooks/webhooks.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { RedisModule } from './modules/redis/redis.module';
     HealthModule,
     ListingsModule,
     OrdersModule,
+    WebhooksModule,
   ],
 })
 export class AppModule {}

@@ -12,6 +12,6 @@ import { PaymentsService } from './payments.service';
   imports: [PrismaModule, AuthModule, LoggerModule],
   controllers: [PaymentsController],
   providers: [PaymentsService, EfiHttpService, EfiClient],
-  exports: [PaymentsService],
+  exports: [PaymentsService, EfiClient],
 })
 export class PaymentsModule {}

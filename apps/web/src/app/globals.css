@@ -1822,6 +1822,50 @@ img {
   margin-top: 2px;
 }
 
+.payment-summary {
+  display: grid;
+  gap: 12px;
+  background: #fffafc;
+  border-radius: 18px;
+  padding: 14px;
+  border: 1px dashed rgba(216, 107, 149, 0.2);
+}
+
+.payment-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  margin-top: 4px;
+}
+
+.payment-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.payment-confirmed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.payment-expired {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.payment-refunded {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
+.payment-failed {
+  background: #fecaca;
+  color: #991b1b;
+}
+
 .checkout-shell {
   padding: 60px 0;
 }

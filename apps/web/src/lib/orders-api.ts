@@ -11,6 +11,13 @@ export type OrderStatus =
   | 'DISPUTED'
   | 'REFUNDED';
 
+export type PaymentStatus =
+  | 'PENDING'
+  | 'CONFIRMED'
+  | 'EXPIRED'
+  | 'REFUNDED'
+  | 'FAILED';
+
 export type OrderEvent = {
   id: string;
   type: string;
@@ -34,6 +41,16 @@ export type OrderParty = {
   email: string;
 };
 
+export type PaymentSummary = {
+  id: string;
+  status: PaymentStatus;
+  txid: string;
+  paidAt?: string | null;
+  expiresAt?: string | null;
+  qrCode?: string | null;
+  copyPaste?: string | null;
+};
+
 export type Order = {
   id: string;
   status: OrderStatus;
@@ -47,6 +64,7 @@ export type Order = {
   seller?: OrderParty | null;
   items: OrderItem[];
   events?: OrderEvent[];
+  payments?: PaymentSummary[];
   expiresAt?: string | null;
   deliveredAt?: string | null;
   completedAt?: string | null;

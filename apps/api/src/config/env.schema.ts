@@ -18,4 +18,5 @@ export const envSchema = Joi.object({
   EFI_CERT_PATH: Joi.string(),
   EFI_ENV: Joi.string().valid('sandbox', 'prod').default('sandbox'),
   EFI_PIX_KEY: Joi.string(),
+  EFI_WEBHOOK_SKIP_MTLS_CHECKING: Joi.string().valid('true', 'false').default('false'),
 });

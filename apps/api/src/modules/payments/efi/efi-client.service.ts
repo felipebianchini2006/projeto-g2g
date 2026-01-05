@@ -85,6 +85,26 @@ export class EfiClient {
     };
   }
 
+  async registerWebhook(webhookUrl: string) {
+    const accessToken = await this.getAccessToken();
+    const pixKey = this.getRequired('EFI_PIX_KEY');
+    const skipMtls = this.configService.get<string>('EFI_WEBHOOK_SKIP_MTLS_CHECKING') ?? 'false';
+    const headers: Record<string, string> = {};
+
+    if (skipMtls === 'true') {
+      headers['x-skip-mtls-checking'] = 'true';
+    }
+
+    return this.httpService.request<Record<string, unknown>>({
+      method: 'PUT',
+      path: `/v2/webhook/${pixKey}`,
+      accessToken,
+      headers,
+      body: { webhookUrl },
+      timeoutMs: 15000,
+    });
+  }
+
   private async getAccessToken(): Promise<string> {
     const now = Date.now();
     if (this.token && this.token.expiresAt > now + 60000) {
