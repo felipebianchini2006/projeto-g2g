@@ -183,8 +183,20 @@ async function main() {
         },
         events: {
           create: [
-            { id: 'seed-order-event-1', type: 'CREATED', payload: { seed: true } },
-            { id: 'seed-order-event-2', type: 'PAID', payload: { seed: true } },
+            {
+              id: 'seed-order-event-1',
+              type: 'CREATED',
+              userId: buyer.id,
+              payload: { seed: true },
+              metadata: { from: null, to: 'CREATED' },
+            },
+            {
+              id: 'seed-order-event-2',
+              type: 'PAID',
+              userId: buyer.id,
+              payload: { seed: true },
+              metadata: { from: 'CREATED', to: 'PAID' },
+            },
           ],
         },
       },

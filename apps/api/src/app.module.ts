@@ -7,6 +7,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { HealthModule } from './modules/health/health.module';
 import { ListingsModule } from './modules/listings/listings.module';
 import { LoggerModule } from './modules/logger/logger.module';
+import { OrdersModule } from './modules/orders/orders.module';
 import { PrismaModule } from './modules/prisma/prisma.module';
 import { RedisModule } from './modules/redis/redis.module';
 
@@ -30,6 +31,7 @@ import { RedisModule } from './modules/redis/redis.module';
     AuthModule,
     HealthModule,
     ListingsModule,
+    OrdersModule,
   ],
 })
 export class AppModule {}

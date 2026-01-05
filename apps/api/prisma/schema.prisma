@@ -38,24 +38,25 @@ enum InventoryStatus {
 }
 
 enum OrderStatus {
-  PENDING
+  CREATED
   AWAITING_PAYMENT
   PAID
-  DELIVERING
+  IN_DELIVERY
+  DELIVERED
   COMPLETED
-  CANCELED
+  CANCELLED
   DISPUTED
   REFUNDED
 }
 
 enum OrderEventType {
   CREATED
-  PAYMENT_PENDING
+  AWAITING_PAYMENT
   PAID
-  DELIVERY_STARTED
+  IN_DELIVERY
   DELIVERED
   COMPLETED
-  CANCELED
+  CANCELLED
   REFUNDED
   DISPUTED
   NOTE
@@ -160,6 +161,7 @@ model User {
   ticketMessages      TicketMessage[]
   notifications       Notification[]
   auditLogs           AuditLog[]      @relation("AuditAdmin")
+  orderEvents         OrderEvent[]    @relation("OrderEventUser")
 
   @@map("users")
 }
@@ -297,9 +299,12 @@ model Order {
   id               String      @id @default(uuid())
   buyerId          String
   sellerId         String?
-  status           OrderStatus @default(PENDING)
+  status           OrderStatus @default(CREATED)
   totalAmountCents Int
   currency         String      @default("BRL")
+  expiresAt        DateTime?
+  deliveredAt      DateTime?
+  completedAt      DateTime?
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
 
@@ -316,6 +321,8 @@ model Order {
   @@index([buyerId])
   @@index([sellerId])
   @@index([status])
+  @@index([expiresAt])
+  @@index([deliveredAt])
   @@map("orders")
 }
 
@@ -347,15 +354,19 @@ model OrderItemSnapshot {
 model OrderEvent {
   id        String         @id @default(uuid())
   orderId   String
+  userId    String?
   type      OrderEventType
   payload   Json?
+  metadata  Json?
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user  User?  @relation("OrderEventUser", fields: [userId], references: [id])
 
   @@index([orderId])
   @@index([type])
+  @@index([userId])
   @@map("order_events")
 }
 

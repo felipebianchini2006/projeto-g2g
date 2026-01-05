@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import { fetchPublicListing, type PublicListing } from '../../lib/marketplace-public';
-import { useSite } from '../site-context';
 
 type ListingDetailState = {
   status: 'loading' | 'ready';
@@ -21,7 +20,6 @@ const formatCurrency = (value: number, currency = 'BRL') =>
   }).format(value / 100);
 
 export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
-  const { addToCart } = useSite();
   const [state, setState] = useState<ListingDetailState>({
     status: 'loading',
     listing: null,
@@ -151,9 +149,9 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
               {listing.refundPolicy ?? 'Politica de reembolso disponivel na confirmacao.'}
             </p>
             <div className="listing-actions">
-              <button className="primary-button" type="button" onClick={() => addToCart(listing.title)}>
+              <Link className="primary-button" href={`/checkout/${listing.id}`}>
                 Comprar agora
-              </button>
+              </Link>
               <Link href="/dashboard" className="ghost-button">
                 Falar com o seller
               </Link>

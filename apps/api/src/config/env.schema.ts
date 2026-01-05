@@ -9,4 +9,8 @@ export const envSchema = Joi.object({
   JWT_SECRET: Joi.string().required(),
   TOKEN_TTL: Joi.number().integer().min(60).default(900),
   REFRESH_TTL: Joi.number().integer().min(300).default(2592000),
+  ORDER_PAYMENT_TTL_SECONDS: Joi.number().integer().min(60).default(900),
+  ORDER_AUTO_COMPLETE_HOURS: Joi.number().integer().min(1).default(72),
+  PIX_MOCK_MODE: Joi.string().valid('true', 'false').default('true'),
+  PIX_MOCK_TTL_SECONDS: Joi.number().integer().min(60).default(900),
 });
