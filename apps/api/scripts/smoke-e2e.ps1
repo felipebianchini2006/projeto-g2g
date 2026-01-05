@@ -100,7 +100,7 @@ Write-Host "Order status: $($current.status)"
 
 Write-Host "== Confirm receipt (buyer) =="
 $null = Invoke-Api -Method POST -Path "/orders/$orderId/confirm-receipt" -Token $buyer.accessToken -Body @{
-  note = "ok"
+  note = "ok!"
 }
 
 Write-Host "== Admin release =="
