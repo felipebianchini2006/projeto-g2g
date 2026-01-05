@@ -37,6 +37,12 @@ type HeldEntryInput = {
   currency: string;
 };
 
+type SellerPayoutInfo = {
+  payoutPixKey?: string | null;
+  payoutBlockedAt?: Date | null;
+  email?: string | null;
+};
+
 @Injectable()
 export class SettlementService {
   constructor(
@@ -161,15 +167,16 @@ export class SettlementService {
       this.configService.get<string>('SETTLEMENT_MODE') ?? 'cashout';
 
     if (settlementMode === 'cashout') {
-      if (!result.order.seller?.payoutPixKey) {
+      const seller = result.order.seller as SellerPayoutInfo | null | undefined;
+      if (!seller?.payoutPixKey) {
         throw new BadRequestException('Seller payout Pix key not configured.');
       }
-      if (result.order.seller.payoutBlockedAt) {
+      if (seller.payoutBlockedAt) {
         throw new ForbiddenException('Seller payout is blocked.');
       }
       await this.paymentsService.cashOutPix({
         orderId: result.order.id,
-        payoutPixKey: result.order.seller.payoutPixKey,
+        payoutPixKey: seller.payoutPixKey,
         amountCents: result.heldEntry.amountCents,
         currency: result.heldEntry.currency,
       });
@@ -215,7 +222,7 @@ export class SettlementService {
       await tx.orderEvent.create({
         data: {
           orderId: result.order.id,
-          userId: actorId ?? null,
+          ...(actorId ? { user: { connect: { id: actorId } } } : {}),
           type: OrderEventType.NOTE,
           metadata: this.buildMetadata(
             { source: actorId ? 'admin' : 'system', reason },
@@ -253,10 +260,11 @@ export class SettlementService {
         });
       }
 
-      if (result.order.seller?.email) {
+      const seller = result.order.seller as SellerPayoutInfo | null | undefined;
+      if (seller?.email) {
         await tx.emailOutbox.create({
           data: {
-            to: result.order.seller.email,
+            to: seller.email,
             subject: 'Saldo liberado',
             body: `O pedido ${result.order.id} foi liberado para saque.`,
           },
@@ -340,7 +348,7 @@ export class SettlementService {
       await tx.orderEvent.create({
         data: {
           orderId: updatedOrder.id,
-          userId: actorId ?? null,
+          ...(actorId ? { user: { connect: { id: actorId } } } : {}),
           type: OrderEventType.REFUNDED,
           metadata: this.buildMetadata(
             { source: actorId ? 'admin' : 'system', reason },
@@ -447,7 +455,7 @@ export class SettlementService {
           data: {
             payoutBlockedAt: new Date(),
             payoutBlockedReason: reason ?? 'Manual chargeback required.',
-          },
+          } as Prisma.UserUncheckedUpdateInput,
         });
       }
 
@@ -477,7 +485,7 @@ export class SettlementService {
       await tx.orderEvent.create({
         data: {
           orderId: order.id,
-          userId: actorId ?? null,
+          ...(actorId ? { user: { connect: { id: actorId } } } : {}),
           type: OrderEventType.REFUNDED,
           metadata: this.buildMetadata(
             { source: actorId ? 'admin' : 'system', reason },
