@@ -1,7 +1,7 @@
 jest.mock('@nestjs/bullmq', () => ({
   Processor: () => (target: unknown) => target,
-  Process: () => () => undefined,
   InjectQueue: () => () => undefined,
+  WorkerHost: class {},
 }));
 
 import { Job } from 'bullmq';

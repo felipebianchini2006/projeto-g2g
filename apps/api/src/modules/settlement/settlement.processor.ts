@@ -1,4 +1,4 @@
-import { Processor, Process } from '@nestjs/bullmq';
+import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 
 import { AppLogger } from '../logger/logger.service';
@@ -6,14 +6,22 @@ import { SettlementJobName, SETTLEMENT_QUEUE } from './settlement.queue';
 import { SettlementService } from './settlement.service';
 
 @Processor(SETTLEMENT_QUEUE)
-export class SettlementProcessor {
+export class SettlementProcessor extends WorkerHost {
   constructor(
     private readonly settlementService: SettlementService,
     private readonly logger: AppLogger,
-  ) {}
+  ) {
+    super();
+  }
 
-  @Process(SettlementJobName.ReleaseOrder)
-  async handleRelease(job: Job<{ orderId?: string }>) {
+  async process(job: Job<{ orderId?: string }>) {
+    if (job.name !== SettlementJobName.ReleaseOrder) {
+      return;
+    }
+    await this.handleRelease(job);
+  }
+
+  private async handleRelease(job: Job<{ orderId?: string }>) {
     const orderId = job.data.orderId;
     if (!orderId) {
       return;

@@ -222,7 +222,7 @@ export class SettlementService {
       await tx.orderEvent.create({
         data: {
           orderId: result.order.id,
-          ...(actorId ? { user: { connect: { id: actorId } } } : {}),
+          userId: actorId ?? null,
           type: OrderEventType.NOTE,
           metadata: this.buildMetadata(
             { source: actorId ? 'admin' : 'system', reason },
@@ -348,7 +348,7 @@ export class SettlementService {
       await tx.orderEvent.create({
         data: {
           orderId: updatedOrder.id,
-          ...(actorId ? { user: { connect: { id: actorId } } } : {}),
+          userId: actorId ?? null,
           type: OrderEventType.REFUNDED,
           metadata: this.buildMetadata(
             { source: actorId ? 'admin' : 'system', reason },
@@ -485,7 +485,7 @@ export class SettlementService {
       await tx.orderEvent.create({
         data: {
           orderId: order.id,
-          ...(actorId ? { user: { connect: { id: actorId } } } : {}),
+          userId: actorId ?? null,
           type: OrderEventType.REFUNDED,
           metadata: this.buildMetadata(
             { source: actorId ? 'admin' : 'system', reason },

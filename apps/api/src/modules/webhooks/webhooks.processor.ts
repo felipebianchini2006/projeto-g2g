@@ -1,4 +1,4 @@
-import { Processor, Process } from '@nestjs/bullmq';
+import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { NotificationType, PaymentStatus, Prisma } from '@prisma/client';
 
@@ -14,16 +14,24 @@ type WebhookJobData = {
 };
 
 @Processor(WEBHOOKS_QUEUE)
-export class WebhooksProcessor {
+export class WebhooksProcessor extends WorkerHost {
   constructor(
     private readonly prisma: PrismaService,
     private readonly ordersService: OrdersService,
     private readonly settlementService: SettlementService,
     private readonly logger: AppLogger,
     private readonly metrics: WebhookMetricsService,
-  ) {}
+  ) {
+    super();
+  }
 
-  @Process(WebhooksJobName.ProcessEfi)
+  async process(job: Job<WebhookJobData>) {
+    if (job.name !== WebhooksJobName.ProcessEfi) {
+      return;
+    }
+    await this.handleProcess(job);
+  }
+
   async handleProcess(job: Job<WebhookJobData>) {
     const eventId = job.data.webhookEventId;
     let correlationId = eventId;

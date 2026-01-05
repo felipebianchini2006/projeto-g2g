@@ -40,7 +40,7 @@ export class EfiHttpService {
     }
 
     if (request.accessToken) {
-      headers.Authorization = `Bearer ${request.accessToken}`;
+      headers['Authorization'] = `Bearer ${request.accessToken}`;
     }
 
     const options: https.RequestOptions = {
