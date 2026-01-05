@@ -1,7 +1,6 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Worker } from 'bullmq';
-import IORedis from 'ioredis';
+import { Worker, type Job } from 'bullmq';
 
 import { AppLogger } from '../logger/logger.service';
 import { OrdersService } from './orders.service';
@@ -22,12 +21,12 @@ export class OrdersProcessor implements OnModuleInit, OnModuleDestroy {
       return;
     }
     const redisUrl = this.configService.getOrThrow<string>('REDIS_URL');
-    const connection = new IORedis(buildRedisConfig(redisUrl));
+    const connection = buildRedisConfig(redisUrl);
 
     this.worker = new Worker(
       ORDERS_QUEUE,
-      async (job) => {
-        const { orderId } = job.data as { orderId: string };
+      async (job: Job<{ orderId: string }>) => {
+        const { orderId } = job.data;
         if (!orderId) {
           return;
         }
@@ -44,7 +43,7 @@ export class OrdersProcessor implements OnModuleInit, OnModuleDestroy {
       { connection },
     );
 
-    this.worker.on('failed', (job, error) => {
+    this.worker.on('failed', (job?: Job, error?: Error) => {
       const message = error instanceof Error ? error.message : 'Job failed';
       const stack = error instanceof Error ? error.stack : undefined;
       this.logger.error(

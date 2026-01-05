@@ -1,4 +1,4 @@
-import { type RedisOptions } from 'ioredis';
+import { type ConnectionOptions } from 'bullmq';
 
 export const ORDERS_QUEUE = 'orders';
 
@@ -7,7 +7,7 @@ export const OrdersJobName = {
   AutoComplete: 'auto-complete-order',
 } as const;
 
-export const buildRedisConfig = (url: string): RedisOptions => ({
+export const buildRedisConfig = (url: string): ConnectionOptions => ({
   lazyConnect: true,
   maxRetriesPerRequest: null,
   enableReadyCheck: false,

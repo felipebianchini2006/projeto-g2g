@@ -178,7 +178,7 @@ export class OrdersService {
       if (order.buyerId !== buyerId) {
         throw new ForbiddenException('Only the buyer can cancel.');
       }
-      if (![OrderStatus.CREATED, OrderStatus.AWAITING_PAYMENT].includes(order.status)) {
+      if (!this.isAllowedStatus(order.status, [OrderStatus.CREATED, OrderStatus.AWAITING_PAYMENT])) {
         throw new BadRequestException('Order cannot be cancelled in the current state.');
       }
 
@@ -241,7 +241,7 @@ export class OrdersService {
       if (order.buyerId !== buyerId) {
         throw new ForbiddenException('Only the buyer can open disputes.');
       }
-      if (![OrderStatus.DELIVERED, OrderStatus.COMPLETED].includes(order.status)) {
+      if (!this.isAllowedStatus(order.status, [OrderStatus.DELIVERED, OrderStatus.COMPLETED])) {
         throw new BadRequestException('Order cannot be disputed in the current state.');
       }
       if (order.dispute) {
@@ -304,7 +304,7 @@ export class OrdersService {
       return order;
     }
 
-    if (![OrderStatus.CREATED, OrderStatus.AWAITING_PAYMENT].includes(order.status)) {
+    if (!this.isAllowedStatus(order.status, [OrderStatus.CREATED, OrderStatus.AWAITING_PAYMENT])) {
       throw new BadRequestException('Order cannot be marked as paid.');
     }
 
@@ -353,7 +353,7 @@ export class OrdersService {
       if (!order.expiresAt) {
         return order;
       }
-      if (![OrderStatus.CREATED, OrderStatus.AWAITING_PAYMENT].includes(order.status)) {
+      if (!this.isAllowedStatus(order.status, [OrderStatus.CREATED, OrderStatus.AWAITING_PAYMENT])) {
         return order;
       }
       if (order.expiresAt && order.expiresAt.getTime() > Date.now()) {
@@ -370,7 +370,11 @@ export class OrdersService {
         order.id,
         null,
         OrderEventType.CANCELLED,
-        this.buildMetadata({ source: 'system', reason: 'expired' }, order.status, OrderStatus.CANCELLED),
+        this.buildMetadata(
+          { source: 'system', reason: 'expired' },
+          order.status,
+          OrderStatus.CANCELLED,
+        ),
       );
 
       return updated;
@@ -400,7 +404,11 @@ export class OrdersService {
         order.id,
         null,
         OrderEventType.COMPLETED,
-        this.buildMetadata({ source: 'system', reason: 'auto-complete' }, order.status, OrderStatus.COMPLETED),
+        this.buildMetadata(
+          { source: 'system', reason: 'auto-complete' },
+          order.status,
+          OrderStatus.COMPLETED,
+        ),
       );
 
       return updated;
@@ -453,18 +461,29 @@ export class OrdersService {
     await this.ordersQueue.scheduleAutoComplete(order.id, delayMs);
   }
 
-  private buildMetadata(meta: OrderMeta | AuthRequestMeta | null, from: OrderStatus | null, to: OrderStatus) {
+  private buildMetadata(
+    meta: OrderMeta | AuthRequestMeta | null | undefined,
+    from: OrderStatus | null,
+    to: OrderStatus,
+  ): Prisma.InputJsonValue {
+    const metadata: Record<string, Prisma.InputJsonValue> = { to };
     if (!meta) {
-      return { from, to };
+      return metadata;
     }
-    return {
-      from,
-      to,
-      reason: 'reason' in meta ? meta.reason : undefined,
-      source: 'source' in meta && meta.source ? meta.source : 'user',
-      ip: meta.ip,
-      userAgent: meta.userAgent,
-    };
+    if (from) {
+      metadata['from'] = from;
+    }
+    if ('reason' in meta && meta.reason) {
+      metadata['reason'] = meta.reason;
+    }
+    metadata['source'] = 'source' in meta && meta.source ? meta.source : 'user';
+    if (meta.ip) {
+      metadata['ip'] = meta.ip;
+    }
+    if (meta.userAgent) {
+      metadata['userAgent'] = meta.userAgent;
+    }
+    return metadata;
   }
 
   private async createEvent(
@@ -472,7 +491,7 @@ export class OrdersService {
     orderId: string,
     userId: string | undefined | null,
     type: OrderEventType,
-    metadata: Record<string, unknown>,
+    metadata: Prisma.InputJsonValue,
   ) {
     await tx.orderEvent.create({
       data: {
@@ -482,5 +501,9 @@ export class OrdersService {
         metadata,
       },
     });
+  }
+
+  private isAllowedStatus(status: OrderStatus, allowed: OrderStatus[]) {
+    return allowed.includes(status);
   }
 }

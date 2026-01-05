@@ -1,7 +1,6 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Queue } from 'bullmq';
-import IORedis from 'ioredis';
 
 import { AppLogger } from '../logger/logger.service';
 import { ORDERS_QUEUE, OrdersJobName, buildRedisConfig } from './orders.queue';
@@ -9,17 +8,16 @@ import { ORDERS_QUEUE, OrdersJobName, buildRedisConfig } from './orders.queue';
 @Injectable()
 export class OrdersQueueService implements OnModuleDestroy {
   private readonly queue: Queue;
-  private readonly connection: IORedis;
 
   constructor(
     private readonly configService: ConfigService,
     private readonly logger: AppLogger,
   ) {
     const redisUrl = this.configService.getOrThrow<string>('REDIS_URL');
-    this.connection = new IORedis(buildRedisConfig(redisUrl));
-    this.queue = new Queue(ORDERS_QUEUE, { connection: this.connection });
+    const connection = buildRedisConfig(redisUrl);
+    this.queue = new Queue(ORDERS_QUEUE, { connection });
 
-    this.queue.on('error', (error) => {
+    this.queue.on('error', (error: Error) => {
       const message = error instanceof Error ? error.message : 'Queue error';
       const stack = error instanceof Error ? error.stack : undefined;
       this.logger.error(message, stack, 'OrdersQueue');
@@ -62,6 +60,5 @@ export class OrdersQueueService implements OnModuleDestroy {
 
   async onModuleDestroy() {
     await this.queue.close();
-    await this.connection.quit();
   }
 }
