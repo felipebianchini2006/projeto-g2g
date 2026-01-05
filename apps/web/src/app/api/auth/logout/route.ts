@@ -8,7 +8,7 @@ import {
 } from '../../../../lib/auth-server';
 
 export async function POST() {
-  const refreshToken = getRefreshCookie();
+  const refreshToken = await getRefreshCookie();
   const response = NextResponse.json({ success: true });
   clearRefreshCookie(response);
 

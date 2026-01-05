@@ -32,7 +32,7 @@ export class AuthService {
     const email = this.normalizeEmail(dto.email);
     const role = dto.role ?? UserRole.USER;
 
-    if (![UserRole.USER, UserRole.SELLER].includes(role)) {
+    if (role !== UserRole.USER && role !== UserRole.SELLER) {
       throw new BadRequestException('Role not allowed for self-registration.');
     }
 
@@ -86,7 +86,10 @@ export class AuthService {
       throw new UnauthorizedException('Session expired.');
     }
 
-    if (existing.session?.revokedAt || existing.session?.expiresAt <= now) {
+    if (
+      existing.session?.revokedAt ||
+      (existing.session?.expiresAt && existing.session.expiresAt <= now)
+    ) {
       throw new UnauthorizedException('Session expired.');
     }
 

@@ -22,17 +22,17 @@ async function main() {
   const admin = await upsertUser({
     email: 'admin@email.com',
     role: 'ADMIN',
-    password: '123456',
+    password: '12345678',
   });
   const seller = await upsertUser({
     email: 'seller@email.com',
     role: 'SELLER',
-    password: '123456',
+    password: '12345678',
   });
   const buyer = await upsertUser({
     email: 'buyer@email.com',
     role: 'USER',
-    password: '123456',
+    password: '12345678',
   });
 
   const categories = [

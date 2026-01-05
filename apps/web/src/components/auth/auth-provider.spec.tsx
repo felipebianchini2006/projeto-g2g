@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { AuthProvider, useAuth } from './auth-provider';
 import { authApi } from '../../lib/auth-api';
+import type { AuthSession } from '../../lib/auth-types';
 
 vi.mock('../../lib/auth-api', () => ({
   authApi: {
@@ -36,7 +37,7 @@ const TestComponent = () => {
 
 describe('AuthProvider', () => {
   it('logs in and logs out', async () => {
-    const session = {
+    const session: AuthSession = {
       user: {
         id: 'user-1',
         email: 'user@email.com',

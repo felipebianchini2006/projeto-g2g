@@ -9,7 +9,7 @@ import {
 } from '../../../../lib/auth-server';
 
 export async function POST() {
-  const refreshToken = getRefreshCookie();
+  const refreshToken = await getRefreshCookie();
   if (!refreshToken) {
     return NextResponse.json({ message: 'Missing refresh token.' }, { status: 401 });
   }

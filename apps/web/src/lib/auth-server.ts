@@ -83,4 +83,7 @@ export const buildErrorResponse = (payload: unknown, fallback: string, status: n
   return NextResponse.json({ message: extractMessage(payload, fallback) }, { status });
 };
 
-export const getRefreshCookie = () => cookies().get(REFRESH_COOKIE)?.value ?? null;
+export const getRefreshCookie = async () => {
+  const cookieStore = await cookies();
+  return cookieStore.get(REFRESH_COOKIE)?.value ?? null;
+};

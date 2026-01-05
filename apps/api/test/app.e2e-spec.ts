@@ -11,12 +11,12 @@ describe('Health (e2e)', () => {
   let app: INestApplication<App>;
 
   beforeAll(async () => {
-    process.env.DATABASE_URL =
-      process.env.DATABASE_URL ?? 'postgresql://postgres:123456@localhost:5432/projeto_g2g';
-    process.env.REDIS_URL = process.env.REDIS_URL ?? 'redis://localhost:6379';
-    process.env.JWT_SECRET = process.env.JWT_SECRET ?? 'test-secret';
-    process.env.TOKEN_TTL = process.env.TOKEN_TTL ?? '900';
-    process.env.REFRESH_TTL = process.env.REFRESH_TTL ?? '3600';
+    process.env['DATABASE_URL'] =
+      process.env['DATABASE_URL'] ?? 'postgresql://postgres:123456@localhost:5432/projeto_g2g';
+    process.env['REDIS_URL'] = process.env['REDIS_URL'] ?? 'redis://localhost:6379';
+    process.env['JWT_SECRET'] = process.env['JWT_SECRET'] ?? 'test-secret';
+    process.env['TOKEN_TTL'] = process.env['TOKEN_TTL'] ?? '900';
+    process.env['REFRESH_TTL'] = process.env['REFRESH_TTL'] ?? '3600';
 
     const prismaMock = {
       $queryRaw: jest.fn().mockResolvedValue(1),

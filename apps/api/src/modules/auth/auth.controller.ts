@@ -1,6 +1,6 @@
 import { Body, Controller, HttpCode, Post, Req, UseGuards } from '@nestjs/common';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
-import { Request } from 'express';
+import type { Request } from 'express';
 
 import type { AuthRequestMeta } from './auth.types';
 import { AuthService } from './auth.service';
