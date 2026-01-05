@@ -13,4 +13,9 @@ export const envSchema = Joi.object({
   ORDER_AUTO_COMPLETE_HOURS: Joi.number().integer().min(1).default(72),
   PIX_MOCK_MODE: Joi.string().valid('true', 'false').default('true'),
   PIX_MOCK_TTL_SECONDS: Joi.number().integer().min(60).default(900),
+  EFI_CLIENT_ID: Joi.string(),
+  EFI_CLIENT_SECRET: Joi.string(),
+  EFI_CERT_PATH: Joi.string(),
+  EFI_ENV: Joi.string().valid('sandbox', 'prod').default('sandbox'),
+  EFI_PIX_KEY: Joi.string(),
 });

@@ -78,6 +78,13 @@ Variaveis esperadas na API:
 - `JWT_SECRET=uma-chave-forte`
 - `TOKEN_TTL=900`
 - `REFRESH_TTL=2592000`
+- `PIX_MOCK_MODE=true`
+- `PIX_MOCK_TTL_SECONDS=900`
+- `EFI_CLIENT_ID=...`
+- `EFI_CLIENT_SECRET=...`
+- `EFI_CERT_PATH=/caminho/para/certificado.p12`
+- `EFI_ENV=sandbox`
+- `EFI_PIX_KEY=...`
 
 ## Prisma (migracoes)
 
@@ -105,6 +112,10 @@ Copie os templates e ajuste os valores:
 
 - `apps/api/.env.example` -> `apps/api/.env`
 - `apps/web/.env.example` -> `apps/web/.env.local`
+
+Documentacao Pix Efi:
+
+- `apps/api/docs/efi-pix.md`
 
 ## Convencoes de commit (opcional)
 
