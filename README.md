@@ -29,6 +29,16 @@ npm run test
 npm run lint
 ```
 
+## Web (Next.js)
+
+Para apontar o frontend para a API local, ajuste o `.env.local`:
+
+- `NEXT_PUBLIC_APP_URL=http://localhost:3000`
+- `NEXT_PUBLIC_API_URL=http://localhost:3001`
+
+Para acessar o dashboard placeholder, use `/login` e clique em "Entrar como demo",
+ou acesse `/dashboard?dev=1` uma vez para gravar o cookie de bypass local.
+
 ## Docker (dev)
 
 Suba os servicos locais (Postgres e Redis):

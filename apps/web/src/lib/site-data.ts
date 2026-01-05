@@ -1,10 +1,10 @@
 export const navItems = [
-  { label: 'Nintendo', href: '#' },
-  { label: 'PlayStation', href: '#' },
-  { label: 'Xbox', href: '#' },
-  { label: 'Colecionaveis', href: '#' },
-  { label: 'Pre-vendas', href: '#' },
-  { label: 'Ofertas da Semana', href: '#', highlight: true },
+  { label: 'Nintendo', href: '/produtos?tag=nintendo' },
+  { label: 'PlayStation', href: '/produtos?tag=playstation' },
+  { label: 'Xbox', href: '/produtos?tag=xbox' },
+  { label: 'Colecionaveis', href: '/produtos?tag=colecionaveis' },
+  { label: 'Pre-vendas', href: '/produtos?tag=pre-vendas' },
+  { label: 'Ofertas da Semana', href: '/produtos', highlight: true },
 ] as const;
 
 export const features = [

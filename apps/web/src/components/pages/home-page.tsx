@@ -3,12 +3,11 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { features, franchises } from '../../lib/site-data';
-import { SiteLayout } from '../site-layout';
 
 const HERO_DOT_COUNT = 3;
 const FRANCHISE_DOT_COUNT = 3;
 
-export const HomePage = () => {
+export const HomeContent = () => {
   const heroDots = useMemo(() => Array.from({ length: HERO_DOT_COUNT }), []);
   const franchiseDots = useMemo(
     () => Array.from({ length: FRANCHISE_DOT_COUNT }),
@@ -26,7 +25,7 @@ export const HomePage = () => {
   }, []);
 
   return (
-    <SiteLayout>
+    <>
       <section className="hero-banner">
         <div className="hero-slide active">
           <img
@@ -123,6 +122,6 @@ export const HomePage = () => {
       <a href="#" className="whatsapp-float" aria-label="WhatsApp">
         <i className="fab fa-whatsapp" aria-hidden="true" />
       </a>
-    </SiteLayout>
+    </>
   );
 };

@@ -2,9 +2,8 @@
 
 import { products } from '../../lib/site-data';
 import { useSite } from '../site-context';
-import { SiteLayout } from '../site-layout';
 
-const ProdutosContent = () => {
+export const ProdutosContent = () => {
   const { addToCart } = useSite();
 
   return (
@@ -52,9 +51,3 @@ const ProdutosContent = () => {
     </section>
   );
 };
-
-export const ProdutosPage = () => (
-  <SiteLayout>
-    <ProdutosContent />
-  </SiteLayout>
-);

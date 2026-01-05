@@ -818,6 +818,55 @@ img {
     font-size: 12px;
 }
 
+.auth-shell,
+.dashboard-shell {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 24px;
+    background: radial-gradient(circle at top, #ffe9f3 0%, #fff7fb 50%, #ffffff 100%);
+}
+
+.auth-card,
+.dashboard-card {
+    background: #fff;
+    border-radius: 24px;
+    box-shadow: var(--shadow);
+    padding: 40px;
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+    display: grid;
+    gap: 16px;
+}
+
+.auth-kicker {
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 1px;
+    font-weight: 700;
+    color: var(--deep-red);
+}
+
+.auth-actions {
+    display: grid;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.dashboard-card p,
+.auth-card p {
+    color: var(--muted);
+    line-height: 1.6;
+}
+
+.auth-card .ghost-button,
+.dashboard-card .ghost-button {
+    color: var(--charcoal);
+    border-color: rgba(216, 107, 149, 0.3);
+}
+
 @keyframes float {
     0%,
     100% {

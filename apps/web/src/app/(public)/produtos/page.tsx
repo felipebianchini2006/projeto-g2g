@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-import { ProdutosPage } from '../../components/pages/produtos-page';
+import { ProdutosContent } from '../../../components/pages/produtos-page';
 
 export const metadata: Metadata = {
   title: 'Meoww Games - Produtos',
@@ -8,5 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <ProdutosPage />;
+  return <ProdutosContent />;
 }
