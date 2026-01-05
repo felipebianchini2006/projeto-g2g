@@ -15,8 +15,11 @@ export class PrismaService
   }
 
   async enableShutdownHooks(app: INestApplication) {
-    this.$on('beforeExit', async () => {
-      await app.close();
+    const signals: NodeJS.Signals[] = ['SIGINT', 'SIGTERM'];
+    signals.forEach((signal) => {
+      process.once(signal, async () => {
+        await app.close();
+      });
     });
   }
 }

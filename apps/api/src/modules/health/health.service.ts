@@ -23,20 +23,20 @@ export class HealthService {
 
   async check(): Promise<HealthPayload> {
     const info: HealthPayload['info'] = { db: 'down', redis: 'down' };
-    const errors: Record<string, string> = {};
+    const errors: Partial<Record<'db' | 'redis', string>> = {};
 
     try {
       await this.prismaService.$queryRaw`SELECT 1`;
       info.db = 'up';
     } catch (error) {
-      errors.db = error instanceof Error ? error.message : 'Unknown error';
+      errors['db'] = error instanceof Error ? error.message : 'Unknown error';
     }
 
     try {
       await this.redisService.ping();
       info.redis = 'up';
     } catch (error) {
-      errors.redis = error instanceof Error ? error.message : 'Unknown error';
+      errors['redis'] = error instanceof Error ? error.message : 'Unknown error';
     }
 
     const payload: HealthPayload = {
