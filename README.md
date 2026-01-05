@@ -84,6 +84,12 @@ Desenvolvimento:
 npm run prisma:migrate:dev -w apps/api
 ```
 
+Seed:
+
+```bash
+npm run prisma:seed -w apps/api
+```
+
 Deploy:
 
 ```bash

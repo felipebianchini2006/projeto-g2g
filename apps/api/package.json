@@ -16,6 +16,7 @@
     "prisma:generate": "npx prisma@5.20.0 generate",
     "prisma:migrate:dev": "npx prisma@5.20.0 migrate dev",
     "prisma:migrate:deploy": "npx prisma@5.20.0 migrate deploy",
+    "prisma:seed": "node prisma/seed.cjs",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
@@ -78,5 +79,8 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.cjs"
   }
 }

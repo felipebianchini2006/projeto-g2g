@@ -12,6 +12,132 @@ enum UserRole {
   ADMIN
 }
 
+enum ListingStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  SOLD_OUT
+  ARCHIVED
+}
+
+enum DeliveryType {
+  AUTO
+  MANUAL
+}
+
+enum ListingMediaType {
+  IMAGE
+  VIDEO
+}
+
+enum InventoryStatus {
+  AVAILABLE
+  RESERVED
+  DELIVERED
+  DISABLED
+}
+
+enum OrderStatus {
+  PENDING
+  AWAITING_PAYMENT
+  PAID
+  DELIVERING
+  COMPLETED
+  CANCELED
+  DISPUTED
+  REFUNDED
+}
+
+enum OrderEventType {
+  CREATED
+  PAYMENT_PENDING
+  PAID
+  DELIVERY_STARTED
+  DELIVERED
+  COMPLETED
+  CANCELED
+  REFUNDED
+  DISPUTED
+  NOTE
+}
+
+enum DeliveryEvidenceType {
+  TEXT
+  FILE
+  LINK
+}
+
+enum PaymentProvider {
+  EFI
+}
+
+enum PaymentStatus {
+  PENDING
+  CONFIRMED
+  EXPIRED
+  REFUNDED
+  FAILED
+}
+
+enum WebhookProvider {
+  EFI
+}
+
+enum LedgerEntryType {
+  HELD
+  AVAILABLE
+  RELEASED
+  REVERSED
+}
+
+enum LedgerEntryStatus {
+  PENDING
+  POSTED
+  FAILED
+}
+
+enum ChatMessageType {
+  TEXT
+  SYSTEM
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum DisputeStatus {
+  OPEN
+  REVIEW
+  RESOLVED
+  REJECTED
+}
+
+enum NotificationType {
+  ORDER
+  PAYMENT
+  CHAT
+  SYSTEM
+}
+
+enum EmailStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  PERMISSION_CHANGE
+  REFUND
+  MANUAL_ADJUSTMENT
+}
+
 model User {
   id           String   @id @default(uuid())
   email        String   @unique
@@ -20,5 +146,434 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  sessions            Session[]
+  refreshTokens       RefreshToken[]
+  passwordResetTokens PasswordResetToken[]
+  listings            Listing[]
+  ordersAsBuyer        Order[]        @relation("OrderBuyer")
+  ordersAsSeller       Order[]        @relation("OrderSeller")
+  payments            Payment[]
+  ledgerEntries       LedgerEntry[]
+  chatMessages        ChatMessage[]
+  tickets             Ticket[]
+  ticketMessages      TicketMessage[]
+  notifications       Notification[]
+  auditLogs           AuditLog[]      @relation("AuditAdmin")
+
   @@map("users")
+}
+
+model Session {
+  id         String   @id @default(uuid())
+  userId     String
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  expiresAt  DateTime
+  revokedAt  DateTime?
+
+  user          User           @relation(fields: [userId], references: [id])
+  refreshTokens RefreshToken[]
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model RefreshToken {
+  id         String   @id @default(uuid())
+  userId     String
+  sessionId  String?
+  tokenHash  String   @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  expiresAt  DateTime
+  revokedAt  DateTime?
+
+  user    User     @relation(fields: [userId], references: [id])
+  session Session? @relation(fields: [sessionId], references: [id])
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+model PasswordResetToken {
+  id         String   @id @default(uuid())
+  userId     String
+  tokenHash  String   @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  expiresAt  DateTime
+  usedAt     DateTime?
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("password_reset_tokens")
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  listings Listing[]
+
+  @@index([name])
+  @@map("categories")
+}
+
+model Listing {
+  id           String        @id @default(uuid())
+  sellerId     String
+  categoryId   String
+  title        String
+  slug         String?       @unique
+  description  String?
+  priceCents   Int
+  currency     String        @default("BRL")
+  status       ListingStatus @default(ACTIVE)
+  deliveryType DeliveryType
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  seller              User               @relation(fields: [sellerId], references: [id])
+  category            Category           @relation(fields: [categoryId], references: [id])
+  media               ListingMedia[]
+  inventoryItems      InventoryItem[]
+  orderItemSnapshots  OrderItemSnapshot[]
+
+  @@index([sellerId])
+  @@index([categoryId])
+  @@index([status])
+  @@index([title])
+  @@map("listings")
+}
+
+model ListingMedia {
+  id        String           @id @default(uuid())
+  listingId String
+  url       String
+  type      ListingMediaType @default(IMAGE)
+  position  Int              @default(0)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId])
+  @@map("listing_media")
+}
+
+model InventoryItem {
+  id          String          @id @default(uuid())
+  listingId   String
+  orderItemId String?
+  code        String
+  status      InventoryStatus @default(AVAILABLE)
+  reservedAt  DateTime?
+  deliveredAt DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  listing   Listing            @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  orderItem OrderItemSnapshot? @relation(fields: [orderItemId], references: [id])
+
+  @@index([listingId])
+  @@index([status])
+  @@map("inventory_items")
+}
+
+model Order {
+  id               String      @id @default(uuid())
+  buyerId          String
+  sellerId         String?
+  status           OrderStatus @default(PENDING)
+  totalAmountCents Int
+  currency         String      @default("BRL")
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  buyer        User               @relation("OrderBuyer", fields: [buyerId], references: [id])
+  seller       User?              @relation("OrderSeller", fields: [sellerId], references: [id])
+  items        OrderItemSnapshot[]
+  events       OrderEvent[]
+  payments     Payment[]
+  ledgerEntries LedgerEntry[]
+  chatRoom     ChatRoom?
+  ticket       Ticket?
+  dispute      Dispute?
+
+  @@index([buyerId])
+  @@index([sellerId])
+  @@index([status])
+  @@map("orders")
+}
+
+model OrderItemSnapshot {
+  id             String       @id @default(uuid())
+  orderId        String
+  listingId      String?
+  sellerId       String?
+  title          String
+  unitPriceCents Int
+  quantity       Int          @default(1)
+  deliveryType   DeliveryType
+  currency       String       @default("BRL")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  order            Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  listing          Listing?          @relation(fields: [listingId], references: [id])
+  seller           User?             @relation(fields: [sellerId], references: [id])
+  inventoryItems   InventoryItem[]
+  deliveryEvidence DeliveryEvidence[]
+
+  @@index([orderId])
+  @@index([listingId])
+  @@index([sellerId])
+  @@map("order_item_snapshots")
+}
+
+model OrderEvent {
+  id        String         @id @default(uuid())
+  orderId   String
+  type      OrderEventType
+  payload   Json?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([type])
+  @@map("order_events")
+}
+
+model DeliveryEvidence {
+  id          String               @id @default(uuid())
+  orderItemId String
+  type        DeliveryEvidenceType
+  content     String
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  orderItem OrderItemSnapshot @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+
+  @@index([orderItemId])
+  @@map("delivery_evidence")
+}
+
+model Payment {
+  id          String          @id @default(uuid())
+  orderId     String
+  payerId     String?
+  provider    PaymentProvider @default(EFI)
+  txid        String          @unique
+  status      PaymentStatus   @default(PENDING)
+  amountCents Int
+  currency    String          @default("BRL")
+  qrCode      String?
+  copyPaste   String?
+  paidAt      DateTime?
+  expiresAt   DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  order         Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  payer         User?          @relation(fields: [payerId], references: [id])
+  webhookEvents WebhookEvent[]
+  ledgerEntries LedgerEntry[]
+
+  @@index([orderId])
+  @@index([status])
+  @@index([provider])
+  @@map("payments")
+}
+
+model WebhookEvent {
+  id          String          @id @default(uuid())
+  provider    WebhookProvider @default(EFI)
+  paymentId   String?
+  eventId     String          @unique
+  txid        String?
+  eventType   String
+  payload     Json
+  processedAt DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  payment Payment? @relation(fields: [paymentId], references: [id])
+
+  @@index([txid])
+  @@index([provider])
+  @@map("webhook_events")
+}
+
+model LedgerEntry {
+  id          String           @id @default(uuid())
+  userId      String
+  orderId     String?
+  paymentId   String?
+  type        LedgerEntryType
+  status      LedgerEntryStatus @default(PENDING)
+  amountCents Int
+  currency    String           @default("BRL")
+  description String?
+  availableAt DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id])
+  order   Order?   @relation(fields: [orderId], references: [id])
+  payment Payment? @relation(fields: [paymentId], references: [id])
+
+  @@index([userId])
+  @@index([orderId])
+  @@index([status])
+  @@index([type])
+  @@map("ledger_entries")
+}
+
+model ChatRoom {
+  id        String   @id @default(uuid())
+  orderId   String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  order    Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  messages ChatMessage[]
+
+  @@map("chat_rooms")
+}
+
+model ChatMessage {
+  id        String          @id @default(uuid())
+  roomId    String
+  senderId  String
+  type      ChatMessageType @default(TEXT)
+  content   String
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  room   ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  sender User     @relation(fields: [senderId], references: [id])
+
+  @@index([roomId])
+  @@index([senderId])
+  @@map("chat_messages")
+}
+
+model Ticket {
+  id          String       @id @default(uuid())
+  orderId     String?
+  openedById  String
+  status      TicketStatus @default(OPEN)
+  subject     String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  order     Order?          @relation(fields: [orderId], references: [id])
+  openedBy  User            @relation(fields: [openedById], references: [id])
+  messages  TicketMessage[]
+  dispute   Dispute?
+
+  @@index([openedById])
+  @@index([orderId])
+  @@index([status])
+  @@map("tickets")
+}
+
+model TicketMessage {
+  id        String   @id @default(uuid())
+  ticketId  String
+  senderId  String
+  message   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  sender User   @relation(fields: [senderId], references: [id])
+
+  @@index([ticketId])
+  @@index([senderId])
+  @@map("ticket_messages")
+}
+
+model Dispute {
+  id         String        @id @default(uuid())
+  ticketId   String        @unique
+  orderId    String
+  status     DisputeStatus @default(OPEN)
+  reason     String
+  resolution String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  resolvedAt DateTime?
+
+  ticket Ticket @relation(fields: [ticketId], references: [id])
+  order  Order  @relation(fields: [orderId], references: [id])
+
+  @@index([orderId])
+  @@index([status])
+  @@map("disputes")
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([readAt])
+  @@map("notifications")
+}
+
+model EmailOutbox {
+  id           String     @id @default(uuid())
+  to           String
+  subject      String
+  body         String
+  status       EmailStatus @default(PENDING)
+  errorMessage String?
+  sentAt       DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([status])
+  @@index([sentAt])
+  @@map("email_outbox")
+}
+
+model AuditLog {
+  id         String      @id @default(uuid())
+  adminId    String
+  action     AuditAction
+  entityType String
+  entityId   String?
+  ip         String?
+  userAgent  String?
+  payload    Json?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  admin User @relation("AuditAdmin", fields: [adminId], references: [id])
+
+  @@index([adminId])
+  @@index([entityType])
+  @@index([action])
+  @@map("audit_logs")
 }
