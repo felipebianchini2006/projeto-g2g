@@ -5,6 +5,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { envSchema } from './config/env.schema';
 import { AuthModule } from './modules/auth/auth.module';
 import { HealthModule } from './modules/health/health.module';
+import { ListingsModule } from './modules/listings/listings.module';
 import { LoggerModule } from './modules/logger/logger.module';
 import { PrismaModule } from './modules/prisma/prisma.module';
 import { RedisModule } from './modules/redis/redis.module';
@@ -28,6 +29,7 @@ import { RedisModule } from './modules/redis/redis.module';
     RedisModule,
     AuthModule,
     HealthModule,
+    ListingsModule,
   ],
 })
 export class AppModule {}

@@ -15,10 +15,9 @@ enum UserRole {
 
 enum ListingStatus {
   DRAFT
-  ACTIVE
-  PAUSED
-  SOLD_OUT
-  ARCHIVED
+  PENDING
+  PUBLISHED
+  SUSPENDED
 }
 
 enum DeliveryType {
@@ -240,8 +239,10 @@ model Listing {
   description  String?
   priceCents   Int
   currency     String        @default("BRL")
-  status       ListingStatus @default(ACTIVE)
+  status       ListingStatus @default(DRAFT)
   deliveryType DeliveryType
+  deliverySlaHours Int       @default(24)
+  refundPolicy String        @default("Refund policy pending.")
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 

@@ -78,7 +78,9 @@ async function main() {
       title: 'Console Neon',
       description: 'Bundle premium com design compacto e desempenho silencioso.',
       priceCents: 424900,
-      status: 'ACTIVE',
+      status: 'PUBLISHED',
+      deliverySlaHours: 24,
+      refundPolicy: 'Reembolso disponivel em ate 7 dias apos a compra.',
     },
     create: {
       sellerId: seller.id,
@@ -88,8 +90,10 @@ async function main() {
       description: 'Bundle premium com design compacto e desempenho silencioso.',
       priceCents: 424900,
       currency: 'BRL',
-      status: 'ACTIVE',
+      status: 'PUBLISHED',
       deliveryType: 'AUTO',
+      deliverySlaHours: 24,
+      refundPolicy: 'Reembolso disponivel em ate 7 dias apos a compra.',
     },
   });
 
@@ -99,7 +103,9 @@ async function main() {
       title: 'Teclado RGB Pro',
       description: 'Switches mecanicos, RGB personalizavel e base em aluminio.',
       priceCents: 31900,
-      status: 'ACTIVE',
+      status: 'PUBLISHED',
+      deliverySlaHours: 48,
+      refundPolicy: 'Reembolso sob analise quando a entrega for manual.',
     },
     create: {
       sellerId: seller.id,
@@ -109,8 +115,10 @@ async function main() {
       description: 'Switches mecanicos, RGB personalizavel e base em aluminio.',
       priceCents: 31900,
       currency: 'BRL',
-      status: 'ACTIVE',
+      status: 'PUBLISHED',
       deliveryType: 'MANUAL',
+      deliverySlaHours: 48,
+      refundPolicy: 'Reembolso sob analise quando a entrega for manual.',
     },
   });
 
