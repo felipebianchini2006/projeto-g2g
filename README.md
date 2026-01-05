@@ -29,6 +29,57 @@ npm run test
 npm run lint
 ```
 
+## Docker (dev)
+
+Suba os servicos locais (Postgres e Redis):
+
+```bash
+npm run docker:up
+```
+
+Para derrubar:
+
+```bash
+npm run docker:down
+```
+
+Reset com drop dos volumes:
+
+```bash
+npm run docker:reset
+```
+
+Logs:
+
+```bash
+npm run docker:logs
+```
+
+Para rodar o Adminer (opcional):
+
+```bash
+docker compose -f docker-compose.dev.yml --profile devtools up -d adminer
+```
+
+Variaveis esperadas na API:
+
+- `DATABASE_URL=postgresql://postgres:123456@localhost:5432/projeto_g2g`
+- `REDIS_URL=redis://localhost:6379`
+
+## Prisma (migracoes)
+
+Desenvolvimento:
+
+```bash
+npm run prisma:migrate:dev -w apps/api
+```
+
+Deploy:
+
+```bash
+npm run prisma:migrate:deploy -w apps/api
+```
+
 ## Variaveis de ambiente
 
 Copie os templates e ajuste os valores:
