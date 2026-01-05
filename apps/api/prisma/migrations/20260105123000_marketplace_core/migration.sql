@@ -343,6 +343,8 @@ CREATE UNIQUE INDEX "payments_txid_key" ON "payments"("txid");
 CREATE UNIQUE INDEX "webhook_events_eventId_key" ON "webhook_events"("eventId");
 CREATE UNIQUE INDEX "chat_rooms_orderId_key" ON "chat_rooms"("orderId");
 CREATE UNIQUE INDEX "disputes_ticketId_key" ON "disputes"("ticketId");
+CREATE UNIQUE INDEX "tickets_orderId_key" ON "tickets"("orderId");
+CREATE UNIQUE INDEX "disputes_orderId_key" ON "disputes"("orderId");
 
 CREATE INDEX "sessions_userId_idx" ON "sessions"("userId");
 CREATE INDEX "sessions_expiresAt_idx" ON "sessions"("expiresAt");

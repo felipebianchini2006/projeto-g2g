@@ -152,6 +152,7 @@ model User {
   listings            Listing[]
   ordersAsBuyer        Order[]        @relation("OrderBuyer")
   ordersAsSeller       Order[]        @relation("OrderSeller")
+  orderItemSnapshotsAsSeller OrderItemSnapshot[] @relation("OrderItemSeller")
   payments            Payment[]
   ledgerEntries       LedgerEntry[]
   chatMessages        ChatMessage[]
@@ -331,7 +332,7 @@ model OrderItemSnapshot {
 
   order            Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
   listing          Listing?          @relation(fields: [listingId], references: [id])
-  seller           User?             @relation(fields: [sellerId], references: [id])
+  seller           User?             @relation("OrderItemSeller", fields: [sellerId], references: [id])
   inventoryItems   InventoryItem[]
   deliveryEvidence DeliveryEvidence[]
 
@@ -472,7 +473,7 @@ model ChatMessage {
 
 model Ticket {
   id          String       @id @default(uuid())
-  orderId     String?
+  orderId     String?      @unique
   openedById  String
   status      TicketStatus @default(OPEN)
   subject     String
@@ -509,7 +510,7 @@ model TicketMessage {
 model Dispute {
   id         String        @id @default(uuid())
   ticketId   String        @unique
-  orderId    String
+  orderId    String        @unique
   status     DisputeStatus @default(OPEN)
   reason     String
   resolution String?
