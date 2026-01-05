@@ -1,8 +1,11 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 
+import { fetchPublicListings, type PublicListing } from '../../lib/marketplace-public';
 import { features, franchises } from '../../lib/site-data';
+import { useSite } from '../site-context';
 
 const HERO_DOT_COUNT = 3;
 const FRANCHISE_DOT_COUNT = 3;
@@ -15,6 +18,17 @@ export const HomeContent = () => {
   );
   const [heroIndex, setHeroIndex] = useState(0);
   const [franchiseIndex, setFranchiseIndex] = useState(0);
+  const [highlightState, setHighlightState] = useState<{
+    status: 'loading' | 'ready';
+    error?: string;
+    source: 'api' | 'fallback';
+    listings: PublicListing[];
+  }>({
+    status: 'loading',
+    source: 'api',
+    listings: [],
+  });
+  const { addToCart } = useSite();
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -23,6 +37,41 @@ export const HomeContent = () => {
 
     return () => clearInterval(intervalId);
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    const loadHighlights = async () => {
+      const response = await fetchPublicListings();
+      if (!active) {
+        return;
+      }
+      setHighlightState({
+        status: 'ready',
+        listings: response.listings.slice(0, 4),
+        source: response.source,
+        error: response.error,
+      });
+    };
+    loadHighlights().catch(() => {
+      if (active) {
+        setHighlightState((prev) => ({
+          ...prev,
+          status: 'ready',
+          error: 'Nao foi possivel carregar destaques.',
+        }));
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const formatCurrency = (value: number, currency = 'BRL') =>
+    new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency,
+      maximumFractionDigits: 2,
+    }).format(value / 100);
 
   return (
     <>
@@ -61,6 +110,69 @@ export const HomeContent = () => {
               </div>
             </div>
           ))}
+        </div>
+      </section>
+
+      <section className="home-highlights">
+        <div className="container">
+          <div className="section-head">
+            <div>
+              <h2 className="section-title">Destaques da semana</h2>
+              <p className="section-subtitle">
+                Selecao com entregas rapidas e preco exclusivo.
+              </p>
+            </div>
+            <Link href="/produtos" className="ghost-button">
+              Ver catalogo
+            </Link>
+          </div>
+
+          {highlightState.status === 'loading' ? (
+            <div className="state-card">Carregando destaques...</div>
+          ) : null}
+          {highlightState.error ? (
+            <div className="state-card info">
+              {highlightState.error}
+              {highlightState.source === 'fallback'
+                ? ' Usando catalogo local.'
+                : null}
+            </div>
+          ) : null}
+
+          <div className="listing-grid">
+            {highlightState.listings.map((listing) => (
+              <article className="listing-card" key={listing.id}>
+                <div className="listing-media">
+                  <img
+                    src={listing.media?.[0]?.url ?? '/assets/meoow/highlight-01.webp'}
+                    alt={listing.title}
+                  />
+                  <span className={`badge badge-${listing.deliveryType.toLowerCase()}`}>
+                    {listing.deliveryType === 'AUTO' ? 'Auto' : 'Manual'}
+                  </span>
+                </div>
+                <div className="listing-body">
+                  <h3>{listing.title}</h3>
+                  <p>{listing.description}</p>
+                  <div className="listing-price">
+                    {formatCurrency(listing.priceCents, listing.currency)}
+                  </div>
+                  <div className="listing-actions">
+                    <Link className="ghost-button" href={`/anuncios/${listing.id}`}>
+                      Ver anuncio
+                    </Link>
+                    <button
+                      className="primary-button"
+                      type="button"
+                      onClick={() => addToCart(listing.title)}
+                    >
+                      Comprar
+                    </button>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 

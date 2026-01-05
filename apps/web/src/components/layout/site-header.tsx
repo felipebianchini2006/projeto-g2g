@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { navItems } from '../../lib/site-data';
@@ -9,12 +10,15 @@ import { useSite } from '../site-context';
 export const SiteHeader = () => {
   const { cartCount, notify } = useSite();
   const [search, setSearch] = useState('');
+  const router = useRouter();
 
   const handleSearch = () => {
     const query = search.trim();
-    if (query) {
-      notify(`Buscando por: "${query}"`);
+    if (!query) {
+      return;
     }
+    notify(`Buscando por: "${query}"`);
+    router.push(`/produtos?q=${encodeURIComponent(query)}`);
   };
 
   return (
