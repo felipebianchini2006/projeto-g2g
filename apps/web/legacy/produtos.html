@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meoww Games - Produtos</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="top-bar">
+        <div class="container">
+            <p>FRETE GRATIS EM REGIOES SELECIONADAS NAS COMPRAS ACIMA DE R$349</p>
+            <button class="pill-button">Saiba mais</button>
+        </div>
+    </div>
+
+    <header class="header">
+        <div class="container">
+            <div class="header-spacer"></div>
+            <div class="search-bar">
+                <input type="text" placeholder="O que deseja procurar?">
+                <button aria-label="Buscar"><i class="fas fa-search"></i></button>
+            </div>
+
+            <div class="header-actions">
+                <a href="#" class="action-card">
+                    <i class="fas fa-headset action-icon" aria-hidden="true"></i>
+                    <span>Atendimento</span>
+                </a>
+                <a href="#" class="action-card">
+                    <i class="fas fa-truck-fast action-icon" aria-hidden="true"></i>
+                    <span>Rastrear pedido</span>
+                </a>
+                <a href="#" class="action-card">
+                    <i class="fas fa-user action-icon" aria-hidden="true"></i>
+                    <span>Minha conta</span>
+                </a>
+                <a href="#" class="cart-link">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">0</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <nav class="main-nav">
+        <div class="container">
+            <ul class="nav-list">
+                <li class="nav-item"><a href="#">Nintendo</a></li>
+                <li class="nav-item"><a href="#">PlayStation</a></li>
+                <li class="nav-item"><a href="#">Xbox</a></li>
+                <li class="nav-item"><a href="#">Colecionaveis</a></li>
+                <li class="nav-item"><a href="#">Pre-vendas</a></li>
+                <li class="nav-item highlight"><a href="#">Ofertas da Semana</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="product-showcase">
+        <div class="container">
+            <h2 class="section-title">Produtos em destaque</h2>
+            <div class="product-grid">
+                <article class="product-card">
+                    <div class="product-media product-media--red">
+                        <span class="product-badge"><i class="fas fa-bolt"></i>Entrega auto</span>
+                        <button class="product-like" aria-label="Favoritar">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                        <img src="assets/meoow/highlight-01.webp" alt="Console Neon">
+                    </div>
+                    <div class="product-info">
+                        <h3>Console Neon</h3>
+                        <p>Bundle premium com design compacto e desempenho silencioso.</p>
+                        <div class="product-price">
+                            <span class="price-old">R$ 4.999,00</span>
+                            <span class="price-badge">-15%</span>
+                        </div>
+                        <div class="price-current">R$ 4.249,00</div>
+                        <button class="product-button">Ver detalhes</button>
+                    </div>
+                </article>
+
+                <article class="product-card">
+                    <div class="product-media product-media--dark">
+                        <span class="product-badge"><i class="fas fa-bolt"></i>Entrega auto</span>
+                        <button class="product-like" aria-label="Favoritar">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                        <img src="assets/meoow/highlight-02.webp" alt="Teclado RGB Pro">
+                    </div>
+                    <div class="product-info">
+                        <h3>Teclado RGB Pro</h3>
+                        <p>Switches mecanicos, RGB personalizavel e base em aluminio.</p>
+                        <div class="product-price">
+                            <span class="price-old">R$ 399,00</span>
+                            <span class="price-badge">-20%</span>
+                        </div>
+                        <div class="price-current">R$ 319,00</div>
+                        <button class="product-button">Ver detalhes</button>
+                    </div>
+                </article>
+
+                <article class="product-card">
+                    <div class="product-media product-media--red">
+                        <span class="product-badge"><i class="fas fa-bolt"></i>Entrega auto</span>
+                        <button class="product-like" aria-label="Favoritar">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                        <img src="assets/meoow/highlight-03.webp" alt="Headset Aurora">
+                    </div>
+                    <div class="product-info">
+                        <h3>Headset Aurora</h3>
+                        <p>Som 7.1, microfone removivel e isolamento confortavel.</p>
+                        <div class="product-price">
+                            <span class="price-old">R$ 459,00</span>
+                            <span class="price-badge">-12%</span>
+                        </div>
+                        <div class="price-current">R$ 399,00</div>
+                        <button class="product-button">Ver detalhes</button>
+                    </div>
+                </article>
+
+                <article class="product-card">
+                    <div class="product-media product-media--dark">
+                        <span class="product-badge"><i class="fas fa-bolt"></i>Entrega auto</span>
+                        <button class="product-like" aria-label="Favoritar">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                        <img src="assets/meoow/highlight-01.webp" alt="Mouse Pulse">
+                    </div>
+                    <div class="product-info">
+                        <h3>Mouse Pulse</h3>
+                        <p>Sensor de alta precisao com 8 botoes programaveis.</p>
+                        <div class="product-price">
+                            <span class="price-old">R$ 189,00</span>
+                            <span class="price-badge">-18%</span>
+                        </div>
+                        <div class="price-current">R$ 155,00</div>
+                        <button class="product-button">Ver detalhes</button>
+                    </div>
+                </article>
+
+                <article class="product-card">
+                    <div class="product-media product-media--red">
+                        <span class="product-badge"><i class="fas fa-bolt"></i>Entrega auto</span>
+                        <button class="product-like" aria-label="Favoritar">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                        <img src="assets/meoow/highlight-02.webp" alt="Controle Pro">
+                    </div>
+                    <div class="product-info">
+                        <h3>Controle Pro</h3>
+                        <p>Gatilhos adaptativos e empunhadura emborrachada.</p>
+                        <div class="product-price">
+                            <span class="price-old">R$ 499,00</span>
+                            <span class="price-badge">-10%</span>
+                        </div>
+                        <div class="price-current">R$ 449,00</div>
+                        <button class="product-button">Ver detalhes</button>
+                    </div>
+                </article>
+
+                <article class="product-card">
+                    <div class="product-media product-media--dark">
+                        <span class="product-badge"><i class="fas fa-bolt"></i>Entrega auto</span>
+                        <button class="product-like" aria-label="Favoritar">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                        <img src="assets/meoow/highlight-03.webp" alt="Cadeira Pulse XL">
+                    </div>
+                    <div class="product-info">
+                        <h3>Cadeira Pulse XL</h3>
+                        <p>Ergonomia premium com ajuste completo e suporte lombar.</p>
+                        <div class="product-price">
+                            <span class="price-old">R$ 1.699,00</span>
+                            <span class="price-badge">-25%</span>
+                        </div>
+                        <div class="price-current">R$ 1.279,00</div>
+                        <button class="product-button">Ver detalhes</button>
+                    </div>
+                </article>
+
+                <article class="product-card">
+                    <div class="product-media product-media--red">
+                        <span class="product-badge"><i class="fas fa-bolt"></i>Entrega auto</span>
+                        <button class="product-like" aria-label="Favoritar">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                        <img src="assets/meoow/highlight-01.webp" alt="Monitor Ultra 27">
+                    </div>
+                    <div class="product-info">
+                        <h3>Monitor Ultra 27</h3>
+                        <p>144Hz, painel IPS e bordas ultrafinas para setups clean.</p>
+                        <div class="product-price">
+                            <span class="price-old">R$ 1.899,00</span>
+                            <span class="price-badge">-14%</span>
+                        </div>
+                        <div class="price-current">R$ 1.639,00</div>
+                        <button class="product-button">Ver detalhes</button>
+                    </div>
+                </article>
+
+                <article class="product-card">
+                    <div class="product-media product-media--dark">
+                        <span class="product-badge"><i class="fas fa-bolt"></i>Entrega auto</span>
+                        <button class="product-like" aria-label="Favoritar">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                        <img src="assets/meoow/highlight-02.webp" alt="Soundbar Lite">
+                    </div>
+                    <div class="product-info">
+                        <h3>Soundbar Lite</h3>
+                        <p>Graves potentes com perfil fino para salas compactas.</p>
+                        <div class="product-price">
+                            <span class="price-old">R$ 699,00</span>
+                            <span class="price-badge">-22%</span>
+                        </div>
+                        <div class="price-current">R$ 545,00</div>
+                        <button class="product-button">Ver detalhes</button>
+                    </div>
+                </article>
+
+                <article class="product-card">
+                    <div class="product-media product-media--red">
+                        <span class="product-badge"><i class="fas fa-bolt"></i>Entrega auto</span>
+                        <button class="product-like" aria-label="Favoritar">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                        <img src="assets/meoow/highlight-03.webp" alt="Router Warp">
+                    </div>
+                    <div class="product-info">
+                        <h3>Router Warp</h3>
+                        <p>Wi-Fi 6 com baixa latencia para partidas online.</p>
+                        <div class="product-price">
+                            <span class="price-old">R$ 599,00</span>
+                            <span class="price-badge">-17%</span>
+                        </div>
+                        <div class="price-current">R$ 499,00</div>
+                        <button class="product-button">Ver detalhes</button>
+                    </div>
+                </article>
+
+                <article class="product-card">
+                    <div class="product-media product-media--dark">
+                        <span class="product-badge"><i class="fas fa-bolt"></i>Entrega auto</span>
+                        <button class="product-like" aria-label="Favoritar">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                        <img src="assets/meoow/highlight-01.webp" alt="Kit Stream Pro">
+                    </div>
+                    <div class="product-info">
+                        <h3>Kit Stream Pro</h3>
+                        <p>Webcam 4K, luz LED e microfone condensador.</p>
+                        <div class="product-price">
+                            <span class="price-old">R$ 1.299,00</span>
+                            <span class="price-badge">-19%</span>
+                        </div>
+                        <div class="price-current">R$ 1.059,00</div>
+                        <button class="product-button">Ver detalhes</button>
+                    </div>
+                </article>
+
+                <article class="product-card">
+                    <div class="product-media product-media--red">
+                        <span class="product-badge"><i class="fas fa-bolt"></i>Entrega auto</span>
+                        <button class="product-like" aria-label="Favoritar">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                        <img src="assets/meoow/highlight-02.webp" alt="SSD Turbo 1TB">
+                    </div>
+                    <div class="product-info">
+                        <h3>SSD Turbo 1TB</h3>
+                        <p>Velocidade extrema para carregar jogos em segundos.</p>
+                        <div class="product-price">
+                            <span class="price-old">R$ 649,00</span>
+                            <span class="price-badge">-13%</span>
+                        </div>
+                        <div class="price-current">R$ 565,00</div>
+                        <button class="product-button">Ver detalhes</button>
+                    </div>
+                </article>
+
+                <article class="product-card">
+                    <div class="product-media product-media--dark">
+                        <span class="product-badge"><i class="fas fa-bolt"></i>Entrega auto</span>
+                        <button class="product-like" aria-label="Favoritar">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                        <img src="assets/meoow/highlight-03.webp" alt="Colecionavel Pixel">
+                    </div>
+                    <div class="product-info">
+                        <h3>Colecionavel Pixel</h3>
+                        <p>Figura especial com acabamento premium e base iluminada.</p>
+                        <div class="product-price">
+                            <span class="price-old">R$ 299,00</span>
+                            <span class="price-badge">-16%</span>
+                        </div>
+                        <div class="price-current">R$ 249,00</div>
+                        <button class="product-button">Ver detalhes</button>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <div class="brand footer-brand">
+                        <img src="assets/meoow/logo.png" alt="Meoww" class="brand-mark">
+                        <div class="brand-text">
+                            <span class="brand-name">Meoww Games</span>
+                            <span class="brand-tagline">A casa gamer dos gatinhos</span>
+                        </div>
+                    </div>
+                    <p>A loja gamer com curadoria felina. Consoles, jogos e colecionaveis com entrega rapida e segura.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                        <a href="#"><i class="fab fa-tiktok"></i></a>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h4>Institucional</h4>
+                    <ul>
+                        <li><a href="#">Sobre nos</a></li>
+                        <li><a href="#">Contato</a></li>
+                        <li><a href="#">Politica de privacidade</a></li>
+                        <li><a href="#">Termos de uso</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Categorias</h4>
+                    <ul>
+                        <li><a href="#">Nintendo</a></li>
+                        <li><a href="#">PlayStation</a></li>
+                        <li><a href="#">Xbox</a></li>
+                        <li><a href="#">Colecionaveis</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Ajuda</h4>
+                    <ul>
+                        <li><a href="#">Central de ajuda</a></li>
+                        <li><a href="#">Como comprar</a></li>
+                        <li><a href="#">Formas de pagamento</a></li>
+                        <li><a href="#">Trocas e devolucoes</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Meoww Games. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

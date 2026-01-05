@@ -1,0 +1,20 @@
+node_modules
+npm-debug.log*
+.env
+.env.local
+.env.*.local
+
+# Build outputs
+.dist
+build
+coverage
+
+# Next.js
+.next
+out
+
+# Nest
+apps/api/dist
+
+# Misc
+.DS_Store
