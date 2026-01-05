@@ -12,6 +12,7 @@ import { PrismaModule } from './modules/prisma/prisma.module';
 import { RedisModule } from './modules/redis/redis.module';
 import { WalletModule } from './modules/wallet/wallet.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
+import { ChatModule } from './modules/chat/chat.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     PrismaModule,
     RedisModule,
     AuthModule,
+    ChatModule,
     HealthModule,
     ListingsModule,
     OrdersModule,
