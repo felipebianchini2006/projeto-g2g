@@ -7,6 +7,7 @@ import { ApiClientError } from '../../lib/api-client';
 import { disputesApi, type Dispute, type DisputeStatus } from '../../lib/disputes-api';
 import { ticketsApi, type Ticket, type TicketStatus } from '../../lib/tickets-api';
 import { useAuth } from '../auth/auth-provider';
+import { NotificationsBell } from '../notifications/notifications-bell';
 
 type SupportState<T> = {
   status: 'loading' | 'ready';
@@ -174,9 +175,12 @@ export const AdminSupportContent = () => {
           <h1>Fila de suporte</h1>
           <p className="auth-helper">Tickets e disputas pendentes de avaliacao.</p>
         </div>
-        <Link className="ghost-button" href="/dashboard">
-          Voltar ao dashboard
-        </Link>
+        <div className="page-actions">
+          <NotificationsBell />
+          <Link className="ghost-button" href="/dashboard">
+            Voltar ao dashboard
+          </Link>
+        </div>
       </div>
 
       <div className="support-filters">

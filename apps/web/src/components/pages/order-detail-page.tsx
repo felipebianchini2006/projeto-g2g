@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ApiClientError } from '../../lib/api-client';
 import { ordersApi, type Order, type PaymentStatus } from '../../lib/orders-api';
 import { useAuth } from '../auth/auth-provider';
+import { NotificationsBell } from '../notifications/notifications-bell';
 import { OrderChat } from '../orders/order-chat';
 
 type OrderDetailContentProps = {
@@ -197,9 +198,12 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
           <h1>Pedido #{orderId.slice(0, 8)}</h1>
           <p className="auth-helper">Detalhes completos do pedido e linha do tempo.</p>
         </div>
-        <Link className="ghost-button" href={detailPrefix.replace(`/${orderId}`, '')}>
-          Voltar
-        </Link>
+        <div className="page-actions">
+          <NotificationsBell />
+          <Link className="ghost-button" href={detailPrefix.replace(`/${orderId}`, '')}>
+            Voltar
+          </Link>
+        </div>
       </div>
 
       {state.error ? <div className="state-card info">{state.error}</div> : null}

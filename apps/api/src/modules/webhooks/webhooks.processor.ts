@@ -3,6 +3,7 @@ import { Job } from 'bullmq';
 import { NotificationType, PaymentStatus, Prisma } from '@prisma/client';
 
 import { AppLogger } from '../logger/logger.service';
+import { EmailQueueService } from '../email/email.service';
 import { OrdersService } from '../orders/orders.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { SettlementService } from '../settlement/settlement.service';
@@ -21,6 +22,7 @@ export class WebhooksProcessor extends WorkerHost {
     private readonly settlementService: SettlementService,
     private readonly logger: AppLogger,
     private readonly metrics: WebhookMetricsService,
+    private readonly emailQueue: EmailQueueService,
   ) {
     super();
   }
@@ -134,14 +136,16 @@ export class WebhooksProcessor extends WorkerHost {
           });
         }
 
+        let emailOutboxId: string | undefined;
         if (shouldNotify && orderDetails?.buyer?.email) {
-          await tx.emailOutbox.create({
+          const outbox = await tx.emailOutbox.create({
             data: {
               to: orderDetails.buyer.email,
               subject: 'Pagamento confirmado',
               body: `Seu pedido ${orderDetails.id} foi confirmado e esta em entrega.`,
             },
           });
+          emailOutboxId = outbox.id;
         }
 
         await tx.webhookEvent.update({
@@ -149,7 +153,7 @@ export class WebhooksProcessor extends WorkerHost {
           data: { processedAt: new Date(), paymentId: payment.id },
         });
 
-        return { status: 'processed' as const, txid, order, applied };
+        return { status: 'processed' as const, txid, order, applied, emailOutboxId };
       });
 
       if (result.status === 'processed') {
@@ -161,6 +165,9 @@ export class WebhooksProcessor extends WorkerHost {
             null,
             { source: 'system', reason: 'efi-webhook' },
           );
+        }
+        if (result.emailOutboxId) {
+          await this.emailQueue.enqueueEmail(result.emailOutboxId);
         }
         return;
       }

@@ -8,6 +8,7 @@ import { chatApi, type ChatMessage } from '../../lib/chat-api';
 import { disputesApi, type Dispute } from '../../lib/disputes-api';
 import { ordersApi, type Order } from '../../lib/orders-api';
 import { useAuth } from '../auth/auth-provider';
+import { NotificationsBell } from '../notifications/notifications-bell';
 
 type AdminDisputeDetailContentProps = {
   disputeId: string;
@@ -168,9 +169,12 @@ export const AdminDisputeDetailContent = ({ disputeId }: AdminDisputeDetailConte
           <h1>Decisao de disputa</h1>
           <p className="auth-helper">Analise dados do pedido antes da decisao.</p>
         </div>
-        <Link className="ghost-button" href="/dashboard/admin/atendimento">
-          Voltar
-        </Link>
+        <div className="page-actions">
+          <NotificationsBell />
+          <Link className="ghost-button" href="/dashboard/admin/atendimento">
+            Voltar
+          </Link>
+        </div>
       </div>
 
       {error ? <div className="state-card error">{error}</div> : null}

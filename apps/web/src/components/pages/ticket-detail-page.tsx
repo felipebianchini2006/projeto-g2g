@@ -11,6 +11,7 @@ import {
   type TicketStatus,
 } from '../../lib/tickets-api';
 import { useAuth } from '../auth/auth-provider';
+import { NotificationsBell } from '../notifications/notifications-bell';
 
 type TicketDetailContentProps = {
   ticketId: string;
@@ -127,9 +128,12 @@ export const TicketDetailContent = ({ ticketId }: TicketDetailContentProps) => {
           <h1>Ticket #{ticketId.slice(0, 8)}</h1>
           <p className="auth-helper">{summaryText}</p>
         </div>
-        <Link className="ghost-button" href="/dashboard/tickets">
-          Voltar
-        </Link>
+        <div className="page-actions">
+          <NotificationsBell />
+          <Link className="ghost-button" href="/dashboard/tickets">
+            Voltar
+          </Link>
+        </div>
       </div>
 
       {error ? <div className="state-card error">{error}</div> : null}

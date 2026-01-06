@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { AuthModule } from '../auth/auth.module';
+import { EmailModule } from '../email/email.module';
 import { ListingsModule } from '../listings/listings.module';
 import { LoggerModule } from '../logger/logger.module';
 import { PaymentsModule } from '../payments/payments.module';
@@ -15,7 +16,15 @@ import { OrderAccessGuard } from './guards/order-access.guard';
 import { SettlementModule } from '../settlement/settlement.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, ListingsModule, LoggerModule, PaymentsModule, SettlementModule],
+  imports: [
+    PrismaModule,
+    AuthModule,
+    EmailModule,
+    ListingsModule,
+    LoggerModule,
+    PaymentsModule,
+    SettlementModule,
+  ],
   controllers: [OrdersController, CheckoutController, AdminOrdersController],
   providers: [OrdersService, OrdersQueueService, OrdersProcessor, OrderAccessGuard],
   exports: [OrdersService],

@@ -8,6 +8,7 @@ import { Job } from 'bullmq';
 import { NotificationType, PaymentStatus } from '@prisma/client';
 
 import { AppLogger } from '../logger/logger.service';
+import { EmailQueueService } from '../email/email.service';
 import { OrdersService } from '../orders/orders.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { SettlementService } from '../settlement/settlement.service';
@@ -20,6 +21,7 @@ describe('WebhooksProcessor', () => {
   let ordersService: OrdersService;
   let settlementService: SettlementService;
   let metricsService: WebhookMetricsService;
+  let emailQueueService: EmailQueueService;
 
   beforeEach(() => {
     const prismaMock = {
@@ -63,6 +65,10 @@ describe('WebhooksProcessor', () => {
       increment: jest.fn(),
     } as unknown as WebhookMetricsService;
 
+    const emailQueueMock = {
+      enqueueEmail: jest.fn(),
+    } as unknown as EmailQueueService;
+
     (prismaMock.$transaction as jest.Mock).mockImplementation(
       async (callback: (client: PrismaService) => Promise<unknown>) => callback(prismaMock),
     );
@@ -73,12 +79,14 @@ describe('WebhooksProcessor', () => {
       settlementMock,
       loggerMock,
       metricsMock,
+      emailQueueMock,
     );
 
     prismaService = prismaMock;
     ordersService = ordersMock;
     settlementService = settlementMock;
     metricsService = metricsMock;
+    emailQueueService = emailQueueMock;
   });
 
   it('processes paid webhook and updates payment', async () => {
@@ -107,6 +115,9 @@ describe('WebhooksProcessor', () => {
       buyer: { email: 'buyer@email.com' },
       seller: { email: 'seller@email.com' },
     });
+    (prismaService.emailOutbox.create as jest.Mock).mockResolvedValue({
+      id: 'outbox-1',
+    });
 
     await processor.handleProcess({ data: { webhookEventId: 'event-1' } } as Job);
 
@@ -125,6 +136,7 @@ describe('WebhooksProcessor', () => {
       }),
     });
     expect(prismaService.emailOutbox.create).toHaveBeenCalled();
+    expect(emailQueueService.enqueueEmail).toHaveBeenCalledWith('outbox-1');
     expect(metricsService.increment).toHaveBeenCalledWith('processed', 'tx-1');
     expect(ordersService.handlePaymentSideEffects).toHaveBeenCalled();
     expect(settlementService.createHeldEntry).toHaveBeenCalled();

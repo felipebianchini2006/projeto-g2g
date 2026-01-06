@@ -22,6 +22,7 @@ import { Queue } from 'bullmq';
 import { randomUUID } from 'crypto';
 
 import { AppLogger } from '../logger/logger.service';
+import { EmailQueueService } from '../email/email.service';
 import { PaymentsService } from '../payments/payments.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { SettlementJobName, SETTLEMENT_QUEUE } from './settlement.queue';
@@ -52,6 +53,7 @@ export class SettlementService {
     private readonly configService: ConfigService,
     private readonly logger: AppLogger,
     private readonly paymentsService: PaymentsService,
+    private readonly emailQueue: EmailQueueService,
     @InjectQueue(SETTLEMENT_QUEUE) private readonly queue: Queue,
   ) {}
 
@@ -204,6 +206,7 @@ export class SettlementService {
       });
     }
 
+    const emailOutboxIds: string[] = [];
     await this.prisma.$transaction(async (tx) => {
       const existingRelease = await tx.ledgerEntry.findFirst({
         where: {
@@ -304,15 +307,18 @@ export class SettlementService {
 
       const seller = result.order.seller as SellerPayoutInfo | null | undefined;
       if (seller?.email) {
-        await tx.emailOutbox.create({
+        const outbox = await tx.emailOutbox.create({
           data: {
             to: seller.email,
             subject: 'Saldo liberado',
             body: `O pedido ${result.order.id} foi liberado para saque.`,
           },
         });
+        emailOutboxIds.push(outbox.id);
       }
     });
+
+    await Promise.all(emailOutboxIds.map((id) => this.emailQueue.enqueueEmail(id)));
 
     this.logger.log(
       `Settlement released (${settlementMode})`,
@@ -385,6 +391,7 @@ export class SettlementService {
       reason: reason ?? 'refund',
     });
 
+    const emailOutboxIds: string[] = [];
     await this.prisma.$transaction(async (tx) => {
       await tx.payment.update({
         where: { id: payment.id },
@@ -463,15 +470,18 @@ export class SettlementService {
       }
 
       if (order.buyer?.email) {
-        await tx.emailOutbox.create({
+        const outbox = await tx.emailOutbox.create({
           data: {
             to: order.buyer.email,
             subject: 'Reembolso concluido',
             body: `Seu pedido ${order.id} foi reembolsado.`,
           },
         });
+        emailOutboxIds.push(outbox.id);
       }
     });
+
+    await Promise.all(emailOutboxIds.map((id) => this.emailQueue.enqueueEmail(id)));
 
     this.logger.log('Refund processed', context);
     return { status: 'refunded', orderId };
@@ -483,7 +493,8 @@ export class SettlementService {
     actorId?: string | null,
     reason?: string,
   ) {
-    return this.prisma.$transaction(async (tx) => {
+    const emailOutboxIds: string[] = [];
+    const result = await this.prisma.$transaction(async (tx) => {
       const ticket = await tx.ticket.findUnique({
         where: { orderId: order.id },
       });
@@ -601,7 +612,25 @@ export class SettlementService {
           },
         });
       }
+
+      if (order.sellerId) {
+        const seller = await tx.user.findUnique({
+          where: { id: order.sellerId },
+        });
+        if (seller?.email) {
+          const outbox = await tx.emailOutbox.create({
+            data: {
+              to: seller.email,
+              subject: 'Chargeback manual',
+              body: `Pedido ${order.id} exige chargeback manual.`,
+            },
+          });
+          emailOutboxIds.push(outbox.id);
+        }
+      }
     });
+    await Promise.all(emailOutboxIds.map((id) => this.emailQueue.enqueueEmail(id)));
+    return result;
   }
 
   private async findEndToEndId(txid: string) {

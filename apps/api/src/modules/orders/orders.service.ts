@@ -10,12 +10,14 @@ import {
   ListingStatus,
   OrderEventType,
   OrderStatus,
+  NotificationType,
   Prisma,
 } from '@prisma/client';
 
 import type { AuthRequestMeta } from '../auth/auth.types';
 import { InventoryService } from '../listings/inventory.service';
 import { AppLogger } from '../logger/logger.service';
+import { EmailQueueService } from '../email/email.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { SettlementService } from '../settlement/settlement.service';
 import { OrdersQueueService } from './orders.queue.service';
@@ -48,6 +50,7 @@ export class OrdersService {
     private readonly configService: ConfigService,
     private readonly settlementService: SettlementService,
     private readonly logger: AppLogger,
+    private readonly emailQueue: EmailQueueService,
   ) {}
 
   async createOrder(buyerId: string, dto: CreateOrderDto, meta: AuthRequestMeta) {
@@ -332,6 +335,57 @@ export class OrdersService {
     });
 
     await this.settlementService.cancelRelease(orderId);
+
+    const orderInfo = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: { buyer: true, seller: true },
+    });
+
+    if (orderInfo?.buyerId) {
+      await this.prisma.notification.create({
+        data: {
+          userId: orderInfo.buyerId,
+          type: NotificationType.ORDER,
+          title: 'Disputa aberta',
+          body: `Disputa aberta no pedido ${orderInfo.id}.`,
+        },
+      });
+    }
+
+    if (orderInfo?.sellerId) {
+      await this.prisma.notification.create({
+        data: {
+          userId: orderInfo.sellerId,
+          type: NotificationType.ORDER,
+          title: 'Disputa aberta',
+          body: `Disputa aberta no pedido ${orderInfo.id}.`,
+        },
+      });
+    }
+
+    const emailOutboxIds: string[] = [];
+    if (orderInfo?.buyer?.email) {
+      const outbox = await this.prisma.emailOutbox.create({
+        data: {
+          to: orderInfo.buyer.email,
+          subject: 'Disputa aberta',
+          body: `Sua disputa para o pedido ${orderInfo.id} foi registrada.`,
+        },
+      });
+      emailOutboxIds.push(outbox.id);
+    }
+    if (orderInfo?.seller?.email) {
+      const outbox = await this.prisma.emailOutbox.create({
+        data: {
+          to: orderInfo.seller.email,
+          subject: 'Disputa aberta',
+          body: `Uma disputa foi aberta para o pedido ${orderInfo.id}.`,
+        },
+      });
+      emailOutboxIds.push(outbox.id);
+    }
+
+    await Promise.all(emailOutboxIds.map((id) => this.emailQueue.enqueueEmail(id)));
     return result;
   }
 
@@ -511,8 +565,12 @@ export class OrdersService {
     const autoCompleteHours = this.configService.get<number>('ORDER_AUTO_COMPLETE_HOURS') ?? 72;
     const delayMs = autoCompleteHours * 60 * 60 * 1000;
 
+    const emailOutboxIds: string[] = [];
     await this.prisma.$transaction(async (tx) => {
-      const current = await tx.order.findUnique({ where: { id: order.id } });
+      const current = await tx.order.findUnique({
+        where: { id: order.id },
+        include: { buyer: true, seller: true },
+      });
       if (!current || current.status !== OrderStatus.IN_DELIVERY) {
         return;
       }
@@ -529,7 +587,42 @@ export class OrdersService {
         OrderEventType.DELIVERED,
         this.buildMetadata(meta, OrderStatus.IN_DELIVERY, OrderStatus.DELIVERED),
       );
+
+      if (current.buyerId) {
+        await tx.notification.create({
+          data: {
+            userId: current.buyerId,
+            type: NotificationType.ORDER,
+            title: 'Pedido entregue',
+            body: `Pedido ${current.id} entregue.`,
+          },
+        });
+      }
+
+      if (current.sellerId) {
+        await tx.notification.create({
+          data: {
+            userId: current.sellerId,
+            type: NotificationType.ORDER,
+            title: 'Entrega concluida',
+            body: `Pedido ${current.id} entregue ao comprador.`,
+          },
+        });
+      }
+
+      if (current.buyer?.email) {
+        const outbox = await tx.emailOutbox.create({
+          data: {
+            to: current.buyer.email,
+            subject: 'Pedido entregue',
+            body: `Seu pedido ${current.id} foi entregue.`,
+          },
+        });
+        emailOutboxIds.push(outbox.id);
+      }
     });
+
+    await Promise.all(emailOutboxIds.map((id) => this.emailQueue.enqueueEmail(id)));
 
     await this.ordersQueue.scheduleAutoComplete(order.id, delayMs);
   }

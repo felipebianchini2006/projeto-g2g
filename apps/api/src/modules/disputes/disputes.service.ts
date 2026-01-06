@@ -1,7 +1,15 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { AuditAction, DisputeStatus, OrderEventType, OrderStatus, TicketStatus } from '@prisma/client';
+import {
+  AuditAction,
+  DisputeStatus,
+  NotificationType,
+  OrderEventType,
+  OrderStatus,
+  TicketStatus,
+} from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
+import { EmailQueueService } from '../email/email.service';
 import { DisputeQueryDto } from './dto/dispute-query.dto';
 import { SettlementService } from '../settlement/settlement.service';
 import { ResolveDisputeDto } from './dto/resolve-dispute.dto';
@@ -11,6 +19,7 @@ export class DisputesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly settlementService: SettlementService,
+    private readonly emailQueue: EmailQueueService,
   ) {}
 
   async listDisputes(query: DisputeQueryDto) {
@@ -60,7 +69,7 @@ export class DisputesService {
     const dispute = await this.prisma.dispute.findUnique({
       where: { id: disputeId },
       include: {
-        order: true,
+        order: { include: { buyer: true, seller: true } },
         ticket: true,
       },
     });
@@ -122,6 +131,7 @@ export class DisputesService {
         resolvedAt: new Date(),
       }, adminId);
 
+      await this.notifyDecision(dispute, 'release', dto.reason);
       return { status: 'released', disputeId };
     }
 
@@ -137,7 +147,70 @@ export class DisputesService {
       resolvedAt: new Date(),
     }, adminId);
 
+    await this.notifyDecision(dispute, 'refund', dto.reason);
     return { status: 'refunded', disputeId };
+  }
+
+  private async notifyDecision(
+    dispute: { order: { id: string; buyerId: string; sellerId: string | null; buyer?: { email: string } | null; seller?: { email: string } | null } },
+    action: 'release' | 'refund',
+    reason?: string,
+  ) {
+    const orderId = dispute.order.id;
+    const title =
+      action === 'release' ? 'Disputa encerrada' : 'Disputa resolvida';
+    const body =
+      action === 'release'
+        ? `Pedido ${orderId} liberado apos disputa.`
+        : `Pedido ${orderId} reembolsado apos disputa.`;
+
+    const emailOutboxIds: string[] = [];
+    const shouldEmailBuyer = action === 'release';
+    const shouldEmailSeller = action === 'refund';
+
+    if (dispute.order.buyerId) {
+      await this.prisma.notification.create({
+        data: {
+          userId: dispute.order.buyerId,
+          type: NotificationType.ORDER,
+          title,
+          body,
+        },
+      });
+      if (shouldEmailBuyer && dispute.order.buyer?.email) {
+        const outbox = await this.prisma.emailOutbox.create({
+          data: {
+            to: dispute.order.buyer.email,
+            subject: title,
+            body: reason ? `${body} Motivo: ${reason}` : body,
+          },
+        });
+        emailOutboxIds.push(outbox.id);
+      }
+    }
+
+    if (dispute.order.sellerId) {
+      await this.prisma.notification.create({
+        data: {
+          userId: dispute.order.sellerId,
+          type: NotificationType.ORDER,
+          title,
+          body,
+        },
+      });
+      if (shouldEmailSeller && dispute.order.seller?.email) {
+        const outbox = await this.prisma.emailOutbox.create({
+          data: {
+            to: dispute.order.seller.email,
+            subject: title,
+            body: reason ? `${body} Motivo: ${reason}` : body,
+          },
+        });
+        emailOutboxIds.push(outbox.id);
+      }
+    }
+
+    await Promise.all(emailOutboxIds.map((id) => this.emailQueue.enqueueEmail(id)));
   }
 
   private async finalizeDispute(

@@ -2,20 +2,16 @@ import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
 import { ConfigService } from '@nestjs/config';
 
-import { EmailModule } from '../email/email.module';
 import { LoggerModule } from '../logger/logger.module';
-import { PaymentsModule } from '../payments/payments.module';
 import { PrismaModule } from '../prisma/prisma.module';
-import { SettlementProcessor } from './settlement.processor';
-import { SettlementService } from './settlement.service';
-import { SETTLEMENT_QUEUE } from './settlement.queue';
+import { EmailProcessor } from './email.processor';
+import { EMAIL_QUEUE } from './email.queue';
+import { EmailQueueService } from './email.service';
 
 @Module({
   imports: [
     PrismaModule,
-    EmailModule,
     LoggerModule,
-    PaymentsModule,
     BullModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
@@ -24,9 +20,9 @@ import { SETTLEMENT_QUEUE } from './settlement.queue';
         },
       }),
     }),
-    BullModule.registerQueue({ name: SETTLEMENT_QUEUE }),
+    BullModule.registerQueue({ name: EMAIL_QUEUE }),
   ],
-  providers: [SettlementService, SettlementProcessor],
-  exports: [SettlementService],
+  providers: [EmailQueueService, EmailProcessor],
+  exports: [EmailQueueService],
 })
-export class SettlementModule {}
+export class EmailModule {}

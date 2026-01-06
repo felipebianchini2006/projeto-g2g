@@ -3,6 +3,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { ConfigService } from '@nestjs/config';
 
 import { AuthModule } from '../auth/auth.module';
+import { EmailModule } from '../email/email.module';
 import { LoggerModule } from '../logger/logger.module';
 import { OrdersModule } from '../orders/orders.module';
 import { PaymentsModule } from '../payments/payments.module';
@@ -19,6 +20,7 @@ import { WEBHOOKS_QUEUE } from './webhooks.queue';
     PrismaModule,
     LoggerModule,
     AuthModule,
+    EmailModule,
     OrdersModule,
     PaymentsModule,
     SettlementModule,
