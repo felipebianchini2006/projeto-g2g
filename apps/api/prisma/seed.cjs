@@ -37,6 +37,18 @@ async function main() {
     password: '12345678',
   });
 
+  await prisma.platformSetting.upsert({
+    where: { id: 'default' },
+    update: {},
+    create: {
+      id: 'default',
+      platformFeeBps: 0,
+      orderPaymentTtlSeconds: 900,
+      settlementReleaseDelayHours: 0,
+      splitEnabled: false,
+    },
+  });
+
   const categories = [
     {
       name: 'Consoles',

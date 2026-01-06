@@ -6,6 +6,7 @@ import { EmailModule } from '../email/email.module';
 import { LoggerModule } from '../logger/logger.module';
 import { PaymentsModule } from '../payments/payments.module';
 import { PrismaModule } from '../prisma/prisma.module';
+import { SettingsModule } from '../settings/settings.module';
 import { SettlementProcessor } from './settlement.processor';
 import { SettlementService } from './settlement.service';
 import { SETTLEMENT_QUEUE } from './settlement.queue';
@@ -16,6 +17,7 @@ import { SETTLEMENT_QUEUE } from './settlement.queue';
     EmailModule,
     LoggerModule,
     PaymentsModule,
+    SettingsModule,
     BullModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({

@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { User, UserRole } from '@prisma/client';
@@ -62,6 +67,10 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials.');
     }
 
+    if (user.blockedAt) {
+      throw new ForbiddenException('User is blocked.');
+    }
+
     return this.issueTokens(user, meta);
   }
 
@@ -91,6 +100,10 @@ export class AuthService {
       (existing.session?.expiresAt && existing.session.expiresAt <= now)
     ) {
       throw new UnauthorizedException('Session expired.');
+    }
+
+    if (existing.user.blockedAt) {
+      throw new ForbiddenException('User is blocked.');
     }
 
     const rotated = await this.rotateRefreshToken({

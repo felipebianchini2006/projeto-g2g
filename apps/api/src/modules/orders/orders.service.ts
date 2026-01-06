@@ -20,6 +20,7 @@ import { AppLogger } from '../logger/logger.service';
 import { EmailQueueService } from '../email/email.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { SettlementService } from '../settlement/settlement.service';
+import { SettingsService } from '../settings/settings.service';
 import { OrdersQueueService } from './orders.queue.service';
 import { CancelOrderDto } from './dto/cancel-order.dto';
 import { ConfirmReceiptDto } from './dto/confirm-receipt.dto';
@@ -51,11 +52,13 @@ export class OrdersService {
     private readonly settlementService: SettlementService,
     private readonly logger: AppLogger,
     private readonly emailQueue: EmailQueueService,
+    private readonly settingsService: SettingsService,
   ) {}
 
   async createOrder(buyerId: string, dto: CreateOrderDto, meta: AuthRequestMeta) {
     const quantity = dto.quantity ?? 1;
-    const ttlSeconds = this.configService.get<number>('ORDER_PAYMENT_TTL_SECONDS') ?? 900;
+    const settings = await this.settingsService.getSettings();
+    const ttlSeconds = settings.orderPaymentTtlSeconds;
     const expiresAt = new Date(Date.now() + ttlSeconds * 1000);
 
     const result = await this.prisma.$transaction(async (tx) => {

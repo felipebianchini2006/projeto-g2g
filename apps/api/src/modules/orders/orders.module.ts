@@ -14,6 +14,7 @@ import { OrdersQueueService } from './orders.queue.service';
 import { OrdersService } from './orders.service';
 import { OrderAccessGuard } from './guards/order-access.guard';
 import { SettlementModule } from '../settlement/settlement.module';
+import { SettingsModule } from '../settings/settings.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { SettlementModule } from '../settlement/settlement.module';
     LoggerModule,
     PaymentsModule,
     SettlementModule,
+    SettingsModule,
   ],
   controllers: [OrdersController, CheckoutController, AdminOrdersController],
   providers: [OrdersService, OrdersQueueService, OrdersProcessor, OrderAccessGuard],

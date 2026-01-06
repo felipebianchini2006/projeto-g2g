@@ -14,9 +14,11 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { PrismaModule } from './modules/prisma/prisma.module';
 import { RedisModule } from './modules/redis/redis.module';
 import { TicketsModule } from './modules/tickets/tickets.module';
+import { SettingsModule } from './modules/settings/settings.module';
 import { WalletModule } from './modules/wallet/wallet.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { ChatModule } from './modules/chat/chat.module';
+import { UsersModule } from './modules/users/users.module';
 
 @Module({
   imports: [
@@ -43,7 +45,9 @@ import { ChatModule } from './modules/chat/chat.module';
     ListingsModule,
     NotificationsModule,
     OrdersModule,
+    SettingsModule,
     TicketsModule,
+    UsersModule,
     WalletModule,
     WebhooksModule,
   ],

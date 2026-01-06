@@ -1,6 +1,7 @@
 import {
   CanActivate,
   ExecutionContext,
+  ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -8,6 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 
 import type { JwtPayload } from '../auth.types';
+import { PrismaService } from '../../prisma/prisma.service';
 
 type AuthenticatedRequest = Request & {
   user?: JwtPayload;
@@ -15,7 +17,10 @@ type AuthenticatedRequest = Request & {
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly prismaService: PrismaService,
+  ) {}
 
   async canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
@@ -32,9 +37,25 @@ export class JwtAuthGuard implements CanActivate {
 
     try {
       const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
+      if (!payload?.sub) {
+        throw new UnauthorizedException('Invalid token payload.');
+      }
+      const user = await this.prismaService.user.findUnique({
+        where: { id: payload.sub },
+        select: { id: true, blockedAt: true },
+      });
+      if (!user) {
+        throw new UnauthorizedException('User not found.');
+      }
+      if (user.blockedAt) {
+        throw new ForbiddenException('User is blocked.');
+      }
       request.user = payload;
       return true;
-    } catch {
+    } catch (error) {
+      if (error instanceof UnauthorizedException || error instanceof ForbiddenException) {
+        throw error;
+      }
       throw new UnauthorizedException('Invalid or expired token.');
     }
   }

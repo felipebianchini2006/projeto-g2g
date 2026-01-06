@@ -152,6 +152,8 @@ model User {
   payoutPixKey String?
   payoutBlockedAt DateTime?
   payoutBlockedReason String?
+  blockedAt    DateTime?
+  blockedReason String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -580,6 +582,18 @@ model EmailOutbox {
   @@index([status])
   @@index([sentAt])
   @@map("email_outbox")
+}
+
+model PlatformSetting {
+  id                         String   @id
+  platformFeeBps             Int      @default(0)
+  orderPaymentTtlSeconds     Int      @default(900)
+  settlementReleaseDelayHours Int     @default(0)
+  splitEnabled               Boolean  @default(false)
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+
+  @@map("platform_settings")
 }
 
 model AuditLog {

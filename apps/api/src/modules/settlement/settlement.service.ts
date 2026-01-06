@@ -4,7 +4,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { InjectQueue } from '@nestjs/bullmq';
 import {
   AuditAction,
@@ -25,6 +24,7 @@ import { AppLogger } from '../logger/logger.service';
 import { EmailQueueService } from '../email/email.service';
 import { PaymentsService } from '../payments/payments.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { SettingsService } from '../settings/settings.service';
 import { SettlementJobName, SETTLEMENT_QUEUE } from './settlement.queue';
 
 type SettlementMeta = {
@@ -50,16 +50,16 @@ type SellerPayoutInfo = {
 export class SettlementService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly configService: ConfigService,
     private readonly logger: AppLogger,
     private readonly paymentsService: PaymentsService,
     private readonly emailQueue: EmailQueueService,
+    private readonly settingsService: SettingsService,
     @InjectQueue(SETTLEMENT_QUEUE) private readonly queue: Queue,
   ) {}
 
   async scheduleRelease(orderId: string, delayMs?: number) {
-    const delayHours =
-      this.configService.get<number>('SETTLEMENT_RELEASE_DELAY_HOURS') ?? 0;
+    const settings = await this.settingsService.getSettings();
+    const delayHours = settings.settlementReleaseDelayHours;
     const delay = delayMs ?? delayHours * 60 * 60 * 1000;
     try {
       await this.queue.add(
@@ -187,8 +187,15 @@ export class SettlementService {
       return { status: 'already_released', orderId };
     }
 
-    const settlementMode =
-      this.configService.get<string>('SETTLEMENT_MODE') ?? 'cashout';
+    const settings = await this.settingsService.getSettings();
+    const settlementMode = settings.splitEnabled ? 'split' : 'cashout';
+    const feeBps = settings.platformFeeBps;
+    const rawFee = Math.round((result.heldEntry.amountCents * feeBps) / 10000);
+    const feeAmount = Math.min(
+      Math.max(rawFee, 0),
+      result.heldEntry.amountCents,
+    );
+    const payoutAmount = Math.max(result.heldEntry.amountCents - feeAmount, 0);
 
     if (settlementMode === 'cashout') {
       const seller = result.order.seller as SellerPayoutInfo | null | undefined;
@@ -198,12 +205,14 @@ export class SettlementService {
       if (seller.payoutBlockedAt) {
         throw new ForbiddenException('Seller payout is blocked.');
       }
-      await this.paymentsService.cashOutPix({
-        orderId: result.order.id,
-        payoutPixKey: seller.payoutPixKey,
-        amountCents: result.heldEntry.amountCents,
-        currency: result.heldEntry.currency,
-      });
+      if (payoutAmount > 0) {
+        await this.paymentsService.cashOutPix({
+          orderId: result.order.id,
+          payoutPixKey: seller.payoutPixKey,
+          amountCents: payoutAmount,
+          currency: result.heldEntry.currency,
+        });
+      }
     }
 
     const emailOutboxIds: string[] = [];
@@ -248,7 +257,23 @@ export class SettlementService {
         },
       });
 
-      if (settlementMode === 'cashout') {
+      if (feeAmount > 0) {
+        await tx.ledgerEntry.create({
+          data: {
+            userId: result.heldEntry.userId,
+            orderId: result.order.id,
+            paymentId: result.payment.id,
+            type: LedgerEntryType.DEBIT,
+            state: LedgerEntryState.AVAILABLE,
+            source: LedgerEntrySource.FEE,
+            amountCents: feeAmount,
+            currency: result.heldEntry.currency,
+            description: 'Platform fee applied.',
+          },
+        });
+      }
+
+      if (settlementMode === 'cashout' && payoutAmount > 0) {
         await tx.ledgerEntry.create({
           data: {
             userId: result.heldEntry.userId,
@@ -257,7 +282,7 @@ export class SettlementService {
             type: LedgerEntryType.DEBIT,
             state: LedgerEntryState.AVAILABLE,
             source: LedgerEntrySource.PAYOUT,
-            amountCents: result.heldEntry.amountCents,
+            amountCents: payoutAmount,
             currency: result.heldEntry.currency,
             description: 'Pix payout sent to seller.',
           },
@@ -289,6 +314,8 @@ export class SettlementService {
               action: 'release',
               reason,
               settlementMode,
+              feeBps,
+              feeAmount,
             },
           },
         });

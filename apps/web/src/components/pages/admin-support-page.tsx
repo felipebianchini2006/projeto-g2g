@@ -7,6 +7,7 @@ import { ApiClientError } from '../../lib/api-client';
 import { disputesApi, type Dispute, type DisputeStatus } from '../../lib/disputes-api';
 import { ticketsApi, type Ticket, type TicketStatus } from '../../lib/tickets-api';
 import { useAuth } from '../auth/auth-provider';
+import { AdminNav } from '../admin/admin-nav';
 import { NotificationsBell } from '../notifications/notifications-bell';
 
 type SupportState<T> = {
@@ -182,6 +183,8 @@ export const AdminSupportContent = () => {
           </Link>
         </div>
       </div>
+
+      <AdminNav />
 
       <div className="support-filters">
         <div className="form-field">

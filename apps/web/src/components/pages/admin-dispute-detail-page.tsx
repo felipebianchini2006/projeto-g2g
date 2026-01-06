@@ -8,6 +8,7 @@ import { chatApi, type ChatMessage } from '../../lib/chat-api';
 import { disputesApi, type Dispute } from '../../lib/disputes-api';
 import { ordersApi, type Order } from '../../lib/orders-api';
 import { useAuth } from '../auth/auth-provider';
+import { AdminNav } from '../admin/admin-nav';
 import { NotificationsBell } from '../notifications/notifications-bell';
 
 type AdminDisputeDetailContentProps = {
@@ -176,6 +177,8 @@ export const AdminDisputeDetailContent = ({ disputeId }: AdminDisputeDetailConte
           </Link>
         </div>
       </div>
+
+      <AdminNav />
 
       {error ? <div className="state-card error">{error}</div> : null}
       {notice ? <div className="state-card info">{notice}</div> : null}

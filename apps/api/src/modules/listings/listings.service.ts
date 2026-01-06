@@ -49,6 +49,10 @@ export class ListingsService {
       where: {
         status: query.status,
       },
+      include: {
+        seller: { select: { id: true, email: true } },
+        category: { select: { id: true, name: true, slug: true } },
+      },
       orderBy: { createdAt: 'desc' },
       skip: query.skip,
       take: query.take ?? 50,
