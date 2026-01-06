@@ -80,6 +80,17 @@ export class OrdersController {
     return this.ordersService.openDispute(orderId, userId, dto, this.getRequestMeta(req));
   }
 
+  @Post(':id/dispute')
+  @UseGuards(OrderAccessGuard)
+  openDisputeV2(
+    @Req() req: AuthenticatedRequest,
+    @Param('id') orderId: string,
+    @Body() dto: OpenDisputeDto,
+  ) {
+    const userId = this.getUserId(req);
+    return this.ordersService.openDispute(orderId, userId, dto, this.getRequestMeta(req));
+  }
+
   private getUserId(request: AuthenticatedRequest) {
     if (!request.user?.sub) {
       throw new UnauthorizedException('Missing user context.');

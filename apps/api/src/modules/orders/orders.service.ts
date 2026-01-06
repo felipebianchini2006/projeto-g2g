@@ -250,7 +250,7 @@ export class OrdersService {
   }
 
   async openDispute(orderId: string, buyerId: string, dto: OpenDisputeDto, meta: AuthRequestMeta) {
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       const order = await tx.order.findUnique({
         where: { id: orderId },
         include: { dispute: true },
@@ -268,22 +268,43 @@ export class OrdersService {
         throw new BadRequestException('Dispute already exists for this order.');
       }
 
-      const ticket = await tx.ticket.create({
-        data: {
-          orderId: order.id,
-          openedById: buyerId,
-          status: 'OPEN',
-          subject: `Disputa do pedido ${order.id}`,
-          messages: {
-            create: [
-              {
-                senderId: buyerId,
-                message: dto.reason,
-              },
-            ],
-          },
-        },
+      const existingTicket = await tx.ticket.findUnique({
+        where: { orderId: order.id },
       });
+
+      const ticket =
+        existingTicket ??
+        (await tx.ticket.create({
+          data: {
+            orderId: order.id,
+            openedById: buyerId,
+            status: 'OPEN',
+            subject: `Disputa do pedido ${order.id}`,
+            messages: {
+              create: [
+                {
+                  senderId: buyerId,
+                  message: dto.reason,
+                },
+              ],
+            },
+          },
+        }));
+
+      if (existingTicket) {
+        await tx.ticket.update({
+          where: { id: ticket.id },
+          data: { status: 'OPEN' },
+        });
+
+        await tx.ticketMessage.create({
+          data: {
+            ticketId: ticket.id,
+            senderId: buyerId,
+            message: dto.reason,
+          },
+        });
+      }
 
       await tx.dispute.create({
         data: {
@@ -309,6 +330,9 @@ export class OrdersService {
 
       return updated;
     });
+
+    await this.settlementService.cancelRelease(orderId);
+    return result;
   }
 
   async markPaid(orderId: string, actorId?: string, meta?: OrderMeta) {

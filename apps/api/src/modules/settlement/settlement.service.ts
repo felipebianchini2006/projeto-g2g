@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectQueue } from '@nestjs/bullmq';
 import {
   AuditAction,
+  DisputeStatus,
   LedgerEntrySource,
   LedgerEntryState,
   LedgerEntryType,
@@ -112,7 +113,12 @@ export class SettlementService {
     });
   }
 
-  async releaseOrder(orderId: string, actorId?: string | null, reason?: string) {
+  async releaseOrder(
+    orderId: string,
+    actorId?: string | null,
+    reason?: string,
+    options?: { ignoreDispute?: boolean },
+  ) {
     const context = this.buildContext(orderId);
     const result = await this.prisma.$transaction(async (tx) => {
       const order = await tx.order.findUnique({
@@ -130,7 +136,11 @@ export class SettlementService {
       if (order.status !== OrderStatus.COMPLETED) {
         throw new BadRequestException('Order is not completed.');
       }
-      if (order.dispute) {
+      if (
+        !options?.ignoreDispute &&
+        order.dispute &&
+        ![DisputeStatus.RESOLVED, DisputeStatus.REJECTED].includes(order.dispute.status)
+      ) {
         throw new BadRequestException('Order is disputed.');
       }
 
@@ -306,6 +316,15 @@ export class SettlementService {
     );
 
     return { status: 'released', orderId };
+  }
+
+  async cancelRelease(orderId: string) {
+    try {
+      await this.queue.remove(`release-${orderId}`);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async refundOrder(orderId: string, actorId?: string | null, reason?: string) {
