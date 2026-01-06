@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ApiClientError } from '../../lib/api-client';
 import { ordersApi, type Order, type PaymentStatus } from '../../lib/orders-api';
 import { useAuth } from '../auth/auth-provider';
+import { OrderChat } from '../orders/order-chat';
 
 type OrderDetailContentProps = {
   orderId: string;
@@ -326,62 +327,72 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
             </div>
           </div>
 
-          <div className="order-card">
-            <h3>Pagamento</h3>
-            {paymentSummary ? (
-              <div className="payment-summary">
-                <div>
-                  <span className="summary-label">Status</span>
-                  <strong className={`payment-pill payment-${paymentSummary.status.toLowerCase()}`}>
-                    {paymentStatusLabel[paymentSummary.status]}
-                  </strong>
-                </div>
-                <div>
-                  <span className="summary-label">Txid</span>
-                  <strong className="mono">{paymentSummary.txid}</strong>
-                </div>
-                <div>
-                  <span className="summary-label">Pago em</span>
-                  <strong>
-                    {paymentSummary.paidAt
-                      ? new Date(paymentSummary.paidAt).toLocaleString('pt-BR')
-                      : 'Aguardando'}
-                  </strong>
-                </div>
-                <div>
-                  <span className="summary-label">Expira em</span>
-                  <strong>
-                    {paymentSummary.expiresAt
-                      ? new Date(paymentSummary.expiresAt).toLocaleString('pt-BR')
-                      : 'Nao informado'}
-                  </strong>
-                </div>
-              </div>
-            ) : (
-              <p className="auth-helper">Nenhuma cobranca registrada ainda.</p>
-            )}
-
-            <h3>Timeline</h3>
-            <div className="timeline">
-              {state.order.events?.map((event) => (
-                <div className="timeline-item" key={event.id}>
-                  <div className="timeline-dot" />
+          <div className="order-aside">
+            <div className="order-card">
+              <h3>Pagamento</h3>
+              {paymentSummary ? (
+                <div className="payment-summary">
                   <div>
-                    <strong>{eventLabel[event.type] ?? event.type}</strong>
-                    <span>{new Date(event.createdAt).toLocaleString('pt-BR')}</span>
-                    {event.metadata && typeof event.metadata === 'object' ? (
-                      <small>
-                        {event.metadata['from'] ? `De ${event.metadata['from']} ` : ''}
-                        {event.metadata['to'] ? `para ${event.metadata['to']}` : ''}
-                      </small>
-                    ) : null}
+                    <span className="summary-label">Status</span>
+                    <strong className={`payment-pill payment-${paymentSummary.status.toLowerCase()}`}>
+                      {paymentStatusLabel[paymentSummary.status]}
+                    </strong>
+                  </div>
+                  <div>
+                    <span className="summary-label">Txid</span>
+                    <strong className="mono">{paymentSummary.txid}</strong>
+                  </div>
+                  <div>
+                    <span className="summary-label">Pago em</span>
+                    <strong>
+                      {paymentSummary.paidAt
+                        ? new Date(paymentSummary.paidAt).toLocaleString('pt-BR')
+                        : 'Aguardando'}
+                    </strong>
+                  </div>
+                  <div>
+                    <span className="summary-label">Expira em</span>
+                    <strong>
+                      {paymentSummary.expiresAt
+                        ? new Date(paymentSummary.expiresAt).toLocaleString('pt-BR')
+                        : 'Nao informado'}
+                    </strong>
                   </div>
                 </div>
-              ))}
-              {state.order.events?.length === 0 ? (
-                <div className="state-card">Nenhum evento registrado.</div>
-              ) : null}
+              ) : (
+                <p className="auth-helper">Nenhuma cobranca registrada ainda.</p>
+              )}
+
+              <h3>Timeline</h3>
+              <div className="timeline">
+                {state.order.events?.map((event) => (
+                  <div className="timeline-item" key={event.id}>
+                    <div className="timeline-dot" />
+                    <div>
+                      <strong>{eventLabel[event.type] ?? event.type}</strong>
+                      <span>{new Date(event.createdAt).toLocaleString('pt-BR')}</span>
+                      {event.metadata && typeof event.metadata === 'object' ? (
+                        <small>
+                          {event.metadata['from'] ? `De ${event.metadata['from']} ` : ''}
+                          {event.metadata['to'] ? `para ${event.metadata['to']}` : ''}
+                        </small>
+                      ) : null}
+                    </div>
+                  </div>
+                ))}
+                {state.order.events?.length === 0 ? (
+                  <div className="state-card">Nenhum evento registrado.</div>
+                ) : null}
+              </div>
             </div>
+
+            {accessToken ? (
+              <OrderChat orderId={orderId} accessToken={accessToken} userId={user.id} />
+            ) : (
+              <div className="order-card">
+                <div className="state-card">Carregando chat...</div>
+              </div>
+            )}
           </div>
         </div>
       ) : null}

@@ -1849,6 +1849,11 @@ img {
   gap: 16px;
 }
 
+.order-aside {
+  display: grid;
+  gap: 24px;
+}
+
 .order-summary {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -1915,6 +1920,131 @@ img {
 .timeline {
   display: grid;
   gap: 14px;
+}
+
+.order-chat-card {
+  gap: 12px;
+}
+
+.order-chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.chat-status {
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-weight: 700;
+  background: #fffafc;
+  color: var(--muted);
+}
+
+.chat-status--connected {
+  background: rgba(76, 75, 236, 0.12);
+  color: var(--indigo);
+}
+
+.chat-status--reconnecting,
+.chat-status--connecting {
+  background: rgba(255, 204, 139, 0.28);
+  color: #b06a00;
+}
+
+.chat-status--offline {
+  background: rgba(216, 107, 149, 0.18);
+  color: var(--deep-red);
+}
+
+.chat-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.chat-pagination-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chat-log {
+  max-height: 360px;
+  overflow-y: auto;
+  display: grid;
+  gap: 12px;
+  padding-right: 6px;
+}
+
+.chat-empty {
+  color: var(--muted);
+  font-size: 12px;
+  padding: 8px;
+  background: #fffafc;
+  border-radius: 14px;
+  border: 1px dashed rgba(216, 107, 149, 0.2);
+}
+
+.chat-message {
+  max-width: 82%;
+  background: #fffafc;
+  border-radius: 16px;
+  padding: 10px 12px;
+  border: 1px solid rgba(216, 107, 149, 0.2);
+  display: grid;
+  gap: 6px;
+}
+
+.chat-message.own {
+  justify-self: flex-end;
+  background: #fef1f6;
+  border-color: rgba(216, 107, 149, 0.3);
+}
+
+.chat-message.pending {
+  opacity: 0.6;
+}
+
+.chat-message.failed {
+  background: #fff1f1;
+  border-color: rgba(212, 80, 80, 0.3);
+}
+
+.chat-text {
+  font-size: 13px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.chat-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.chat-input-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.chat-input {
+  flex: 1;
+  min-height: 56px;
+}
+
+.chat-send {
+  min-width: 96px;
 }
 
 .timeline-item {
