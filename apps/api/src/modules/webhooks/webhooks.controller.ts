@@ -5,6 +5,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { UserRole } from '@prisma/client';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -18,6 +19,8 @@ export class WebhooksController {
   constructor(private readonly webhooksService: WebhooksService) {}
 
   @Post('pix')
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ webhook: { ttl: 60, limit: 120 } })
   async receivePixWebhook(@Body() payload: unknown) {
     return this.webhooksService.registerEfiWebhook(payload);
   }

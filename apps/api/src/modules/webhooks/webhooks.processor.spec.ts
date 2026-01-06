@@ -11,6 +11,7 @@ import { AppLogger } from '../logger/logger.service';
 import { EmailQueueService } from '../email/email.service';
 import { OrdersService } from '../orders/orders.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { RequestContextService } from '../request-context/request-context.service';
 import { SettlementService } from '../settlement/settlement.service';
 import { WebhookMetricsService } from './webhooks.metrics';
 import { WebhooksProcessor } from './webhooks.processor';
@@ -69,6 +70,11 @@ describe('WebhooksProcessor', () => {
       enqueueEmail: jest.fn(),
     } as unknown as EmailQueueService;
 
+    const requestContextMock = {
+      run: jest.fn((_context: unknown, callback: () => Promise<unknown>) => callback()),
+      set: jest.fn(),
+    } as unknown as RequestContextService;
+
     (prismaMock.$transaction as jest.Mock).mockImplementation(
       async (callback: (client: PrismaService) => Promise<unknown>) => callback(prismaMock),
     );
@@ -80,6 +86,7 @@ describe('WebhooksProcessor', () => {
       loggerMock,
       metricsMock,
       emailQueueMock,
+      requestContextMock,
     );
 
     prismaService = prismaMock;

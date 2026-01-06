@@ -18,6 +18,8 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
+  @UseGuards(ThrottlerGuard)
+  @Throttle(AUTH_THROTTLE)
   register(@Body() dto: RegisterDto, @Req() request: Request) {
     return this.authService.register(dto, this.getRequestMeta(request));
   }

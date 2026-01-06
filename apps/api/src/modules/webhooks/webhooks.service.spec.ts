@@ -5,6 +5,7 @@ import { Prisma } from '@prisma/client';
 import { AppLogger } from '../logger/logger.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { EfiClient } from '../payments/efi/efi-client.service';
+import { RequestContextService } from '../request-context/request-context.service';
 import { WEBHOOKS_QUEUE } from './webhooks.queue';
 import { WebhookMetricsService } from './webhooks.metrics';
 import { WebhooksService } from './webhooks.service';
@@ -39,6 +40,7 @@ describe('WebhooksService', () => {
         { provide: AppLogger, useValue: { log: jest.fn(), error: jest.fn(), warn: jest.fn(), debug: jest.fn() } },
         { provide: WebhookMetricsService, useValue: metricsMock },
         { provide: EfiClient, useValue: { registerWebhook: jest.fn() } },
+        { provide: RequestContextService, useValue: { get: jest.fn() } },
         { provide: getQueueToken(WEBHOOKS_QUEUE), useValue: queueMock },
       ],
     }).compile();

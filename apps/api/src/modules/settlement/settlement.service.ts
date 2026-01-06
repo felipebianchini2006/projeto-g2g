@@ -24,6 +24,7 @@ import { AppLogger } from '../logger/logger.service';
 import { EmailQueueService } from '../email/email.service';
 import { PaymentsService } from '../payments/payments.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { RequestContextService } from '../request-context/request-context.service';
 import { SettingsService } from '../settings/settings.service';
 import { SettlementJobName, SETTLEMENT_QUEUE } from './settlement.queue';
 
@@ -54,6 +55,7 @@ export class SettlementService {
     private readonly paymentsService: PaymentsService,
     private readonly emailQueue: EmailQueueService,
     private readonly settingsService: SettingsService,
+    private readonly requestContext: RequestContextService,
     @InjectQueue(SETTLEMENT_QUEUE) private readonly queue: Queue,
   ) {}
 
@@ -61,10 +63,11 @@ export class SettlementService {
     const settings = await this.settingsService.getSettings();
     const delayHours = settings.settlementReleaseDelayHours;
     const delay = delayMs ?? delayHours * 60 * 60 * 1000;
+    const correlationId = this.requestContext.get()?.correlationId ?? orderId;
     try {
       await this.queue.add(
         SettlementJobName.ReleaseOrder,
-        { orderId },
+        { orderId, correlationId },
         {
           jobId: `release-${orderId}`,
           delay: Math.max(delay, 0),

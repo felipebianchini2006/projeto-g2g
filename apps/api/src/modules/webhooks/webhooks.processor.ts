@@ -6,12 +6,14 @@ import { AppLogger } from '../logger/logger.service';
 import { EmailQueueService } from '../email/email.service';
 import { OrdersService } from '../orders/orders.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { RequestContextService } from '../request-context/request-context.service';
 import { SettlementService } from '../settlement/settlement.service';
 import { WebhooksJobName, WEBHOOKS_QUEUE } from './webhooks.queue';
 import { WebhookMetricsService } from './webhooks.metrics';
 
 type WebhookJobData = {
   webhookEventId: string;
+  correlationId?: string;
 };
 
 @Processor(WEBHOOKS_QUEUE)
@@ -23,6 +25,7 @@ export class WebhooksProcessor extends WorkerHost {
     private readonly logger: AppLogger,
     private readonly metrics: WebhookMetricsService,
     private readonly emailQueue: EmailQueueService,
+    private readonly requestContext: RequestContextService,
   ) {
     super();
   }
@@ -36,9 +39,13 @@ export class WebhooksProcessor extends WorkerHost {
 
   async handleProcess(job: Job<WebhookJobData>) {
     const eventId = job.data.webhookEventId;
-    let correlationId = eventId;
+    let correlationId = job.data.correlationId ?? eventId;
 
     try {
+      const requestId = job.id?.toString() ?? correlationId;
+      await this.requestContext.run(
+        { requestId, correlationId },
+        async () => {
       const result = await this.prisma.$transaction(async (tx) => {
         const event = await tx.webhookEvent.findUnique({
           where: { id: eventId },
@@ -156,6 +163,8 @@ export class WebhooksProcessor extends WorkerHost {
         return { status: 'processed' as const, txid, order, applied, emailOutboxId };
       });
 
+      this.requestContext.set({ correlationId });
+
       if (result.status === 'processed') {
         this.metrics.increment('processed', correlationId);
         this.logger.log('Webhook processed', this.buildContext(correlationId));
@@ -186,6 +195,8 @@ export class WebhooksProcessor extends WorkerHost {
 
       this.metrics.increment('failed', correlationId);
       this.logger.warn('Webhook missing in database', this.buildContext(correlationId));
+        },
+      );
     } catch (error) {
       this.metrics.increment('failed', correlationId);
       this.logger.error(

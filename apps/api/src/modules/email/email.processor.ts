@@ -4,10 +4,12 @@ import { EmailStatus } from '@prisma/client';
 
 import { AppLogger } from '../logger/logger.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { RequestContextService } from '../request-context/request-context.service';
 import { EmailJobName, EMAIL_QUEUE } from './email.queue';
 
 type EmailJobData = {
   emailOutboxId: string;
+  correlationId?: string;
 };
 
 @Processor(EMAIL_QUEUE)
@@ -15,6 +17,7 @@ export class EmailProcessor extends WorkerHost {
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: AppLogger,
+    private readonly requestContext: RequestContextService,
   ) {
     super();
   }
@@ -23,7 +26,12 @@ export class EmailProcessor extends WorkerHost {
     if (job.name !== EmailJobName.SendEmail) {
       return;
     }
-    await this.handleSend(job.data.emailOutboxId);
+    const correlationId = job.data.correlationId ?? job.data.emailOutboxId;
+    const requestId = job.id?.toString() ?? correlationId;
+    await this.requestContext.run(
+      { requestId, correlationId },
+      () => this.handleSend(job.data.emailOutboxId),
+    );
   }
 
   private async handleSend(emailOutboxId: string) {

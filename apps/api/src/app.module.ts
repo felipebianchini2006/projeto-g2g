@@ -13,6 +13,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { OrdersModule } from './modules/orders/orders.module';
 import { PrismaModule } from './modules/prisma/prisma.module';
 import { RedisModule } from './modules/redis/redis.module';
+import { RequestContextModule } from './modules/request-context/request-context.module';
 import { TicketsModule } from './modules/tickets/tickets.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { WalletModule } from './modules/wallet/wallet.module';
@@ -33,10 +34,12 @@ import { UsersModule } from './modules/users/users.module';
       { name: 'default', ttl: 60, limit: 100 },
       { name: 'auth', ttl: 60, limit: 10 },
       { name: 'chat', ttl: 60, limit: 30 },
+      { name: 'webhook', ttl: 60, limit: 120 },
     ]),
     LoggerModule,
     PrismaModule,
     RedisModule,
+    RequestContextModule,
     AuthModule,
     DisputesModule,
     EmailModule,

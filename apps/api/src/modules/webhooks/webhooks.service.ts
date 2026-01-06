@@ -7,6 +7,7 @@ import { Queue } from 'bullmq';
 import { AppLogger } from '../logger/logger.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { EfiClient } from '../payments/efi/efi-client.service';
+import { RequestContextService } from '../request-context/request-context.service';
 import { WebhooksJobName, WEBHOOKS_QUEUE } from './webhooks.queue';
 import { WebhookMetricsService } from './webhooks.metrics';
 
@@ -19,6 +20,7 @@ export class WebhooksService {
     private readonly logger: AppLogger,
     private readonly metrics: WebhookMetricsService,
     private readonly efiClient: EfiClient,
+    private readonly requestContext: RequestContextService,
     @InjectQueue(WEBHOOKS_QUEUE) private readonly queue: Queue,
   ) {}
 
@@ -46,7 +48,8 @@ export class WebhooksService {
         },
       });
 
-      await this.enqueueProcessing(created.id, created.eventId);
+      const correlationId = this.requestContext.get()?.correlationId ?? txid ?? created.id;
+      await this.enqueueProcessing(created.id, created.eventId, correlationId);
       this.metrics.increment('received', txid ?? created.id);
       this.logger.log('Webhook received', this.buildContext(txid, created.id));
       return { id: created.id, eventId: created.eventId };
@@ -55,7 +58,9 @@ export class WebhooksService {
         this.metrics.increment('duplicated', txid ?? eventId);
         const existing = await this.prisma.webhookEvent.findUnique({ where: { eventId } });
         if (existing && !existing.processedAt) {
-          await this.enqueueProcessing(existing.id, existing.eventId);
+          const correlationId =
+            this.requestContext.get()?.correlationId ?? txid ?? existing.id;
+          await this.enqueueProcessing(existing.id, existing.eventId, correlationId);
         }
         this.logger.log('Webhook duplicated', this.buildContext(txid, existing?.id ?? eventId));
         return { duplicate: true };
@@ -84,11 +89,15 @@ export class WebhooksService {
     };
   }
 
-  private async enqueueProcessing(webhookEventId: string, eventId: string) {
+  private async enqueueProcessing(
+    webhookEventId: string,
+    eventId: string,
+    correlationId: string,
+  ) {
     try {
       await this.queue.add(
         WebhooksJobName.ProcessEfi,
-        { webhookEventId },
+        { webhookEventId, correlationId },
         {
           jobId: `efi:${eventId}`,
           removeOnComplete: true,

@@ -12,7 +12,7 @@ export class HealthController {
   }
 
   @Get('ready')
-  ready() {
+  async ready() {
     return this.healthService.ready();
   }
 }

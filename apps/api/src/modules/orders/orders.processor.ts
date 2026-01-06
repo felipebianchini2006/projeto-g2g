@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { Worker, type Job } from 'bullmq';
 
 import { AppLogger } from '../logger/logger.service';
+import { RequestContextService } from '../request-context/request-context.service';
 import { OrdersService } from './orders.service';
 import { ORDERS_QUEUE, OrdersJobName, buildRedisConfig } from './orders.queue';
 
@@ -14,6 +15,7 @@ export class OrdersProcessor implements OnModuleInit, OnModuleDestroy {
     private readonly configService: ConfigService,
     private readonly logger: AppLogger,
     private readonly ordersService: OrdersService,
+    private readonly requestContext: RequestContextService,
   ) {}
 
   async onModuleInit() {
@@ -25,20 +27,28 @@ export class OrdersProcessor implements OnModuleInit, OnModuleDestroy {
 
     this.worker = new Worker(
       ORDERS_QUEUE,
-      async (job: Job<{ orderId: string }>) => {
-        const { orderId } = job.data;
+      async (job: Job<{ orderId: string; correlationId?: string }>) => {
+        const { orderId, correlationId } = job.data;
         if (!orderId) {
           return;
         }
 
-        if (job.name === OrdersJobName.Expire) {
-          await this.ordersService.handleOrderExpiration(orderId);
-          return;
-        }
+        const requestId = job.id?.toString() ?? correlationId ?? orderId;
+        const correlation = correlationId ?? orderId;
 
-        if (job.name === OrdersJobName.AutoComplete) {
-          await this.ordersService.handleAutoComplete(orderId);
-        }
+        await this.requestContext.run(
+          { requestId, correlationId: correlation },
+          async () => {
+            if (job.name === OrdersJobName.Expire) {
+              await this.ordersService.handleOrderExpiration(orderId);
+              return;
+            }
+
+            if (job.name === OrdersJobName.AutoComplete) {
+              await this.ordersService.handleAutoComplete(orderId);
+            }
+          },
+        );
       },
       { connection },
     );

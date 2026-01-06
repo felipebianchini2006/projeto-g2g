@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { Queue } from 'bullmq';
 
 import { AppLogger } from '../logger/logger.service';
+import { RequestContextService } from '../request-context/request-context.service';
 import { ORDERS_QUEUE, OrdersJobName, buildRedisConfig } from './orders.queue';
 
 @Injectable()
@@ -12,6 +13,7 @@ export class OrdersQueueService implements OnModuleDestroy {
   constructor(
     private readonly configService: ConfigService,
     private readonly logger: AppLogger,
+    private readonly requestContext: RequestContextService,
   ) {
     const redisUrl = this.configService.getOrThrow<string>('REDIS_URL');
     const connection = buildRedisConfig(redisUrl);
@@ -38,10 +40,11 @@ export class OrdersQueueService implements OnModuleDestroy {
   }
 
   private async addJob(name: string, orderId: string, delay: number) {
+    const correlationId = this.requestContext.get()?.correlationId ?? orderId;
     try {
       await this.queue.add(
         name,
-        { orderId },
+        { orderId, correlationId },
         {
           jobId: `${name}-${orderId}`,
           delay,
