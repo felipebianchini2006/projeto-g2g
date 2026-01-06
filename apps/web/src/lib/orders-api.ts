@@ -119,7 +119,7 @@ export const ordersApi = {
     }),
 
   openDispute: (token: string | null, orderId: string, reason: string) =>
-    apiFetch<Order>(`/orders/${orderId}/open-dispute`, {
+    apiFetch<Order>(`/orders/${orderId}/dispute`, {
       method: 'POST',
       headers: authHeaders(token),
       body: JSON.stringify({ reason }),

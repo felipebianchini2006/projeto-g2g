@@ -136,10 +136,14 @@ export class SettlementService {
       if (order.status !== OrderStatus.COMPLETED) {
         throw new BadRequestException('Order is not completed.');
       }
+      const resolvedDisputeStatuses = new Set<DisputeStatus>([
+        DisputeStatus.RESOLVED,
+        DisputeStatus.REJECTED,
+      ]);
       if (
         !options?.ignoreDispute &&
         order.dispute &&
-        ![DisputeStatus.RESOLVED, DisputeStatus.REJECTED].includes(order.dispute.status)
+        !resolvedDisputeStatuses.has(order.dispute.status)
       ) {
         throw new BadRequestException('Order is disputed.');
       }

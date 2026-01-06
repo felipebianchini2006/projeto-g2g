@@ -49,4 +49,22 @@ export class ChatService {
       },
     });
   }
+
+  async listMessages(orderId: string, take = 20, cursor?: string) {
+    const limit = Math.max(1, Math.min(take, 100));
+    const parsedCursor = cursor ? new Date(cursor) : null;
+    const isValidCursor = parsedCursor instanceof Date && !Number.isNaN(parsedCursor.getTime());
+    const where = isValidCursor
+      ? {
+          room: { orderId },
+          createdAt: { lt: parsedCursor },
+        }
+      : { room: { orderId } };
+
+    return this.prisma.chatMessage.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
+  }
 }

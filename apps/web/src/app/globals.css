@@ -1849,6 +1849,121 @@ img {
   gap: 16px;
 }
 
+.tickets-shell,
+.ticket-detail-shell,
+.admin-support-shell,
+.admin-dispute-shell {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 60px 24px;
+  display: grid;
+  gap: 24px;
+}
+
+.tickets-header,
+.ticket-detail-header,
+.admin-support-header,
+.admin-dispute-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.tickets-grid,
+.ticket-detail-grid,
+.support-grid,
+.admin-dispute-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 24px;
+}
+
+.tickets-list,
+.support-list {
+  display: grid;
+  gap: 12px;
+}
+
+.ticket-row,
+.support-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: #fffafc;
+  border: 1px solid rgba(216, 107, 149, 0.2);
+  align-items: center;
+}
+
+.ticket-row strong,
+.support-row strong {
+  display: block;
+}
+
+.ticket-meta {
+  display: grid;
+  gap: 4px;
+  justify-items: end;
+}
+
+.ticket-form {
+  display: grid;
+  gap: 12px;
+}
+
+.ticket-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  background: #fffafc;
+  border-radius: 18px;
+  padding: 14px;
+}
+
+.ticket-messages {
+  display: grid;
+  gap: 12px;
+}
+
+.ticket-message {
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: #fffafc;
+  border: 1px solid rgba(216, 107, 149, 0.2);
+  display: grid;
+  gap: 6px;
+}
+
+.ticket-message.own {
+  background: #fef1f6;
+  border-color: rgba(216, 107, 149, 0.3);
+}
+
+.ticket-message span {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.support-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.ticket-evidence {
+  display: grid;
+  gap: 6px;
+  padding: 10px 0;
+  border-bottom: 1px dashed rgba(216, 107, 149, 0.2);
+}
+
+.ticket-evidence:last-child {
+  border-bottom: none;
+}
+
 .order-aside {
   display: grid;
   gap: 24px;
@@ -2278,6 +2393,13 @@ img {
   }
 
   .order-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tickets-grid,
+  .ticket-detail-grid,
+  .support-grid,
+  .admin-dispute-grid {
     grid-template-columns: 1fr;
   }
 

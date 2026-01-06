@@ -270,6 +270,9 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
               >
                 Abrir disputa
               </button>
+              <Link className="ghost-button" href={`/dashboard/tickets?orderId=${orderId}`}>
+                Abrir ticket
+              </Link>
             </div>
 
             <div className="order-items">

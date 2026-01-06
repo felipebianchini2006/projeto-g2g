@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { AuditAction, DisputeStatus, OrderEventType, OrderStatus, TicketStatus } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
+import { DisputeQueryDto } from './dto/dispute-query.dto';
 import { SettlementService } from '../settlement/settlement.service';
 import { ResolveDisputeDto } from './dto/resolve-dispute.dto';
 
@@ -11,6 +12,49 @@ export class DisputesService {
     private readonly prisma: PrismaService,
     private readonly settlementService: SettlementService,
   ) {}
+
+  async listDisputes(query: DisputeQueryDto) {
+    return this.prisma.dispute.findMany({
+      where: { status: query.status },
+      include: {
+        order: {
+          select: {
+            id: true,
+            status: true,
+            createdAt: true,
+            buyerId: true,
+            sellerId: true,
+          },
+        },
+        ticket: { select: { id: true, subject: true, status: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async getDispute(disputeId: string) {
+    const dispute = await this.prisma.dispute.findUnique({
+      where: { id: disputeId },
+      include: {
+        order: {
+          select: {
+            id: true,
+            status: true,
+            createdAt: true,
+            buyerId: true,
+            sellerId: true,
+          },
+        },
+        ticket: { select: { id: true, subject: true, status: true } },
+      },
+    });
+
+    if (!dispute) {
+      throw new NotFoundException('Dispute not found.');
+    }
+
+    return dispute;
+  }
 
   async resolveDispute(disputeId: string, adminId: string, dto: ResolveDisputeDto) {
     const dispute = await this.prisma.dispute.findUnique({
@@ -25,7 +69,11 @@ export class DisputesService {
       throw new NotFoundException('Dispute not found.');
     }
 
-    if (![DisputeStatus.OPEN, DisputeStatus.REVIEW].includes(dispute.status)) {
+    const actionableStatuses = new Set<DisputeStatus>([
+      DisputeStatus.OPEN,
+      DisputeStatus.REVIEW,
+    ]);
+    if (!actionableStatuses.has(dispute.status)) {
       throw new BadRequestException('Dispute already resolved.');
     }
 
@@ -34,7 +82,11 @@ export class DisputesService {
     }
 
     if (dto.action === 'release') {
-      if ([OrderStatus.CANCELLED, OrderStatus.REFUNDED].includes(dispute.order.status)) {
+      const blockedOrderStatuses = new Set<OrderStatus>([
+        OrderStatus.CANCELLED,
+        OrderStatus.REFUNDED,
+      ]);
+      if (blockedOrderStatuses.has(dispute.order.status)) {
         throw new BadRequestException('Order cannot be released.');
       }
       await this.prisma.$transaction(async (tx) => {

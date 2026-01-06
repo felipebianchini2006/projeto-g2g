@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
 import { UserRole } from '@prisma/client';
 
@@ -6,6 +6,7 @@ import type { JwtPayload } from '../auth/auth.types';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { DisputeQueryDto } from './dto/dispute-query.dto';
 import { ResolveDisputeDto } from './dto/resolve-dispute.dto';
 import { DisputesService } from './disputes.service';
 
@@ -16,6 +17,16 @@ type AuthenticatedRequest = Request & { user?: JwtPayload };
 @Roles(UserRole.ADMIN)
 export class DisputesController {
   constructor(private readonly disputesService: DisputesService) {}
+
+  @Get()
+  list(@Query() query: DisputeQueryDto) {
+    return this.disputesService.listDisputes(query);
+  }
+
+  @Get(':id')
+  get(@Param('id') disputeId: string) {
+    return this.disputesService.getDispute(disputeId);
+  }
 
   @Post(':id/resolve')
   resolve(
