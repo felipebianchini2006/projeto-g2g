@@ -1,5 +1,28 @@
 name: projeto-g2g-prod
 
+x-api-env: &api-env
+  - NODE_ENV=production
+  - PORT=3001
+  - DATABASE_URL=${DATABASE_URL:?err}
+  - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+  - JWT_SECRET=${JWT_SECRET:?err}
+  - LOG_LEVEL=${LOG_LEVEL:-info}
+  - CORS_ORIGINS=${CORS_ORIGINS:-}
+  - TOKEN_TTL=${TOKEN_TTL:-900}
+  - REFRESH_TTL=${REFRESH_TTL:-2592000}
+  - ORDER_PAYMENT_TTL_SECONDS=${ORDER_PAYMENT_TTL_SECONDS:-900}
+  - ORDER_AUTO_COMPLETE_HOURS=${ORDER_AUTO_COMPLETE_HOURS:-72}
+  - PIX_MOCK_MODE=${PIX_MOCK_MODE:-true}
+  - PIX_MOCK_TTL_SECONDS=${PIX_MOCK_TTL_SECONDS:-900}
+  - EFI_ENV=${EFI_ENV:-sandbox}
+  - EFI_WEBHOOK_SKIP_MTLS_CHECKING=${EFI_WEBHOOK_SKIP_MTLS_CHECKING:-false}
+  - SETTLEMENT_MODE=${SETTLEMENT_MODE:-cashout}
+  - SETTLEMENT_RELEASE_DELAY_HOURS=${SETTLEMENT_RELEASE_DELAY_HOURS:-0}
+  - EFI_CLIENT_ID
+  - EFI_CLIENT_SECRET
+  - EFI_CERT_PATH
+  - EFI_PIX_KEY
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -36,11 +59,7 @@ services:
       dockerfile: apps/api/Dockerfile
     image: projeto-g2g-api:prod
     container_name: projeto-g2g-api
-    env_file:
-      - ./.env.prod
-    environment:
-      NODE_ENV: production
-      PORT: 3001
+    environment: *api-env
     expose:
       - "3001"
     volumes:
@@ -56,10 +75,7 @@ services:
     image: projeto-g2g-api:prod
     container_name: projeto-g2g-worker
     command: ["node", "dist/worker.js"]
-    env_file:
-      - ./.env.prod
-    environment:
-      NODE_ENV: production
+    environment: *api-env
     volumes:
       - api_uploads:/app/apps/api/uploads
     depends_on:

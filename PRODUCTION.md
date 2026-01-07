@@ -16,6 +16,7 @@ docker compose --env-file .env.prod -f docker-compose.prod.yml up -d
 ```
 
 Nota: as variaveis `NEXT_PUBLIC_*` sao injetadas no build do web.
+Nota: se preferir, passe as variaveis via ambiente/CI em vez de `.env.prod`.
 
 4) Rodar migracoes do banco:
 
@@ -72,3 +73,7 @@ curl http://localhost/api/health
 - HSTS so deve ser habilitado quando HTTPS esta garantido para o dominio.
 - Se ativar com valores altos e depois precisar voltar para HTTP, os navegadores vao bloquear.
 - Recomendacao: comecar com `max-age=300` em ambiente real, aumentar gradualmente e so usar `includeSubDomains`/`preload` quando tiver certeza.
+
+## Runbook
+
+Veja `RUNBOOK.md` para deploy via Hostinger Docker Manager, rollback e backups.
