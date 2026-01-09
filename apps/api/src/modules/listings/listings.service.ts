@@ -55,10 +55,7 @@ export class ListingsService {
 
     if (filters.category) {
       andFilters.push({
-        OR: [
-          { categoryId: filters.category },
-          { category: { slug: filters.category } },
-        ],
+        OR: [{ categoryId: filters.category }, { category: { slug: filters.category } }],
       });
     }
 
@@ -184,9 +181,7 @@ export class ListingsService {
       where: { status: ListingStatus.PUBLISHED },
       _count: { _all: true },
     });
-    const countsByCategory = new Map(
-      counts.map((item) => [item.categoryId, item._count._all]),
-    );
+    const countsByCategory = new Map(counts.map((item) => [item.categoryId, item._count._all]));
 
     const payload = categories.map((category) => ({
       id: category.id,
@@ -351,19 +346,30 @@ export class ListingsService {
         data: { status: ListingStatus.PUBLISHED },
       });
 
-      await this.createAuditLog(tx, adminId, listing.id, {
-        action: AuditAction.UPDATE,
-        reason: 'approved',
-        from: listing.status,
-        to: updated.status,
-      }, meta);
+      await this.createAuditLog(
+        tx,
+        adminId,
+        listing.id,
+        {
+          action: AuditAction.UPDATE,
+          reason: 'approved',
+          from: listing.status,
+          to: updated.status,
+        },
+        meta,
+      );
 
       this.invalidatePublicCaches();
       return updated;
     });
   }
 
-  async rejectListing(listingId: string, adminId: string, reason: string | undefined, meta: AuditMeta) {
+  async rejectListing(
+    listingId: string,
+    adminId: string,
+    reason: string | undefined,
+    meta: AuditMeta,
+  ) {
     if (!reason) {
       throw new BadRequestException('Rejection reason is required.');
     }
@@ -382,19 +388,30 @@ export class ListingsService {
         data: { status: ListingStatus.DRAFT },
       });
 
-      await this.createAuditLog(tx, adminId, listing.id, {
-        action: AuditAction.UPDATE,
-        reason,
-        from: listing.status,
-        to: updated.status,
-      }, meta);
+      await this.createAuditLog(
+        tx,
+        adminId,
+        listing.id,
+        {
+          action: AuditAction.UPDATE,
+          reason,
+          from: listing.status,
+          to: updated.status,
+        },
+        meta,
+      );
 
       this.invalidatePublicCaches();
       return updated;
     });
   }
 
-  async suspendListing(listingId: string, adminId: string, reason: string | undefined, meta: AuditMeta) {
+  async suspendListing(
+    listingId: string,
+    adminId: string,
+    reason: string | undefined,
+    meta: AuditMeta,
+  ) {
     if (!reason) {
       throw new BadRequestException('Suspension reason is required.');
     }
@@ -410,12 +427,18 @@ export class ListingsService {
         data: { status: ListingStatus.SUSPENDED },
       });
 
-      await this.createAuditLog(tx, adminId, listing.id, {
-        action: AuditAction.UPDATE,
-        reason,
-        from: listing.status,
-        to: updated.status,
-      }, meta);
+      await this.createAuditLog(
+        tx,
+        adminId,
+        listing.id,
+        {
+          action: AuditAction.UPDATE,
+          reason,
+          from: listing.status,
+          to: updated.status,
+        },
+        meta,
+      );
 
       this.invalidatePublicCaches();
       return updated;

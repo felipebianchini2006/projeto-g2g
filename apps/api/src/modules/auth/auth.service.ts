@@ -106,10 +106,13 @@ export class AuthService {
       throw new ForbiddenException('User is blocked.');
     }
 
-    const rotated = await this.rotateRefreshToken({
-      userId: existing.userId,
-      sessionId: existing.sessionId,
-    }, existing.id);
+    const rotated = await this.rotateRefreshToken(
+      {
+        userId: existing.userId,
+        sessionId: existing.sessionId,
+      },
+      existing.id,
+    );
 
     const accessToken = await this.signAccessToken(existing.user);
     return {
@@ -145,9 +148,7 @@ export class AuthService {
     return { success: true };
   }
 
-  async forgotPassword(
-    dto: ForgotPasswordDto,
-  ): Promise<{ success: true; resetToken?: string }> {
+  async forgotPassword(dto: ForgotPasswordDto): Promise<{ success: true; resetToken?: string }> {
     const email = this.normalizeEmail(dto.email);
     const user = await this.prismaService.user.findUnique({ where: { email } });
 

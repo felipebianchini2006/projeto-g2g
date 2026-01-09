@@ -4,16 +4,16 @@ jest.mock('@nestjs/bullmq', () => ({
   WorkerHost: class {},
 }));
 
-import { Job } from 'bullmq';
+import type { Job } from 'bullmq';
 import { NotificationType, PaymentStatus } from '@prisma/client';
 
-import { AppLogger } from '../logger/logger.service';
-import { EmailQueueService } from '../email/email.service';
-import { OrdersService } from '../orders/orders.service';
-import { PrismaService } from '../prisma/prisma.service';
-import { RequestContextService } from '../request-context/request-context.service';
-import { SettlementService } from '../settlement/settlement.service';
-import { WebhookMetricsService } from './webhooks.metrics';
+import type { AppLogger } from '../logger/logger.service';
+import type { EmailQueueService } from '../email/email.service';
+import type { OrdersService } from '../orders/orders.service';
+import type { PrismaService } from '../prisma/prisma.service';
+import type { RequestContextService } from '../request-context/request-context.service';
+import type { SettlementService } from '../settlement/settlement.service';
+import type { WebhookMetricsService } from './webhooks.metrics';
 import { WebhooksProcessor } from './webhooks.processor';
 
 describe('WebhooksProcessor', () => {

@@ -1,8 +1,9 @@
-import { INestApplication } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-import { UserRole } from '@prisma/client';
+import type { INestApplication } from '@nestjs/common';
+import type { TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
+import type { UserRole } from '@prisma/client';
 import request from 'supertest';
-import { App } from 'supertest/types';
+import type { App } from 'supertest/types';
 import { randomUUID } from 'crypto';
 
 import { AppModule } from './../src/app.module';
@@ -101,16 +102,14 @@ const createPrismaMock = (): PrismaMock => {
         users.push(user);
         return user;
       }),
-      update: jest.fn(
-        ({ where, data }: { where: { id: string }; data: Partial<MockUser> }) => {
-          const user = users.find((entry) => entry.id === where.id);
-          if (!user) {
-            throw new Error('User not found');
-          }
-          Object.assign(user, data, { updatedAt: new Date() });
-          return user;
-        },
-      ),
+      update: jest.fn(({ where, data }: { where: { id: string }; data: Partial<MockUser> }) => {
+        const user = users.find((entry) => entry.id === where.id);
+        if (!user) {
+          throw new Error('User not found');
+        }
+        Object.assign(user, data, { updatedAt: new Date() });
+        return user;
+      }),
     },
     session: {
       create: jest.fn(
@@ -127,20 +126,22 @@ const createPrismaMock = (): PrismaMock => {
           return session;
         },
       ),
-      updateMany: jest.fn(({ where, data }: { where: Partial<MockSession>; data: Partial<MockSession> }) => {
-        let count = 0;
-        sessions.forEach((session) => {
-          if (
-            (where.id ? session.id === where.id : true) &&
-            (where.userId ? session.userId === where.userId : true) &&
-            (where.revokedAt === null ? session.revokedAt === null : true)
-          ) {
-            Object.assign(session, data, { updatedAt: new Date() });
-            count += 1;
-          }
-        });
-        return { count };
-      }),
+      updateMany: jest.fn(
+        ({ where, data }: { where: Partial<MockSession>; data: Partial<MockSession> }) => {
+          let count = 0;
+          sessions.forEach((session) => {
+            if (
+              (where.id ? session.id === where.id : true) &&
+              (where.userId ? session.userId === where.userId : true) &&
+              (where.revokedAt === null ? session.revokedAt === null : true)
+            ) {
+              Object.assign(session, data, { updatedAt: new Date() });
+              count += 1;
+            }
+          });
+          return { count };
+        },
+      ),
     },
     refreshToken: {
       findUnique: jest.fn(
@@ -184,30 +185,32 @@ const createPrismaMock = (): PrismaMock => {
           return token;
         },
       ),
-      updateMany: jest.fn(({ where, data }: { where: Partial<MockRefreshToken>; data: Partial<MockRefreshToken> }) => {
-        let count = 0;
-        refreshTokens.forEach((token) => {
-          if (
-            (where.id ? token.id === where.id : true) &&
-            (where.userId ? token.userId === where.userId : true) &&
-            (where.revokedAt === null ? token.revokedAt === null : true)
-          ) {
-            Object.assign(token, data, { updatedAt: new Date() });
-            count += 1;
-          }
-        });
-        return { count };
-      }),
+      updateMany: jest.fn(
+        ({
+          where,
+          data,
+        }: {
+          where: Partial<MockRefreshToken>;
+          data: Partial<MockRefreshToken>;
+        }) => {
+          let count = 0;
+          refreshTokens.forEach((token) => {
+            if (
+              (where.id ? token.id === where.id : true) &&
+              (where.userId ? token.userId === where.userId : true) &&
+              (where.revokedAt === null ? token.revokedAt === null : true)
+            ) {
+              Object.assign(token, data, { updatedAt: new Date() });
+              count += 1;
+            }
+          });
+          return { count };
+        },
+      ),
     },
     passwordResetToken: {
       findUnique: jest.fn(
-        ({
-          where,
-          include,
-        }: {
-          where: { tokenHash: string };
-          include?: { user?: boolean };
-        }) => {
+        ({ where, include }: { where: { tokenHash: string }; include?: { user?: boolean } }) => {
           const token = resetTokens.find((entry) => entry.tokenHash === where.tokenHash);
           if (!token) {
             return null;
@@ -220,11 +223,7 @@ const createPrismaMock = (): PrismaMock => {
         },
       ),
       create: jest.fn(
-        ({
-          data,
-        }: {
-          data: Omit<MockResetToken, 'id' | 'createdAt' | 'updatedAt' | 'usedAt'>;
-        }) => {
+        ({ data }: { data: Omit<MockResetToken, 'id' | 'createdAt' | 'updatedAt' | 'usedAt'> }) => {
           const now = new Date();
           const token: MockResetToken = {
             id: randomUUID(),
@@ -237,20 +236,22 @@ const createPrismaMock = (): PrismaMock => {
           return token;
         },
       ),
-      updateMany: jest.fn(({ where, data }: { where: Partial<MockResetToken>; data: Partial<MockResetToken> }) => {
-        let count = 0;
-        resetTokens.forEach((token) => {
-          if (
-            (where.id ? token.id === where.id : true) &&
-            (where.userId ? token.userId === where.userId : true) &&
-            (where.usedAt === null ? token.usedAt === null : true)
-          ) {
-            Object.assign(token, data, { updatedAt: new Date() });
-            count += 1;
-          }
-        });
-        return { count };
-      }),
+      updateMany: jest.fn(
+        ({ where, data }: { where: Partial<MockResetToken>; data: Partial<MockResetToken> }) => {
+          let count = 0;
+          resetTokens.forEach((token) => {
+            if (
+              (where.id ? token.id === where.id : true) &&
+              (where.userId ? token.userId === where.userId : true) &&
+              (where.usedAt === null ? token.usedAt === null : true)
+            ) {
+              Object.assign(token, data, { updatedAt: new Date() });
+              count += 1;
+            }
+          });
+          return { count };
+        },
+      ),
     },
     $transaction: jest.fn(async (callback: (client: PrismaMock) => Promise<unknown>) => {
       return callback(prismaMock);
@@ -271,8 +272,7 @@ describe('Auth (e2e)', () => {
     process.env['DATABASE_URL'] =
       process.env['E2E_DATABASE_URL'] ??
       'postgresql://postgres:123456@localhost:5433/projeto_g2g_test';
-    process.env['REDIS_URL'] =
-      process.env['E2E_REDIS_URL'] ?? 'redis://localhost:6380';
+    process.env['REDIS_URL'] = process.env['E2E_REDIS_URL'] ?? 'redis://localhost:6380';
 
     const prismaMock = createPrismaMock();
     const redisMock = { ping: jest.fn().mockResolvedValue('PONG') };

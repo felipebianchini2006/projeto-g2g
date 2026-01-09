@@ -75,9 +75,7 @@ export class EfiHttpService {
           } catch (error) {
             reject(
               new InternalServerErrorException(
-                `Efi response parse error: ${
-                  error instanceof Error ? error.message : 'unknown'
-                }`,
+                `Efi response parse error: ${error instanceof Error ? error.message : 'unknown'}`,
               ),
             );
           }

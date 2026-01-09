@@ -10,8 +10,7 @@ export class NotificationsService {
   async listNotifications(userId: string, query: NotificationQueryDto) {
     const take = query.take ?? 20;
     const parsedCursor = query.cursor ? new Date(query.cursor) : null;
-    const isValidCursor =
-      parsedCursor instanceof Date && !Number.isNaN(parsedCursor.getTime());
+    const isValidCursor = parsedCursor instanceof Date && !Number.isNaN(parsedCursor.getTime());
     const where = {
       userId,
       ...(query.unread ? { readAt: null } : {}),

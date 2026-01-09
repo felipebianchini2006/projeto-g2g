@@ -142,11 +142,7 @@ export class InventoryService {
   }
 
   private normalizeCodes(codes: string[]) {
-    return Array.from(
-      new Set(
-        codes.map((code) => code.trim()).filter((code) => code.length > 0),
-      ),
-    );
+    return Array.from(new Set(codes.map((code) => code.trim()).filter((code) => code.length > 0)));
   }
 
   private parsePayload(payload: string) {

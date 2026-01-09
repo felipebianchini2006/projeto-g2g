@@ -84,10 +84,7 @@ export class SettlementService {
     }
   }
 
-  async createHeldEntry(
-    input: HeldEntryInput,
-    tx?: Prisma.TransactionClient,
-  ) {
+  async createHeldEntry(input: HeldEntryInput, tx?: Prisma.TransactionClient) {
     const client = tx ?? this.prisma;
     const existing = await client.ledgerEntry.findFirst({
       where: {
@@ -184,7 +181,8 @@ export class SettlementService {
       }
 
       const heldBalance = heldEntries.reduce((total, entry) => {
-        const signed = entry.type === LedgerEntryType.DEBIT ? -entry.amountCents : entry.amountCents;
+        const signed =
+          entry.type === LedgerEntryType.DEBIT ? -entry.amountCents : entry.amountCents;
         return total + signed;
       }, 0);
       if (heldBalance <= 0) {
@@ -208,10 +206,7 @@ export class SettlementService {
     const settlementMode = settings.splitEnabled ? 'split' : 'cashout';
     const feeBps = settings.platformFeeBps;
     const rawFee = Math.round((result.heldBalance * feeBps) / 10000);
-    const feeAmount = Math.min(
-      Math.max(rawFee, 0),
-      result.heldBalance,
-    );
+    const feeAmount = Math.min(Math.max(rawFee, 0), result.heldBalance);
     const payoutAmount = Math.max(result.heldBalance - feeAmount, 0);
 
     if (settlementMode === 'cashout') {
@@ -246,33 +241,33 @@ export class SettlementService {
         return;
       }
 
-        await tx.ledgerEntry.create({
-          data: {
-            userId: result.heldEntry.userId,
-            orderId: result.order.id,
-            paymentId: result.payment.id,
-            type: LedgerEntryType.DEBIT,
-            state: LedgerEntryState.HELD,
-            source: LedgerEntrySource.ORDER_PAYMENT,
-            amountCents: result.heldBalance,
-            currency: result.heldEntry.currency,
-            description: 'Escrow released after completion.',
-          },
-        });
+      await tx.ledgerEntry.create({
+        data: {
+          userId: result.heldEntry.userId,
+          orderId: result.order.id,
+          paymentId: result.payment.id,
+          type: LedgerEntryType.DEBIT,
+          state: LedgerEntryState.HELD,
+          source: LedgerEntrySource.ORDER_PAYMENT,
+          amountCents: result.heldBalance,
+          currency: result.heldEntry.currency,
+          description: 'Escrow released after completion.',
+        },
+      });
 
-        await tx.ledgerEntry.create({
-          data: {
-            userId: result.heldEntry.userId,
-            orderId: result.order.id,
-            paymentId: result.payment.id,
-            type: LedgerEntryType.CREDIT,
-            state: LedgerEntryState.AVAILABLE,
-            source: LedgerEntrySource.ORDER_PAYMENT,
-            amountCents: result.heldBalance,
-            currency: result.heldEntry.currency,
-            description: 'Balance available after release.',
-          },
-        });
+      await tx.ledgerEntry.create({
+        data: {
+          userId: result.heldEntry.userId,
+          orderId: result.order.id,
+          paymentId: result.payment.id,
+          type: LedgerEntryType.CREDIT,
+          state: LedgerEntryState.AVAILABLE,
+          source: LedgerEntrySource.ORDER_PAYMENT,
+          amountCents: result.heldBalance,
+          currency: result.heldEntry.currency,
+          description: 'Balance available after release.',
+        },
+      });
 
       if (feeAmount > 0) {
         await tx.ledgerEntry.create({
@@ -364,10 +359,7 @@ export class SettlementService {
 
     await Promise.all(emailOutboxIds.map((id) => this.emailQueue.enqueueEmail(id)));
 
-    this.logger.log(
-      `Settlement released (${settlementMode})`,
-      context,
-    );
+    this.logger.log(`Settlement released (${settlementMode})`, context);
 
     return { status: 'released', orderId };
   }
@@ -843,11 +835,7 @@ export class SettlementService {
     const pix = payload['pix'];
     if (Array.isArray(pix) && pix.length > 0) {
       const first = pix[0] as Record<string, unknown>;
-      const e2e =
-        first['endToEndId'] ??
-        first['endToEndID'] ??
-        first['e2eid'] ??
-        first['e2eId'];
+      const e2e = first['endToEndId'] ?? first['endToEndID'] ?? first['e2eid'] ?? first['e2eId'];
       if (typeof e2e === 'string') {
         return e2e;
       }

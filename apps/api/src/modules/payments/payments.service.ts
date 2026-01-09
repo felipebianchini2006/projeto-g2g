@@ -42,13 +42,16 @@ export class PaymentsService {
     private readonly efiClient: EfiClient,
   ) {}
 
-  async createPixCharge(order: {
-    id: string;
-    totalAmountCents: number;
-    currency: string;
-    expiresAt: Date | null;
-    status?: OrderStatus;
-  }, payerId: string) {
+  async createPixCharge(
+    order: {
+      id: string;
+      totalAmountCents: number;
+      currency: string;
+      expiresAt: Date | null;
+      status?: OrderStatus;
+    },
+    payerId: string,
+  ) {
     if (order.status && !this.isPaymentAllowed(order.status)) {
       throw new BadRequestException('Order cannot be paid in the current state.');
     }

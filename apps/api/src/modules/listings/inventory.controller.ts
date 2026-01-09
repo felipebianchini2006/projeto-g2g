@@ -62,10 +62,7 @@ export class InventoryController {
 
   @Post('reserve')
   @Roles(UserRole.ADMIN)
-  reserve(
-    @Param('listingId') listingId: string,
-    @Body() dto: InventoryReserveDto,
-  ) {
+  reserve(@Param('listingId') listingId: string, @Body() dto: InventoryReserveDto) {
     return this.inventoryService.reserveInventoryItem(listingId, dto.orderItemId);
   }
 

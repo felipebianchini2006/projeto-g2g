@@ -28,9 +28,8 @@ export class EmailProcessor extends WorkerHost {
     }
     const correlationId = job.data.correlationId ?? job.data.emailOutboxId;
     const requestId = job.id?.toString() ?? correlationId;
-    await this.requestContext.run(
-      { requestId, correlationId },
-      () => this.handleSend(job.data.emailOutboxId),
+    await this.requestContext.run({ requestId, correlationId }, () =>
+      this.handleSend(job.data.emailOutboxId),
     );
   }
 

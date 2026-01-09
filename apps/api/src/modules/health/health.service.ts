@@ -115,9 +115,7 @@ export class HealthService implements OnModuleDestroy {
     const errors: Record<string, string> = {};
     const entries = Object.entries(this.queues);
 
-    const results = await Promise.allSettled(
-      entries.map(([, queue]) => queue.getJobCounts()),
-    );
+    const results = await Promise.allSettled(entries.map(([, queue]) => queue.getJobCounts()));
 
     for (let index = 0; index < entries.length; index += 1) {
       const entry = entries[index];

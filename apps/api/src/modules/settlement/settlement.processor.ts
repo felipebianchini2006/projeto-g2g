@@ -32,18 +32,15 @@ export class SettlementProcessor extends WorkerHost {
     const requestId = job.id?.toString() ?? correlationId ?? orderId;
     const correlation = correlationId ?? orderId;
 
-    return this.requestContext.run(
-      { requestId, correlationId: correlation },
-      async () => {
-        try {
-          await this.settlementService.releaseOrder(orderId, null, 'auto-release');
-        } catch (error) {
-          const message = error instanceof Error ? error.message : 'Settlement release failed';
-          const stack = error instanceof Error ? error.stack : undefined;
-          this.logger.error(message, stack, `SettlementWorker:${orderId}`);
-          throw error;
-        }
-      },
-    );
+    return this.requestContext.run({ requestId, correlationId: correlation }, async () => {
+      try {
+        await this.settlementService.releaseOrder(orderId, null, 'auto-release');
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Settlement release failed';
+        const stack = error instanceof Error ? error.stack : undefined;
+        this.logger.error(message, stack, `SettlementWorker:${orderId}`);
+        throw error;
+      }
+    });
   }
 }

@@ -1,6 +1,6 @@
 import { LedgerEntrySource, LedgerEntryState, LedgerEntryType } from '@prisma/client';
 
-import { PrismaService } from '../prisma/prisma.service';
+import type { PrismaService } from '../prisma/prisma.service';
 import { WalletService } from './wallet.service';
 
 describe('WalletService', () => {
@@ -68,7 +68,10 @@ describe('WalletService', () => {
       },
     ];
 
-    const groupedMap = new Map<string, { state: LedgerEntryState; type: LedgerEntryType; currency: string; sum: number }>();
+    const groupedMap = new Map<
+      string,
+      { state: LedgerEntryState; type: LedgerEntryType; currency: string; sum: number }
+    >();
     for (const entry of entries) {
       const key = `${entry.state}-${entry.type}-${entry.currency}`;
       const existing = groupedMap.get(key);
@@ -109,7 +112,8 @@ describe('WalletService', () => {
 
     const totals = result.items.reduce(
       (acc, entry) => {
-        const signed = entry.type === LedgerEntryType.DEBIT ? -entry.amountCents : entry.amountCents;
+        const signed =
+          entry.type === LedgerEntryType.DEBIT ? -entry.amountCents : entry.amountCents;
         acc[entry.state] += signed;
         return acc;
       },

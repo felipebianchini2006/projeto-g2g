@@ -34,11 +34,7 @@ export class AdminUsersController {
   }
 
   @Post(':id/block')
-  block(
-    @Req() req: AuthenticatedRequest,
-    @Param('id') userId: string,
-    @Body() dto: UserBlockDto,
-  ) {
+  block(@Req() req: AuthenticatedRequest, @Param('id') userId: string, @Body() dto: UserBlockDto) {
     const adminId = this.getUserId(req);
     const meta = this.getRequestMeta(req);
     return this.usersService.blockUser(userId, adminId, dto, meta);

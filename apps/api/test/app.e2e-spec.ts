@@ -1,7 +1,8 @@
-import { INestApplication } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
+import type { INestApplication } from '@nestjs/common';
+import type { TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import request from 'supertest';
-import { App } from 'supertest/types';
+import type { App } from 'supertest/types';
 
 import { AppModule } from './../src/app.module';
 import { PrismaService } from './../src/modules/prisma/prisma.service';
@@ -15,8 +16,7 @@ describe('Health (e2e)', () => {
     process.env['DATABASE_URL'] =
       process.env['E2E_DATABASE_URL'] ??
       'postgresql://postgres:123456@localhost:5433/projeto_g2g_test';
-    process.env['REDIS_URL'] =
-      process.env['E2E_REDIS_URL'] ?? 'redis://localhost:6380';
+    process.env['REDIS_URL'] = process.env['E2E_REDIS_URL'] ?? 'redis://localhost:6380';
     process.env['JWT_SECRET'] = process.env['JWT_SECRET'] ?? 'test-secret';
     process.env['TOKEN_TTL'] = process.env['TOKEN_TTL'] ?? '900';
     process.env['REFRESH_TTL'] = process.env['REFRESH_TTL'] ?? '3600';

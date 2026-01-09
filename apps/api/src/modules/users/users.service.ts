@@ -63,12 +63,7 @@ export class UsersService {
     };
   }
 
-  async blockUser(
-    userId: string,
-    adminId: string,
-    dto: UserBlockDto,
-    meta: AuditMeta,
-  ) {
+  async blockUser(userId: string, adminId: string, dto: UserBlockDto, meta: AuditMeta) {
     if (!dto.reason) {
       throw new BadRequestException('Block reason is required.');
     }

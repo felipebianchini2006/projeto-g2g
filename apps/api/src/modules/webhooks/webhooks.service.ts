@@ -58,8 +58,7 @@ export class WebhooksService {
         this.metrics.increment('duplicated', txid ?? eventId);
         const existing = await this.prisma.webhookEvent.findUnique({ where: { eventId } });
         if (existing && !existing.processedAt) {
-          const correlationId =
-            this.requestContext.get()?.correlationId ?? txid ?? existing.id;
+          const correlationId = this.requestContext.get()?.correlationId ?? txid ?? existing.id;
           await this.enqueueProcessing(existing.id, existing.eventId, correlationId);
         }
         this.logger.log('Webhook duplicated', this.buildContext(txid, existing?.id ?? eventId));
@@ -89,11 +88,7 @@ export class WebhooksService {
     };
   }
 
-  private async enqueueProcessing(
-    webhookEventId: string,
-    eventId: string,
-    correlationId: string,
-  ) {
+  private async enqueueProcessing(webhookEventId: string, eventId: string, correlationId: string) {
     try {
       await this.queue.add(
         WebhooksJobName.ProcessEfi,
@@ -122,10 +117,7 @@ export class WebhooksService {
 
   private extractPayloadId(payload: WebhookPayload) {
     const candidate =
-      payload['id'] ??
-      payload['eventId'] ??
-      payload['webhookId'] ??
-      payload['endToEndId'];
+      payload['id'] ?? payload['eventId'] ?? payload['webhookId'] ?? payload['endToEndId'];
     return typeof candidate === 'string' ? candidate : undefined;
   }
 

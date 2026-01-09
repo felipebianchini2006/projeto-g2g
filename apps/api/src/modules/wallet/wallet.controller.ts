@@ -24,10 +24,7 @@ export class WalletController {
   }
 
   @Get('entries')
-  listEntries(
-    @Req() req: AuthenticatedRequest,
-    @Query() query: WalletEntriesQueryDto,
-  ) {
+  listEntries(@Req() req: AuthenticatedRequest, @Query() query: WalletEntriesQueryDto) {
     const userId = this.getUserId(req);
     return this.walletService.listEntries(userId, query);
   }

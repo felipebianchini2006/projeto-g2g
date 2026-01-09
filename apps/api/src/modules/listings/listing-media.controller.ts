@@ -47,11 +47,19 @@ export class ListingMediaController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: (_req: Request, _file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) => {
+        destination: (
+          _req: Request,
+          _file: Express.Multer.File,
+          cb: (error: Error | null, destination: string) => void,
+        ) => {
           fs.mkdirSync(uploadRoot, { recursive: true });
           cb(null, uploadRoot);
         },
-        filename: (_req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) => {
+        filename: (
+          _req: Request,
+          file: Express.Multer.File,
+          cb: (error: Error | null, filename: string) => void,
+        ) => {
           const ext = extname(file.originalname);
           cb(null, `${randomUUID()}${ext}`);
         },

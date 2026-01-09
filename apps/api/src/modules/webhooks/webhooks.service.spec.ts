@@ -37,7 +37,10 @@ describe('WebhooksService', () => {
       providers: [
         WebhooksService,
         { provide: PrismaService, useValue: prismaMock },
-        { provide: AppLogger, useValue: { log: jest.fn(), error: jest.fn(), warn: jest.fn(), debug: jest.fn() } },
+        {
+          provide: AppLogger,
+          useValue: { log: jest.fn(), error: jest.fn(), warn: jest.fn(), debug: jest.fn() },
+        },
         { provide: WebhookMetricsService, useValue: metricsMock },
         { provide: EfiClient, useValue: { registerWebhook: jest.fn() } },
         { provide: RequestContextService, useValue: { get: jest.fn() } },

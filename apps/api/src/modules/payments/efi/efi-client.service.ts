@@ -98,7 +98,7 @@ export class EfiClient {
     const expiresAt =
       cob.calendario?.expiracao && cob.calendario.expiracao > 0
         ? new Date(Date.now() + cob.calendario.expiracao * 1000)
-        : input.expiresAt ?? new Date(Date.now() + expiresInSeconds * 1000);
+        : (input.expiresAt ?? new Date(Date.now() + expiresInSeconds * 1000));
 
     return {
       txid: cob.txid,

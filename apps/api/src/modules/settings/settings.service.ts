@@ -68,13 +68,11 @@ export class SettingsService {
   }
 
   private getDefaultValues() {
-    const settlementMode =
-      this.configService.get<string>('SETTLEMENT_MODE') ?? 'cashout';
+    const settlementMode = this.configService.get<string>('SETTLEMENT_MODE') ?? 'cashout';
 
     return {
       platformFeeBps: 0,
-      orderPaymentTtlSeconds:
-        this.configService.get<number>('ORDER_PAYMENT_TTL_SECONDS') ?? 900,
+      orderPaymentTtlSeconds: this.configService.get<number>('ORDER_PAYMENT_TTL_SECONDS') ?? 900,
       settlementReleaseDelayHours:
         this.configService.get<number>('SETTLEMENT_RELEASE_DELAY_HOURS') ?? 0,
       splitEnabled: settlementMode === 'split',

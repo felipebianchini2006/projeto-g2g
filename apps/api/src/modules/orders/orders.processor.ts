@@ -36,19 +36,16 @@ export class OrdersProcessor implements OnModuleInit, OnModuleDestroy {
         const requestId = job.id?.toString() ?? correlationId ?? orderId;
         const correlation = correlationId ?? orderId;
 
-        await this.requestContext.run(
-          { requestId, correlationId: correlation },
-          async () => {
-            if (job.name === OrdersJobName.Expire) {
-              await this.ordersService.handleOrderExpiration(orderId);
-              return;
-            }
+        await this.requestContext.run({ requestId, correlationId: correlation }, async () => {
+          if (job.name === OrdersJobName.Expire) {
+            await this.ordersService.handleOrderExpiration(orderId);
+            return;
+          }
 
-            if (job.name === OrdersJobName.AutoComplete) {
-              await this.ordersService.handleAutoComplete(orderId);
-            }
-          },
-        );
+          if (job.name === OrdersJobName.AutoComplete) {
+            await this.ordersService.handleAutoComplete(orderId);
+          }
+        });
       },
       { connection },
     );
@@ -56,11 +53,7 @@ export class OrdersProcessor implements OnModuleInit, OnModuleDestroy {
     this.worker.on('failed', (job?: Job, error?: Error) => {
       const message = error instanceof Error ? error.message : 'Job failed';
       const stack = error instanceof Error ? error.stack : undefined;
-      this.logger.error(
-        message,
-        stack,
-        `OrdersWorker:${job?.name ?? 'unknown'}`,
-      );
+      this.logger.error(message, stack, `OrdersWorker:${job?.name ?? 'unknown'}`);
     });
   }
 

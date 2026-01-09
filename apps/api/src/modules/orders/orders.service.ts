@@ -201,7 +201,9 @@ export class OrdersService {
       if (order.buyerId !== buyerId) {
         throw new ForbiddenException('Only the buyer can cancel.');
       }
-      if (!this.isAllowedStatus(order.status, [OrderStatus.CREATED, OrderStatus.AWAITING_PAYMENT])) {
+      if (
+        !this.isAllowedStatus(order.status, [OrderStatus.CREATED, OrderStatus.AWAITING_PAYMENT])
+      ) {
         throw new BadRequestException('Order cannot be cancelled in the current state.');
       }
 
@@ -222,7 +224,12 @@ export class OrdersService {
     });
   }
 
-  async confirmReceipt(orderId: string, buyerId: string, dto: ConfirmReceiptDto, meta: AuthRequestMeta) {
+  async confirmReceipt(
+    orderId: string,
+    buyerId: string,
+    dto: ConfirmReceiptDto,
+    meta: AuthRequestMeta,
+  ) {
     const updated = await this.prisma.$transaction(async (tx) => {
       const order = await tx.order.findUnique({ where: { id: orderId } });
       if (!order) {
@@ -461,7 +468,10 @@ export class OrdersService {
   }
 
   async handlePaymentSideEffects(
-    order: { id: string; items: { id: string; listingId: string | null; deliveryType: DeliveryType }[] },
+    order: {
+      id: string;
+      items: { id: string; listingId: string | null; deliveryType: DeliveryType }[];
+    },
     actorId?: string | null,
     meta?: OrderMeta,
   ) {
@@ -478,7 +488,9 @@ export class OrdersService {
       if (!order.expiresAt) {
         return order;
       }
-      if (!this.isAllowedStatus(order.status, [OrderStatus.CREATED, OrderStatus.AWAITING_PAYMENT])) {
+      if (
+        !this.isAllowedStatus(order.status, [OrderStatus.CREATED, OrderStatus.AWAITING_PAYMENT])
+      ) {
         return order;
       }
       if (order.expiresAt && order.expiresAt.getTime() > Date.now()) {
@@ -545,7 +557,10 @@ export class OrdersService {
     return updated;
   }
 
-  private async reserveInventoryForOrder(order: { id: string; items: { id: string; listingId: string | null; deliveryType: DeliveryType }[] }) {
+  private async reserveInventoryForOrder(order: {
+    id: string;
+    items: { id: string; listingId: string | null; deliveryType: DeliveryType }[];
+  }) {
     const autoItems = order.items.filter(
       (item) => item.deliveryType === DeliveryType.AUTO && item.listingId,
     );

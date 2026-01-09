@@ -43,160 +43,156 @@ export class WebhooksProcessor extends WorkerHost {
 
     try {
       const requestId = job.id?.toString() ?? correlationId;
-      await this.requestContext.run(
-        { requestId, correlationId },
-        async () => {
-      const result = await this.prisma.$transaction(async (tx) => {
-        const event = await tx.webhookEvent.findUnique({
-          where: { id: eventId },
-        });
-
-        if (!event) {
-          return { status: 'missing' as const };
-        }
-
-        if (event.processedAt) {
-          return { status: 'duplicate' as const, txid: event.txid };
-        }
-
-        const payload = event.payload as Prisma.JsonObject;
-        const txid = event.txid ?? this.extractTxid(payload);
-        correlationId = txid ?? event.id;
-
-        if (!this.isPaidPayload(payload, event.eventType)) {
-          await tx.webhookEvent.update({
-            where: { id: event.id },
-            data: { processedAt: new Date() },
+      await this.requestContext.run({ requestId, correlationId }, async () => {
+        const result = await this.prisma.$transaction(async (tx) => {
+          const event = await tx.webhookEvent.findUnique({
+            where: { id: eventId },
           });
-          return { status: 'ignored' as const, txid };
-        }
 
-        if (!txid) {
-          throw new Error('Webhook payload missing txid.');
-        }
+          if (!event) {
+            return { status: 'missing' as const };
+          }
 
-        const payment = await tx.payment.findUnique({ where: { txid } });
-        if (!payment) {
-          throw new Error(`Payment not found for txid ${txid}`);
-        }
-        correlationId = txid ?? payment.orderId ?? event.id;
+          if (event.processedAt) {
+            return { status: 'duplicate' as const, txid: event.txid };
+          }
 
-        const paidAt = this.extractPaidAt(payload);
-        const paymentNeedsUpdate = payment.status !== PaymentStatus.CONFIRMED;
+          const payload = event.payload as Prisma.JsonObject;
+          const txid = event.txid ?? this.extractTxid(payload);
+          correlationId = txid ?? event.id;
 
-        const { order, applied } = await this.ordersService.applyPaymentConfirmation(
-          payment.orderId,
-          null,
-          { source: 'system', reason: 'efi-webhook' },
-          tx,
-        );
+          if (!this.isPaidPayload(payload, event.eventType)) {
+            await tx.webhookEvent.update({
+              where: { id: event.id },
+              data: { processedAt: new Date() },
+            });
+            return { status: 'ignored' as const, txid };
+          }
 
-        if (paymentNeedsUpdate) {
-          await tx.payment.update({
-            where: { id: payment.id },
-            data: {
-              status: PaymentStatus.CONFIRMED,
-              paidAt,
-            },
-          });
-        }
+          if (!txid) {
+            throw new Error('Webhook payload missing txid.');
+          }
 
-        const orderDetails = await tx.order.findUnique({
-          where: { id: order.id },
-          include: { buyer: true, seller: true },
-        });
+          const payment = await tx.payment.findUnique({ where: { txid } });
+          if (!payment) {
+            throw new Error(`Payment not found for txid ${txid}`);
+          }
+          correlationId = txid ?? payment.orderId ?? event.id;
 
-        if (orderDetails?.sellerId) {
-          await this.settlementService.createHeldEntry(
-            {
-              orderId: order.id,
-              paymentId: payment.id,
-              sellerId: orderDetails.sellerId,
-              amountCents: payment.amountCents,
-              currency: payment.currency,
-            },
-            tx,
-          );
-        }
+          const paidAt = this.extractPaidAt(payload);
+          const paymentNeedsUpdate = payment.status !== PaymentStatus.CONFIRMED;
 
-        const shouldNotify = applied || paymentNeedsUpdate;
-
-        if (shouldNotify && orderDetails?.buyerId) {
-          await tx.notification.create({
-            data: {
-              userId: orderDetails.buyerId,
-              type: NotificationType.PAYMENT,
-              title: 'Pagamento confirmado',
-              body: `Pedido ${orderDetails.id} confirmado.`,
-            },
-          });
-        }
-
-        if (shouldNotify && orderDetails?.sellerId) {
-          await tx.notification.create({
-            data: {
-              userId: orderDetails.sellerId,
-              type: NotificationType.PAYMENT,
-              title: 'Venda paga',
-              body: `Pedido ${orderDetails.id} confirmado pelo comprador.`,
-            },
-          });
-        }
-
-        let emailOutboxId: string | undefined;
-        if (shouldNotify && orderDetails?.buyer?.email) {
-          const outbox = await tx.emailOutbox.create({
-            data: {
-              to: orderDetails.buyer.email,
-              subject: 'Pagamento confirmado',
-              body: `Seu pedido ${orderDetails.id} foi confirmado e esta em entrega.`,
-            },
-          });
-          emailOutboxId = outbox.id;
-        }
-
-        await tx.webhookEvent.update({
-          where: { id: event.id },
-          data: { processedAt: new Date(), paymentId: payment.id },
-        });
-
-        return { status: 'processed' as const, txid, order, applied, emailOutboxId };
-      });
-
-      this.requestContext.set({ correlationId });
-
-      if (result.status === 'processed') {
-        this.metrics.increment('processed', correlationId);
-        this.logger.log('Webhook processed', this.buildContext(correlationId));
-        if (result.applied) {
-          await this.ordersService.handlePaymentSideEffects(
-            result.order,
+          const { order, applied } = await this.ordersService.applyPaymentConfirmation(
+            payment.orderId,
             null,
             { source: 'system', reason: 'efi-webhook' },
+            tx,
           );
+
+          if (paymentNeedsUpdate) {
+            await tx.payment.update({
+              where: { id: payment.id },
+              data: {
+                status: PaymentStatus.CONFIRMED,
+                paidAt,
+              },
+            });
+          }
+
+          const orderDetails = await tx.order.findUnique({
+            where: { id: order.id },
+            include: { buyer: true, seller: true },
+          });
+
+          if (orderDetails?.sellerId) {
+            await this.settlementService.createHeldEntry(
+              {
+                orderId: order.id,
+                paymentId: payment.id,
+                sellerId: orderDetails.sellerId,
+                amountCents: payment.amountCents,
+                currency: payment.currency,
+              },
+              tx,
+            );
+          }
+
+          const shouldNotify = applied || paymentNeedsUpdate;
+
+          if (shouldNotify && orderDetails?.buyerId) {
+            await tx.notification.create({
+              data: {
+                userId: orderDetails.buyerId,
+                type: NotificationType.PAYMENT,
+                title: 'Pagamento confirmado',
+                body: `Pedido ${orderDetails.id} confirmado.`,
+              },
+            });
+          }
+
+          if (shouldNotify && orderDetails?.sellerId) {
+            await tx.notification.create({
+              data: {
+                userId: orderDetails.sellerId,
+                type: NotificationType.PAYMENT,
+                title: 'Venda paga',
+                body: `Pedido ${orderDetails.id} confirmado pelo comprador.`,
+              },
+            });
+          }
+
+          let emailOutboxId: string | undefined;
+          if (shouldNotify && orderDetails?.buyer?.email) {
+            const outbox = await tx.emailOutbox.create({
+              data: {
+                to: orderDetails.buyer.email,
+                subject: 'Pagamento confirmado',
+                body: `Seu pedido ${orderDetails.id} foi confirmado e esta em entrega.`,
+              },
+            });
+            emailOutboxId = outbox.id;
+          }
+
+          await tx.webhookEvent.update({
+            where: { id: event.id },
+            data: { processedAt: new Date(), paymentId: payment.id },
+          });
+
+          return { status: 'processed' as const, txid, order, applied, emailOutboxId };
+        });
+
+        this.requestContext.set({ correlationId });
+
+        if (result.status === 'processed') {
+          this.metrics.increment('processed', correlationId);
+          this.logger.log('Webhook processed', this.buildContext(correlationId));
+          if (result.applied) {
+            await this.ordersService.handlePaymentSideEffects(result.order, null, {
+              source: 'system',
+              reason: 'efi-webhook',
+            });
+          }
+          if (result.emailOutboxId) {
+            await this.emailQueue.enqueueEmail(result.emailOutboxId);
+          }
+          return;
         }
-        if (result.emailOutboxId) {
-          await this.emailQueue.enqueueEmail(result.emailOutboxId);
+
+        if (result.status === 'duplicate') {
+          this.metrics.increment('duplicated', correlationId);
+          this.logger.log('Webhook duplicated', this.buildContext(correlationId));
+          return;
         }
-        return;
-      }
 
-      if (result.status === 'duplicate') {
-        this.metrics.increment('duplicated', correlationId);
-        this.logger.log('Webhook duplicated', this.buildContext(correlationId));
-        return;
-      }
+        if (result.status === 'ignored') {
+          this.metrics.increment('processed', correlationId);
+          this.logger.log('Webhook ignored (not paid)', this.buildContext(correlationId));
+          return;
+        }
 
-      if (result.status === 'ignored') {
-        this.metrics.increment('processed', correlationId);
-        this.logger.log('Webhook ignored (not paid)', this.buildContext(correlationId));
-        return;
-      }
-
-      this.metrics.increment('failed', correlationId);
-      this.logger.warn('Webhook missing in database', this.buildContext(correlationId));
-        },
-      );
+        this.metrics.increment('failed', correlationId);
+        this.logger.warn('Webhook missing in database', this.buildContext(correlationId));
+      });
     } catch (error) {
       this.metrics.increment('failed', correlationId);
       this.logger.error(

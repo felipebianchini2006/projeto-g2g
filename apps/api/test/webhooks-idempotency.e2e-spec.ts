@@ -1,11 +1,12 @@
-import { INestApplication } from '@nestjs/common';
+import type { INestApplication } from '@nestjs/common';
 import { getQueueToken } from '@nestjs/bullmq';
-import { Test, TestingModule } from '@nestjs/testing';
+import type { TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { PaymentStatus, UserRole } from '@prisma/client';
-import { Job } from 'bullmq';
+import type { Job } from 'bullmq';
 import { randomUUID } from 'crypto';
 import request from 'supertest';
-import { App } from 'supertest/types';
+import type { App } from 'supertest/types';
 
 import { AppModule } from './../src/app.module';
 import { EmailQueueService } from './../src/modules/email/email.service';
@@ -53,8 +54,7 @@ describe('Webhooks idempotency (e2e)', () => {
     process.env['DATABASE_URL'] =
       process.env['E2E_DATABASE_URL'] ??
       'postgresql://postgres:123456@localhost:5433/projeto_g2g_test';
-    process.env['REDIS_URL'] =
-      process.env['E2E_REDIS_URL'] ?? 'redis://localhost:6380';
+    process.env['REDIS_URL'] = process.env['E2E_REDIS_URL'] ?? 'redis://localhost:6380';
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -198,10 +198,7 @@ describe('Webhooks idempotency (e2e)', () => {
       pix: [{ txid: payment.txid, horario: new Date().toISOString() }],
     };
 
-    await request(app.getHttpServer())
-      .post('/webhooks/efi/pix')
-      .send(payload)
-      .expect(201);
+    await request(app.getHttpServer()).post('/webhooks/efi/pix').send(payload).expect(201);
 
     const orderAfter = await prisma.order.findUnique({ where: { id: order.id } });
     const paymentAfter = await prisma.payment.findUnique({ where: { id: payment.id } });

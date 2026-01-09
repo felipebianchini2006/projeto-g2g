@@ -15,12 +15,7 @@ export class ListingMediaService {
     });
   }
 
-  async addMedia(
-    sellerId: string,
-    listingId: string,
-    file: Express.Multer.File,
-    position = 0,
-  ) {
+  async addMedia(sellerId: string, listingId: string, file: Express.Multer.File, position = 0) {
     const listing = await this.ensureSellerListing(sellerId, listingId);
     const mediaType = this.resolveMediaType(file.mimetype);
 

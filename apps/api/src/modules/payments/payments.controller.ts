@@ -1,11 +1,4 @@
-import {
-  Body,
-  Controller,
-  Post,
-  Req,
-  UnauthorizedException,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
 
 import type { JwtPayload } from '../auth/auth.types';

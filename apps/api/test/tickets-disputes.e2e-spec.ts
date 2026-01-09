@@ -1,10 +1,11 @@
-import { INestApplication } from '@nestjs/common';
+import type { INestApplication } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { Test, TestingModule } from '@nestjs/testing';
+import type { TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { UserRole } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import request from 'supertest';
-import { App } from 'supertest/types';
+import type { App } from 'supertest/types';
 
 import { AppModule } from './../src/app.module';
 import { PrismaService } from './../src/modules/prisma/prisma.service';
@@ -36,8 +37,7 @@ describe('Tickets & Disputes (e2e)', () => {
     process.env['DATABASE_URL'] =
       process.env['E2E_DATABASE_URL'] ??
       'postgresql://postgres:123456@localhost:5433/projeto_g2g_test';
-    process.env['REDIS_URL'] =
-      process.env['E2E_REDIS_URL'] ?? 'redis://localhost:6380';
+    process.env['REDIS_URL'] = process.env['E2E_REDIS_URL'] ?? 'redis://localhost:6380';
 
     const redisMock = { ping: jest.fn().mockResolvedValue('PONG') };
     const settlementMock = {
@@ -140,8 +140,8 @@ describe('Tickets & Disputes (e2e)', () => {
     if (!prisma) {
       return;
     }
-    const orderIds = [orderId, orderRefundId].filter(Boolean) as string[];
-    const userIds = [adminId, buyerId, sellerId, outsiderId].filter(Boolean) as string[];
+    const orderIds = [orderId, orderRefundId].filter(Boolean);
+    const userIds = [adminId, buyerId, sellerId, outsiderId].filter(Boolean);
 
     if (orderIds.length) {
       await prisma.ticketMessage.deleteMany({

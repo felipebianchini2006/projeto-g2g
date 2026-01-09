@@ -78,10 +78,7 @@ export class DisputesService {
       throw new NotFoundException('Dispute not found.');
     }
 
-    const actionableStatuses = new Set<DisputeStatus>([
-      DisputeStatus.OPEN,
-      DisputeStatus.REVIEW,
-    ]);
+    const actionableStatuses = new Set<DisputeStatus>([DisputeStatus.OPEN, DisputeStatus.REVIEW]);
     if (!actionableStatuses.has(dispute.status)) {
       throw new BadRequestException('Dispute already resolved.');
     }
@@ -133,11 +130,15 @@ export class DisputesService {
         ignoreDispute: true,
       });
 
-      await this.finalizeDispute(disputeId, {
-        status: DisputeStatus.RESOLVED,
-        resolution: this.buildResolution('partial', dto.reason, dto.amountCents),
-        resolvedAt: new Date(),
-      }, adminId);
+      await this.finalizeDispute(
+        disputeId,
+        {
+          status: DisputeStatus.RESOLVED,
+          resolution: this.buildResolution('partial', dto.reason, dto.amountCents),
+          resolvedAt: new Date(),
+        },
+        adminId,
+      );
 
       await this.notifyDecision(dispute, 'partial', dto.reason, dto.amountCents);
       return { status: 'partial_refund', disputeId };
@@ -178,11 +179,15 @@ export class DisputesService {
         ignoreDispute: true,
       });
 
-      await this.finalizeDispute(disputeId, {
-        status: DisputeStatus.REJECTED,
-        resolution: this.buildResolution('release', dto.reason),
-        resolvedAt: new Date(),
-      }, adminId);
+      await this.finalizeDispute(
+        disputeId,
+        {
+          status: DisputeStatus.REJECTED,
+          resolution: this.buildResolution('release', dto.reason),
+          resolvedAt: new Date(),
+        },
+        adminId,
+      );
 
       await this.notifyDecision(dispute, 'release', dto.reason);
       return { status: 'released', disputeId };
@@ -194,18 +199,30 @@ export class DisputesService {
 
     await this.settlementService.refundOrder(dispute.orderId, adminId, dto.reason);
 
-    await this.finalizeDispute(disputeId, {
-      status: DisputeStatus.RESOLVED,
-      resolution: this.buildResolution('refund', dto.reason),
-      resolvedAt: new Date(),
-    }, adminId);
+    await this.finalizeDispute(
+      disputeId,
+      {
+        status: DisputeStatus.RESOLVED,
+        resolution: this.buildResolution('refund', dto.reason),
+        resolvedAt: new Date(),
+      },
+      adminId,
+    );
 
     await this.notifyDecision(dispute, 'refund', dto.reason);
     return { status: 'refunded', disputeId };
   }
 
   private async notifyDecision(
-    dispute: { order: { id: string; buyerId: string; sellerId: string | null; buyer?: { email: string } | null; seller?: { email: string } | null } },
+    dispute: {
+      order: {
+        id: string;
+        buyerId: string;
+        sellerId: string | null;
+        buyer?: { email: string } | null;
+        seller?: { email: string } | null;
+      };
+    },
     action: 'release' | 'refund' | 'partial',
     reason?: string,
     amountCents?: number,
@@ -310,7 +327,11 @@ export class DisputesService {
     });
   }
 
-  private buildResolution(action: 'release' | 'refund' | 'partial', reason?: string, amountCents?: number) {
+  private buildResolution(
+    action: 'release' | 'refund' | 'partial',
+    reason?: string,
+    amountCents?: number,
+  ) {
     const amount = amountCents ? `:${amountCents}` : '';
     const base = `${action}${amount}`;
     return reason ? `${base}:${reason}` : base;
