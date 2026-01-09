@@ -10,11 +10,15 @@ type FormFieldProps = {
 
 export const FormField = ({ label, htmlFor, error, helper, children }: FormFieldProps) => {
   return (
-    <label className="auth-field" htmlFor={htmlFor}>
-      <span>{label}</span>
+    <label className="grid gap-2 text-sm font-semibold text-meow-charcoal" htmlFor={htmlFor}>
+      <span className="text-xs font-bold uppercase tracking-[0.4px] text-meow-muted">
+        {label}
+      </span>
       {children}
-      {error ? <span className="auth-error">{error}</span> : null}
-      {!error && helper ? <span className="auth-helper">{helper}</span> : null}
+      {error ? <span className="text-xs font-semibold text-red-600">{error}</span> : null}
+      {!error && helper ? (
+        <span className="text-xs text-meow-muted">{helper}</span>
+      ) : null}
     </label>
   );
 };

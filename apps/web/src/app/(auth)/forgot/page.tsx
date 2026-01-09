@@ -5,6 +5,14 @@ import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { z } from 'zod';
 
 import { FormField } from '../../../components/forms/form-field';
+import { Button } from '../../../components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '../../../components/ui/card';
 import { AuthApiError, authApi } from '../../../lib/auth-api';
 import { mapZodErrors } from '../../../lib/zod-errors';
 
@@ -59,40 +67,59 @@ export default function Page() {
   };
 
   return (
-    <div className="auth-shell">
-      <div className="auth-card">
-        <span className="auth-kicker">Recuperacao</span>
-        <h1>Esqueci minha senha</h1>
-        <p>Informe seu e-mail para receber instrucoes.</p>
-        <form className="auth-form" onSubmit={handleSubmit}>
-          <FormField label="E-mail" htmlFor="email" error={errors.email}>
-            <input
-              id="email"
-              className="auth-input"
-              type="email"
-              value={formData.email}
-              onChange={handleChange('email')}
-              autoComplete="email"
-              required
-            />
-          </FormField>
-          {errors.form ? <p className="auth-error">{errors.form}</p> : null}
-          {successMessage ? <p className="auth-helper">{successMessage}</p> : null}
-          {resetToken ? (
-            <Link className="auth-link" href={`/reset?token=${resetToken}`}>
-              Ir para reset com token
-            </Link>
-          ) : null}
-          <button className="primary-button" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Enviando...' : 'Enviar reset'}
-          </button>
-          <div className="auth-footer">
-            <Link className="auth-link" href="/login">
-              Voltar para login
-            </Link>
-          </div>
-        </form>
-      </div>
+    <div className="flex min-h-screen items-center justify-center bg-meow-gradient px-6 py-16">
+      <Card className="w-full max-w-md">
+        <CardHeader className="items-start">
+          <span className="text-xs font-black uppercase tracking-[0.6px] text-meow-deep">
+            Recuperacao
+          </span>
+          <CardTitle className="text-2xl">Esqueci minha senha</CardTitle>
+          <CardDescription>
+            Informe seu e-mail para receber instrucoes.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <form className="grid gap-4" onSubmit={handleSubmit}>
+            <FormField label="E-mail" htmlFor="email" error={errors.email}>
+              <input
+                id="email"
+                className="rounded-xl border border-meow-red/30 bg-meow-cream/60 px-4 py-3 text-sm text-meow-charcoal outline-none transition focus:border-meow-deep/50"
+                type="email"
+                value={formData.email}
+                onChange={handleChange('email')}
+                autoComplete="email"
+                required
+              />
+            </FormField>
+            {errors.form ? (
+              <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700">
+                {errors.form}
+              </p>
+            ) : null}
+            {successMessage ? (
+              <p className="rounded-xl border border-meow-red/20 bg-meow-cream/60 px-4 py-2 text-xs font-semibold text-meow-muted">
+                {successMessage}
+              </p>
+            ) : null}
+            {resetToken ? (
+              <Link
+                className="text-sm font-semibold text-meow-deep hover:underline"
+                href={`/reset?token=${resetToken}`}
+              >
+                Ir para reset com token
+              </Link>
+            ) : null}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Enviando...' : 'Enviar reset'}
+            </Button>
+            <div className="flex items-center justify-between text-sm">
+              <Link className="font-semibold text-meow-deep hover:underline" href="/login">
+                Voltar para login
+              </Link>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

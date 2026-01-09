@@ -1,11 +1,12 @@
 'use client';
 
 import Link from 'next/link';
+import { ChevronLeft, ChevronRight, Instagram, MessageCircle } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
+import { ListingCard } from '../listings/listing-card';
 import { fetchPublicListings, type PublicListing } from '../../lib/marketplace-public';
 import { features, franchises } from '../../lib/site-data';
-import { useSite } from '../site-context';
 
 const HERO_DOT_COUNT = 3;
 const FRANCHISE_DOT_COUNT = 3;
@@ -28,7 +29,6 @@ export const HomeContent = () => {
     source: 'api',
     listings: [],
   });
-  const { addToCart } = useSite();
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -75,63 +75,87 @@ export const HomeContent = () => {
 
   return (
     <>
-      <section className="hero-banner">
-        <div className="hero-slide active">
-          <img
-            src="/assets/meoow/banner.png"
-            alt="Banner principal"
-            className="hero-bg"
-          />
-        </div>
-        <div className="hero-dots">
-          {heroDots.map((_, index) => (
-            <button
-              key={`hero-dot-${index}`}
-              type="button"
-              aria-label={`Ir para o slide ${index + 1}`}
-              className={`dot${heroIndex === index ? ' active' : ''}`}
-              onClick={() => setHeroIndex(index)}
+      <section className="relative py-10">
+        <div className="mx-auto w-full max-w-[1280px] px-6">
+          <div className="relative overflow-hidden rounded-3xl shadow-[0_24px_50px_rgba(240,98,146,0.2)]">
+            <img
+              src="/assets/meoow/banner.png"
+              alt="Banner principal"
+              className="h-[480px] w-full object-cover"
             />
-          ))}
-        </div>
-        <a href="#" className="instagram-float" aria-label="Instagram">
-          <i className="fab fa-instagram" aria-hidden="true" />
-        </a>
-      </section>
-
-      <section className="features-bar">
-        <div className="container">
-          {features.map((feature) => (
-            <div className="feature" key={feature.title}>
-              <span className="feature-icon generic" />
-              <div className="feature-text">
-                <h4>{feature.title}</h4>
-                <p>{feature.subtitle}</p>
-              </div>
+            <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 gap-2">
+              {heroDots.map((_, index) => (
+                <button
+                  key={`hero-dot-${index}`}
+                  type="button"
+                  aria-label={`Ir para o slide ${index + 1}`}
+                  className={`h-2 w-2 rounded-full transition ${
+                    heroIndex === index ? 'bg-meow-gold' : 'bg-white/40'
+                  }`}
+                  onClick={() => setHeroIndex(index)}
+                />
+              ))}
             </div>
-          ))}
+            <a
+              href="#"
+              className="absolute bottom-6 left-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(45deg,_#f7b8d1_0%,_#f2a4c3_35%,_#d86b95_70%,_#b35c82_100%)] text-white shadow-lg transition hover:scale-105"
+              aria-label="Instagram"
+            >
+              <Instagram size={20} aria-hidden />
+            </a>
+          </div>
         </div>
       </section>
 
-      <section className="home-highlights">
-        <div className="container">
-          <div className="section-head">
+      <section className="-mt-10">
+        <div className="mx-auto w-full max-w-[1280px] px-6">
+          <div className="rounded-3xl bg-white shadow-meow">
+            <div className="grid gap-6 p-6 md:grid-cols-2 xl:grid-cols-4">
+              {features.map((feature) => (
+                <div
+                  className="flex items-center gap-4 rounded-2xl px-2 py-3 transition hover:bg-meow-cream/60"
+                  key={feature.title}
+                >
+                  <div className="h-14 w-14 rounded-2xl border border-meow-deep/20 bg-[linear-gradient(135deg,_#ffd1e6_0%,_#ff9fc6_100%)]" />
+                  <div>
+                    <h4 className="text-sm font-extrabold uppercase">
+                      {feature.title}
+                    </h4>
+                    <p className="text-xs text-meow-muted">{feature.subtitle}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16">
+        <div className="mx-auto w-full max-w-[1280px] px-6">
+          <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h2 className="section-title">Destaques da semana</h2>
-              <p className="section-subtitle">
+              <h2 className="text-center font-display text-4xl font-black md:text-left">
+                Destaques da semana
+              </h2>
+              <p className="mt-2 text-sm text-meow-muted">
                 Selecao com entregas rapidas e preco exclusivo.
               </p>
             </div>
-            <Link href="/produtos" className="ghost-button">
+            <Link
+              href="/produtos"
+              className="inline-flex items-center justify-center rounded-full border border-meow-red/30 px-5 py-2 text-sm font-bold text-meow-deep transition hover:bg-meow-cream"
+            >
               Ver catalogo
             </Link>
           </div>
 
           {highlightState.status === 'loading' ? (
-            <div className="state-card">Carregando destaques...</div>
+            <div className="mt-6 rounded-2xl bg-white p-4 text-sm text-meow-muted shadow-meow">
+              Carregando destaques...
+            </div>
           ) : null}
           {highlightState.error ? (
-            <div className="state-card info">
+            <div className="mt-4 rounded-2xl border border-meow-red/30 bg-meow-cream/70 p-4 text-sm text-meow-muted">
               {highlightState.error}
               {highlightState.source === 'fallback'
                 ? ' Usando catalogo local.'
@@ -139,72 +163,61 @@ export const HomeContent = () => {
             </div>
           ) : null}
 
-          <div className="listing-grid">
-            {highlightState.listings.map((listing) => (
-              <article className="listing-card" key={listing.id}>
-                <div className="listing-media">
-                  <img
-                    src={listing.media?.[0]?.url ?? '/assets/meoow/highlight-01.webp'}
-                    alt={listing.title}
-                  />
-                  <span className={`badge badge-${listing.deliveryType.toLowerCase()}`}>
-                    {listing.deliveryType === 'AUTO' ? 'Auto' : 'Manual'}
-                  </span>
-                </div>
-                <div className="listing-body">
-                  <h3>{listing.title}</h3>
-                  <p>{listing.description}</p>
-                  <div className="listing-price">
-                    {formatCurrency(listing.priceCents, listing.currency)}
-                  </div>
-                  <div className="listing-actions">
-                    <Link className="ghost-button" href={`/anuncios/${listing.id}`}>
-                      Ver anuncio
-                    </Link>
-                    <button
-                      className="primary-button"
-                      type="button"
-                      onClick={() => addToCart(listing.title)}
-                    >
-                      Comprar
-                    </button>
-                  </div>
-                </div>
-              </article>
+          <div className="mt-8 grid gap-8 md:grid-cols-2 xl:grid-cols-4">
+            {highlightState.listings.map((listing, index) => (
+              <ListingCard
+                key={listing.id}
+                title={listing.title}
+                price={formatCurrency(listing.priceCents, listing.currency)}
+                image={listing.media?.[0]?.url ?? '/assets/meoow/highlight-01.webp'}
+                isAuto={listing.deliveryType === 'AUTO'}
+                href={`/anuncios/${listing.id}`}
+                variant={index % 2 === 0 ? 'red' : 'dark'}
+              />
             ))}
           </div>
         </div>
       </section>
 
-      <section className="franchises-section">
-        <div className="container">
-          <h2 className="section-title">Qual deles tem o seu coracao?</h2>
+      <section className="pb-16">
+        <div className="mx-auto w-full max-w-[1280px] px-6">
+          <h2 className="text-center font-display text-4xl font-black">
+            Qual deles tem o seu coracao?
+          </h2>
 
-          <div className="franchises-carousel">
+          <div className="mt-8 flex items-center gap-6">
             <button
-              className="carousel-btn prev"
+              className="hidden h-11 w-11 items-center justify-center rounded-full bg-white text-meow-deep shadow-meow transition hover:-translate-y-0.5 md:flex"
               type="button"
               aria-label="Pagina anterior"
-              onClick={() =>
-                setFranchiseIndex((prev) => Math.max(0, prev - 1))
-              }
+              onClick={() => setFranchiseIndex((prev) => Math.max(0, prev - 1))}
             >
-              <i className="fas fa-chevron-left" aria-hidden="true" />
+              <ChevronLeft size={18} aria-hidden />
             </button>
 
-            <div className="franchises-grid">
+            <div className="grid flex-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
               {franchises.map((franchise) => (
-                <a href="#" className="franchise-card" key={franchise.name}>
-                  <div className="franchise-circle">
-                    <img src={franchise.image} alt={franchise.name} />
+                <a
+                  href="#"
+                  className="group text-center transition"
+                  key={franchise.name}
+                >
+                  <div className="mx-auto flex h-28 w-28 items-center justify-center rounded-full bg-[linear-gradient(135deg,_#f2a4c3_0%,_#f7b8d1_100%)] shadow-[0_12px_30px_rgba(216,107,149,0.24)] transition group-hover:-translate-y-2">
+                    <img
+                      src={franchise.image}
+                      alt={franchise.name}
+                      className="h-full w-full rounded-full object-cover"
+                    />
                   </div>
-                  <span>{franchise.name}</span>
+                  <span className="mt-3 block text-sm font-bold">
+                    {franchise.name}
+                  </span>
                 </a>
               ))}
             </div>
 
             <button
-              className="carousel-btn next"
+              className="hidden h-11 w-11 items-center justify-center rounded-full bg-white text-meow-deep shadow-meow transition hover:-translate-y-0.5 md:flex"
               type="button"
               aria-label="Proxima pagina"
               onClick={() =>
@@ -213,17 +226,19 @@ export const HomeContent = () => {
                 )
               }
             >
-              <i className="fas fa-chevron-right" aria-hidden="true" />
+              <ChevronRight size={18} aria-hidden />
             </button>
           </div>
 
-          <div className="carousel-dots">
+          <div className="mt-6 flex justify-center gap-2">
             {franchiseDots.map((_, index) => (
               <button
                 key={`franchise-dot-${index}`}
                 type="button"
                 aria-label={`Selecionar pagina ${index + 1}`}
-                className={`dot${franchiseIndex === index ? ' active' : ''}`}
+                className={`h-2 w-2 rounded-full ${
+                  franchiseIndex === index ? 'bg-meow-deep' : 'bg-[#f1d9d1]'
+                }`}
                 onClick={() => setFranchiseIndex(index)}
               />
             ))}
@@ -231,8 +246,12 @@ export const HomeContent = () => {
         </div>
       </section>
 
-      <a href="#" className="whatsapp-float" aria-label="WhatsApp">
-        <i className="fab fa-whatsapp" aria-hidden="true" />
+      <a
+        href="#"
+        className="fixed bottom-6 right-6 flex h-14 w-14 items-center justify-center rounded-full bg-[#25d366] text-white shadow-[0_10px_24px_rgba(37,211,102,0.4)] transition hover:-translate-y-1"
+        aria-label="WhatsApp"
+      >
+        <MessageCircle size={22} aria-hidden />
       </a>
     </>
   );

@@ -1,90 +1,148 @@
 'use client';
 
+import { Facebook, Instagram, Youtube, Sparkles } from 'lucide-react';
+
 export const SiteFooter = () => (
-  <footer className="footer">
-    <div className="container">
-      <div className="footer-grid">
-        <div className="footer-col">
-          <div className="brand footer-brand">
-            <img src="/assets/meoow/logo.png" alt="Meoww" className="brand-mark" />
-            <div className="brand-text">
-              <span className="brand-name">Meoww Games</span>
-              <span className="brand-tagline">A casa gamer dos gatinhos</span>
+  <footer className="bg-meow-dark text-white">
+    <div className="mx-auto w-full max-w-[1280px] px-6 py-14">
+      <div className="grid gap-10 lg:grid-cols-[2fr_1fr_1fr_1fr]">
+        <div>
+          <div className="flex items-center gap-3">
+            <div className="h-12 w-12 overflow-hidden rounded-xl shadow-meow">
+              <img src="/assets/meoow/logo.png" alt="Meoww" />
+            </div>
+            <div>
+              <span className="block font-display text-xl font-black">
+                Meoww Games
+              </span>
+              <span className="text-xs font-semibold text-meow-cream/80">
+                A casa gamer dos gatinhos
+              </span>
             </div>
           </div>
-          <p>
+          <p className="mt-4 text-sm leading-relaxed text-[#d6c1c8]">
             A loja gamer com curadoria felina. Consoles, jogos e colecionaveis com
             entrega rapida e segura.
           </p>
-          <div className="social-links">
-            <a href="#" aria-label="Facebook">
-              <i className="fab fa-facebook" aria-hidden="true" />
+          <div className="mt-5 flex flex-wrap gap-3">
+            <a
+              href="#"
+              aria-label="Facebook"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 text-white transition hover:-translate-y-0.5"
+            >
+              <Facebook size={18} aria-hidden />
             </a>
-            <a href="#" aria-label="Instagram">
-              <i className="fab fa-instagram" aria-hidden="true" />
+            <a
+              href="#"
+              aria-label="Instagram"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 text-white transition hover:-translate-y-0.5"
+            >
+              <Instagram size={18} aria-hidden />
             </a>
-            <a href="#" aria-label="YouTube">
-              <i className="fab fa-youtube" aria-hidden="true" />
+            <a
+              href="#"
+              aria-label="YouTube"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 text-white transition hover:-translate-y-0.5"
+            >
+              <Youtube size={18} aria-hidden />
             </a>
-            <a href="#" aria-label="TikTok">
-              <i className="fab fa-tiktok" aria-hidden="true" />
+            <a
+              href="#"
+              aria-label="TikTok"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 text-white transition hover:-translate-y-0.5"
+            >
+              <Sparkles size={18} aria-hidden />
             </a>
           </div>
         </div>
-        <div className="footer-col">
-          <h4>Institucional</h4>
-          <ul>
+
+        <div>
+          <h4 className="mb-4 text-sm font-extrabold uppercase tracking-[0.6px]">
+            Institucional
+          </h4>
+          <ul className="space-y-2 text-[13px] text-[#d6c1c8]">
             <li>
-              <a href="#">Sobre nos</a>
+              <a className="transition hover:text-white" href="#">
+                Sobre nos
+              </a>
             </li>
             <li>
-              <a href="#">Contato</a>
+              <a className="transition hover:text-white" href="#">
+                Contato
+              </a>
             </li>
             <li>
-              <a href="#">Politica de privacidade</a>
+              <a className="transition hover:text-white" href="#">
+                Politica de privacidade
+              </a>
             </li>
             <li>
-              <a href="#">Termos de uso</a>
-            </li>
-          </ul>
-        </div>
-        <div className="footer-col">
-          <h4>Categorias</h4>
-          <ul>
-            <li>
-              <a href="#">Nintendo</a>
-            </li>
-            <li>
-              <a href="#">PlayStation</a>
-            </li>
-            <li>
-              <a href="#">Xbox</a>
-            </li>
-            <li>
-              <a href="#">Colecionaveis</a>
+              <a className="transition hover:text-white" href="#">
+                Termos de uso
+              </a>
             </li>
           </ul>
         </div>
-        <div className="footer-col">
-          <h4>Ajuda</h4>
-          <ul>
+
+        <div>
+          <h4 className="mb-4 text-sm font-extrabold uppercase tracking-[0.6px]">
+            Categorias
+          </h4>
+          <ul className="space-y-2 text-[13px] text-[#d6c1c8]">
             <li>
-              <a href="#">Central de ajuda</a>
+              <a className="transition hover:text-white" href="#">
+                Nintendo
+              </a>
             </li>
             <li>
-              <a href="#">Como comprar</a>
+              <a className="transition hover:text-white" href="#">
+                PlayStation
+              </a>
             </li>
             <li>
-              <a href="#">Formas de pagamento</a>
+              <a className="transition hover:text-white" href="#">
+                Xbox
+              </a>
             </li>
             <li>
-              <a href="#">Trocas e devolucoes</a>
+              <a className="transition hover:text-white" href="#">
+                Colecionaveis
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 className="mb-4 text-sm font-extrabold uppercase tracking-[0.6px]">
+            Ajuda
+          </h4>
+          <ul className="space-y-2 text-[13px] text-[#d6c1c8]">
+            <li>
+              <a className="transition hover:text-white" href="#">
+                Central de ajuda
+              </a>
+            </li>
+            <li>
+              <a className="transition hover:text-white" href="#">
+                Como comprar
+              </a>
+            </li>
+            <li>
+              <a className="transition hover:text-white" href="#">
+                Formas de pagamento
+              </a>
+            </li>
+            <li>
+              <a className="transition hover:text-white" href="#">
+                Trocas e devolucoes
+              </a>
             </li>
           </ul>
         </div>
       </div>
-      <div className="footer-bottom">
-        <p>&copy; 2025 Meoww Games. Todos os direitos reservados.</p>
+
+      <div className="mt-8 border-t border-white/10 pt-5 text-center text-[12px] text-[#a78b95]">
+        &copy; 2025 Meoww Games. Todos os direitos reservados.
       </div>
     </div>
   </footer>

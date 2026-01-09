@@ -1,4 +1,8 @@
-﻿:root {
+﻿@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
     --red: #f2a4c3;
     --deep-red: #d86b95;
     --cream: #fff3f8;

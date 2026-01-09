@@ -6,6 +6,14 @@ import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import { z } from 'zod';
 
 import { FormField } from '../../../components/forms/form-field';
+import { Button } from '../../../components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '../../../components/ui/card';
 import { AuthApiError, authApi } from '../../../lib/auth-api';
 import { mapZodErrors } from '../../../lib/zod-errors';
 
@@ -61,44 +69,56 @@ export default function Page() {
   };
 
   return (
-    <div className="auth-shell">
-      <div className="auth-card">
-        <span className="auth-kicker">Nova senha</span>
-        <h1>Reset de senha</h1>
-        <p>Informe o token recebido e defina sua nova senha.</p>
-        <form className="auth-form" onSubmit={handleSubmit}>
-          <FormField label="Token" htmlFor="token" error={errors.token}>
-            <input
-              id="token"
-              className="auth-input"
-              type="text"
-              value={formData.token}
-              onChange={handleChange('token')}
-              required
-            />
-          </FormField>
-          <FormField label="Nova senha" htmlFor="password" error={errors.password}>
-            <input
-              id="password"
-              className="auth-input"
-              type="password"
-              value={formData.password}
-              onChange={handleChange('password')}
-              autoComplete="new-password"
-              required
-            />
-          </FormField>
-          {errors.form ? <p className="auth-error">{errors.form}</p> : null}
-          <button className="primary-button" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Salvando...' : 'Atualizar senha'}
-          </button>
-          <div className="auth-footer">
-            <Link className="auth-link" href="/login">
-              Voltar para login
-            </Link>
-          </div>
-        </form>
-      </div>
+    <div className="flex min-h-screen items-center justify-center bg-meow-gradient px-6 py-16">
+      <Card className="w-full max-w-md">
+        <CardHeader className="items-start">
+          <span className="text-xs font-black uppercase tracking-[0.6px] text-meow-deep">
+            Nova senha
+          </span>
+          <CardTitle className="text-2xl">Reset de senha</CardTitle>
+          <CardDescription>
+            Informe o token recebido e defina sua nova senha.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <form className="grid gap-4" onSubmit={handleSubmit}>
+            <FormField label="Token" htmlFor="token" error={errors.token}>
+              <input
+                id="token"
+                className="rounded-xl border border-meow-red/30 bg-meow-cream/60 px-4 py-3 text-sm text-meow-charcoal outline-none transition focus:border-meow-deep/50"
+                type="text"
+                value={formData.token}
+                onChange={handleChange('token')}
+                required
+              />
+            </FormField>
+            <FormField label="Nova senha" htmlFor="password" error={errors.password}>
+              <input
+                id="password"
+                className="rounded-xl border border-meow-red/30 bg-meow-cream/60 px-4 py-3 text-sm text-meow-charcoal outline-none transition focus:border-meow-deep/50"
+                type="password"
+                value={formData.password}
+                onChange={handleChange('password')}
+                autoComplete="new-password"
+                required
+              />
+            </FormField>
+            {errors.form ? (
+              <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700">
+                {errors.form}
+              </p>
+            ) : null}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Salvando...' : 'Atualizar senha'}
+            </Button>
+            <div className="flex items-center justify-between text-sm">
+              <Link className="font-semibold text-meow-deep hover:underline" href="/login">
+                Voltar para login
+              </Link>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

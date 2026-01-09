@@ -7,6 +7,14 @@ import { z } from 'zod';
 
 import { useAuth } from '../../../components/auth/auth-provider';
 import { FormField } from '../../../components/forms/form-field';
+import { Button } from '../../../components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '../../../components/ui/card';
 import { AuthApiError } from '../../../lib/auth-api';
 import { mapZodErrors } from '../../../lib/zod-errors';
 
@@ -65,54 +73,72 @@ export default function Page() {
   };
 
   return (
-    <div className="auth-shell">
-      <div className="auth-card">
-        <span className="auth-kicker">Nova conta</span>
-        <h1>Cadastro</h1>
-        <p>Crie sua conta para acessar o dashboard.</p>
-        <form className="auth-form" onSubmit={handleSubmit}>
-          <FormField label="E-mail" htmlFor="email" error={errors.email}>
-            <input
-              id="email"
-              className="auth-input"
-              type="email"
-              value={formData.email}
-              onChange={handleChange('email')}
-              autoComplete="email"
-              required
-            />
-          </FormField>
-          <FormField label="Senha" htmlFor="password" error={errors.password}>
-            <input
-              id="password"
-              className="auth-input"
-              type="password"
-              value={formData.password}
-              onChange={handleChange('password')}
-              autoComplete="new-password"
-              required
-            />
-          </FormField>
-          <FormField label="Perfil" htmlFor="role" error={errors.role}>
-            <select id="role" className="auth-input" value={formData.role} onChange={handleChange('role')}>
-              <option value="USER">Comprador</option>
-              <option value="SELLER">Vendedor</option>
-            </select>
-          </FormField>
-          {errors.form ? <p className="auth-error">{errors.form}</p> : null}
-          <button className="primary-button" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Criando...' : 'Criar conta'}
-          </button>
-          <div className="auth-footer">
-            <Link className="auth-link" href="/login">
-              Ja tenho conta
-            </Link>
-          </div>
-        </form>
-        <Link className="ghost-button" href="/">
-          Voltar para home
-        </Link>
-      </div>
+    <div className="flex min-h-screen items-center justify-center bg-meow-gradient px-6 py-16">
+      <Card className="w-full max-w-md">
+        <CardHeader className="items-start">
+          <span className="text-xs font-black uppercase tracking-[0.6px] text-meow-deep">
+            Nova conta
+          </span>
+          <CardTitle className="text-2xl">Cadastro</CardTitle>
+          <CardDescription>Crie sua conta para acessar o dashboard.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <form className="grid gap-4" onSubmit={handleSubmit}>
+            <FormField label="E-mail" htmlFor="email" error={errors.email}>
+              <input
+                id="email"
+                className="rounded-xl border border-meow-red/30 bg-meow-cream/60 px-4 py-3 text-sm text-meow-charcoal outline-none transition focus:border-meow-deep/50"
+                type="email"
+                value={formData.email}
+                onChange={handleChange('email')}
+                autoComplete="email"
+                required
+              />
+            </FormField>
+            <FormField label="Senha" htmlFor="password" error={errors.password}>
+              <input
+                id="password"
+                className="rounded-xl border border-meow-red/30 bg-meow-cream/60 px-4 py-3 text-sm text-meow-charcoal outline-none transition focus:border-meow-deep/50"
+                type="password"
+                value={formData.password}
+                onChange={handleChange('password')}
+                autoComplete="new-password"
+                required
+              />
+            </FormField>
+            <FormField label="Perfil" htmlFor="role" error={errors.role}>
+              <select
+                id="role"
+                className="rounded-xl border border-meow-red/30 bg-meow-cream/60 px-4 py-3 text-sm text-meow-charcoal outline-none transition focus:border-meow-deep/50"
+                value={formData.role}
+                onChange={handleChange('role')}
+              >
+                <option value="USER">Comprador</option>
+                <option value="SELLER">Vendedor</option>
+              </select>
+            </FormField>
+            {errors.form ? (
+              <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700">
+                {errors.form}
+              </p>
+            ) : null}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Criando...' : 'Criar conta'}
+            </Button>
+            <div className="flex items-center justify-between text-sm">
+              <Link className="font-semibold text-meow-deep hover:underline" href="/login">
+                Ja tenho conta
+              </Link>
+            </div>
+          </form>
+          <Link
+            href="/"
+            className="inline-flex items-center justify-center rounded-full border border-meow-red/30 px-5 py-2 text-sm font-bold text-meow-deep transition hover:bg-meow-cream"
+          >
+            Voltar para home
+          </Link>
+        </CardContent>
+      </Card>
     </div>
   );
 }
