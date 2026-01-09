@@ -1,4 +1,5 @@
 import { apiFetch, ApiClientError } from './api-client';
+import { emitGlobalError } from './global-error';
 
 export type ListingStatus = 'DRAFT' | 'PENDING' | 'PUBLISHED' | 'SUSPENDED';
 export type DeliveryType = 'AUTO' | 'MANUAL';
@@ -142,26 +143,37 @@ export const marketplaceApi = {
     file: File,
     position?: number,
   ) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    if (typeof position === 'number') {
-      formData.append('position', `${position}`);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      if (typeof position === 'number') {
+        formData.append('position', `${position}`);
+      }
+
+      const response = await fetch(buildUrl(`/listings/${listingId}/media/upload`), {
+        method: 'POST',
+        headers: {
+          ...authHeaders(token),
+        },
+        body: formData,
+      });
+
+      const payload = await parseResponse(response);
+      if (!response.ok) {
+        const message = toErrorMessage(payload, response.statusText);
+        emitGlobalError({ message, status: response.status, source: 'media' });
+        throw new ApiClientError(message, response.status, payload);
+      }
+
+      return payload as ListingMedia;
+    } catch (error) {
+      if (error instanceof ApiClientError) {
+        throw error;
+      }
+      const message = error instanceof Error ? error.message : 'Network error';
+      emitGlobalError({ message, source: 'media' });
+      throw new ApiClientError(message, 0);
     }
-
-    const response = await fetch(buildUrl(`/listings/${listingId}/media/upload`), {
-      method: 'POST',
-      headers: {
-        ...authHeaders(token),
-      },
-      body: formData,
-    });
-
-    const payload = await parseResponse(response);
-    if (!response.ok) {
-      throw new ApiClientError(toErrorMessage(payload, response.statusText), response.status, payload);
-    }
-
-    return payload as ListingMedia;
   },
 
   removeMedia: (token: string | null, listingId: string, mediaId: string) =>

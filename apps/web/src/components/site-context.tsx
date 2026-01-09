@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useMemo, useRef, useState } from 'react';
 
-type NotificationType = 'success' | 'info';
+type NotificationType = 'success' | 'info' | 'error';
 
 type NotificationState = {
   message: string;

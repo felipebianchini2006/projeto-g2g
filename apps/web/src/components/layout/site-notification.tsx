@@ -9,18 +9,20 @@ export const SiteNotification = () => {
     return null;
   }
 
+  const icon =
+    notification.type === 'success'
+      ? 'fa-check-circle'
+      : notification.type === 'error'
+        ? 'fa-exclamation-circle'
+        : 'fa-info-circle';
+
   return (
     <div
       className={`notification notification--${notification.type}`}
-      role="status"
+      role={notification.type === 'error' ? 'alert' : 'status'}
       aria-live="polite"
     >
-      <i
-        className={`fas ${
-          notification.type === 'success' ? 'fa-check-circle' : 'fa-info-circle'
-        }`}
-        aria-hidden="true"
-      />
+      <i className={`fas ${icon}`} aria-hidden="true" />
       <span>{notification.message}</span>
     </div>
   );

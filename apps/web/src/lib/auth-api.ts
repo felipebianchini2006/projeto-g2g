@@ -1,4 +1,5 @@
 import type { AuthSession, ForgotPasswordResponse, ResetPasswordResponse } from './auth-types';
+import { emitGlobalError } from './global-error';
 
 export type AuthLoginInput = {
   email: string;
@@ -46,16 +47,27 @@ const extractMessage = (payload: unknown, fallback: string) => {
 };
 
 const postJson = async <T>(path: string, body?: Record<string, unknown>): Promise<T> => {
-  const response = await fetch(path, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  const payload = await parseJson(response);
-  if (!response.ok) {
-    throw new AuthApiError(extractMessage(payload, response.statusText), response.status);
+  try {
+    const response = await fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const payload = await parseJson(response);
+    if (!response.ok) {
+      const message = extractMessage(payload, response.statusText);
+      emitGlobalError({ message, status: response.status, source: 'auth' });
+      throw new AuthApiError(message, response.status);
+    }
+    return payload as T;
+  } catch (error) {
+    if (error instanceof AuthApiError) {
+      throw error;
+    }
+    const message = error instanceof Error ? error.message : 'Network error';
+    emitGlobalError({ message, source: 'auth' });
+    throw new AuthApiError(message, 0);
   }
-  return payload as T;
 };
 
 export const authApi = {

@@ -1,3 +1,5 @@
+import { emitGlobalError } from './global-error';
+
 export type ApiError = {
   status: number;
   message: string;
@@ -49,22 +51,25 @@ const parseResponse = async (response: Response): Promise<unknown> => {
   return null;
 };
 
+type ApiFetchOptions = RequestInit & { skipGlobalError?: boolean };
+
 export const apiFetch = async <T>(
   path: string,
-  options: RequestInit = {},
+  options: ApiFetchOptions = {},
   baseUrl = resolveBaseUrl(),
 ): Promise<T> => {
   const url = buildUrl(path, baseUrl);
-  const method = (options.method ?? 'GET').toUpperCase();
-  const headers = new Headers(options.headers ?? {});
+  const { skipGlobalError, ...requestOptions } = options;
+  const method = (requestOptions.method ?? 'GET').toUpperCase();
+  const headers = new Headers(requestOptions.headers ?? {});
 
-  if (options.body && !headers.has('Content-Type')) {
+  if (requestOptions.body && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
   }
 
   try {
     const response = await fetch(url, {
-      ...options,
+      ...requestOptions,
       method,
       headers,
     });
@@ -73,6 +78,9 @@ export const apiFetch = async <T>(
 
     if (!response.ok) {
       const message = extractMessage(payload, response.statusText);
+      if (!skipGlobalError) {
+        emitGlobalError({ message, status: response.status, source: 'api' });
+      }
       throw new ApiClientError(message, response.status, payload);
     }
 
@@ -82,6 +90,9 @@ export const apiFetch = async <T>(
       throw error;
     }
     const message = error instanceof Error ? error.message : 'Network error';
+    if (!skipGlobalError) {
+      emitGlobalError({ message, source: 'network' });
+    }
     throw new ApiClientError(message, 0);
   }
 };

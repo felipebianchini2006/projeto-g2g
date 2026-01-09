@@ -1110,6 +1110,10 @@ img {
   background: #e31837;
 }
 
+.notification--error {
+  background: #b42318;
+}
+
 @keyframes slideIn {
   from {
     transform: translateX(100%);
