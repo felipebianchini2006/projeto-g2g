@@ -33,6 +33,7 @@ export const TicketDetailContent = ({ ticketId }: TicketDetailContentProps) => {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const ticketCode = ticketId ? ticketId.slice(0, 8) : '--';
 
   const loadTicket = async () => {
     if (!accessToken) {
@@ -135,11 +136,11 @@ export const TicketDetailContent = ({ ticketId }: TicketDetailContentProps) => {
         { label: 'Conta', href: '/conta' },
         { label: 'Central de ajuda', href: '/conta/ajuda' },
         { label: 'Tickets', href: '/conta/tickets' },
-        { label: `Ticket #${ticketId.slice(0, 8)}` },
+        { label: `Ticket #${ticketCode}` },
       ]}
     >
       <div className="rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
-        <h1 className="text-xl font-black text-meow-charcoal">Ticket #{ticketId.slice(0, 8)}</h1>
+        <h1 className="text-xl font-black text-meow-charcoal">Ticket #{ticketCode}</h1>
         <p className="mt-2 text-sm text-meow-muted">{summaryText}</p>
       </div>
 

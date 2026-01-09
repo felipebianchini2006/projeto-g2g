@@ -258,6 +258,7 @@ export const SiteHeader = () => {
   const menuAvatarClass = darkMode
     ? 'bg-white/10 text-white'
     : 'border-meow-red/20 bg-meow-cream text-meow-deep';
+  const isAdmin = user?.role === 'ADMIN';
 
   return (
     <>
@@ -545,6 +546,17 @@ export const SiteHeader = () => {
                       Minhas compras
                     </Link>
                   </div>
+                  {isAdmin ? (
+                    <div className={`border-t ${menuDividerClass}`}>
+                      <Link
+                        href="/admin/atendimento"
+                        className={`flex items-center justify-center px-4 py-3 text-sm font-semibold ${menuItemClass}`}
+                        onClick={closeAll}
+                      >
+                        Menu admin
+                      </Link>
+                    </div>
+                  ) : null}
                   <div className={`border-t ${menuDividerClass}`}>
                     <Link
                       href="/conta/favoritos"

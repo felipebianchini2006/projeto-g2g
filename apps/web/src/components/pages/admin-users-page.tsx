@@ -10,7 +10,7 @@ import {
   type AdminUserRole,
 } from '../../lib/admin-users-api';
 import { useAuth } from '../auth/auth-provider';
-import { AdminNav } from '../admin/admin-nav';
+import { AdminShell } from '../admin/admin-shell';
 import { NotificationsBell } from '../notifications/notifications-bell';
 
 const roleLabel: Record<AdminUserRole, string> = {
@@ -150,39 +150,57 @@ export const AdminUsersContent = () => {
 
   if (loading) {
     return (
-      <div className="admin-users-shell">
-        <div className="state-card">Carregando sessao...</div>
-      </div>
+      <section className="bg-white px-6 py-12">
+        <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
+          Carregando sessao...
+        </div>
+      </section>
     );
   }
 
   if (!user || user.role !== 'ADMIN') {
     return (
-      <div className="admin-users-shell">
-        <div className="state-card">Acesso restrito ao admin.</div>
-        <Link className="ghost-button" href="/conta">
-          Voltar para conta
-        </Link>
-      </div>
+      <section className="bg-white px-6 py-12">
+        <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center">
+          <p className="text-sm text-meow-muted">Acesso restrito ao admin.</p>
+          <Link
+            className="mt-4 inline-flex rounded-full border border-meow-red/30 px-6 py-2 text-sm font-bold text-meow-deep"
+            href="/conta"
+          >
+            Voltar para conta
+          </Link>
+        </div>
+      </section>
     );
   }
 
   return (
-    <section className="admin-users-shell">
-      <div className="admin-users-header">
-        <div>
-          <h1>Usuarios</h1>
-          <p className="auth-helper">Bloqueie ou desbloqueie acesso quando necessario.</p>
-        </div>
-        <div className="page-actions">
-          <NotificationsBell />
-          <Link className="ghost-button" href="/conta">
-            Voltar para conta
-          </Link>
+    <AdminShell
+      breadcrumbs={[
+        { label: 'Inicio', href: '/' },
+        { label: 'Admin', href: '/admin/atendimento' },
+        { label: 'Usuarios' },
+      ]}
+    >
+      <div className="rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="text-xl font-black text-meow-charcoal">Usuarios</h1>
+            <p className="mt-2 text-sm text-meow-muted">
+              Bloqueie ou desbloqueie acesso quando necessario.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <NotificationsBell />
+            <Link
+              className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
+              href="/conta"
+            >
+              Voltar para conta
+            </Link>
+          </div>
         </div>
       </div>
-
-      <AdminNav />
 
       {error ? <div className="state-card error">{error}</div> : null}
       {notice ? <div className="state-card success">{notice}</div> : null}
@@ -357,6 +375,6 @@ export const AdminUsersContent = () => {
           )}
         </div>
       </div>
-    </section>
+    </AdminShell>
   );
 };

@@ -7,7 +7,7 @@ import { ApiClientError } from '../../lib/api-client';
 import { disputesApi, type Dispute, type DisputeStatus } from '../../lib/disputes-api';
 import { ticketsApi, type Ticket, type TicketStatus } from '../../lib/tickets-api';
 import { useAuth } from '../auth/auth-provider';
-import { AdminNav } from '../admin/admin-nav';
+import { AdminShell } from '../admin/admin-shell';
 import { NotificationsBell } from '../notifications/notifications-bell';
 
 type SupportState<T> = {
@@ -152,39 +152,57 @@ export const AdminSupportContent = () => {
 
   if (loading) {
     return (
-      <div className="admin-support-shell">
-        <div className="state-card">Carregando sessao...</div>
-      </div>
+      <section className="bg-white px-6 py-12">
+        <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
+          Carregando sessao...
+        </div>
+      </section>
     );
   }
 
   if (!user || user.role !== 'ADMIN') {
     return (
-      <div className="admin-support-shell">
-        <div className="state-card">Acesso restrito ao admin.</div>
-        <Link className="ghost-button" href="/conta">
-          Voltar para conta
-        </Link>
-      </div>
+      <section className="bg-white px-6 py-12">
+        <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center">
+          <p className="text-sm text-meow-muted">Acesso restrito ao admin.</p>
+          <Link
+            className="mt-4 inline-flex rounded-full border border-meow-red/30 px-6 py-2 text-sm font-bold text-meow-deep"
+            href="/conta"
+          >
+            Voltar para conta
+          </Link>
+        </div>
+      </section>
     );
   }
 
   return (
-    <section className="admin-support-shell">
-      <div className="admin-support-header">
-        <div>
-          <h1>Fila de suporte</h1>
-          <p className="auth-helper">Tickets e disputas pendentes de avaliacao.</p>
-        </div>
-        <div className="page-actions">
-          <NotificationsBell />
-          <Link className="ghost-button" href="/conta">
-            Voltar para conta
-          </Link>
+    <AdminShell
+      breadcrumbs={[
+        { label: 'Inicio', href: '/' },
+        { label: 'Admin', href: '/admin/atendimento' },
+        { label: 'Atendimento' },
+      ]}
+    >
+      <div className="rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="text-xl font-black text-meow-charcoal">Fila de suporte</h1>
+            <p className="mt-2 text-sm text-meow-muted">
+              Tickets e disputas pendentes de avaliacao.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <NotificationsBell />
+            <Link
+              className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
+              href="/conta"
+            >
+              Voltar para conta
+            </Link>
+          </div>
         </div>
       </div>
-
-      <AdminNav />
 
       <div className="support-filters">
         <div className="form-field">
@@ -302,6 +320,6 @@ export const AdminSupportContent = () => {
           </div>
         </div>
       </div>
-    </section>
+    </AdminShell>
   );
 };

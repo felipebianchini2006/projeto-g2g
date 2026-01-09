@@ -1,9 +1,10 @@
 import { AdminDisputeDetailContent } from '../../../../../components/pages/admin-dispute-detail-page';
 
 type AdminDisputeDetailPageProps = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
-export default function Page({ params }: AdminDisputeDetailPageProps) {
-  return <AdminDisputeDetailContent disputeId={params.id} />;
+export default async function Page({ params }: AdminDisputeDetailPageProps) {
+  const { id } = await params;
+  return <AdminDisputeDetailContent disputeId={id} />;
 }
