@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { Bell, Check, MessageCircle, ShoppingBag, Ticket } from 'lucide-react';
 
@@ -67,16 +68,22 @@ export const NotificationsCenterContent = () => {
   return (
     <section className="bg-white pb-16 pt-10">
       <div className="mx-auto w-full max-w-[1280px] px-6">
-        <div className="mb-6 text-sm text-meow-muted">Inicio &gt; Central de notificacoes</div>
+        <div className="mb-6 text-sm text-meow-muted">
+          <Link href="/" className="font-semibold text-meow-deep">
+            Inicio
+          </Link>{' '}
+          &gt;{' '}
+          <Link href="/conta" className="font-semibold text-meow-deep">
+            Conta
+          </Link>{' '}
+          &gt; Notificacoes
+        </div>
         <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
           <aside className="rounded-2xl border border-meow-red/20 bg-white p-4 shadow-sm">
             <h3 className="text-xs font-bold uppercase tracking-[0.4px] text-meow-muted">Menu</h3>
             <div className="mt-4 grid gap-2">
               <button className="rounded-xl bg-meow-cream px-4 py-2 text-left text-sm font-semibold text-meow-charcoal" type="button">
                 Notificacoes
-              </button>
-              <button className="rounded-xl px-4 py-2 text-left text-sm font-semibold text-meow-muted" type="button">
-                Configuracoes
               </button>
             </div>
           </aside>

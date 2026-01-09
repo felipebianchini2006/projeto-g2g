@@ -8,11 +8,12 @@ import { ApiClientError } from '../../lib/api-client';
 import { fetchPublicListing, type PublicListing } from '../../lib/marketplace-public';
 import { ordersApi, type CheckoutResponse } from '../../lib/orders-api';
 import { useAuth } from '../auth/auth-provider';
+import { useSite } from '../site-context';
 
 type ListingState = {
   status: 'loading' | 'ready';
   listing: PublicListing | null;
-  source: 'api' | 'fallback';
+  source: 'api' | 'fallback' | 'cart';
   error?: string;
 };
 
@@ -44,6 +45,7 @@ const formatCurrency = (value: number, currency = 'BRL') =>
 export const CheckoutContent = ({ listingId }: { listingId: string }) => {
   const { user, accessToken, loading } = useAuth();
   const router = useRouter();
+  const { cartItems } = useSite();
   const [listingState, setListingState] = useState<ListingState>({
     status: 'loading',
     listing: null,
@@ -60,6 +62,28 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
       if (!active) {
         return;
       }
+      if (!response.listing) {
+        const cartItem = cartItems.find((item) => item.id === listingId);
+        if (cartItem) {
+          setListingState({
+            status: 'ready',
+            listing: {
+              id: cartItem.id,
+              title: cartItem.title,
+              description: 'Item adicionado ao carrinho.',
+              priceCents: cartItem.priceCents,
+              currency: cartItem.currency,
+              status: 'PUBLISHED',
+              deliveryType: 'MANUAL',
+              media: cartItem.image
+                ? [{ id: `cart-${cartItem.id}`, url: cartItem.image, type: 'IMAGE', position: 0 }]
+                : [],
+            },
+            source: 'cart',
+          });
+          return;
+        }
+      }
       setListingState({
         status: 'ready',
         listing: response.listing,
@@ -68,18 +92,39 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
       });
     };
     loadListing().catch(() => {
-      if (active) {
-        setListingState((prev) => ({
-          ...prev,
-          status: 'ready',
-          error: 'Nao foi possivel carregar o anuncio.',
-        }));
+      if (!active) {
+        return;
       }
+      const cartItem = cartItems.find((item) => item.id === listingId);
+      if (cartItem) {
+        setListingState({
+          status: 'ready',
+          listing: {
+            id: cartItem.id,
+            title: cartItem.title,
+            description: 'Item adicionado ao carrinho.',
+            priceCents: cartItem.priceCents,
+            currency: cartItem.currency,
+            status: 'PUBLISHED',
+            deliveryType: 'MANUAL',
+            media: cartItem.image
+              ? [{ id: `cart-${cartItem.id}`, url: cartItem.image, type: 'IMAGE', position: 0 }]
+              : [],
+          },
+          source: 'cart',
+        });
+        return;
+      }
+      setListingState((prev) => ({
+        ...prev,
+        status: 'ready',
+        error: 'Nao foi possivel carregar o anuncio.',
+      }));
     });
     return () => {
       active = false;
     };
-  }, [listingId]);
+  }, [listingId, cartItems]);
 
   const totalAmount = useMemo(() => {
     if (!listingState.listing) {
@@ -92,7 +137,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
     if (!listingState.listing) {
       return 'Anuncio indisponivel.';
     }
-    if (listingState.source !== 'api') {
+    if (listingState.source === 'fallback') {
       return 'Checkout indisponivel no modo offline.';
     }
     if (listingState.listing.status !== 'PUBLISHED') {

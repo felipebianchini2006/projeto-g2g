@@ -18,10 +18,7 @@ import {
 
 import { useAuth } from '../auth/auth-provider';
 import { notificationsApi, type Notification } from '../../lib/notifications-api';
-import {
-  fetchPublicCategories,
-  type CatalogCategory,
-} from '../../lib/marketplace-public';
+import { fetchPublicCategories, type CatalogCategory } from '../../lib/marketplace-public';
 import { useSite } from '../site-context';
 
 const formatCurrency = (value: number, currency = 'BRL') =>
@@ -71,9 +68,33 @@ export const SiteHeader = () => {
     );
   }, [categories, categoriesQuery]);
 
-  const splitIndex = Math.ceil(filteredCategories.length / 2);
-  const leftCategories = filteredCategories.slice(0, splitIndex);
-  const rightCategories = filteredCategories.slice(splitIndex);
+  const isOutro = (label: string) => {
+    const normalized = label.toLowerCase();
+    const keywords = [
+      'assinaturas',
+      'premium',
+      'curso',
+      'treinamento',
+      'discord',
+      'email',
+      'gift',
+      'redes',
+      'servicos',
+      'softwares',
+      'licencas',
+      'steam',
+    ];
+    return keywords.some((keyword) => normalized.includes(keyword));
+  };
+
+  const jogosCategories = useMemo(
+    () => filteredCategories.filter((category) => !isOutro(category.label)),
+    [filteredCategories],
+  );
+  const outrosCategories = useMemo(
+    () => filteredCategories.filter((category) => isOutro(category.label)),
+    [filteredCategories],
+  );
 
   const popularCategorySlugs = useMemo(() => {
     const sorted = [...categories].sort(
@@ -119,6 +140,19 @@ export const SiteHeader = () => {
       active = false;
     };
   }, [categoriesOpen, categoriesStatus]);
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem('meoww-theme');
+    if (stored === 'dark') {
+      setDarkMode(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    const theme = darkMode ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+    window.localStorage.setItem('meoww-theme', theme);
+  }, [darkMode]);
 
   useEffect(() => {
     if (!notificationsOpen || notificationsStatus !== 'idle') {
@@ -209,11 +243,25 @@ export const SiteHeader = () => {
     setCartOpen(false);
   };
 
-  const checkoutHref = cartItems[0] ? `/checkout/${cartItems[0].id}` : '/produtos';
+  const hasCartItems = cartItems.length > 0;
+  const cartHref = '/carrinho';
+  const checkoutHref = hasCartItems ? `/checkout/${cartItems[0].id}` : '/carrinho';
+
+  const menuPanelClass = darkMode
+    ? 'border-meow-deep/60 bg-meow-dark text-white shadow-[0_18px_45px_rgba(27,18,22,0.5)]'
+    : 'border-meow-red/20 bg-white text-meow-charcoal shadow-[0_18px_45px_rgba(64,37,50,0.16)]';
+  const menuHeaderTextClass = darkMode ? 'text-white/60' : 'text-meow-muted';
+  const menuItemClass = darkMode
+    ? 'text-white/80 hover:bg-white/5'
+    : 'text-meow-charcoal hover:bg-meow-cream';
+  const menuDividerClass = darkMode ? 'border-white/10' : 'border-meow-red/20';
+  const menuAvatarClass = darkMode
+    ? 'bg-white/10 text-white'
+    : 'border-meow-red/20 bg-meow-cream text-meow-deep';
 
   return (
     <>
-      <header className="relative z-40 border-b border-meow-deep/10 bg-white/95 shadow-[0_12px_30px_rgba(240,98,146,0.08)] backdrop-blur">
+      <header className="site-header relative z-40 border-b border-meow-deep/10 bg-white/95 shadow-[0_12px_30px_rgba(240,98,146,0.08)] backdrop-blur">
         <div className="mx-auto grid w-full max-w-[1280px] items-center gap-6 px-6 py-4 md:grid-cols-[auto_minmax(280px,1fr)_auto]">
           <Link href="/" className="flex items-center gap-3" onClick={closeAll}>
             <img
@@ -256,56 +304,74 @@ export const SiteHeader = () => {
                 <ChevronDown size={16} aria-hidden />
               </button>
               {categoriesOpen ? (
-                <div className="absolute left-0 top-full z-50 mt-3 w-[860px] rounded-[28px] border border-meow-red/20 bg-white p-6 shadow-[0_18px_45px_rgba(64,37,50,0.16)]">
-                  <div className="flex items-center gap-3 rounded-2xl border border-meow-red/20 bg-meow-cream/70 px-4 py-2">
-                    <Search size={14} className="text-meow-deep" aria-hidden />
-                    <input
-                      className="flex-1 bg-transparent text-sm text-meow-charcoal outline-none placeholder:text-meow-muted"
-                      placeholder="Filtrar categoria"
-                      value={categoriesQuery}
-                      onChange={(event) => setCategoriesQuery(event.target.value)}
-                    />
+                <div className="absolute left-1/2 top-full z-50 mt-3 w-[1100px] max-w-[94vw] -translate-x-1/2 rounded-[28px] border border-meow-red/20 bg-white p-6 shadow-[0_18px_45px_rgba(64,37,50,0.16)]">
+                  <div className="flex flex-wrap items-center gap-4">
+                    <span className="text-sm font-semibold text-meow-muted">
+                      Filtrar categoria:
+                    </span>
+                    <div className="flex items-center gap-3 rounded-2xl border border-meow-red/20 bg-meow-cream/70 px-4 py-2">
+                      <Search size={14} className="text-meow-deep" aria-hidden />
+                      <input
+                        className="w-56 bg-transparent text-sm text-meow-charcoal outline-none placeholder:text-meow-muted"
+                        placeholder="Digite aqui..."
+                        value={categoriesQuery}
+                        onChange={(event) => setCategoriesQuery(event.target.value)}
+                      />
+                    </div>
                   </div>
-                  <div className="mt-5 grid max-h-[420px] gap-6 overflow-auto pr-2 md:grid-cols-2">
-                    {[
-                      { title: 'Jogos', items: leftCategories },
-                      { title: 'Outros', items: rightCategories },
-                    ].map((block) => (
-                      <div key={block.title}>
-                        <div className="flex items-center justify-between text-xs font-bold uppercase tracking-[0.4px] text-meow-muted">
-                          <span>{block.title}</span>
-                          <Link href="/categoria" className="text-meow-deep" onClick={closeAll}>
-                            Ver todos
-                          </Link>
-                        </div>
-                        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                          {(block.items.length ? block.items : categories).map((category) => (
-                            <Link
-                              key={category.slug}
-                              href={`/categoria/${category.slug}`}
-                              className="flex items-center gap-3 text-sm font-semibold text-meow-charcoal hover:text-meow-deep"
-                              onClick={closeAll}
-                            >
-                              <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-meow-red/20 bg-meow-cream">
-                                <img
-                                  src={category.highlight}
-                                  alt={category.label}
-                                  className="h-full w-full object-cover"
-                                />
-                              </span>
-                              <span className="flex items-center gap-2">
-                                {category.label}
-                                {popularCategorySlugs.has(category.slug) ? (
-                                  <span className="rounded-full bg-meow-deep px-2 py-0.5 text-[10px] font-bold uppercase text-white">
-                                    Popular
-                                  </span>
-                                ) : null}
-                              </span>
-                            </Link>
-                          ))}
-                        </div>
+
+                  <div className="mt-6 max-h-[60vh] overflow-y-auto pr-2">
+                    {categoriesStatus === 'ready' && categories.length === 0 ? (
+                      <div className="rounded-2xl border border-meow-red/20 bg-meow-cream/60 px-4 py-3 text-sm text-meow-muted">
+                        Nenhuma categoria cadastrada.
                       </div>
-                    ))}
+                    ) : (
+                      <div className="grid gap-10 lg:grid-cols-[3fr_1.3fr]">
+                        {[
+                          { title: 'Jogos', items: jogosCategories, cols: 'lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6' },
+                          { title: 'Outros', items: outrosCategories, cols: 'lg:grid-cols-2' },
+                        ].map((block) => (
+                          <div key={block.title}>
+                            <div className="flex items-center justify-between text-xs font-bold uppercase tracking-[0.4px] text-meow-muted">
+                              <span>{block.title}</span>
+                              <Link
+                                href="/categoria"
+                                className="text-[11px] font-bold uppercase tracking-[0.4px] text-meow-deep"
+                                onClick={closeAll}
+                              >
+                                Ver todos
+                              </Link>
+                            </div>
+                            <div className={`mt-4 grid gap-3 sm:grid-cols-2 ${block.cols}`}>
+                              {block.items.map((category) => (
+                                <Link
+                                  key={category.slug}
+                                  href={`/categoria/${category.slug}`}
+                                  className="flex items-center gap-3 text-sm font-semibold text-meow-charcoal hover:text-meow-deep"
+                                  onClick={closeAll}
+                                >
+                                  <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-meow-red/20 bg-meow-cream">
+                                    <img
+                                      src={category.highlight}
+                                      alt={category.label}
+                                      className="h-full w-full object-cover"
+                                    />
+                                  </span>
+                                  <span className="flex items-center gap-2">
+                                    {category.label}
+                                    {popularCategorySlugs.has(category.slug) ? (
+                                      <span className="rounded-full bg-meow-deep px-2 py-0.5 text-[10px] font-bold uppercase text-white">
+                                        Popular
+                                      </span>
+                                    ) : null}
+                                  </span>
+                                </Link>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : null}
@@ -414,19 +480,25 @@ export const SiteHeader = () => {
                       </div>
                       <div className="mt-4 flex items-center justify-between">
                         <Link
-                          href={checkoutHref}
+                          href={cartHref}
                           className="text-xs font-semibold text-meow-muted"
                           onClick={closeAll}
                         >
                           Ver carrinho
                         </Link>
-                        <Link
-                          href={checkoutHref}
-                          className="rounded-full bg-meow-linear px-4 py-2 text-xs font-bold text-white"
-                          onClick={closeAll}
-                        >
-                          Comprar
-                        </Link>
+                        {hasCartItems ? (
+                          <Link
+                            href={checkoutHref}
+                            className="rounded-full bg-meow-linear px-4 py-2 text-xs font-bold text-white"
+                            onClick={closeAll}
+                          >
+                            Comprar
+                          </Link>
+                        ) : (
+                          <span className="rounded-full bg-meow-red/20 px-4 py-2 text-xs font-bold text-meow-muted">
+                            Comprar
+                          </span>
+                        )}
                       </div>
                     </>
                   )}
@@ -444,46 +516,48 @@ export const SiteHeader = () => {
                 <Menu size={18} aria-hidden />
               </button>
               {menuOpen ? (
-                <div className="absolute right-0 top-full z-50 mt-2 w-64 rounded-2xl border border-meow-deep/60 bg-meow-dark text-white shadow-[0_18px_45px_rgba(27,18,22,0.5)]">
+                <div
+                  className={`absolute right-0 top-full z-50 mt-2 w-64 rounded-2xl border ${menuPanelClass}`}
+                >
                   <div className="flex items-center gap-3 px-4 py-4">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white">
+                    <div
+                      className={`flex h-11 w-11 items-center justify-center rounded-full border ${menuAvatarClass}`}
+                    >
                       <User size={18} aria-hidden />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold">
-                        Ola, {displayName}!
-                      </p>
+                      <p className="text-sm font-semibold">Ola, {displayName}!</p>
                       <Link
                         href="/conta"
-                        className="text-[11px] font-semibold uppercase tracking-[0.4px] text-white/60"
+                        className={`text-[11px] font-semibold uppercase tracking-[0.4px] ${menuHeaderTextClass}`}
                         onClick={closeAll}
                       >
                         Ver minha conta
                       </Link>
                     </div>
                   </div>
-                  <div className="border-t border-white/10">
+                  <div className={`border-t ${menuDividerClass}`}>
                     <Link
                       href="/conta/pedidos"
-                      className="flex items-center justify-center px-4 py-3 text-sm font-semibold text-white/80 hover:bg-white/5"
+                      className={`flex items-center justify-center px-4 py-3 text-sm font-semibold ${menuItemClass}`}
                       onClick={closeAll}
                     >
                       Minhas compras
                     </Link>
                   </div>
-                  <div className="border-t border-white/10">
+                  <div className={`border-t ${menuDividerClass}`}>
                     <Link
                       href="/conta/favoritos"
-                      className="flex items-center justify-center px-4 py-3 text-sm font-semibold text-white/80 hover:bg-white/5"
+                      className={`flex items-center justify-center px-4 py-3 text-sm font-semibold ${menuItemClass}`}
                       onClick={closeAll}
                     >
                       Meus favoritos
                     </Link>
                   </div>
-                  <div className="border-t border-white/10">
+                  <div className={`border-t ${menuDividerClass}`}>
                     <button
                       type="button"
-                      className="flex w-full items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-white/80 hover:bg-white/5"
+                      className={`flex w-full items-center justify-center gap-2 px-4 py-3 text-sm font-semibold ${menuItemClass}`}
                       onClick={() => setDarkMode((prev) => !prev)}
                     >
                       <Moon size={16} aria-hidden />

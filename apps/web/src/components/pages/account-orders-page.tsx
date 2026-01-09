@@ -173,7 +173,14 @@ export const AccountOrdersContent = () => {
     <section className="bg-white px-6 py-10">
       <div className="mx-auto w-full max-w-[1200px]">
         <div className="text-xs text-meow-muted">
-          Inicio &gt; Conta &gt; Minhas compras
+          <Link href="/" className="font-semibold text-meow-deep">
+            Inicio
+          </Link>{' '}
+          &gt;{' '}
+          <Link href="/conta" className="font-semibold text-meow-deep">
+            Conta
+          </Link>{' '}
+          &gt; Minhas compras
         </div>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">

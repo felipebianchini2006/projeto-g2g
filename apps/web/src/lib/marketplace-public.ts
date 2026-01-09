@@ -63,32 +63,121 @@ export type PublicListingFilters = {
   take?: number;
 };
 
-export const catalogCategories: CatalogCategory[] = [
-  {
-    slug: 'consoles',
-    label: 'Consoles',
-    description: 'Bundles premium e edicoes especiais para colecionadores.',
-    highlight: '/assets/meoow/highlight-01.webp',
-  },
-  {
-    slug: 'perifericos',
-    label: 'Perifericos',
-    description: 'Teclados, mouses, headsets e upgrades para setups.',
-    highlight: '/assets/meoow/highlight-02.webp',
-  },
-  {
-    slug: 'colecionaveis',
-    label: 'Colecionaveis',
-    description: 'Itens raros, figuras e edicoes de aniversario.',
-    highlight: '/assets/meoow/highlight-03.webp',
-  },
-  {
-    slug: 'setup',
-    label: 'Setup',
-    description: 'Monitores, cadeiras e equipamentos para streamers.',
-    highlight: '/assets/meoow/banner.png',
-  },
+const slugify = (value: string) =>
+  value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)+/g, '');
+
+const fallbackHighlights = [
+  '/assets/meoow/highlight-01.webp',
+  '/assets/meoow/highlight-02.webp',
+  '/assets/meoow/highlight-03.webp',
 ];
+
+const ggmaxCategoryLabels = [
+  'Consoles',
+  'Perifericos',
+  'Colecionaveis',
+  'Setup',
+  '8 Ball Pool',
+  'A3 Still Alive',
+  'Adventure Quest World',
+  'Aika',
+  'Aion',
+  'Albion Online',
+  'Apex Legends',
+  'ARC Raiders',
+  'Arena Breakout',
+  'Avakin Life',
+  'Black Clover Mobile',
+  'Black Desert',
+  'Black Myth Wukong',
+  'Counter Strike 2',
+  'Criptomoedas e NFT',
+  'Crossfire',
+  'Dark and Darker',
+  'Dark Souls',
+  'DDTank',
+  'Dead by Daylight',
+  'Diablo Immortal',
+  'Diablo IV',
+  'Digimon Masters Online',
+  'Dofus',
+  'DOTA 2',
+  'Forza Horizon',
+  'Free Fire',
+  'Genshin Impact',
+  'GOG',
+  'Grand Chase',
+  'Grand Fantasia',
+  'GTA',
+  'Guild Wars 2',
+  'Habbo',
+  'Hay Day',
+  'Hearthstone',
+  'Heartwood Online',
+  'Hero Siege',
+  'Magic The Gathering',
+  'Marvel Rivals',
+  'Metin 2',
+  'Minecraft',
+  'Minimania',
+  'MIR4',
+  'mo.co',
+  'Mobile Legends',
+  'Mortal Kombat',
+  'MU Legend',
+  'MU Online',
+  'My Hero Academia',
+  'Naruto Online',
+  'Pokemon GO',
+  'Pokemon TCG Pocket',
+  'Pokemon Unite',
+  'PokeXGames',
+  'Priston Tale',
+  'PUBG',
+  'Ragnarok',
+  'Ragnarok Origin',
+  'Raid Shadow Legends',
+  'Rainbow Six',
+  'Ravendawn',
+  'Steam',
+  'Stumble Guys',
+  'Subway Surfers',
+  'Summoners War',
+  'Sword Of Convallaria',
+  'Tarisland',
+  'Throne and Liberty',
+  'Tibia',
+  'Toram Online',
+  'Tower of Fantasy',
+  'Transformice',
+  'Trove',
+  'Ubisoft',
+  'Valorant',
+  'Assinaturas e Premium',
+  'Cursos e Treinamentos',
+  'Discord',
+  'Emails',
+  'Gift Cards',
+  'Redes Sociais',
+  'Servicos Digitais',
+  'Softwares e Licencas',
+];
+
+const popularLabels = new Set(['Free Fire', 'Genshin Impact', 'Minecraft']);
+
+export const catalogCategories: CatalogCategory[] = ggmaxCategoryLabels.map(
+  (label, index) => ({
+    slug: slugify(label),
+    label,
+    description: 'Explore anuncios selecionados.',
+    highlight: fallbackHighlights[index % fallbackHighlights.length],
+    listingsCount: popularLabels.has(label) ? 120 : undefined,
+  }),
+);
 
 const fallbackCategoryBySlug = new Map(
   catalogCategories.map((category) => [category.slug, category]),
@@ -101,17 +190,10 @@ const buildCatalogCategory = (category: PublicCategory): CatalogCategory => {
     label: category.name,
     description:
       category.description ?? fallback?.description ?? 'Explore anuncios selecionados.',
-    highlight: fallback?.highlight ?? '/assets/meoow/banner.png',
+    highlight: fallback?.highlight ?? '/assets/meoow/highlight-01.webp',
     listingsCount: category.listingsCount,
   };
 };
-
-const slugify = (value: string) =>
-  value
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)+/g, '');
 
 const parsePriceToCents = (value: string) => {
   const digits = value.replace(/[^0-9]/g, '');
@@ -292,6 +374,13 @@ export const fetchPublicListings = async (
 export const fetchPublicCategories = async (): Promise<PublicCategoriesResponse> => {
   try {
     const categories = await fetchPublicApi<PublicCategory[]>('/public/categories');
+    if (!categories.length) {
+      return {
+        categories: [],
+        source: 'api',
+        error: 'Categorias vazias no backend.',
+      };
+    }
     return {
       categories: categories.map(buildCatalogCategory),
       source: 'api',
@@ -299,8 +388,8 @@ export const fetchPublicCategories = async (): Promise<PublicCategoriesResponse>
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Network error';
     return {
-      categories: catalogCategories,
-      source: 'fallback',
+      categories: [],
+      source: 'api',
       error: message,
     };
   }

@@ -1,5 +1,5 @@
-'use client';
+import { AccountOverviewContent } from '../../../components/pages/account-overview-page';
 
-import DashboardPage from '../dashboard/page';
-
-export default DashboardPage;
+export default function Page() {
+  return <AccountOverviewContent />;
+}

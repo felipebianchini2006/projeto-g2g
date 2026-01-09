@@ -1,11 +1,12 @@
 'use client';
 
+'use client';
+
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
 
-import { useAuth } from '../../../../components/auth/auth-provider';
-import { useSite } from '../../../../components/site-context';
+import { useAuth } from '../auth/auth-provider';
 
 type MenuItem = {
   label: string;
@@ -20,16 +21,8 @@ type MenuSection = {
   items: MenuItem[];
 };
 
-const formatCurrency = (value: number, currency = 'BRL') =>
-  new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 2,
-  }).format(value / 100);
-
-export default function Page() {
-  const { favorites } = useSite();
-  const { logout } = useAuth();
+export const AccountOverviewContent = () => {
+  const { user, logout } = useAuth();
   const router = useRouter();
 
   const menuSections = useMemo<MenuSection[]>(
@@ -37,7 +30,7 @@ export default function Page() {
       {
         title: 'Menu',
         items: [
-          { label: 'Resumo', href: '/conta' },
+          { label: 'Resumo', href: '/conta', active: true },
           { label: 'Transacoes', href: '/carteira' },
           { label: 'Meus anuncios', href: '/dashboard' },
           { label: 'Minhas compras', href: '/conta/pedidos' },
@@ -70,21 +63,33 @@ export default function Page() {
     [logout, router],
   );
 
+  if (!user) {
+    return (
+      <section className="bg-white px-6 py-12">
+        <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center">
+          <p className="text-sm text-meow-muted">Entre para acessar sua conta.</p>
+          <Link
+            href="/login"
+            className="mt-4 inline-flex rounded-full bg-meow-linear px-6 py-2 text-sm font-bold text-white"
+          >
+            Fazer login
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="bg-white px-6 py-10">
       <div className="mx-auto w-full max-w-[1200px]">
-        <div className="mb-6 text-sm text-meow-muted">
+        <div className="text-xs text-meow-muted">
           <Link href="/" className="font-semibold text-meow-deep">
             Inicio
           </Link>{' '}
-          &gt;{' '}
-          <Link href="/conta" className="font-semibold text-meow-deep">
-            Conta
-          </Link>{' '}
-          &gt; Favoritos
+          &gt; Conta
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
+        <div className="mt-6 grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
           <aside className="rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
             {menuSections.map((section) => (
               <div key={section.title} className="mb-6 last:mb-0">
@@ -129,46 +134,62 @@ export default function Page() {
             ))}
           </aside>
 
-          <div className="rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
-            <div className="flex items-center justify-between">
-              <h1 className="text-xl font-black text-meow-charcoal">Meus favoritos</h1>
-              <Link href="/conta" className="text-sm font-semibold text-meow-deep">
-                Voltar
+          <div className="space-y-6">
+            <div className="rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+              <h1 className="text-xl font-black text-meow-charcoal">
+                Bem-vindo, {user.email}
+              </h1>
+              <p className="mt-2 text-sm text-meow-muted">
+                Aqui voce acompanha pedidos, anuncios e sua carteira.
+              </p>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="rounded-2xl border border-meow-red/20 bg-meow-cream/50 p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.4px] text-meow-muted">
+                  Meus pedidos
+                </p>
+                <p className="mt-2 text-sm text-meow-charcoal">
+                  Acompanhe entregas e pagamentos pendentes.
+                </p>
+                <Link
+                  href="/conta/pedidos"
+                  className="mt-4 inline-flex rounded-full bg-meow-linear px-4 py-2 text-xs font-bold text-white"
+                >
+                  Ver compras
+                </Link>
+              </div>
+              <div className="rounded-2xl border border-meow-red/20 bg-meow-cream/50 p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.4px] text-meow-muted">
+                  Meus favoritos
+                </p>
+                <p className="mt-2 text-sm text-meow-charcoal">
+                  Itens salvos para comprar depois.
+                </p>
+                <Link
+                  href="/conta/favoritos"
+                  className="mt-4 inline-flex rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
+                >
+                  Ver favoritos
+                </Link>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+              <h2 className="text-lg font-black text-meow-charcoal">Carteira</h2>
+              <p className="mt-2 text-sm text-meow-muted">
+                Saldo, recargas e retiradas ficam visiveis aqui.
+              </p>
+              <Link
+                href="/carteira"
+                className="mt-4 inline-flex rounded-full bg-meow-linear px-4 py-2 text-xs font-bold text-white"
+              >
+                Abrir carteira
               </Link>
             </div>
-            {favorites.length === 0 ? (
-              <div className="mt-6 rounded-xl border border-meow-red/20 bg-meow-cream/60 px-4 py-3 text-sm text-meow-muted">
-                Nenhum favorito salvo ainda.
-              </div>
-            ) : (
-              <div className="mt-6 grid gap-4 md:grid-cols-2">
-                {favorites.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center gap-4 rounded-2xl border border-meow-red/20 bg-white px-4 py-4"
-                  >
-                    <div className="h-16 w-16 overflow-hidden rounded-xl bg-meow-cream">
-                      <img
-                        src={item.image ?? '/assets/meoow/highlight-01.webp'}
-                        alt={item.title}
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-meow-charcoal">
-                        {item.title}
-                      </p>
-                      <p className="text-xs text-meow-muted">
-                        {formatCurrency(item.priceCents, item.currency)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       </div>
     </section>
   );
-}
+};

@@ -32,6 +32,45 @@ body {
     letter-spacing: 0.1px;
 }
 
+html[data-theme='dark'] body {
+    background: #0f0b0e;
+    color: #f7e9f0;
+}
+
+html[data-theme='dark'] .site-header {
+    background: rgba(27, 18, 22, 0.96);
+    border-color: rgba(242, 164, 195, 0.15);
+    box-shadow: 0 12px 30px rgba(12, 8, 10, 0.55);
+}
+
+html[data-theme='dark'] .site-header input {
+    color: #f7e9f0;
+}
+
+html[data-theme='dark'] .site-header input::placeholder {
+    color: #c9b3bc;
+}
+
+html[data-theme='dark'] .bg-white {
+    background-color: #1b1216 !important;
+}
+
+html[data-theme='dark'] [class*="bg-meow-cream"] {
+    background-color: #2b1f26 !important;
+}
+
+html[data-theme='dark'] [class*="border-meow-red"] {
+    border-color: rgba(242, 164, 195, 0.25) !important;
+}
+
+html[data-theme='dark'] .text-meow-charcoal {
+    color: #f7e9f0 !important;
+}
+
+html[data-theme='dark'] .text-meow-muted {
+    color: #c9b3bc !important;
+}
+
 a {
     text-decoration: none;
     color: inherit;

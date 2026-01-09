@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { Facebook, Instagram, Youtube, Sparkles } from 'lucide-react';
 
 export const SiteFooter = () => (
@@ -62,24 +63,24 @@ export const SiteFooter = () => (
           </h4>
           <ul className="space-y-2 text-[13px] text-[#d6c1c8]">
             <li>
-              <a className="transition hover:text-white" href="#">
+              <Link className="transition hover:text-white" href="/institucional/sobre">
                 Sobre nos
-              </a>
+              </Link>
             </li>
             <li>
-              <a className="transition hover:text-white" href="#">
+              <Link className="transition hover:text-white" href="/institucional/contato">
                 Contato
-              </a>
+              </Link>
             </li>
             <li>
-              <a className="transition hover:text-white" href="#">
+              <Link className="transition hover:text-white" href="/institucional/privacidade">
                 Politica de privacidade
-              </a>
+              </Link>
             </li>
             <li>
-              <a className="transition hover:text-white" href="#">
+              <Link className="transition hover:text-white" href="/institucional/termos">
                 Termos de uso
-              </a>
+              </Link>
             </li>
           </ul>
         </div>
@@ -90,24 +91,24 @@ export const SiteFooter = () => (
           </h4>
           <ul className="space-y-2 text-[13px] text-[#d6c1c8]">
             <li>
-              <a className="transition hover:text-white" href="#">
-                Nintendo
-              </a>
+              <Link className="transition hover:text-white" href="/categoria/consoles">
+                Consoles
+              </Link>
             </li>
             <li>
-              <a className="transition hover:text-white" href="#">
-                PlayStation
-              </a>
+              <Link className="transition hover:text-white" href="/categoria/perifericos">
+                Perifericos
+              </Link>
             </li>
             <li>
-              <a className="transition hover:text-white" href="#">
-                Xbox
-              </a>
-            </li>
-            <li>
-              <a className="transition hover:text-white" href="#">
+              <Link className="transition hover:text-white" href="/categoria/colecionaveis">
                 Colecionaveis
-              </a>
+              </Link>
+            </li>
+            <li>
+              <Link className="transition hover:text-white" href="/categoria/gift-cards">
+                Gift Cards
+              </Link>
             </li>
           </ul>
         </div>
@@ -118,24 +119,24 @@ export const SiteFooter = () => (
           </h4>
           <ul className="space-y-2 text-[13px] text-[#d6c1c8]">
             <li>
-              <a className="transition hover:text-white" href="#">
+              <Link className="transition hover:text-white" href="/ajuda/central">
                 Central de ajuda
-              </a>
+              </Link>
             </li>
             <li>
-              <a className="transition hover:text-white" href="#">
+              <Link className="transition hover:text-white" href="/ajuda/como-comprar">
                 Como comprar
-              </a>
+              </Link>
             </li>
             <li>
-              <a className="transition hover:text-white" href="#">
+              <Link className="transition hover:text-white" href="/ajuda/pagamentos">
                 Formas de pagamento
-              </a>
+              </Link>
             </li>
             <li>
-              <a className="transition hover:text-white" href="#">
+              <Link className="transition hover:text-white" href="/ajuda/trocas">
                 Trocas e devolucoes
-              </a>
+              </Link>
             </li>
           </ul>
         </div>
