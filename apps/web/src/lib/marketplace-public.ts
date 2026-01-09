@@ -135,9 +135,24 @@ const normalizeListing = (listing: PublicListing): PublicListing => {
   };
 };
 
+const fetchPublicApi = async <T>(path: string): Promise<T> => {
+  if (typeof window === 'undefined') {
+    return apiFetch<T>(path);
+  }
+  return apiFetch<T>(`/api${path}`, {}, '');
+};
+
+const fetchPublicListingApi = async (id: string): Promise<PublicListing> => {
+  if (typeof window === 'undefined') {
+    return apiFetch<PublicListing>(`/public/listings/${id}`);
+  }
+  const query = new URLSearchParams({ id }).toString();
+  return apiFetch<PublicListing>(`/api/public/listing?${query}`, {}, '');
+};
+
 export const fetchPublicListings = async (): Promise<PublicListingResponse> => {
   try {
-    const listings = await apiFetch<PublicListing[]>('/public/listings');
+    const listings = await fetchPublicApi<PublicListing[]>('/public/listings');
     return {
       listings: listings.map(normalizeListing),
       source: 'api',
@@ -154,10 +169,19 @@ export const fetchPublicListings = async (): Promise<PublicListingResponse> => {
 
 export const fetchPublicListing = async (id: string): Promise<PublicListingDetail> => {
   try {
-    const listing = await apiFetch<PublicListing>(`/public/listings/${id}`);
+    const listing = await fetchPublicListingApi(id);
     return { listing: normalizeListing(listing), source: 'api' };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Network error';
+    try {
+      const listings = await fetchPublicApi<PublicListing[]>('/public/listings');
+      const match = listings.find((item) => item.id === id);
+      if (match) {
+        return { listing: normalizeListing(match), source: 'api', error: message };
+      }
+    } catch {
+      // Ignore list fallback errors and try static fallback.
+    }
     const fallback =
       fallbackListings.find((item) => item.id === id) ??
       fallbackListings.find((item) => slugify(item.title) === id) ??

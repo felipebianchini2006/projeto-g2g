@@ -11,9 +11,85 @@ type AuditMeta = {
   userAgent?: string;
 };
 
+type PublicListing = {
+  id: string;
+  title: string;
+  description: string | null;
+  priceCents: number;
+  currency: string;
+  status: ListingStatus;
+  deliveryType: DeliveryType;
+  deliverySlaHours: number;
+  refundPolicy: string;
+  media: { id: string; url: string; type: string; position: number }[];
+  categorySlug?: string;
+  categoryLabel?: string;
+  createdAt: Date;
+};
+
 @Injectable()
 export class ListingsService {
   constructor(private readonly prisma: PrismaService) {}
+
+  async listPublicListings(): Promise<PublicListing[]> {
+    const listings = await this.prisma.listing.findMany({
+      where: { status: ListingStatus.PUBLISHED },
+      include: {
+        media: { orderBy: { position: 'asc' } },
+        category: { select: { slug: true, name: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return listings.map((listing) => ({
+      id: listing.id,
+      title: listing.title,
+      description: listing.description,
+      priceCents: listing.priceCents,
+      currency: listing.currency,
+      status: listing.status,
+      deliveryType: listing.deliveryType,
+      deliverySlaHours: listing.deliverySlaHours,
+      refundPolicy: listing.refundPolicy,
+      media: listing.media,
+      categorySlug: listing.category?.slug ?? undefined,
+      categoryLabel: listing.category?.name ?? undefined,
+      createdAt: listing.createdAt,
+    }));
+  }
+
+  async getPublicListing(listingId: string): Promise<PublicListing> {
+    const listing = await this.prisma.listing.findFirst({
+      where: {
+        status: ListingStatus.PUBLISHED,
+        OR: [{ id: listingId }, { slug: listingId }],
+      },
+      include: {
+        media: { orderBy: { position: 'asc' } },
+        category: { select: { slug: true, name: true } },
+      },
+    });
+
+    if (!listing) {
+      throw new NotFoundException('Listing not found.');
+    }
+
+    return {
+      id: listing.id,
+      title: listing.title,
+      description: listing.description,
+      priceCents: listing.priceCents,
+      currency: listing.currency,
+      status: listing.status,
+      deliveryType: listing.deliveryType,
+      deliverySlaHours: listing.deliverySlaHours,
+      refundPolicy: listing.refundPolicy,
+      media: listing.media,
+      categorySlug: listing.category?.slug ?? undefined,
+      categoryLabel: listing.category?.name ?? undefined,
+      createdAt: listing.createdAt,
+    };
+  }
 
   async createListing(sellerId: string, dto: CreateListingDto) {
     return this.prisma.listing.create({

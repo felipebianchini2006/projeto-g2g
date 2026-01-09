@@ -136,6 +136,36 @@ async function main() {
     },
   });
 
+  const notifyListingId = 'eee8cae5-c315-492e-9a3c-740ad545872d';
+  const listingNotify = await prisma.listing.upsert({
+    where: { id: notifyListingId },
+    update: {
+      title: 'Notify Flow Auto b4418900',
+      description: 'Auto listing for notification flow tests.',
+      priceCents: 15900,
+      status: 'PUBLISHED',
+      deliveryType: 'AUTO',
+      deliverySlaHours: 6,
+      refundPolicy: 'Refunds allowed within 7 days after delivery.',
+      categoryId: consoleCategory.id,
+      sellerId: seller.id,
+    },
+    create: {
+      id: notifyListingId,
+      sellerId: seller.id,
+      categoryId: consoleCategory.id,
+      title: 'Notify Flow Auto b4418900',
+      description: 'Auto listing for notification flow tests.',
+      priceCents: 15900,
+      currency: 'BRL',
+      status: 'PUBLISHED',
+      deliveryType: 'AUTO',
+      deliverySlaHours: 6,
+      refundPolicy: 'Refunds allowed within 7 days after delivery.',
+      createdAt: new Date('2026-01-06T01:13:28.429Z'),
+    },
+  });
+
   await prisma.listingMedia.deleteMany({ where: { listingId: listingAuto.id } });
   await prisma.listingMedia.createMany({
     data: [
@@ -166,6 +196,14 @@ async function main() {
       { listingId: listingAuto.id, code: 'KEY-NEON-001', status: 'AVAILABLE' },
       { listingId: listingAuto.id, code: 'KEY-NEON-002', status: 'AVAILABLE' },
       { listingId: listingAuto.id, code: 'KEY-NEON-003', status: 'AVAILABLE' },
+    ],
+  });
+
+  await prisma.inventoryItem.deleteMany({ where: { listingId: listingNotify.id } });
+  await prisma.inventoryItem.createMany({
+    data: [
+      { listingId: listingNotify.id, code: 'KEY-NOTIFY-001', status: 'AVAILABLE' },
+      { listingId: listingNotify.id, code: 'KEY-NOTIFY-002', status: 'AVAILABLE' },
     ],
   });
 

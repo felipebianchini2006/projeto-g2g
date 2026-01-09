@@ -29,6 +29,10 @@ npm run test
 npm run lint
 ```
 
+## Testes
+
+Estrategia e checklists: `TESTING.md`.
+
 ## Web (Next.js)
 
 Para apontar o frontend para a API local, ajuste o `.env.local`:

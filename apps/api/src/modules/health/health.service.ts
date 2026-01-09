@@ -119,8 +119,13 @@ export class HealthService implements OnModuleDestroy {
       entries.map(([, queue]) => queue.getJobCounts()),
     );
 
-    results.forEach((result, index) => {
-      const name = entries[index][0];
+    for (let index = 0; index < entries.length; index += 1) {
+      const entry = entries[index];
+      const result = results[index];
+      if (!entry || !result) {
+        continue;
+      }
+      const name = entry[0];
       if (result.status === 'fulfilled') {
         status[name] = 'up';
       } else {
@@ -128,9 +133,8 @@ export class HealthService implements OnModuleDestroy {
         errors[`queue:${name}`] =
           result.reason instanceof Error ? result.reason.message : 'Queue unreachable';
       }
-    });
+    }
 
     return { status, errors };
   }
-}
 }

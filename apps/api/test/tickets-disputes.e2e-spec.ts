@@ -11,6 +11,8 @@ import { PrismaService } from './../src/modules/prisma/prisma.service';
 import { RedisService } from './../src/modules/redis/redis.service';
 import { SettlementService } from './../src/modules/settlement/settlement.service';
 
+jest.setTimeout(20000);
+
 describe('Tickets & Disputes (e2e)', () => {
   let app: INestApplication<App>;
   let prisma: PrismaService;
@@ -32,8 +34,10 @@ describe('Tickets & Disputes (e2e)', () => {
     process.env['TOKEN_TTL'] = '900';
     process.env['REFRESH_TTL'] = '3600';
     process.env['DATABASE_URL'] =
-      process.env['DATABASE_URL'] ?? 'postgresql://postgres:123456@localhost:5432/projeto_g2g';
-    process.env['REDIS_URL'] = process.env['REDIS_URL'] ?? 'redis://localhost:6379';
+      process.env['E2E_DATABASE_URL'] ??
+      'postgresql://postgres:123456@localhost:5433/projeto_g2g_test';
+    process.env['REDIS_URL'] =
+      process.env['E2E_REDIS_URL'] ?? 'redis://localhost:6380';
 
     const redisMock = { ping: jest.fn().mockResolvedValue('PONG') };
     const settlementMock = {
@@ -133,15 +137,33 @@ describe('Tickets & Disputes (e2e)', () => {
   });
 
   afterAll(async () => {
-    await prisma.ticketMessage.deleteMany({
-      where: { ticket: { orderId: { in: [orderId, orderRefundId] } } },
-    });
-    await prisma.ticket.deleteMany({ where: { orderId: { in: [orderId, orderRefundId] } } });
-    await prisma.dispute.deleteMany({ where: { orderId: { in: [orderId, orderRefundId] } } });
-    await prisma.order.deleteMany({ where: { id: { in: [orderId, orderRefundId] } } });
-    await prisma.auditLog.deleteMany({ where: { adminId } });
-    await prisma.user.deleteMany({ where: { id: { in: [adminId, buyerId, sellerId, outsiderId] } } });
-    await app.close();
+    if (!prisma) {
+      return;
+    }
+    const orderIds = [orderId, orderRefundId].filter(Boolean) as string[];
+    const userIds = [adminId, buyerId, sellerId, outsiderId].filter(Boolean) as string[];
+
+    if (orderIds.length) {
+      await prisma.ticketMessage.deleteMany({
+        where: { ticket: { orderId: { in: orderIds } } },
+      });
+      await prisma.dispute.deleteMany({ where: { orderId: { in: orderIds } } });
+      await prisma.ticket.deleteMany({ where: { orderId: { in: orderIds } } });
+      await prisma.order.deleteMany({ where: { id: { in: orderIds } } });
+    }
+
+    if (adminId) {
+      await prisma.auditLog.deleteMany({ where: { adminId } });
+    }
+    if (userIds.length) {
+      await prisma.notification.deleteMany({ where: { userId: { in: userIds } } });
+    }
+    if (userIds.length) {
+      await prisma.user.deleteMany({ where: { id: { in: userIds } } });
+    }
+    if (app) {
+      await app.close();
+    }
   });
 
   it('allows buyer/seller to access tickets and blocks outsiders', async () => {

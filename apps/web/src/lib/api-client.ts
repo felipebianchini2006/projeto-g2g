@@ -55,14 +55,18 @@ export const apiFetch = async <T>(
   baseUrl = resolveBaseUrl(),
 ): Promise<T> => {
   const url = buildUrl(path, baseUrl);
+  const method = (options.method ?? 'GET').toUpperCase();
+  const headers = new Headers(options.headers ?? {});
+
+  if (options.body && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
 
   try {
     const response = await fetch(url, {
       ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
+      method,
+      headers,
     });
 
     const payload = await parseResponse(response);
