@@ -52,7 +52,7 @@ export const WalletEntriesContent = () => {
     total: 0,
   });
 
-  const accessAllowed = user?.role === 'SELLER' || user?.role === 'ADMIN';
+  const accessAllowed = user?.role === 'USER' || user?.role === 'SELLER' || user?.role === 'ADMIN';
 
   const canPrev = page > 0;
   const canNext = (page + 1) * take < state.total;
@@ -132,7 +132,7 @@ export const WalletEntriesContent = () => {
   if (!accessAllowed) {
     return (
       <div className="wallet-shell">
-        <div className="state-card">Acesso restrito ao seller.</div>
+      <div className="state-card">Acesso restrito.</div>
         <Link className="ghost-button" href="/dashboard">
           Voltar ao dashboard
         </Link>

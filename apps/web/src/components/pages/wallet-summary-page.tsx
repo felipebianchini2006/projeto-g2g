@@ -27,7 +27,7 @@ export const WalletSummaryContent = () => {
     summary: null,
   });
 
-  const accessAllowed = user?.role === 'SELLER' || user?.role === 'ADMIN';
+  const accessAllowed = user?.role === 'USER' || user?.role === 'SELLER' || user?.role === 'ADMIN';
 
   const subtitle = useMemo(() => {
     if (state.status === 'loading') {
@@ -36,7 +36,7 @@ export const WalletSummaryContent = () => {
     if (!state.summary) {
       return 'Sem dados para exibir ainda.';
     }
-    return 'Resumo dos seus recebiveis e liberacoes.';
+    return 'Resumo dos seus saldos e movimentacoes.';
   }, [state.status, state.summary]);
 
   const loadSummary = async () => {
@@ -86,7 +86,7 @@ export const WalletSummaryContent = () => {
   if (!accessAllowed) {
     return (
       <div className="wallet-shell">
-        <div className="state-card">Acesso restrito ao seller.</div>
+      <div className="state-card">Acesso restrito.</div>
         <Link className="ghost-button" href="/dashboard">
           Voltar ao dashboard
         </Link>
@@ -98,7 +98,7 @@ export const WalletSummaryContent = () => {
     <section className="wallet-shell">
       <div className="wallet-header">
         <div>
-          <h1>Carteira do seller</h1>
+          <h1>Carteira</h1>
           <p className="auth-helper">{subtitle}</p>
         </div>
         <div className="wallet-actions">

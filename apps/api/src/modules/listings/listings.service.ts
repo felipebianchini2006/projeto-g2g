@@ -4,6 +4,7 @@ import { AuditAction, DeliveryType, ListingStatus, Prisma } from '@prisma/client
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateListingDto } from './dto/create-listing.dto';
 import { ListingQueryDto } from './dto/listing-query.dto';
+import { PublicListingQueryDto, PublicListingSort } from './dto/public-listing-query.dto';
 import { UpdateListingDto } from './dto/update-listing.dto';
 
 type AuditMeta = {
@@ -27,18 +28,84 @@ type PublicListing = {
   createdAt: Date;
 };
 
+type PublicCategory = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  listingsCount: number;
+};
+
+type CacheEntry<T> = {
+  value: T;
+  expiresAt: number;
+};
+
 @Injectable()
 export class ListingsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async listPublicListings(): Promise<PublicListing[]> {
+  private readonly publicCacheTtlMs = 60_000;
+  private readonly publicListingCache = new Map<string, CacheEntry<PublicListing>>();
+  private publicCategoriesCache?: CacheEntry<PublicCategory[]>;
+
+  async listPublicListings(query?: PublicListingQueryDto): Promise<PublicListing[]> {
+    const filters = query ?? new PublicListingQueryDto();
+    const andFilters: Prisma.ListingWhereInput[] = [];
+
+    if (filters.category) {
+      andFilters.push({
+        OR: [
+          { categoryId: filters.category },
+          { category: { slug: filters.category } },
+        ],
+      });
+    }
+
+    if (filters.deliveryType) {
+      andFilters.push({ deliveryType: filters.deliveryType });
+    }
+
+    if (filters.q?.trim()) {
+      const search = filters.q.trim();
+      andFilters.push({
+        OR: [
+          { title: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } },
+        ],
+      });
+    }
+
+    if (typeof filters.minPriceCents === 'number' || typeof filters.maxPriceCents === 'number') {
+      andFilters.push({
+        priceCents: {
+          gte: filters.minPriceCents ?? 0,
+          lte: filters.maxPriceCents ?? 2_147_483_647,
+        },
+      });
+    }
+
+    const orderBy =
+      filters.sort === PublicListingSort.PriceAsc
+        ? { priceCents: 'asc' as const }
+        : filters.sort === PublicListingSort.PriceDesc
+          ? { priceCents: 'desc' as const }
+          : filters.sort === PublicListingSort.Title
+            ? { title: 'asc' as const }
+            : { createdAt: 'desc' as const };
+
     const listings = await this.prisma.listing.findMany({
-      where: { status: ListingStatus.PUBLISHED },
+      where: {
+        status: ListingStatus.PUBLISHED,
+        ...(andFilters.length > 0 ? { AND: andFilters } : {}),
+      },
       include: {
         media: { orderBy: { position: 'asc' } },
         category: { select: { slug: true, name: true } },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy,
+      skip: filters.skip,
+      take: filters.take ?? 20,
     });
 
     return listings.map((listing) => ({
@@ -59,6 +126,11 @@ export class ListingsService {
   }
 
   async getPublicListing(listingId: string): Promise<PublicListing> {
+    const cached = this.getCached(this.publicListingCache, listingId);
+    if (cached) {
+      return cached;
+    }
+
     const listing = await this.prisma.listing.findFirst({
       where: {
         status: ListingStatus.PUBLISHED,
@@ -74,7 +146,7 @@ export class ListingsService {
       throw new NotFoundException('Listing not found.');
     }
 
-    return {
+    const payload = {
       id: listing.id,
       title: listing.title,
       description: listing.description,
@@ -89,6 +161,47 @@ export class ListingsService {
       categoryLabel: listing.category?.name ?? undefined,
       createdAt: listing.createdAt,
     };
+
+    this.setCached(this.publicListingCache, listing.id, payload);
+    if (listing.slug) {
+      this.setCached(this.publicListingCache, listing.slug, payload);
+    }
+
+    return payload;
+  }
+
+  async listPublicCategories(): Promise<PublicCategory[]> {
+    if (this.publicCategoriesCache && this.publicCategoriesCache.expiresAt > Date.now()) {
+      return this.publicCategoriesCache.value;
+    }
+
+    const categories = await this.prisma.category.findMany({
+      orderBy: { name: 'asc' },
+    });
+
+    const counts = await this.prisma.listing.groupBy({
+      by: ['categoryId'],
+      where: { status: ListingStatus.PUBLISHED },
+      _count: { _all: true },
+    });
+    const countsByCategory = new Map(
+      counts.map((item) => [item.categoryId, item._count._all]),
+    );
+
+    const payload = categories.map((category) => ({
+      id: category.id,
+      slug: category.slug,
+      name: category.name,
+      description: category.description,
+      listingsCount: countsByCategory.get(category.id) ?? 0,
+    }));
+
+    this.publicCategoriesCache = {
+      value: payload,
+      expiresAt: Date.now() + this.publicCacheTtlMs,
+    };
+
+    return payload;
   }
 
   async createListing(sellerId: string, dto: CreateListingDto) {
@@ -174,10 +287,13 @@ export class ListingsService {
       data.status = ListingStatus.PENDING;
     }
 
-    return this.prisma.listing.update({
+    const updated = await this.prisma.listing.update({
       where: { id: listing.id },
       data,
     });
+
+    this.invalidatePublicCaches();
+    return updated;
   }
 
   async submitListing(sellerId: string, listingId: string) {
@@ -193,10 +309,13 @@ export class ListingsService {
       throw new BadRequestException('Only draft listings can be submitted.');
     }
 
-    return this.prisma.listing.update({
+    const updated = await this.prisma.listing.update({
       where: { id: listing.id },
       data: { status: ListingStatus.PENDING },
     });
+
+    this.invalidatePublicCaches();
+    return updated;
   }
 
   async archiveListing(sellerId: string, listingId: string) {
@@ -208,10 +327,13 @@ export class ListingsService {
       throw new NotFoundException('Listing not found.');
     }
 
-    return this.prisma.listing.update({
+    const updated = await this.prisma.listing.update({
       where: { id: listing.id },
       data: { status: ListingStatus.SUSPENDED },
     });
+
+    this.invalidatePublicCaches();
+    return updated;
   }
 
   async approveListing(listingId: string, adminId: string, meta: AuditMeta) {
@@ -236,6 +358,7 @@ export class ListingsService {
         to: updated.status,
       }, meta);
 
+      this.invalidatePublicCaches();
       return updated;
     });
   }
@@ -266,6 +389,7 @@ export class ListingsService {
         to: updated.status,
       }, meta);
 
+      this.invalidatePublicCaches();
       return updated;
     });
   }
@@ -293,8 +417,30 @@ export class ListingsService {
         to: updated.status,
       }, meta);
 
+      this.invalidatePublicCaches();
       return updated;
     });
+  }
+
+  private getCached<T>(cache: Map<string, CacheEntry<T>>, key: string) {
+    const entry = cache.get(key);
+    if (!entry) {
+      return null;
+    }
+    if (entry.expiresAt <= Date.now()) {
+      cache.delete(key);
+      return null;
+    }
+    return entry.value;
+  }
+
+  private setCached<T>(cache: Map<string, CacheEntry<T>>, key: string, value: T) {
+    cache.set(key, { value, expiresAt: Date.now() + this.publicCacheTtlMs });
+  }
+
+  private invalidatePublicCaches() {
+    this.publicListingCache.clear();
+    this.publicCategoriesCache = undefined;
   }
 
   private async createAuditLog(

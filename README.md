@@ -82,6 +82,7 @@ Variaveis esperadas na API:
 - `JWT_SECRET=uma-chave-forte`
 - `TOKEN_TTL=900`
 - `REFRESH_TTL=2592000`
+- `SWAGGER_ENABLED=true`
 - `PIX_MOCK_MODE=true`
 - `PIX_MOCK_TTL_SECONDS=900`
 - `EFI_CLIENT_ID=...`

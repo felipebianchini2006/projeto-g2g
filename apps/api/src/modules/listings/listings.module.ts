@@ -9,6 +9,7 @@ import { ListingMediaController } from './listing-media.controller';
 import { ListingMediaService } from './listing-media.service';
 import { ListingsController } from './listings.controller';
 import { ListingsService } from './listings.service';
+import { PublicCategoriesController } from './public-categories.controller';
 import { PublicListingsController } from './public-listings.controller';
 
 @Module({
@@ -19,6 +20,7 @@ import { PublicListingsController } from './public-listings.controller';
     InventoryController,
     AdminListingsController,
     PublicListingsController,
+    PublicCategoriesController,
   ],
   providers: [ListingsService, ListingMediaService, InventoryService],
   exports: [ListingsService, InventoryService, ListingMediaService],

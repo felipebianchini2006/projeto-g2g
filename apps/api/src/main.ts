@@ -2,6 +2,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { randomUUID } from 'crypto';
 import type { NextFunction, Request, Response } from 'express';
@@ -20,6 +21,20 @@ async function bootstrap() {
   app.useLogger(logger);
   const configService = app.get(ConfigService);
   const requestContext = app.get(RequestContextService);
+  const isProduction = configService.get<string>('NODE_ENV') === 'production';
+
+  const swaggerEnabled =
+    configService.get<string>('SWAGGER_ENABLED') ?? (isProduction ? 'false' : 'true');
+  if (swaggerEnabled === 'true') {
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle('Projeto G2G API')
+      .setDescription('Marketplace de produtos digitais')
+      .setVersion('1.0.0')
+      .addBearerAuth()
+      .build();
+    const document = SwaggerModule.createDocument(app, swaggerConfig);
+    SwaggerModule.setup('docs', app, document, { jsonDocumentUrl: 'docs-json' });
+  }
 
   app.use((req: Request, res: Response, next: NextFunction) => {
     const requestIdHeader = req.headers['x-request-id'];
@@ -45,7 +60,6 @@ async function bootstrap() {
   );
 
   const corsOriginsRaw = configService.get<string>('CORS_ORIGINS') ?? '';
-  const isProduction = configService.get<string>('NODE_ENV') === 'production';
   const defaultOrigins = isProduction
     ? []
     : ['*', 'http://localhost:3000', 'http://127.0.0.1:3000'];

@@ -2,11 +2,13 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
   catalogCategories,
+  fetchPublicCategories,
   fetchPublicListings,
+  type CatalogCategory,
   type PublicListing,
 } from '../../lib/marketplace-public';
 import { useSite } from '../site-context';
@@ -29,13 +31,14 @@ export const ProdutosContent = () => {
   const { addToCart } = useSite();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [categories, setCategories] = useState<CatalogCategory[]>(catalogCategories);
   const [state, setState] = useState<CatalogState>({
     status: 'loading',
     listings: [],
     source: 'api',
   });
   const initialTag = searchParams.get('tag');
-  const isKnownCategory = catalogCategories.some((item) => item.slug === initialTag);
+  const isKnownCategory = categories.some((item) => item.slug === initialTag);
   const [query, setQuery] = useState(
     searchParams.get('q') ?? (!isKnownCategory && initialTag ? initialTag : ''),
   );
@@ -48,15 +51,44 @@ export const ProdutosContent = () => {
   useEffect(() => {
     const q = searchParams.get('q') ?? '';
     const tag = searchParams.get('tag');
-    const knownCategory = catalogCategories.some((item) => item.slug === tag);
+    const knownCategory = categories.some((item) => item.slug === tag);
+    const delivery = searchParams.get('delivery') ?? 'all';
+    const sortParam = searchParams.get('sort') ?? 'recent';
+    const min = searchParams.get('minPriceCents') ?? '';
+    const max = searchParams.get('maxPriceCents') ?? '';
     setQuery(q || (!knownCategory && tag ? tag : ''));
     setCategory(knownCategory && tag ? tag : 'all');
-  }, [searchParams]);
+    setDeliveryType(delivery);
+    setSort(sortParam);
+    setMinPrice(min);
+    setMaxPrice(max);
+  }, [categories, searchParams]);
 
   useEffect(() => {
     let active = true;
+    const loadCategories = async () => {
+      const response = await fetchPublicCategories();
+      if (!active) {
+        return;
+      }
+      setCategories(response.categories);
+    };
     const loadListings = async () => {
-      const response = await fetchPublicListings();
+      const categoryParam = searchParams.get('tag');
+      const deliveryParam = searchParams.get('delivery');
+      const min = searchParams.get('minPriceCents');
+      const max = searchParams.get('maxPriceCents');
+      const response = await fetchPublicListings({
+        q: searchParams.get('q') ?? undefined,
+        category: categoryParam && categoryParam !== 'all' ? categoryParam : undefined,
+        deliveryType:
+          deliveryParam && deliveryParam !== 'all'
+            ? (deliveryParam as PublicListing['deliveryType'])
+            : undefined,
+        minPriceCents: min ? Number(min) : undefined,
+        maxPriceCents: max ? Number(max) : undefined,
+        sort: (searchParams.get('sort') as 'recent' | 'price-asc' | 'price-desc' | 'title') ?? 'recent',
+      });
       if (!active) {
         return;
       }
@@ -67,6 +99,12 @@ export const ProdutosContent = () => {
         error: response.error,
       });
     };
+    loadCategories().catch(() => {
+      if (active) {
+        setCategories(catalogCategories);
+      }
+    });
+    setState((prev) => ({ ...prev, status: 'loading' }));
     loadListings().catch(() => {
       if (active) {
         setState((prev) => ({
@@ -79,42 +117,7 @@ export const ProdutosContent = () => {
     return () => {
       active = false;
     };
-  }, []);
-
-  const filteredListings = useMemo(() => {
-    const search = query.trim().toLowerCase();
-    const min = minPrice ? Number(minPrice) : 0;
-    const max = maxPrice ? Number(maxPrice) : Number.POSITIVE_INFINITY;
-
-    const filtered = state.listings.filter((listing) => {
-      const text = `${listing.title} ${listing.description ?? ''}`.toLowerCase();
-      const matchesSearch = search ? text.includes(search) : true;
-      const matchesCategory =
-        category === 'all' ? true : listing.categorySlug === category;
-      const matchesDelivery =
-        deliveryType === 'all' ? true : listing.deliveryType === deliveryType;
-      const matchesPrice = listing.priceCents >= min && listing.priceCents <= max;
-
-      return matchesSearch && matchesCategory && matchesDelivery && matchesPrice;
-    });
-
-    const sorted = [...filtered].sort((a, b) => {
-      if (sort === 'price-asc') {
-        return a.priceCents - b.priceCents;
-      }
-      if (sort === 'price-desc') {
-        return b.priceCents - a.priceCents;
-      }
-      if (sort === 'recent') {
-        const aDate = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-        const bDate = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-        return bDate - aDate;
-      }
-      return a.title.localeCompare(b.title);
-    });
-
-    return sorted;
-  }, [state.listings, query, category, deliveryType, minPrice, maxPrice, sort]);
+  }, [searchParams]);
 
   const applySearch = () => {
     const params = new URLSearchParams();
@@ -123,6 +126,18 @@ export const ProdutosContent = () => {
     }
     if (category !== 'all') {
       params.set('tag', category);
+    }
+    if (deliveryType !== 'all') {
+      params.set('delivery', deliveryType);
+    }
+    if (sort !== 'recent') {
+      params.set('sort', sort);
+    }
+    if (minPrice) {
+      params.set('minPriceCents', minPrice);
+    }
+    if (maxPrice) {
+      params.set('maxPriceCents', maxPrice);
     }
     const queryString = params.toString();
     router.push(queryString ? `/produtos?${queryString}` : '/produtos');
@@ -165,7 +180,7 @@ export const ProdutosContent = () => {
                 onChange={(event) => setCategory(event.target.value)}
               >
                 <option value="all">Todas</option>
-                {catalogCategories.map((cat) => (
+                {categories.map((cat) => (
                   <option key={cat.slug} value={cat.slug}>
                     {cat.label}
                   </option>
@@ -230,7 +245,7 @@ export const ProdutosContent = () => {
               <div>
                 <h2>Resultados</h2>
                 <p className="auth-helper">
-                  {filteredListings.length} anuncios encontrados.
+                  {state.listings.length} anuncios encontrados.
                 </p>
               </div>
               {state.error ? (
@@ -245,12 +260,12 @@ export const ProdutosContent = () => {
               <div className="state-card">Carregando catalogo...</div>
             ) : null}
 
-            {filteredListings.length === 0 && state.status === 'ready' ? (
+            {state.listings.length === 0 && state.status === 'ready' ? (
               <div className="state-card">Nenhum anuncio com esses filtros.</div>
             ) : null}
 
             <div className="listing-grid">
-              {filteredListings.map((listing) => (
+              {state.listings.map((listing) => (
                 <article className="listing-card" key={listing.id}>
                   <div className="listing-media">
                     <img

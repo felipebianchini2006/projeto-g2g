@@ -13,7 +13,7 @@ type AuthenticatedRequest = Request & { user?: JwtPayload };
 
 @Controller('wallet')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.SELLER, UserRole.ADMIN)
+@Roles(UserRole.USER, UserRole.SELLER, UserRole.ADMIN)
 export class WalletController {
   constructor(private readonly walletService: WalletService) {}
 

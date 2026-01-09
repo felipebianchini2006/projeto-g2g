@@ -87,7 +87,60 @@ export class DisputesService {
     }
 
     if (dto.action === 'partial') {
-      throw new BadRequestException('Partial resolution not supported.');
+      if (!dto.amountCents || dto.amountCents <= 0) {
+        throw new BadRequestException('Partial resolution requires amountCents.');
+      }
+      const blockedOrderStatuses = new Set<OrderStatus>([
+        OrderStatus.CANCELLED,
+        OrderStatus.REFUNDED,
+      ]);
+      if (blockedOrderStatuses.has(dispute.order.status)) {
+        throw new BadRequestException('Order cannot be partially refunded.');
+      }
+
+      await this.prisma.$transaction(async (tx) => {
+        if (dispute.order.status !== OrderStatus.COMPLETED) {
+          await tx.order.update({
+            where: { id: dispute.orderId },
+            data: { status: OrderStatus.COMPLETED },
+          });
+
+          await tx.orderEvent.create({
+            data: {
+              orderId: dispute.orderId,
+              userId: adminId,
+              type: OrderEventType.NOTE,
+              metadata: {
+                from: dispute.order.status,
+                to: OrderStatus.COMPLETED,
+                action: 'dispute_partial',
+                amountCents: dto.amountCents,
+                reason: dto.reason,
+              },
+            },
+          });
+        }
+      });
+
+      await this.settlementService.refundOrderPartial(
+        dispute.orderId,
+        dto.amountCents,
+        adminId,
+        dto.reason,
+      );
+
+      await this.settlementService.releaseOrder(dispute.orderId, adminId, dto.reason, {
+        ignoreDispute: true,
+      });
+
+      await this.finalizeDispute(disputeId, {
+        status: DisputeStatus.RESOLVED,
+        resolution: this.buildResolution('partial', dto.reason, dto.amountCents),
+        resolvedAt: new Date(),
+      }, adminId);
+
+      await this.notifyDecision(dispute, 'partial', dto.reason, dto.amountCents);
+      return { status: 'partial_refund', disputeId };
     }
 
     if (dto.action === 'release') {
@@ -153,20 +206,29 @@ export class DisputesService {
 
   private async notifyDecision(
     dispute: { order: { id: string; buyerId: string; sellerId: string | null; buyer?: { email: string } | null; seller?: { email: string } | null } },
-    action: 'release' | 'refund',
+    action: 'release' | 'refund' | 'partial',
     reason?: string,
+    amountCents?: number,
   ) {
     const orderId = dispute.order.id;
     const title =
-      action === 'release' ? 'Disputa encerrada' : 'Disputa resolvida';
+      action === 'release'
+        ? 'Disputa encerrada'
+        : action === 'refund'
+          ? 'Disputa resolvida'
+          : 'Disputa resolvida parcialmente';
     const body =
       action === 'release'
         ? `Pedido ${orderId} liberado apos disputa.`
-        : `Pedido ${orderId} reembolsado apos disputa.`;
+        : action === 'refund'
+          ? `Pedido ${orderId} reembolsado apos disputa.`
+          : `Pedido ${orderId} reembolsado parcialmente apos disputa.`;
 
     const emailOutboxIds: string[] = [];
-    const shouldEmailBuyer = action === 'release';
-    const shouldEmailSeller = action === 'refund';
+    const shouldEmailBuyer = action === 'release' || action === 'partial';
+    const shouldEmailSeller = action === 'refund' || action === 'partial';
+    const amountSuffix =
+      action === 'partial' && amountCents ? ` Valor: ${amountCents} centavos.` : '';
 
     if (dispute.order.buyerId) {
       await this.prisma.notification.create({
@@ -174,7 +236,7 @@ export class DisputesService {
           userId: dispute.order.buyerId,
           type: NotificationType.ORDER,
           title,
-          body,
+          body: `${body}${amountSuffix}`,
         },
       });
       if (shouldEmailBuyer && dispute.order.buyer?.email) {
@@ -182,7 +244,7 @@ export class DisputesService {
           data: {
             to: dispute.order.buyer.email,
             subject: title,
-            body: reason ? `${body} Motivo: ${reason}` : body,
+            body: reason ? `${body}${amountSuffix} Motivo: ${reason}` : `${body}${amountSuffix}`,
           },
         });
         emailOutboxIds.push(outbox.id);
@@ -195,7 +257,7 @@ export class DisputesService {
           userId: dispute.order.sellerId,
           type: NotificationType.ORDER,
           title,
-          body,
+          body: `${body}${amountSuffix}`,
         },
       });
       if (shouldEmailSeller && dispute.order.seller?.email) {
@@ -203,7 +265,7 @@ export class DisputesService {
           data: {
             to: dispute.order.seller.email,
             subject: title,
-            body: reason ? `${body} Motivo: ${reason}` : body,
+            body: reason ? `${body}${amountSuffix} Motivo: ${reason}` : `${body}${amountSuffix}`,
           },
         });
         emailOutboxIds.push(outbox.id);
@@ -248,7 +310,9 @@ export class DisputesService {
     });
   }
 
-  private buildResolution(action: 'release' | 'refund', reason?: string) {
-    return reason ? `${action}:${reason}` : action;
+  private buildResolution(action: 'release' | 'refund' | 'partial', reason?: string, amountCents?: number) {
+    const amount = amountCents ? `:${amountCents}` : '';
+    const base = `${action}${amount}`;
+    return reason ? `${base}:${reason}` : base;
   }
 }

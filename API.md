@@ -2,6 +2,7 @@
 
 ## Base URL e cabecalhos
 - Base URL (padrao): http://localhost:3001
+- Swagger/OpenAPI: http://localhost:3001/docs (json em /docs-json quando habilitado)
 - Content-Type: application/json
 - Authorization: Bearer <accessToken> (JWT) para endpoints protegidos
 - Request ids opcionais: x-request-id e x-correlation-id (retornados na resposta)
@@ -177,6 +178,14 @@ Response: { "success": true }
 - GET /public/listings
 - GET /public/listings/:id (id ou slug)
 
+Filtros (query):
+- q (busca por titulo/descricao)
+- category (slug ou id da categoria)
+- deliveryType (AUTO|MANUAL)
+- minPriceCents / maxPriceCents
+- sort (recent|price-asc|price-desc|title)
+- skip / take
+
 Exemplo de resposta:
 [
   {
@@ -195,6 +204,20 @@ Exemplo de resposta:
     "categorySlug": "accounts",
     "categoryLabel": "Accounts",
     "createdAt": "2026-01-08T12:00:00.000Z"
+  }
+]
+
+### Categorias publicas
+- GET /public/categories
+
+Exemplo de resposta:
+[
+  {
+    "id": "category-uuid",
+    "slug": "accounts",
+    "name": "Accounts",
+    "description": "Contas digitais",
+    "listingsCount": 12
   }
 ]
 
@@ -352,6 +375,12 @@ Request:
 Response:
 { "status": "refunded", "disputeId": "dispute-uuid" }
 
+Exemplo: resolver disputa parcial
+Request:
+{ "action": "partial", "amountCents": 2500, "reason": "Entrega parcial" }
+Response:
+{ "status": "partial_refund", "disputeId": "dispute-uuid" }
+
 ### Settings (ADMIN)
 - GET /admin/settings
 - PUT /admin/settings
@@ -371,7 +400,7 @@ Request:
 { "reason": "Chargeback abuse" }
 Response: User summary (id/email/role/block fields)
 
-### Wallet (SELLER ou ADMIN)
+### Wallet (USER, SELLER ou ADMIN)
 - GET /wallet/summary
 - GET /wallet/entries?from=2026-01-01&to=2026-01-31&source=ORDER_PAYMENT
 

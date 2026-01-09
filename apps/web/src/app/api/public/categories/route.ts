@@ -14,11 +14,8 @@ const parsePayload = async (response: Response) => {
   return null;
 };
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const query = searchParams.toString();
-  const url = query ? `${API_URL}/public/listings?${query}` : `${API_URL}/public/listings`;
-  const response = await fetch(url, { cache: 'no-store' });
+export async function GET() {
+  const response = await fetch(`${API_URL}/public/categories`, { cache: 'no-store' });
   const payload = await parsePayload(response);
   return NextResponse.json(payload, { status: response.status });
 }

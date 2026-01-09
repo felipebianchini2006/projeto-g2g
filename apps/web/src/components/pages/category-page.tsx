@@ -5,7 +5,9 @@ import { useEffect, useMemo, useState } from 'react';
 
 import {
   catalogCategories,
+  fetchPublicCategories,
   fetchPublicListings,
+  type CatalogCategory,
   type PublicListing,
 } from '../../lib/marketplace-public';
 import { useSite } from '../site-context';
@@ -30,6 +32,7 @@ const formatCurrency = (value: number, currency = 'BRL') =>
 
 export const CategoryContent = ({ slug }: CategoryContentProps) => {
   const { addToCart } = useSite();
+  const [categories, setCategories] = useState<CatalogCategory[]>(catalogCategories);
   const [state, setState] = useState<CategoryState>({
     status: 'loading',
     listings: [],
@@ -37,14 +40,21 @@ export const CategoryContent = ({ slug }: CategoryContentProps) => {
   });
 
   const category = useMemo(
-    () => catalogCategories.find((item) => item.slug === slug),
-    [slug],
+    () => categories.find((item) => item.slug === slug),
+    [categories, slug],
   );
 
   useEffect(() => {
     let active = true;
+    const loadCategory = async () => {
+      const response = await fetchPublicCategories();
+      if (!active) {
+        return;
+      }
+      setCategories(response.categories);
+    };
     const loadListings = async () => {
-      const response = await fetchPublicListings();
+      const response = await fetchPublicListings({ category: slug });
       if (!active) {
         return;
       }
@@ -55,6 +65,11 @@ export const CategoryContent = ({ slug }: CategoryContentProps) => {
         error: response.error,
       });
     };
+    loadCategory().catch(() => {
+      if (active) {
+        setCategories(catalogCategories);
+      }
+    });
     loadListings().catch(() => {
       if (active) {
         setState((prev) => ({
@@ -68,11 +83,6 @@ export const CategoryContent = ({ slug }: CategoryContentProps) => {
       active = false;
     };
   }, [slug]);
-
-  const filteredListings = useMemo(
-    () => state.listings.filter((listing) => listing.categorySlug === slug),
-    [state.listings, slug],
-  );
 
   return (
     <section className="catalog-shell">
@@ -102,7 +112,7 @@ export const CategoryContent = ({ slug }: CategoryContentProps) => {
         ) : null}
 
         <div className="listing-grid">
-          {filteredListings.map((listing) => (
+          {state.listings.map((listing) => (
             <article className="listing-card" key={listing.id}>
               <div className="listing-media">
                 <img
@@ -136,7 +146,7 @@ export const CategoryContent = ({ slug }: CategoryContentProps) => {
           ))}
         </div>
 
-        {filteredListings.length === 0 && state.status === 'ready' ? (
+        {state.listings.length === 0 && state.status === 'ready' ? (
           <div className="state-card">Nenhum anuncio nessa categoria.</div>
         ) : null}
       </div>

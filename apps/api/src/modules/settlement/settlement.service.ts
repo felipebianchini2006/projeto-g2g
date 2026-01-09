@@ -170,20 +170,34 @@ export class SettlementService {
         return { status: 'already_released' as const, order, payment };
       }
 
-      const heldEntry = await tx.ledgerEntry.findFirst({
+      const heldEntries = await tx.ledgerEntry.findMany({
         where: {
           orderId: order.id,
-          paymentId: payment.id,
-          type: LedgerEntryType.CREDIT,
           state: LedgerEntryState.HELD,
-          source: LedgerEntrySource.ORDER_PAYMENT,
+          source: { in: [LedgerEntrySource.ORDER_PAYMENT, LedgerEntrySource.REFUND] },
         },
       });
-      if (!heldEntry) {
+
+      const heldCredit = heldEntries.find((entry) => entry.type === LedgerEntryType.CREDIT);
+      if (!heldCredit) {
         throw new BadRequestException('Held balance not found.');
       }
 
-      return { status: 'pending_release' as const, order, payment, heldEntry };
+      const heldBalance = heldEntries.reduce((total, entry) => {
+        const signed = entry.type === LedgerEntryType.DEBIT ? -entry.amountCents : entry.amountCents;
+        return total + signed;
+      }, 0);
+      if (heldBalance <= 0) {
+        throw new BadRequestException('No held balance to release.');
+      }
+
+      return {
+        status: 'pending_release' as const,
+        order,
+        payment,
+        heldBalance,
+        heldEntry: heldCredit,
+      };
     });
 
     if (result.status === 'already_released') {
@@ -193,12 +207,12 @@ export class SettlementService {
     const settings = await this.settingsService.getSettings();
     const settlementMode = settings.splitEnabled ? 'split' : 'cashout';
     const feeBps = settings.platformFeeBps;
-    const rawFee = Math.round((result.heldEntry.amountCents * feeBps) / 10000);
+    const rawFee = Math.round((result.heldBalance * feeBps) / 10000);
     const feeAmount = Math.min(
       Math.max(rawFee, 0),
-      result.heldEntry.amountCents,
+      result.heldBalance,
     );
-    const payoutAmount = Math.max(result.heldEntry.amountCents - feeAmount, 0);
+    const payoutAmount = Math.max(result.heldBalance - feeAmount, 0);
 
     if (settlementMode === 'cashout') {
       const seller = result.order.seller as SellerPayoutInfo | null | undefined;
@@ -232,33 +246,33 @@ export class SettlementService {
         return;
       }
 
-      await tx.ledgerEntry.create({
-        data: {
-          userId: result.heldEntry.userId,
-          orderId: result.order.id,
-          paymentId: result.payment.id,
-          type: LedgerEntryType.DEBIT,
-          state: LedgerEntryState.HELD,
-          source: LedgerEntrySource.ORDER_PAYMENT,
-          amountCents: result.heldEntry.amountCents,
-          currency: result.heldEntry.currency,
-          description: 'Escrow released after completion.',
-        },
-      });
+        await tx.ledgerEntry.create({
+          data: {
+            userId: result.heldEntry.userId,
+            orderId: result.order.id,
+            paymentId: result.payment.id,
+            type: LedgerEntryType.DEBIT,
+            state: LedgerEntryState.HELD,
+            source: LedgerEntrySource.ORDER_PAYMENT,
+            amountCents: result.heldBalance,
+            currency: result.heldEntry.currency,
+            description: 'Escrow released after completion.',
+          },
+        });
 
-      await tx.ledgerEntry.create({
-        data: {
-          userId: result.heldEntry.userId,
-          orderId: result.order.id,
-          paymentId: result.payment.id,
-          type: LedgerEntryType.CREDIT,
-          state: LedgerEntryState.AVAILABLE,
-          source: LedgerEntrySource.ORDER_PAYMENT,
-          amountCents: result.heldEntry.amountCents,
-          currency: result.heldEntry.currency,
-          description: 'Balance available after release.',
-        },
-      });
+        await tx.ledgerEntry.create({
+          data: {
+            userId: result.heldEntry.userId,
+            orderId: result.order.id,
+            paymentId: result.payment.id,
+            type: LedgerEntryType.CREDIT,
+            state: LedgerEntryState.AVAILABLE,
+            source: LedgerEntrySource.ORDER_PAYMENT,
+            amountCents: result.heldBalance,
+            currency: result.heldEntry.currency,
+            description: 'Balance available after release.',
+          },
+        });
 
       if (feeAmount > 0) {
         await tx.ledgerEntry.create({
@@ -515,6 +529,160 @@ export class SettlementService {
 
     this.logger.log('Refund processed', context);
     return { status: 'refunded', orderId };
+  }
+
+  async refundOrderPartial(
+    orderId: string,
+    amountCents: number,
+    actorId?: string | null,
+    reason?: string,
+  ) {
+    if (amountCents <= 0) {
+      throw new BadRequestException('Refund amount must be greater than zero.');
+    }
+
+    const context = this.buildContext(orderId);
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        payments: { orderBy: { createdAt: 'desc' }, take: 1 },
+        buyer: true,
+        seller: true,
+      },
+    });
+
+    if (!order) {
+      throw new NotFoundException('Order not found.');
+    }
+
+    const payment = order.payments[0];
+    if (!payment) {
+      throw new BadRequestException('Payment not found for order.');
+    }
+
+    if (amountCents >= payment.amountCents) {
+      throw new BadRequestException('Partial refund must be less than payment amount.');
+    }
+
+    const releaseExists = await this.prisma.ledgerEntry.findFirst({
+      where: {
+        orderId: order.id,
+        type: LedgerEntryType.CREDIT,
+        state: LedgerEntryState.AVAILABLE,
+        source: LedgerEntrySource.ORDER_PAYMENT,
+      },
+    });
+    if (releaseExists) {
+      throw new BadRequestException('Partial refund after release is not supported.');
+    }
+
+    const heldEntries = await this.prisma.ledgerEntry.findMany({
+      where: {
+        orderId: order.id,
+        state: LedgerEntryState.HELD,
+        source: { in: [LedgerEntrySource.ORDER_PAYMENT, LedgerEntrySource.REFUND] },
+      },
+    });
+    const heldBalance = heldEntries.reduce((total, entry) => {
+      const signed = entry.type === LedgerEntryType.DEBIT ? -entry.amountCents : entry.amountCents;
+      return total + signed;
+    }, 0);
+    if (amountCents > heldBalance) {
+      throw new BadRequestException('Refund amount exceeds held balance.');
+    }
+
+    const e2eId = await this.findEndToEndId(payment.txid);
+    await this.paymentsService.refundPix({
+      paymentId: payment.id,
+      txid: payment.txid,
+      e2eId,
+      amountCents,
+      currency: payment.currency,
+      reason: reason ?? 'partial_refund',
+    });
+
+    const emailOutboxIds: string[] = [];
+    await this.prisma.$transaction(async (tx) => {
+      await tx.ledgerEntry.create({
+        data: {
+          userId: order.sellerId ?? order.buyerId,
+          orderId: order.id,
+          paymentId: payment.id,
+          type: LedgerEntryType.DEBIT,
+          state: LedgerEntryState.HELD,
+          source: LedgerEntrySource.REFUND,
+          amountCents,
+          currency: payment.currency,
+          description: 'Partial refund applied while funds held.',
+        },
+      });
+
+      await tx.ledgerEntry.create({
+        data: {
+          userId: order.sellerId ?? order.buyerId,
+          orderId: order.id,
+          paymentId: payment.id,
+          type: LedgerEntryType.CREDIT,
+          state: LedgerEntryState.REVERSED,
+          source: LedgerEntrySource.REFUND,
+          amountCents,
+          currency: payment.currency,
+          description: 'Partial refund processed.',
+        },
+      });
+
+      await tx.orderEvent.create({
+        data: {
+          orderId: order.id,
+          userId: actorId ?? null,
+          type: OrderEventType.NOTE,
+          metadata: this.buildMetadata(
+            { source: actorId ? 'admin' : 'system', reason },
+            order.status,
+            order.status,
+            { action: 'partial_refund', amountCents },
+          ),
+        },
+      });
+
+      if (actorId) {
+        await tx.auditLog.create({
+          data: {
+            adminId: actorId,
+            action: AuditAction.REFUND,
+            entityType: 'Order',
+            entityId: order.id,
+            payload: { reason, source: 'partial_refund', amountCents },
+          },
+        });
+      }
+
+      if (order.buyerId) {
+        await tx.notification.create({
+          data: {
+            userId: order.buyerId,
+            type: NotificationType.PAYMENT,
+            title: 'Reembolso parcial',
+            body: `Pedido ${order.id} recebeu reembolso parcial.`,
+          },
+        });
+      }
+
+      if (order.buyer?.email) {
+        const outbox = await tx.emailOutbox.create({
+          data: {
+            to: order.buyer.email,
+            subject: 'Reembolso parcial',
+            body: `Seu pedido ${order.id} recebeu reembolso parcial.`,
+          },
+        });
+        emailOutboxIds.push(outbox.id);
+      }
+    });
+
+    await Promise.all(emailOutboxIds.map((id) => this.emailQueue.enqueueEmail(id)));
+    this.logger.log('Partial refund processed', context);
+    return { status: 'partial_refunded', orderId, amountCents };
   }
 
   private async handleChargebackManual(

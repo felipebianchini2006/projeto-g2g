@@ -41,6 +41,7 @@ curl http://localhost/api/health
 - NODE_ENV=production
 - JWT_SECRET
 - LOG_LEVEL
+- SWAGGER_ENABLED
 - CORS_ORIGINS (ex: https://app.seudominio.com)
 - TOKEN_TTL
 - REFRESH_TTL
