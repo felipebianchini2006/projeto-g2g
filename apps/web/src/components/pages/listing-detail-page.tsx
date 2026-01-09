@@ -152,7 +152,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
               <Link className="primary-button" href={`/checkout/${listing.id}`}>
                 Comprar agora
               </Link>
-              <Link href="/dashboard" className="ghost-button">
+              <Link href="/conta" className="ghost-button">
                 Falar com o seller
               </Link>
             </div>

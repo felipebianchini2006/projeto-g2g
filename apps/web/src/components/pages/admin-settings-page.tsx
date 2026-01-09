@@ -109,8 +109,8 @@ export const AdminSettingsContent = () => {
     return (
       <div className="admin-settings-shell">
         <div className="state-card">Acesso restrito ao admin.</div>
-        <Link className="ghost-button" href="/dashboard">
-          Voltar ao dashboard
+        <Link className="ghost-button" href="/conta">
+          Voltar para conta
         </Link>
       </div>
     );
@@ -125,8 +125,8 @@ export const AdminSettingsContent = () => {
         </div>
         <div className="page-actions">
           <NotificationsBell />
-          <Link className="ghost-button" href="/dashboard">
-            Voltar ao dashboard
+          <Link className="ghost-button" href="/conta">
+            Voltar para conta
           </Link>
         </div>
       </div>

@@ -69,7 +69,7 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
     order: null,
   });
 
-  const detailPrefix = scope === 'seller' ? '/dashboard/vendas' : '/dashboard/pedidos';
+  const detailPrefix = scope === 'seller' ? '/conta/vendas' : '/conta/pedidos';
 
   const loadOrder = async (silent = false) => {
     if (!accessToken) {
@@ -274,7 +274,7 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
               >
                 Abrir disputa
               </button>
-              <Link className="ghost-button" href={`/dashboard/tickets?orderId=${orderId}`}>
+              <Link className="ghost-button" href={`/conta/tickets?orderId=${orderId}`}>
                 Abrir ticket
               </Link>
             </div>

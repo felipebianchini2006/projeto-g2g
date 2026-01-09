@@ -133,8 +133,8 @@ export const WalletEntriesContent = () => {
     return (
       <div className="wallet-shell">
       <div className="state-card">Acesso restrito.</div>
-        <Link className="ghost-button" href="/dashboard">
-          Voltar ao dashboard
+        <Link className="ghost-button" href="/conta">
+          Voltar para conta
         </Link>
       </div>
     );
@@ -148,11 +148,11 @@ export const WalletEntriesContent = () => {
           <p className="auth-helper">{summaryText}</p>
         </div>
         <div className="wallet-actions">
-          <Link className="ghost-button" href="/dashboard/carteira">
+          <Link className="ghost-button" href="/conta/carteira">
             Ver carteira
           </Link>
-          <Link className="ghost-button" href="/dashboard">
-            Voltar ao dashboard
+          <Link className="ghost-button" href="/conta">
+            Voltar para conta
           </Link>
         </div>
       </div>

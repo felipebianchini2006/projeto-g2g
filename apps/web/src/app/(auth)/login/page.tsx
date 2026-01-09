@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { z } from 'zod';
 
@@ -26,15 +26,13 @@ const schema = z.object({
 type FormState = z.infer<typeof schema>;
 
 export default function Page() {
-  const searchParams = useSearchParams();
   const router = useRouter();
   const { login } = useAuth();
   const [formData, setFormData] = useState<FormState>({ email: '', password: '' });
   const [errors, setErrors] = useState<Partial<Record<keyof FormState | 'form', string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const rawNextPath = searchParams.get('next') ?? '/dashboard';
-  const nextPath = rawNextPath.startsWith('/') ? rawNextPath : '/dashboard';
+  const nextPath = '/';
 
   const handleChange =
     (field: keyof FormState) => (event: ChangeEvent<HTMLInputElement>) => {

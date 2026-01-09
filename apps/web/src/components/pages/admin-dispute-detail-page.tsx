@@ -156,8 +156,8 @@ export const AdminDisputeDetailContent = ({ disputeId }: AdminDisputeDetailConte
     return (
       <div className="admin-dispute-shell">
         <div className="state-card">Acesso restrito ao admin.</div>
-        <Link className="ghost-button" href="/dashboard">
-          Voltar ao dashboard
+        <Link className="ghost-button" href="/conta">
+          Voltar para conta
         </Link>
       </div>
     );
@@ -172,7 +172,7 @@ export const AdminDisputeDetailContent = ({ disputeId }: AdminDisputeDetailConte
         </div>
         <div className="page-actions">
           <NotificationsBell />
-          <Link className="ghost-button" href="/dashboard/admin/atendimento">
+          <Link className="ghost-button" href="/admin/atendimento">
             Voltar
           </Link>
         </div>
@@ -200,7 +200,7 @@ export const AdminDisputeDetailContent = ({ disputeId }: AdminDisputeDetailConte
               </div>
               <div>
                 <span className="summary-label">Ticket</span>
-                <Link className="mono" href={`/dashboard/tickets/${dispute.ticketId}`}>
+                <Link className="mono" href={`/conta/tickets/${dispute.ticketId}`}>
                   {dispute.ticketId.slice(0, 8)}
                 </Link>
               </div>

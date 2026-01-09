@@ -3,11 +3,11 @@
 import Link from 'next/link';
 
 const ADMIN_LINKS = [
-  { href: '/dashboard/admin/atendimento', label: 'Atendimento' },
-  { href: '/dashboard/admin/disputas', label: 'Disputas' },
-  { href: '/dashboard/admin/anuncios', label: 'Moderacao' },
-  { href: '/dashboard/admin/usuarios', label: 'Usuarios' },
-  { href: '/dashboard/admin/parametros', label: 'Parametros' },
+  { href: '/admin/atendimento', label: 'Atendimento' },
+  { href: '/admin/disputas', label: 'Disputas' },
+  { href: '/admin/anuncios', label: 'Moderacao' },
+  { href: '/admin/usuarios', label: 'Usuarios' },
+  { href: '/admin/parametros', label: 'Parametros' },
 ];
 
 export const AdminNav = () => (

@@ -87,8 +87,8 @@ export const WalletSummaryContent = () => {
     return (
       <div className="wallet-shell">
       <div className="state-card">Acesso restrito.</div>
-        <Link className="ghost-button" href="/dashboard">
-          Voltar ao dashboard
+        <Link className="ghost-button" href="/conta">
+          Voltar para conta
         </Link>
       </div>
     );
@@ -102,14 +102,14 @@ export const WalletSummaryContent = () => {
           <p className="auth-helper">{subtitle}</p>
         </div>
         <div className="wallet-actions">
-          <Link className="ghost-button" href="/dashboard/carteira/extrato">
+          <Link className="ghost-button" href="/conta/carteira/extrato">
             Ver extrato
           </Link>
           <button className="ghost-button" type="button" onClick={loadSummary}>
             Atualizar
           </button>
-          <Link className="ghost-button" href="/dashboard">
-            Voltar ao dashboard
+          <Link className="ghost-button" href="/conta">
+            Voltar para conta
           </Link>
         </div>
       </div>

@@ -162,8 +162,8 @@ export const AdminSupportContent = () => {
     return (
       <div className="admin-support-shell">
         <div className="state-card">Acesso restrito ao admin.</div>
-        <Link className="ghost-button" href="/dashboard">
-          Voltar ao dashboard
+        <Link className="ghost-button" href="/conta">
+          Voltar para conta
         </Link>
       </div>
     );
@@ -178,8 +178,8 @@ export const AdminSupportContent = () => {
         </div>
         <div className="page-actions">
           <NotificationsBell />
-          <Link className="ghost-button" href="/dashboard">
-            Voltar ao dashboard
+          <Link className="ghost-button" href="/conta">
+            Voltar para conta
           </Link>
         </div>
       </div>
@@ -248,7 +248,7 @@ export const AdminSupportContent = () => {
             {filteredDisputes.map((dispute) => (
               <Link
                 className="support-row"
-                href={`/dashboard/admin/disputas/${dispute.id}`}
+                href={`/admin/disputas/${dispute.id}`}
                 key={dispute.id}
               >
                 <div>
@@ -282,7 +282,7 @@ export const AdminSupportContent = () => {
             {filteredTickets.map((ticket) => (
               <Link
                 className="support-row"
-                href={`/dashboard/tickets/${ticket.id}`}
+                href={`/conta/tickets/${ticket.id}`}
                 key={ticket.id}
               >
                 <div>

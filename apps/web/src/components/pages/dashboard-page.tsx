@@ -393,7 +393,7 @@ export const DashboardContent = () => {
           <p className="auth-helper">Gerencie anuncios, inventario e midias.</p>
         </div>
         <div className="dashboard-actions">
-          <Link className="ghost-button" href="/dashboard/carteira">
+          <Link className="ghost-button" href="/conta/carteira">
             Carteira
           </Link>
           <button className="ghost-button" type="button" onClick={resetForm}>

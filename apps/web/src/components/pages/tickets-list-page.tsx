@@ -154,8 +154,8 @@ export const TicketsListContent = ({ initialOrderId }: TicketsListContentProps) 
         </div>
         <div className="page-actions">
           <NotificationsBell />
-          <Link className="ghost-button" href="/dashboard">
-            Voltar ao dashboard
+          <Link className="ghost-button" href="/conta">
+            Voltar para conta
           </Link>
         </div>
       </div>
@@ -188,7 +188,7 @@ export const TicketsListContent = ({ initialOrderId }: TicketsListContentProps) 
 
           <div className="tickets-list">
             {state.tickets.map((ticket) => (
-              <Link className="ticket-row" key={ticket.id} href={`/dashboard/tickets/${ticket.id}`}>
+              <Link className="ticket-row" key={ticket.id} href={`/conta/tickets/${ticket.id}`}>
                 <div>
                   <strong>{ticket.subject}</strong>
                   <span className="auth-helper">

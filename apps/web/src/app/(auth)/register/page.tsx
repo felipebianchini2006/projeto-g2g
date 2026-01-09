@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { z } from 'zod';
 
@@ -29,7 +29,6 @@ type FormState = z.infer<typeof schema>;
 export default function Page() {
   const { register } = useAuth();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [formData, setFormData] = useState<FormState>({
     email: '',
     password: '',
@@ -38,8 +37,7 @@ export default function Page() {
   const [errors, setErrors] = useState<Partial<Record<keyof FormState | 'form', string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const rawNextPath = searchParams.get('next') ?? '/dashboard';
-  const nextPath = rawNextPath.startsWith('/') ? rawNextPath : '/dashboard';
+  const nextPath = '/';
 
   const handleChange =
     (field: keyof FormState) =>
@@ -80,7 +78,7 @@ export default function Page() {
             Nova conta
           </span>
           <CardTitle className="text-2xl">Cadastro</CardTitle>
-          <CardDescription>Crie sua conta para acessar o dashboard.</CardDescription>
+          <CardDescription>Crie sua conta para acessar a plataforma.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
           <form className="grid gap-4" onSubmit={handleSubmit}>

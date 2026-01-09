@@ -47,7 +47,7 @@ export const OrdersListContent = ({ scope }: OrdersListContentProps) => {
   const accessAllowed = !canAccessSeller || user?.role === 'SELLER' || user?.role === 'ADMIN';
 
   const headline = scope === 'seller' ? 'Vendas' : 'Meus pedidos';
-  const detailPrefix = scope === 'seller' ? '/dashboard/vendas' : '/dashboard/pedidos';
+  const detailPrefix = scope === 'seller' ? '/conta/vendas' : '/conta/pedidos';
 
   const summaryText = useMemo(() => {
     if (state.status === 'loading') {
@@ -113,8 +113,8 @@ export const OrdersListContent = ({ scope }: OrdersListContentProps) => {
     return (
       <div className="orders-shell">
         <div className="state-card">Acesso restrito ao seller.</div>
-        <Link className="ghost-button" href="/dashboard">
-          Voltar ao dashboard
+        <Link className="ghost-button" href="/conta">
+          Voltar para conta
         </Link>
       </div>
     );
@@ -127,8 +127,8 @@ export const OrdersListContent = ({ scope }: OrdersListContentProps) => {
           <h1>{headline}</h1>
           <p className="auth-helper">{summaryText}</p>
         </div>
-        <Link className="ghost-button" href="/dashboard">
-          Voltar ao dashboard
+        <Link className="ghost-button" href="/conta">
+          Voltar para conta
         </Link>
       </div>
 

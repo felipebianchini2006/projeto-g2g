@@ -148,8 +148,8 @@ export const AdminListingsContent = () => {
     return (
       <div className="admin-listings-shell">
         <div className="state-card">Acesso restrito ao admin.</div>
-        <Link className="ghost-button" href="/dashboard">
-          Voltar ao dashboard
+        <Link className="ghost-button" href="/conta">
+          Voltar para conta
         </Link>
       </div>
     );
@@ -164,8 +164,8 @@ export const AdminListingsContent = () => {
         </div>
         <div className="page-actions">
           <NotificationsBell />
-          <Link className="ghost-button" href="/dashboard">
-            Voltar ao dashboard
+          <Link className="ghost-button" href="/conta">
+            Voltar para conta
           </Link>
         </div>
       </div>

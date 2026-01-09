@@ -355,7 +355,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                         </button>
                         <Link
                           className="primary-button"
-                          href={`/dashboard/pedidos/${paymentState.data.order.id}`}
+                          href={`/conta/pedidos/${paymentState.data.order.id}`}
                         >
                           Ver pedido
                         </Link>

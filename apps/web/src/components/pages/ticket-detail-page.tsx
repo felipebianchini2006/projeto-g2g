@@ -130,7 +130,7 @@ export const TicketDetailContent = ({ ticketId }: TicketDetailContentProps) => {
         </div>
         <div className="page-actions">
           <NotificationsBell />
-          <Link className="ghost-button" href="/dashboard/tickets">
+          <Link className="ghost-button" href="/conta/tickets">
             Voltar
           </Link>
         </div>

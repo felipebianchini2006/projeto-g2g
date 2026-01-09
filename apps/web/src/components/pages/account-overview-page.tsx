@@ -31,14 +31,14 @@ export const AccountOverviewContent = () => {
         title: 'Menu',
         items: [
           { label: 'Resumo', href: '/conta', active: true },
-          { label: 'Transacoes', href: '/carteira' },
-          { label: 'Meus anuncios', href: '/dashboard' },
+          { label: 'Transacoes', href: '/conta/carteira/extrato' },
+          { label: 'Meus anuncios', href: '/conta/anuncios' },
           { label: 'Minhas compras', href: '/conta/pedidos' },
-          { label: 'Minhas vendas', href: '/dashboard/vendas' },
-          { label: 'Minhas perguntas', href: '/dashboard/tickets' },
-          { label: 'Perguntas recebidas', href: '/dashboard/tickets' },
-          { label: 'Minhas retiradas', href: '/carteira' },
-          { label: 'Recargas', href: '/carteira' },
+          { label: 'Minhas vendas', href: '/conta/vendas' },
+          { label: 'Minhas perguntas', href: '/conta/tickets' },
+          { label: 'Perguntas recebidas', href: '/conta/tickets' },
+          { label: 'Minhas retiradas', href: '/conta/carteira' },
+          { label: 'Recargas', href: '/conta/carteira' },
         ],
       },
       {
@@ -181,7 +181,7 @@ export const AccountOverviewContent = () => {
                 Saldo, recargas e retiradas ficam visiveis aqui.
               </p>
               <Link
-                href="/carteira"
+                href="/conta/carteira"
                 className="mt-4 inline-flex rounded-full bg-meow-linear px-4 py-2 text-xs font-bold text-white"
               >
                 Abrir carteira
