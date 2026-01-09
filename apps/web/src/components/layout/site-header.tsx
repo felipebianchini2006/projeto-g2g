@@ -142,7 +142,7 @@ export const SiteHeader = () => {
                         Ola, {displayName}!
                       </p>
                       <Link
-                        href="/dashboard"
+                        href="/conta"
                         className="text-[11px] font-semibold uppercase tracking-[0.4px] text-meow-muted"
                       >
                         Ver minha conta
