@@ -1,5 +1,5 @@
-import { OrdersListContent } from '../../../../components/pages/orders-list-page';
+import { AccountSalesContent } from '../../../../components/pages/account-sales-page';
 
 export default function Page() {
-  return <OrdersListContent scope="seller" />;
+  return <AccountSalesContent />;
 }

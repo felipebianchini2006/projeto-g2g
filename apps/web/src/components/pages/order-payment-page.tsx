@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ApiClientError } from '../../lib/api-client';
 import { ordersApi, type Order } from '../../lib/orders-api';
 import { useAuth } from '../auth/auth-provider';
+import { AccountShell } from '../account/account-shell';
 
 const formatCurrency = (value: number, currency = 'BRL') =>
   new Intl.NumberFormat('pt-BR', {
@@ -82,137 +83,124 @@ export const OrderPaymentContent = ({ orderId }: { orderId: string }) => {
   };
 
   return (
-    <section className="bg-white px-6 py-12">
-      <div className="mx-auto w-full max-w-[980px]">
-        <div className="flex flex-wrap items-center justify-between gap-4 text-xs text-meow-muted">
-          <Link href="/" className="font-semibold text-meow-deep">
-            Voltar ao site
-          </Link>
-          <img src="/assets/meoow/logo.png" alt="Meoww" className="h-9" />
-        </div>
-
-        <div className="mt-8 text-center">
-          <h1 className="text-2xl font-black text-meow-charcoal">
-            Pedido #{orderCode}
-          </h1>
-          <p className="text-sm text-meow-muted">Pagamento e resumo do pedido</p>
-        </div>
-
-        {loading ? (
-          <div className="mt-6 rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
-            Carregando...
-          </div>
-        ) : null}
-
-        {!user ? (
-          <div className="mt-6 rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
-            Entre para acessar o pagamento.
-          </div>
-        ) : null}
-
-        {error ? (
-          <div className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700">
-            {error}
-          </div>
-        ) : null}
-
-        {user ? (
-          <div className="mt-6 grid gap-6">
-            <div className="rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
-              <h2 className="text-lg font-black text-meow-charcoal">Pedido</h2>
-              <p className="text-sm text-meow-muted">
-                Codigo do pedido: <strong className="text-meow-charcoal">{orderCode}</strong>
-              </p>
-              <div className="mt-4 grid gap-4 md:grid-cols-[1fr_auto]">
-                <div className="space-y-2 text-sm text-meow-muted">
-                  <div>
-                    Data:{' '}
-                    {order?.createdAt
-                      ? new Date(order.createdAt).toLocaleString('pt-BR')
-                      : '-'}
-                  </div>
-                  <div>Status: {statusLabel}</div>
-                  <div>
-                    Subtotal:{' '}
-                    {order
-                      ? formatCurrency(order.totalAmountCents, order.currency)
-                      : '-'}
-                  </div>
-                </div>
-                {firstItem ? (
-                  <div className="flex items-center gap-4 rounded-xl border border-meow-red/20 bg-meow-cream/60 px-4 py-3">
-                    <div className="h-16 w-16 overflow-hidden rounded-lg bg-white">
-                      <img
-                        src={
-                          firstItem.deliveryEvidence?.[0]?.content ??
-                          '/assets/meoow/highlight-01.webp'
-                        }
-                        alt={firstItem.title}
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-meow-charcoal">
-                        {firstItem.title}
-                      </p>
-                      <p className="text-xs text-meow-muted">
-                        {firstItem.quantity} x{' '}
-                        {formatCurrency(
-                          firstItem.unitPriceCents,
-                          order?.currency ?? 'BRL',
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-meow-red/20 bg-meow-cream/40 p-6 text-center shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
-              <h2 className="text-lg font-black text-meow-charcoal">Pagamento</h2>
-              <p className="mt-2 text-sm text-meow-muted">
-                {payment
-                  ? `Valor final do pedido: ${formatCurrency(
-                      order?.totalAmountCents ?? 0,
-                      order?.currency ?? 'BRL',
-                    )}`
-                  : 'Pagamento pendente.'}
-              </p>
-
-              {payment?.copyPaste ? (
-                <div className="mt-4 rounded-xl border border-meow-red/20 bg-white px-4 py-3 text-xs text-meow-muted">
-                  {payment.copyPaste}
-                </div>
-              ) : null}
-
-              <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
-                <Link
-                  href={`/conta/pedidos/${orderId}`}
-                  className="rounded-full border border-meow-red/30 px-5 py-2 text-xs font-bold text-meow-deep"
-                >
-                  Ver pedido
-                </Link>
-                {payment?.copyPaste ? (
-                  <button
-                    type="button"
-                    className="rounded-full bg-meow-linear px-6 py-2 text-xs font-bold text-white"
-                    onClick={handleCopy}
-                  >
-                    Copiar codigo
-                  </button>
-                ) : null}
-              </div>
-              {copyStatus ? (
-                <div className="mt-3 text-xs font-semibold text-meow-muted">{copyStatus}</div>
-              ) : null}
-            </div>
-          </div>
-        ) : null}
-
-        <div className="mt-10 text-center text-xs text-meow-muted">
-          &copy; Meoww Games 2025 | Todos os direitos reservados.
-        </div>
+    <AccountShell
+      breadcrumbs={[
+        { label: 'Inicio', href: '/' },
+        { label: 'Conta', href: '/conta' },
+        { label: 'Minhas compras', href: '/conta/pedidos' },
+        { label: `Pedido #${orderCode}` },
+      ]}
+    >
+      <div className="text-center">
+        <h1 className="text-2xl font-black text-meow-charcoal">Pedido #{orderCode}</h1>
+        <p className="text-sm text-meow-muted">Pagamento e resumo do pedido</p>
       </div>
-    </section>
+
+      {loading ? (
+        <div className="rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
+          Carregando...
+        </div>
+      ) : null}
+
+      {!user ? (
+        <div className="rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
+          Entre para acessar o pagamento.
+        </div>
+      ) : null}
+
+      {error ? (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700">
+          {error}
+        </div>
+      ) : null}
+
+      {user ? (
+        <div className="grid gap-6">
+          <div className="rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+            <h2 className="text-lg font-black text-meow-charcoal">Pedido</h2>
+            <p className="text-sm text-meow-muted">
+              Codigo do pedido: <strong className="text-meow-charcoal">{orderCode}</strong>
+            </p>
+            <div className="mt-4 grid gap-4 md:grid-cols-[1fr_auto]">
+              <div className="space-y-2 text-sm text-meow-muted">
+                <div>
+                  Data:{' '}
+                  {order?.createdAt
+                    ? new Date(order.createdAt).toLocaleString('pt-BR')
+                    : '-'}
+                </div>
+                <div>Status: {statusLabel}</div>
+                <div>
+                  Subtotal:{' '}
+                  {order ? formatCurrency(order.totalAmountCents, order.currency) : '-'}
+                </div>
+              </div>
+              {firstItem ? (
+                <div className="flex items-center gap-4 rounded-xl border border-meow-red/20 bg-meow-cream/60 px-4 py-3">
+                  <div className="h-16 w-16 overflow-hidden rounded-lg bg-white">
+                    <img
+                      src={
+                        firstItem.deliveryEvidence?.[0]?.content ??
+                        '/assets/meoow/highlight-01.webp'
+                      }
+                      alt={firstItem.title}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-meow-charcoal">
+                      {firstItem.title}
+                    </p>
+                    <p className="text-xs text-meow-muted">
+                      {firstItem.quantity} x{' '}
+                      {formatCurrency(firstItem.unitPriceCents, order?.currency ?? 'BRL')}
+                    </p>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-meow-red/20 bg-meow-cream/40 p-6 text-center shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+            <h2 className="text-lg font-black text-meow-charcoal">Pagamento</h2>
+            <p className="mt-2 text-sm text-meow-muted">
+              {payment
+                ? `Valor final do pedido: ${formatCurrency(
+                    order?.totalAmountCents ?? 0,
+                    order?.currency ?? 'BRL',
+                  )}`
+                : 'Pagamento pendente.'}
+            </p>
+
+            {payment?.copyPaste ? (
+              <div className="mt-4 rounded-xl border border-meow-red/20 bg-white px-4 py-3 text-xs text-meow-muted">
+                {payment.copyPaste}
+              </div>
+            ) : null}
+
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+              <Link
+                href={`/conta/pedidos/${orderId}`}
+                className="rounded-full border border-meow-red/30 px-5 py-2 text-xs font-bold text-meow-deep"
+              >
+                Ver pedido
+              </Link>
+              {payment?.copyPaste ? (
+                <button
+                  type="button"
+                  className="rounded-full bg-meow-linear px-6 py-2 text-xs font-bold text-white"
+                  onClick={handleCopy}
+                >
+                  Copiar codigo
+                </button>
+              ) : null}
+            </div>
+            {copyStatus ? (
+              <div className="mt-3 text-xs font-semibold text-meow-muted">{copyStatus}</div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+    </AccountShell>
   );
 };

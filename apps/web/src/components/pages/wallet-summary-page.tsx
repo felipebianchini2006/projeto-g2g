@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ApiClientError } from '../../lib/api-client';
 import { walletApi, type WalletSummary } from '../../lib/wallet-api';
 import { useAuth } from '../auth/auth-provider';
+import { AccountShell } from '../account/account-shell';
 
 const formatCurrency = (value: number, currency = 'BRL') =>
   new Intl.NumberFormat('pt-BR', {
@@ -66,79 +67,123 @@ export const WalletSummaryContent = () => {
 
   if (loading) {
     return (
-      <div className="wallet-shell">
-        <div className="state-card">Carregando sessao...</div>
-      </div>
+      <section className="bg-white px-6 py-12">
+        <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
+          Carregando sessao...
+        </div>
+      </section>
     );
   }
 
   if (!user) {
     return (
-      <div className="wallet-shell">
-        <div className="state-card">Entre para acessar sua carteira.</div>
-        <Link className="primary-button" href="/login">
-          Fazer login
-        </Link>
-      </div>
+      <section className="bg-white px-6 py-12">
+        <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center">
+          <p className="text-sm text-meow-muted">Entre para acessar sua carteira.</p>
+          <Link
+            className="mt-4 inline-flex rounded-full bg-meow-linear px-6 py-2 text-sm font-bold text-white"
+            href="/login"
+          >
+            Fazer login
+          </Link>
+        </div>
+      </section>
     );
   }
 
   if (!accessAllowed) {
     return (
-      <div className="wallet-shell">
-      <div className="state-card">Acesso restrito.</div>
-        <Link className="ghost-button" href="/conta">
-          Voltar para conta
-        </Link>
-      </div>
+      <section className="bg-white px-6 py-12">
+        <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center">
+          <p className="text-sm text-meow-muted">Acesso restrito.</p>
+          <Link
+            className="mt-4 inline-flex rounded-full border border-meow-red/30 px-6 py-2 text-sm font-bold text-meow-deep"
+            href="/conta"
+          >
+            Voltar para conta
+          </Link>
+        </div>
+      </section>
     );
   }
 
   return (
-    <section className="wallet-shell">
-      <div className="wallet-header">
-        <div>
-          <h1>Carteira</h1>
-          <p className="auth-helper">{subtitle}</p>
-        </div>
-        <div className="wallet-actions">
-          <Link className="ghost-button" href="/conta/carteira/extrato">
-            Ver extrato
-          </Link>
-          <button className="ghost-button" type="button" onClick={loadSummary}>
-            Atualizar
-          </button>
-          <Link className="ghost-button" href="/conta">
-            Voltar para conta
-          </Link>
+    <AccountShell
+      breadcrumbs={[
+        { label: 'Inicio', href: '/' },
+        { label: 'Conta', href: '/conta' },
+        { label: 'Carteira' },
+      ]}
+    >
+      <div className="rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="text-xl font-black text-meow-charcoal">Carteira</h1>
+            <p className="mt-2 text-sm text-meow-muted">{subtitle}</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
+              href="/conta/carteira/extrato"
+            >
+              Ver extrato
+            </Link>
+            <button
+              className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
+              type="button"
+              onClick={loadSummary}
+            >
+              Atualizar
+            </button>
+          </div>
         </div>
       </div>
 
-      {state.error ? <div className="state-card error">{state.error}</div> : null}
+      {state.error ? (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {state.error}
+        </div>
+      ) : null}
 
       {state.summary ? (
-        <div className="wallet-cards">
-          <div className="wallet-card">
-            <span>A receber</span>
-            <strong>{formatCurrency(state.summary.heldCents, state.summary.currency)}</strong>
-            <small>Pedidos confirmados, aguardando liberacao.</small>
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.4px] text-meow-muted">
+              A receber
+            </p>
+            <p className="mt-2 text-2xl font-black text-meow-charcoal">
+              {formatCurrency(state.summary.heldCents, state.summary.currency)}
+            </p>
+            <p className="mt-2 text-xs text-meow-muted">
+              Pedidos confirmados, aguardando liberacao.
+            </p>
           </div>
-          <div className="wallet-card">
-            <span>Bloqueado</span>
-            <strong>{formatCurrency(state.summary.reversedCents, state.summary.currency)}</strong>
-            <small>Valores em disputa ou reembolso.</small>
+          <div className="rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.4px] text-meow-muted">
+              Bloqueado
+            </p>
+            <p className="mt-2 text-2xl font-black text-meow-charcoal">
+              {formatCurrency(state.summary.reversedCents, state.summary.currency)}
+            </p>
+            <p className="mt-2 text-xs text-meow-muted">Valores em disputa ou reembolso.</p>
           </div>
-          <div className="wallet-card">
-            <span>Disponivel</span>
-            <strong>{formatCurrency(state.summary.availableCents, state.summary.currency)}</strong>
-            <small>Pronto para saque ou envio automatico.</small>
+          <div className="rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.4px] text-meow-muted">
+              Disponivel
+            </p>
+            <p className="mt-2 text-2xl font-black text-meow-charcoal">
+              {formatCurrency(state.summary.availableCents, state.summary.currency)}
+            </p>
+            <p className="mt-2 text-xs text-meow-muted">Pronto para sacar ou usar.</p>
           </div>
         </div>
       ) : null}
 
       {state.status === 'loading' && !state.summary ? (
-        <div className="state-card">Carregando carteira...</div>
+        <div className="rounded-xl border border-meow-red/20 bg-white px-4 py-3 text-sm text-meow-muted">
+          Carregando carteira...
+        </div>
       ) : null}
-    </section>
+    </AccountShell>
   );
 };

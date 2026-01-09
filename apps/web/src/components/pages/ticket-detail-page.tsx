@@ -11,7 +11,7 @@ import {
   type TicketStatus,
 } from '../../lib/tickets-api';
 import { useAuth } from '../auth/auth-provider';
-import { NotificationsBell } from '../notifications/notifications-bell';
+import { AccountShell } from '../account/account-shell';
 
 type TicketDetailContentProps = {
   ticketId: string;
@@ -104,73 +104,100 @@ export const TicketDetailContent = ({ ticketId }: TicketDetailContentProps) => {
 
   if (loading) {
     return (
-      <div className="ticket-detail-shell">
-        <div className="state-card">Carregando sessao...</div>
-      </div>
+      <section className="bg-white px-6 py-12">
+        <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
+          Carregando sessao...
+        </div>
+      </section>
     );
   }
 
   if (!user) {
     return (
-      <div className="ticket-detail-shell">
-        <div className="state-card">Entre para acessar o ticket.</div>
-        <Link className="primary-button" href="/login">
-          Fazer login
-        </Link>
-      </div>
+      <section className="bg-white px-6 py-12">
+        <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center">
+          <p className="text-sm text-meow-muted">Entre para acessar o ticket.</p>
+          <Link
+            className="mt-4 inline-flex rounded-full bg-meow-linear px-6 py-2 text-sm font-bold text-white"
+            href="/login"
+          >
+            Fazer login
+          </Link>
+        </div>
+      </section>
     );
   }
 
   return (
-    <section className="ticket-detail-shell">
-      <div className="ticket-detail-header">
-        <div>
-          <h1>Ticket #{ticketId.slice(0, 8)}</h1>
-          <p className="auth-helper">{summaryText}</p>
-        </div>
-        <div className="page-actions">
-          <NotificationsBell />
-          <Link className="ghost-button" href="/conta/tickets">
-            Voltar
-          </Link>
-        </div>
+    <AccountShell
+      breadcrumbs={[
+        { label: 'Inicio', href: '/' },
+        { label: 'Conta', href: '/conta' },
+        { label: 'Central de ajuda', href: '/conta/ajuda' },
+        { label: 'Tickets', href: '/conta/tickets' },
+        { label: `Ticket #${ticketId.slice(0, 8)}` },
+      ]}
+    >
+      <div className="rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+        <h1 className="text-xl font-black text-meow-charcoal">Ticket #{ticketId.slice(0, 8)}</h1>
+        <p className="mt-2 text-sm text-meow-muted">{summaryText}</p>
       </div>
 
-      {error ? <div className="state-card error">{error}</div> : null}
-      {notice ? <div className="state-card info">{notice}</div> : null}
+      {error ? (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      ) : null}
+      {notice ? (
+        <div className="rounded-xl border border-meow-red/20 bg-meow-cream/60 px-4 py-3 text-sm text-meow-muted">
+          {notice}
+        </div>
+      ) : null}
 
       {!ticket ? (
-        <div className="state-card">Carregando ticket...</div>
+        <div className="rounded-xl border border-meow-red/20 bg-white px-4 py-3 text-sm text-meow-muted">
+          Carregando ticket...
+        </div>
       ) : (
-        <div className="ticket-detail-grid">
-          <div className="order-card">
-            <div className="ticket-summary">
+        <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+            <div className="flex flex-wrap items-center gap-6 text-sm text-meow-muted">
               <div>
-                <span className="summary-label">Status</span>
-                <strong>{statusLabel[ticket.status]}</strong>
+                <span className="text-xs font-semibold uppercase tracking-[0.4px]">Status</span>
+                <p className="text-base font-bold text-meow-charcoal">
+                  {statusLabel[ticket.status]}
+                </p>
               </div>
               <div>
-                <span className="summary-label">Criado</span>
-                <strong>{new Date(ticket.createdAt).toLocaleString('pt-BR')}</strong>
+                <span className="text-xs font-semibold uppercase tracking-[0.4px]">Criado</span>
+                <p className="text-base font-bold text-meow-charcoal">
+                  {new Date(ticket.createdAt).toLocaleString('pt-BR')}
+                </p>
               </div>
               <div>
-                <span className="summary-label">Pedido</span>
-                <strong>{ticket.orderId ? ticket.orderId.slice(0, 8) : 'N/A'}</strong>
+                <span className="text-xs font-semibold uppercase tracking-[0.4px]">Pedido</span>
+                <p className="text-base font-bold text-meow-charcoal">
+                  {ticket.orderId ? ticket.orderId.slice(0, 8) : 'N/A'}
+                </p>
               </div>
             </div>
 
-            <div className="ticket-messages">
+            <div className="mt-4 grid gap-3">
               {messages.length === 0 ? (
-                <div className="state-card">Nenhuma mensagem ainda.</div>
+                <div className="rounded-xl border border-meow-red/20 bg-white px-4 py-3 text-sm text-meow-muted">
+                  Nenhuma mensagem ainda.
+                </div>
               ) : (
                 messages.map((message) => (
                   <div
-                    className={`ticket-message${message.senderId === user.id ? ' own' : ''}`}
+                    className={`rounded-xl border border-meow-red/10 px-4 py-3 text-sm ${
+                      message.senderId === user.id ? 'bg-meow-cream/60' : 'bg-white'
+                    }`}
                     key={message.id}
                   >
-                    <p>{message.message}</p>
-                    <span>
-                      {message.senderId === user.id ? 'Voce' : 'Outro usuario'} ·{' '}
+                    <p className="text-meow-charcoal">{message.message}</p>
+                    <span className="mt-2 block text-xs text-meow-muted">
+                      {message.senderId === user.id ? 'Voce' : 'Outro usuario'} -{' '}
                       {new Date(message.createdAt).toLocaleString('pt-BR')}
                     </span>
                   </div>
@@ -179,14 +206,14 @@ export const TicketDetailContent = ({ ticketId }: TicketDetailContentProps) => {
             </div>
           </div>
 
-          <div className="order-card">
-            <h3>Nova mensagem</h3>
-            <p className="auth-helper">Anexos sao opcionais (MVP).</p>
-            <form className="ticket-form" onSubmit={handleSendMessage}>
-              <label className="form-field">
+          <div className="rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+            <h3 className="text-base font-bold text-meow-charcoal">Nova mensagem</h3>
+            <p className="mt-2 text-xs text-meow-muted">Anexos sao opcionais (MVP).</p>
+            <form className="mt-4 grid gap-3" onSubmit={handleSendMessage}>
+              <label className="grid gap-1 text-xs font-semibold text-meow-muted">
                 Mensagem
                 <textarea
-                  className="form-textarea"
+                  className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
                   rows={4}
                   value={draft}
                   onChange={(event) => setDraft(event.target.value)}
@@ -194,23 +221,27 @@ export const TicketDetailContent = ({ ticketId }: TicketDetailContentProps) => {
                   required
                 />
               </label>
-              <label className="form-field">
+              <label className="grid gap-1 text-xs font-semibold text-meow-muted">
                 Anexos (links)
                 <textarea
-                  className="form-textarea"
+                  className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
                   rows={2}
                   value={attachmentsInput}
                   onChange={(event) => setAttachmentsInput(event.target.value)}
                   placeholder="Opcional: URLs separadas por virgula"
                 />
               </label>
-              <button className="primary-button" type="submit" disabled={busy}>
+              <button
+                className="rounded-full bg-meow-linear px-4 py-2 text-xs font-bold text-white"
+                type="submit"
+                disabled={busy}
+              >
                 {busy ? 'Enviando...' : 'Enviar mensagem'}
               </button>
             </form>
           </div>
         </div>
       )}
-    </section>
+    </AccountShell>
   );
 };

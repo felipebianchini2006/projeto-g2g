@@ -11,7 +11,7 @@ import {
   type TicketStatus,
 } from '../../lib/tickets-api';
 import { useAuth } from '../auth/auth-provider';
-import { NotificationsBell } from '../notifications/notifications-bell';
+import { AccountShell } from '../account/account-shell';
 
 type TicketsListContentProps = {
   initialOrderId?: string;
@@ -128,47 +128,61 @@ export const TicketsListContent = ({ initialOrderId }: TicketsListContentProps) 
 
   if (loading) {
     return (
-      <div className="tickets-shell">
-        <div className="state-card">Carregando sessao...</div>
-      </div>
+      <section className="bg-white px-6 py-12">
+        <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
+          Carregando sessao...
+        </div>
+      </section>
     );
   }
 
   if (!user) {
     return (
-      <div className="tickets-shell">
-        <div className="state-card">Entre para acessar seus tickets.</div>
-        <Link className="primary-button" href="/login">
-          Fazer login
-        </Link>
-      </div>
+      <section className="bg-white px-6 py-12">
+        <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center">
+          <p className="text-sm text-meow-muted">Entre para acessar seus tickets.</p>
+          <Link
+            className="mt-4 inline-flex rounded-full bg-meow-linear px-6 py-2 text-sm font-bold text-white"
+            href="/login"
+          >
+            Fazer login
+          </Link>
+        </div>
+      </section>
     );
   }
 
   return (
-    <section className="tickets-shell">
-      <div className="tickets-header">
-        <div>
-          <h1>Tickets</h1>
-          <p className="auth-helper">{summaryText}</p>
-        </div>
-        <div className="page-actions">
-          <NotificationsBell />
-          <Link className="ghost-button" href="/conta">
-            Voltar para conta
-          </Link>
-        </div>
+    <AccountShell
+      breadcrumbs={[
+        { label: 'Inicio', href: '/' },
+        { label: 'Conta', href: '/conta' },
+        { label: 'Central de ajuda', href: '/conta/ajuda' },
+        { label: 'Tickets' },
+      ]}
+    >
+      <div className="rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+        <h1 className="text-xl font-black text-meow-charcoal">Tickets de suporte</h1>
+        <p className="mt-2 text-sm text-meow-muted">{summaryText}</p>
       </div>
 
-      {state.error ? <div className="state-card error">{state.error}</div> : null}
-      {notice ? <div className="state-card info">{notice}</div> : null}
+      {state.error ? (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {state.error}
+        </div>
+      ) : null}
+      {notice ? (
+        <div className="rounded-xl border border-meow-red/20 bg-meow-cream/60 px-4 py-3 text-sm text-meow-muted">
+          {notice}
+        </div>
+      ) : null}
 
-      <div className="tickets-grid">
-        <div className="order-card">
-          <div className="panel-header">
-            <h2>Seus tickets</h2>
+      <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-base font-bold text-meow-charcoal">Seus tickets</h2>
             <select
-              className="form-input"
+              className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-xs text-meow-charcoal"
               value={filterStatus}
               onChange={(event) => setFilterStatus(event.target.value as TicketStatus | 'all')}
             >
@@ -180,40 +194,50 @@ export const TicketsListContent = ({ initialOrderId }: TicketsListContentProps) 
             </select>
           </div>
 
-          {state.status === 'loading' ? <div className="state-card">Carregando...</div> : null}
-
-          {state.tickets.length === 0 && state.status === 'ready' ? (
-            <div className="state-card">Nenhum ticket ainda.</div>
+          {state.status === 'loading' ? (
+            <div className="mt-4 rounded-xl border border-meow-red/20 bg-white px-4 py-3 text-sm text-meow-muted">
+              Carregando...
+            </div>
           ) : null}
 
-          <div className="tickets-list">
+          {state.tickets.length === 0 && state.status === 'ready' ? (
+            <div className="mt-4 rounded-xl border border-meow-red/20 bg-white px-4 py-3 text-sm text-meow-muted">
+              Nenhum ticket ainda.
+            </div>
+          ) : null}
+
+          <div className="mt-4 grid gap-3">
             {state.tickets.map((ticket) => (
-              <Link className="ticket-row" key={ticket.id} href={`/conta/tickets/${ticket.id}`}>
+              <Link
+                className="flex items-center justify-between gap-3 rounded-xl border border-meow-red/10 bg-meow-cream/40 px-4 py-3"
+                key={ticket.id}
+                href={`/conta/tickets/${ticket.id}`}
+              >
                 <div>
-                  <strong>{ticket.subject}</strong>
-                  <span className="auth-helper">
+                  <p className="text-sm font-semibold text-meow-charcoal">{ticket.subject}</p>
+                  <p className="text-xs text-meow-muted">
                     {ticket.orderId ? `Pedido ${ticket.orderId.slice(0, 8)}` : 'Sem pedido'}
-                  </span>
+                  </p>
                 </div>
-                <div className="ticket-meta">
-                  <span className={`status-pill status-${ticket.status.toLowerCase()}`}>
+                <div className="text-right text-xs text-meow-muted">
+                  <span className="rounded-full bg-white px-3 py-1 font-semibold text-meow-charcoal">
                     {statusLabel[ticket.status]}
                   </span>
-                  <small>{new Date(ticket.createdAt).toLocaleDateString('pt-BR')}</small>
+                  <p className="mt-2">{new Date(ticket.createdAt).toLocaleDateString('pt-BR')}</p>
                 </div>
               </Link>
             ))}
           </div>
         </div>
 
-        <div className="order-card">
-          <h2>Abrir ticket</h2>
-          <p className="auth-helper">Anexos sao opcionais (MVP).</p>
-          <form className="ticket-form" onSubmit={handleCreateTicket}>
-            <label className="form-field">
+        <div className="rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+          <h2 className="text-base font-bold text-meow-charcoal">Abrir ticket</h2>
+          <p className="mt-2 text-xs text-meow-muted">Anexos sao opcionais (MVP).</p>
+          <form className="mt-4 grid gap-3" onSubmit={handleCreateTicket}>
+            <label className="grid gap-1 text-xs font-semibold text-meow-muted">
               Pedido (opcional)
               <input
-                className="form-input"
+                className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
                 value={formState.orderId ?? ''}
                 onChange={(event) =>
                   setFormState((prev) => ({ ...prev, orderId: event.target.value }))
@@ -221,10 +245,10 @@ export const TicketsListContent = ({ initialOrderId }: TicketsListContentProps) 
                 placeholder="UUID do pedido"
               />
             </label>
-            <label className="form-field">
+            <label className="grid gap-1 text-xs font-semibold text-meow-muted">
               Assunto
               <input
-                className="form-input"
+                className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
                 value={formState.subject}
                 onChange={(event) =>
                   setFormState((prev) => ({ ...prev, subject: event.target.value }))
@@ -233,10 +257,10 @@ export const TicketsListContent = ({ initialOrderId }: TicketsListContentProps) 
                 required
               />
             </label>
-            <label className="form-field">
+            <label className="grid gap-1 text-xs font-semibold text-meow-muted">
               Mensagem inicial
               <textarea
-                className="form-textarea"
+                className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
                 rows={4}
                 value={formState.message}
                 onChange={(event) =>
@@ -246,22 +270,26 @@ export const TicketsListContent = ({ initialOrderId }: TicketsListContentProps) 
                 required
               />
             </label>
-            <label className="form-field">
+            <label className="grid gap-1 text-xs font-semibold text-meow-muted">
               Anexos (links)
               <textarea
-                className="form-textarea"
+                className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
                 rows={2}
                 value={attachmentsInput}
                 onChange={(event) => setAttachmentsInput(event.target.value)}
                 placeholder="Opcional: URLs separadas por virgula"
               />
             </label>
-            <button className="primary-button" type="submit" disabled={busy}>
+            <button
+              className="rounded-full bg-meow-linear px-4 py-2 text-xs font-bold text-white"
+              type="submit"
+              disabled={busy}
+            >
               {busy ? 'Enviando...' : 'Abrir ticket'}
             </button>
           </form>
         </div>
       </div>
-    </section>
+    </AccountShell>
   );
 };
