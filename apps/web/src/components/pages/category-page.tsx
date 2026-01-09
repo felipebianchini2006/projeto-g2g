@@ -136,7 +136,15 @@ export const CategoryContent = ({ slug }: CategoryContentProps) => {
                   <button
                     className="primary-button"
                     type="button"
-                    onClick={() => addToCart(listing.title)}
+                    onClick={() =>
+                      addToCart({
+                        id: listing.id,
+                        title: listing.title,
+                        priceCents: listing.priceCents,
+                        currency: listing.currency,
+                        image: listing.media?.[0]?.url ?? null,
+                      })
+                    }
                   >
                     Comprar
                   </button>

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import { ApiClientError } from '../../lib/api-client';
 import { fetchPublicListing, type PublicListing } from '../../lib/marketplace-public';
@@ -42,6 +43,7 @@ const formatCurrency = (value: number, currency = 'BRL') =>
 
 export const CheckoutContent = ({ listingId }: { listingId: string }) => {
   const { user, accessToken, loading } = useAuth();
+  const router = useRouter();
   const [listingState, setListingState] = useState<ListingState>({
     status: 'loading',
     listing: null,
@@ -111,6 +113,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
     try {
       const data = await ordersApi.checkout(accessToken, listingId, quantity);
       setPaymentState({ status: 'ready', data });
+      router.push(`/conta/pedidos/${data.order.id}/pagamentos`);
     } catch (error) {
       const message =
         error instanceof ApiClientError
