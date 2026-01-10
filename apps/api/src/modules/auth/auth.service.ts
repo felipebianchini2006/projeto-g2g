@@ -19,6 +19,7 @@ import { LogoutDto } from './dto/logout.dto';
 import { RefreshDto } from './dto/refresh.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 type RefreshRotationPayload = {
   userId: string;
@@ -213,6 +214,41 @@ export class AuthService {
 
       await tx.session.updateMany({
         where: { userId: existing.userId, revokedAt: null },
+        data: { revokedAt: now },
+      });
+    });
+
+    return { success: true };
+  }
+
+  async changePassword(userId: string, dto: ChangePasswordDto): Promise<{ success: true }> {
+    const user = await this.prismaService.user.findUnique({ where: { id: userId } });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found.');
+    }
+
+    const validPassword = await bcrypt.compare(dto.currentPassword, user.passwordHash);
+    if (!validPassword) {
+      throw new BadRequestException('Current password is invalid.');
+    }
+
+    const passwordHash = await bcrypt.hash(dto.newPassword, BCRYPT_SALT_ROUNDS);
+    const now = new Date();
+
+    await this.prismaService.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: userId },
+        data: { passwordHash },
+      });
+
+      await tx.refreshToken.updateMany({
+        where: { userId, revokedAt: null },
+        data: { revokedAt: now },
+      });
+
+      await tx.session.updateMany({
+        where: { userId, revokedAt: null },
         data: { revokedAt: now },
       });
     });

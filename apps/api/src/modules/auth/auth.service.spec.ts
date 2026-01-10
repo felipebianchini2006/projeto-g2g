@@ -1,4 +1,4 @@
-import { UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
@@ -154,5 +154,62 @@ describe('AuthService', () => {
     expect(response.accessToken).toBe('access-token');
     expect(response.refreshToken).toBeDefined();
     expect(prismaService.refreshToken.updateMany).toHaveBeenCalled();
+  });
+
+  it('changes password and revokes sessions', async () => {
+    const passwordHash = await bcrypt.hash('current-pass', 12);
+    const user = {
+      id: 'user-1',
+      email: 'user@email.com',
+      role: UserRole.USER,
+      passwordHash,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    (prismaService.user.findUnique as jest.Mock).mockResolvedValue(user);
+    (prismaService.user.update as jest.Mock).mockImplementation(({ data }) => ({
+      ...user,
+      passwordHash: data.passwordHash,
+    }));
+    (prismaService.refreshToken.updateMany as jest.Mock).mockResolvedValue({ count: 2 });
+    (prismaService.session.updateMany as jest.Mock).mockResolvedValue({ count: 1 });
+
+    await authService.changePassword('user-1', {
+      currentPassword: 'current-pass',
+      newPassword: 'new-pass-123',
+    });
+
+    const updateArgs = (prismaService.user.update as jest.Mock).mock.calls[0][0];
+    const hashedPassword = updateArgs.data.passwordHash as string;
+    expect(hashedPassword).not.toBe('new-pass-123');
+    expect(await bcrypt.compare('new-pass-123', hashedPassword)).toBe(true);
+    expect(prismaService.refreshToken.updateMany).toHaveBeenCalledWith({
+      where: { userId: 'user-1', revokedAt: null },
+      data: { revokedAt: expect.any(Date) },
+    });
+    expect(prismaService.session.updateMany).toHaveBeenCalledWith({
+      where: { userId: 'user-1', revokedAt: null },
+      data: { revokedAt: expect.any(Date) },
+    });
+  });
+
+  it('rejects invalid current password on change', async () => {
+    const passwordHash = await bcrypt.hash('current-pass', 12);
+    (prismaService.user.findUnique as jest.Mock).mockResolvedValue({
+      id: 'user-1',
+      email: 'user@email.com',
+      role: UserRole.USER,
+      passwordHash,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    await expect(
+      authService.changePassword('user-1', {
+        currentPassword: 'wrong-pass',
+        newPassword: 'new-pass-123',
+      }),
+    ).rejects.toThrow(BadRequestException);
   });
 });

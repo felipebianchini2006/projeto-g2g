@@ -1,9 +1,19 @@
-import { Body, Controller, HttpCode, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  Post,
+  Req,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import type { Request } from 'express';
 
-import type { AuthRequestMeta } from './auth.types';
+import type { AuthRequestMeta, JwtPayload } from './auth.types';
 import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { LogoutDto } from './dto/logout.dto';
@@ -12,6 +22,7 @@ import { RegisterDto } from './dto/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 
 const AUTH_THROTTLE = { auth: { ttl: 60, limit: 5 } };
+type AuthenticatedRequest = Request & { user?: JwtPayload };
 
 @Controller('auth')
 export class AuthController {
@@ -60,6 +71,14 @@ export class AuthController {
     return this.authService.resetPassword(dto);
   }
 
+  @Post('change-password')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(200)
+  changePassword(@Req() request: AuthenticatedRequest, @Body() dto: ChangePasswordDto) {
+    const userId = this.getUserId(request);
+    return this.authService.changePassword(userId, dto);
+  }
+
   private getRequestMeta(request: Request): AuthRequestMeta {
     const userAgentHeader = request.headers['user-agent'];
     const userAgent = Array.isArray(userAgentHeader) ? userAgentHeader[0] : userAgentHeader;
@@ -68,5 +87,12 @@ export class AuthController {
       ip: request.ip,
       userAgent,
     };
+  }
+
+  private getUserId(request: AuthenticatedRequest) {
+    if (!request.user?.sub) {
+      throw new UnauthorizedException('Missing user context.');
+    }
+    return request.user.sub;
   }
 }

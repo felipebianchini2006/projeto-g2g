@@ -140,6 +140,7 @@ Wallet summary:
 - POST /auth/logout
 - POST /auth/forgot-password
 - POST /auth/reset-password
+- POST /auth/change-password
 
 Exemplo: register
 Request:
@@ -172,6 +173,10 @@ Response:
 Exemplo: forgot/reset password
 Request (forgot): { "email": "buyer@g2g.test" }
 Request (reset): { "token": "reset-token", "password": "NewPass123" }
+Response: { "success": true }
+
+Exemplo: change password (JWT)
+Request: { "currentPassword": "OldPass123", "newPassword": "NewPass123" }
 Response: { "success": true }
 
 ### Listings publicas
