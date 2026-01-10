@@ -137,6 +137,7 @@ describe('OrdersService (manual delivery)', () => {
         orderItemId: 'item-1',
         type: DeliveryEvidenceType.TEXT,
         content: 'Proof of delivery',
+        createdByUserId: 'seller-1',
       },
     });
     expect(prismaService.orderEvent.create).toHaveBeenCalledWith(

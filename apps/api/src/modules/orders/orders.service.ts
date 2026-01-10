@@ -451,6 +451,7 @@ export class OrdersService {
               orderItemId: item.id,
               type: evidenceType,
               content: dto.content,
+              createdByUserId: actorId,
             },
           }),
         );

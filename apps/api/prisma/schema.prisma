@@ -172,6 +172,7 @@ model User {
   notifications       Notification[]
   auditLogs           AuditLog[]      @relation("AuditAdmin")
   orderEvents         OrderEvent[]    @relation("OrderEventUser")
+  deliveryEvidenceCreated DeliveryEvidence[] @relation("DeliveryEvidenceCreator")
 
   @@map("users")
 }
@@ -385,12 +386,15 @@ model DeliveryEvidence {
   orderItemId String
   type        DeliveryEvidenceType
   content     String
+  createdByUserId String?
   createdAt   DateTime             @default(now())
   updatedAt   DateTime             @updatedAt
 
   orderItem OrderItemSnapshot @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  createdByUser User? @relation("DeliveryEvidenceCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
 
   @@index([orderItemId])
+  @@index([createdByUserId])
   @@map("delivery_evidence")
 }
 
