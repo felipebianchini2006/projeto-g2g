@@ -8,7 +8,15 @@ import {
   adminListingsApi,
   type AdminListing,
   type AdminListingStatus,
+  type AdminCreateListingInput,
 } from '../../lib/admin-listings-api';
+import {
+  adminCatalogApi,
+  type CatalogCategory,
+  type CatalogGroup,
+  type CatalogOption,
+  type CatalogSection,
+} from '../../lib/admin-catalog-api';
 import { marketplaceApi } from '../../lib/marketplace-api';
 import { useAuth } from '../auth/auth-provider';
 import { AdminShell } from '../admin/admin-shell';
@@ -40,6 +48,23 @@ export const AdminListingsContent = () => {
   const [statusFilter, setStatusFilter] = useState<AdminListingStatus | 'all'>('PENDING');
   const [actionReason, setActionReason] = useState('');
   const [reserveQty, setReserveQty] = useState(1);
+  const [categories, setCategories] = useState<CatalogCategory[]>([]);
+  const [groups, setGroups] = useState<CatalogGroup[]>([]);
+  const [sections, setSections] = useState<CatalogSection[]>([]);
+  const [salesModels, setSalesModels] = useState<CatalogOption[]>([]);
+  const [origins, setOrigins] = useState<CatalogOption[]>([]);
+  const [recoveryOptions, setRecoveryOptions] = useState<CatalogOption[]>([]);
+  const [createForm, setCreateForm] = useState<AdminCreateListingInput>({
+    sellerId: '',
+    categoryId: '',
+    title: '',
+    description: '',
+    priceCents: 0,
+    currency: 'BRL',
+    deliveryType: 'AUTO',
+    deliverySlaHours: 24,
+    refundPolicy: 'Reembolso disponivel enquanto o pedido estiver em aberto.',
+  });
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -50,6 +75,39 @@ export const AdminListingsContent = () => {
       return;
     }
     setError(error instanceof Error ? error.message : fallback);
+  };
+
+  const loadCatalogOptions = async () => {
+    if (!accessToken) {
+      return;
+    }
+    setBusyAction('catalog');
+    setError(null);
+    try {
+      const [cats, groupsData, sectionsData, salesData, originsData, recoveryData] =
+        await Promise.all([
+          adminCatalogApi.listCategories(accessToken),
+          adminCatalogApi.listGroups(accessToken),
+          adminCatalogApi.listSections(accessToken),
+          adminCatalogApi.listSalesModels(accessToken),
+          adminCatalogApi.listOrigins(accessToken),
+          adminCatalogApi.listRecoveryOptions(accessToken),
+        ]);
+      setCategories(cats);
+      setGroups(groupsData);
+      setSections(sectionsData);
+      setSalesModels(salesData);
+      setOrigins(originsData);
+      setRecoveryOptions(recoveryData);
+      setCreateForm((prev) => ({
+        ...prev,
+        categoryId: prev.categoryId || cats[0]?.id || '',
+      }));
+    } catch (error) {
+      handleError(error, 'Nao foi possivel carregar cadastros.');
+    } finally {
+      setBusyAction(null);
+    }
   };
 
   const loadListings = async () => {
@@ -80,6 +138,12 @@ export const AdminListingsContent = () => {
     }
   }, [accessToken, statusFilter, user?.role]);
 
+  useEffect(() => {
+    if (accessToken && user?.role === 'ADMIN') {
+      loadCatalogOptions();
+    }
+  }, [accessToken, user?.role]);
+
   const detailSummary = useMemo(() => {
     if (!selectedListing) {
       return null;
@@ -90,6 +154,20 @@ export const AdminListingsContent = () => {
       delivery: deliveryLabel[selectedListing.deliveryType],
     };
   }, [selectedListing]);
+
+  const filteredGroups = useMemo(() => {
+    if (!createForm.categoryId) {
+      return groups;
+    }
+    return groups.filter((group) => group.categoryId === createForm.categoryId);
+  }, [groups, createForm.categoryId]);
+
+  const filteredSections = useMemo(() => {
+    if (!createForm.categoryGroupId) {
+      return sections;
+    }
+    return sections.filter((section) => section.groupId === createForm.categoryGroupId);
+  }, [sections, createForm.categoryGroupId]);
 
   const applyListingUpdate = (updated: AdminListing) => {
     setListings((prev) => {
@@ -155,6 +233,63 @@ export const AdminListingsContent = () => {
     }
   };
 
+  const handleCreateListing = async () => {
+    if (!accessToken) {
+      return;
+    }
+    if (!createForm.sellerId.trim()) {
+      setError('Informe o sellerId.');
+      return;
+    }
+    if (!createForm.categoryId) {
+      setError('Selecione a categoria.');
+      return;
+    }
+    if (!createForm.title.trim()) {
+      setError('Informe o titulo.');
+      return;
+    }
+    if (createForm.priceCents <= 0) {
+      setError('Informe o preco.');
+      return;
+    }
+    setBusyAction('create');
+    setError(null);
+    setNotice(null);
+    try {
+      const payload: AdminCreateListingInput = {
+        ...createForm,
+        sellerId: createForm.sellerId.trim(),
+        title: createForm.title.trim(),
+        description: createForm.description?.trim() || undefined,
+        categoryGroupId: createForm.categoryGroupId || undefined,
+        categorySectionId: createForm.categorySectionId || undefined,
+        salesModelId: createForm.salesModelId || undefined,
+        originId: createForm.originId || undefined,
+        recoveryOptionId: createForm.recoveryOptionId || undefined,
+        currency: createForm.currency || undefined,
+      };
+      await adminListingsApi.createListing(accessToken, payload);
+      setNotice('Anuncio criado com sucesso.');
+      setCreateForm({
+        sellerId: '',
+        categoryId: createForm.categoryId,
+        title: '',
+        description: '',
+        priceCents: 0,
+        currency: 'BRL',
+        deliveryType: 'AUTO',
+        deliverySlaHours: 24,
+        refundPolicy: 'Reembolso disponivel enquanto o pedido estiver em aberto.',
+      });
+      loadListings();
+    } catch (error) {
+      handleError(error, 'Nao foi possivel criar o anuncio.');
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
   if (loading) {
     return (
       <section className="bg-white px-6 py-12">
@@ -211,6 +346,256 @@ export const AdminListingsContent = () => {
 
       {error ? <div className="state-card error">{error}</div> : null}
       {notice ? <div className="state-card success">{notice}</div> : null}
+
+      <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+        <div className="panel-header">
+          <h2>Criar anuncio (admin)</h2>
+        </div>
+        {categories.length === 0 ? (
+          <div className="state-card info">
+            Cadastre categorias antes de criar anuncios.
+          </div>
+        ) : null}
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid gap-3">
+            <label className="form-field">
+              Seller ID
+              <input
+                className="form-input"
+                value={createForm.sellerId}
+                onChange={(event) =>
+                  setCreateForm((prev) => ({ ...prev, sellerId: event.target.value }))
+                }
+                placeholder="UUID do seller"
+              />
+            </label>
+            <label className="form-field">
+              Categoria
+              <select
+                className="form-input"
+                value={createForm.categoryId}
+                onChange={(event) =>
+                  setCreateForm((prev) => ({
+                    ...prev,
+                    categoryId: event.target.value,
+                    categoryGroupId: undefined,
+                    categorySectionId: undefined,
+                  }))
+                }
+              >
+                <option value="">Selecione...</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="form-field">
+              Subcategoria / Jogo
+              <select
+                className="form-input"
+                value={createForm.categoryGroupId ?? ''}
+                onChange={(event) =>
+                  setCreateForm((prev) => ({
+                    ...prev,
+                    categoryGroupId: event.target.value || undefined,
+                    categorySectionId: undefined,
+                  }))
+                }
+              >
+                <option value="">Selecione...</option>
+                {filteredGroups.map((group) => (
+                  <option key={group.id} value={group.id}>
+                    {group.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="form-field">
+              Secao
+              <select
+                className="form-input"
+                value={createForm.categorySectionId ?? ''}
+                onChange={(event) =>
+                  setCreateForm((prev) => ({
+                    ...prev,
+                    categorySectionId: event.target.value || undefined,
+                  }))
+                }
+              >
+                <option value="">Selecione...</option>
+                {filteredSections.map((section) => (
+                  <option key={section.id} value={section.id}>
+                    {section.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="form-field">
+              Titulo
+              <input
+                className="form-input"
+                value={createForm.title}
+                onChange={(event) =>
+                  setCreateForm((prev) => ({ ...prev, title: event.target.value }))
+                }
+              />
+            </label>
+            <label className="form-field">
+              Descricao
+              <textarea
+                className="form-textarea"
+                rows={3}
+                value={createForm.description ?? ''}
+                onChange={(event) =>
+                  setCreateForm((prev) => ({ ...prev, description: event.target.value }))
+                }
+              />
+            </label>
+          </div>
+          <div className="grid gap-3">
+            <label className="form-field">
+              Preco (centavos)
+              <input
+                className="form-input"
+                type="number"
+                min={1}
+                value={createForm.priceCents}
+                onChange={(event) =>
+                  setCreateForm((prev) => ({
+                    ...prev,
+                    priceCents: Number(event.target.value || 0),
+                  }))
+                }
+              />
+            </label>
+            <label className="form-field">
+              Moeda
+              <input
+                className="form-input"
+                value={createForm.currency ?? ''}
+                onChange={(event) =>
+                  setCreateForm((prev) => ({ ...prev, currency: event.target.value }))
+                }
+              />
+            </label>
+            <label className="form-field">
+              Tipo de entrega
+              <select
+                className="form-input"
+                value={createForm.deliveryType}
+                onChange={(event) =>
+                  setCreateForm((prev) => ({
+                    ...prev,
+                    deliveryType: event.target.value as 'AUTO' | 'MANUAL',
+                  }))
+                }
+              >
+                <option value="AUTO">AUTO</option>
+                <option value="MANUAL">MANUAL</option>
+              </select>
+            </label>
+            <label className="form-field">
+              SLA (horas)
+              <input
+                className="form-input"
+                type="number"
+                min={1}
+                max={720}
+                value={createForm.deliverySlaHours}
+                onChange={(event) =>
+                  setCreateForm((prev) => ({
+                    ...prev,
+                    deliverySlaHours: Number(event.target.value || 0),
+                  }))
+                }
+              />
+            </label>
+            <label className="form-field">
+              Tipo de venda
+              <select
+                className="form-input"
+                value={createForm.salesModelId ?? ''}
+                onChange={(event) =>
+                  setCreateForm((prev) => ({
+                    ...prev,
+                    salesModelId: event.target.value || undefined,
+                  }))
+                }
+              >
+                <option value="">Selecione...</option>
+                {salesModels.map((model) => (
+                  <option key={model.id} value={model.id}>
+                    {model.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="form-field">
+              Procedencia
+              <select
+                className="form-input"
+                value={createForm.originId ?? ''}
+                onChange={(event) =>
+                  setCreateForm((prev) => ({
+                    ...prev,
+                    originId: event.target.value || undefined,
+                  }))
+                }
+              >
+                <option value="">Selecione...</option>
+                {origins.map((origin) => (
+                  <option key={origin.id} value={origin.id}>
+                    {origin.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="form-field">
+              Dados de recuperacao
+              <select
+                className="form-input"
+                value={createForm.recoveryOptionId ?? ''}
+                onChange={(event) =>
+                  setCreateForm((prev) => ({
+                    ...prev,
+                    recoveryOptionId: event.target.value || undefined,
+                  }))
+                }
+              >
+                <option value="">Selecione...</option>
+                {recoveryOptions.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="form-field">
+              Politica de reembolso
+              <textarea
+                className="form-textarea"
+                rows={2}
+                value={createForm.refundPolicy}
+                onChange={(event) =>
+                  setCreateForm((prev) => ({ ...prev, refundPolicy: event.target.value }))
+                }
+              />
+            </label>
+          </div>
+        </div>
+        <div className="mt-4 flex justify-end">
+          <button
+            className="primary-button"
+            type="button"
+            onClick={handleCreateListing}
+            disabled={busyAction === 'create'}
+          >
+            {busyAction === 'create' ? 'Criando...' : 'Criar anuncio'}
+          </button>
+        </div>
+      </div>
 
       <div className="admin-listings-grid">
         <div className="order-card">

@@ -238,15 +238,98 @@ model Category {
   updatedAt   DateTime @updatedAt
 
   listings Listing[]
+  groups   CategoryGroup[]
 
   @@index([name])
   @@map("categories")
+}
+
+model CategoryGroup {
+  id          String   @id @default(uuid())
+  categoryId  String
+  name        String
+  slug        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  category Category @relation(fields: [categoryId], references: [id])
+  sections CategorySection[]
+  listings Listing[]
+
+  @@index([categoryId])
+  @@index([name])
+  @@map("category_groups")
+}
+
+model CategorySection {
+  id          String   @id @default(uuid())
+  groupId     String
+  name        String
+  slug        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  group    CategoryGroup @relation(fields: [groupId], references: [id])
+  listings Listing[]
+
+  @@index([groupId])
+  @@index([name])
+  @@map("category_sections")
+}
+
+model SalesModel {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  listings Listing[]
+
+  @@index([name])
+  @@map("sales_models")
+}
+
+model OriginOption {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  listings Listing[]
+
+  @@index([name])
+  @@map("origin_options")
+}
+
+model RecoveryOption {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  listings Listing[]
+
+  @@index([name])
+  @@map("recovery_options")
 }
 
 model Listing {
   id           String        @id @default(uuid())
   sellerId     String
   categoryId   String
+  categoryGroupId String?
+  categorySectionId String?
+  salesModelId String?
+  originId     String?
+  recoveryOptionId String?
   title        String
   slug         String?       @unique
   description  String?
@@ -261,12 +344,22 @@ model Listing {
 
   seller              User               @relation(fields: [sellerId], references: [id])
   category            Category           @relation(fields: [categoryId], references: [id])
+  categoryGroup       CategoryGroup?     @relation(fields: [categoryGroupId], references: [id])
+  categorySection     CategorySection?   @relation(fields: [categorySectionId], references: [id])
+  salesModel          SalesModel?        @relation(fields: [salesModelId], references: [id])
+  origin              OriginOption?      @relation(fields: [originId], references: [id])
+  recoveryOption      RecoveryOption?    @relation(fields: [recoveryOptionId], references: [id])
   media               ListingMedia[]
   inventoryItems      InventoryItem[]
   orderItemSnapshots  OrderItemSnapshot[]
 
   @@index([sellerId])
   @@index([categoryId])
+  @@index([categoryGroupId])
+  @@index([categorySectionId])
+  @@index([salesModelId])
+  @@index([originId])
+  @@index([recoveryOptionId])
   @@index([status])
   @@index([title])
   @@map("listings")

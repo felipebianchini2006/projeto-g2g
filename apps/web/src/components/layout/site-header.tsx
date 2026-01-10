@@ -108,6 +108,17 @@ export const SiteHeader = () => {
     [cartItems],
   );
 
+  const splitIntoColumns = (items: CatalogCategory[], size = 8) => {
+    if (items.length === 0) {
+      return [];
+    }
+    const columns: CatalogCategory[][] = [];
+    for (let index = 0; index < items.length; index += size) {
+      columns.push(items.slice(index, index + size));
+    }
+    return columns;
+  };
+
   const handleSearch = () => {
     const query = search.trim();
     if (!query) {
@@ -118,7 +129,7 @@ export const SiteHeader = () => {
   };
 
   useEffect(() => {
-    if (!categoriesOpen || categoriesStatus !== 'idle') {
+    if (!categoriesOpen) {
       return;
     }
     let active = true;
@@ -139,7 +150,7 @@ export const SiteHeader = () => {
     return () => {
       active = false;
     };
-  }, [categoriesOpen, categoriesStatus]);
+  }, [categoriesOpen]);
 
   useEffect(() => {
     const stored = window.localStorage.getItem('meoww-theme');
@@ -329,8 +340,8 @@ export const SiteHeader = () => {
                     ) : (
                       <div className="grid gap-10 lg:grid-cols-[3fr_1.3fr]">
                         {[
-                          { title: 'Jogos', items: jogosCategories, cols: 'lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6' },
-                          { title: 'Outros', items: outrosCategories, cols: 'lg:grid-cols-2' },
+                          { title: 'Jogos', items: jogosCategories },
+                          { title: 'Outros', items: outrosCategories },
                         ].map((block) => (
                           <div key={block.title}>
                             <div className="flex items-center justify-between text-xs font-bold uppercase tracking-[0.4px] text-meow-muted">
@@ -343,30 +354,34 @@ export const SiteHeader = () => {
                                 Ver todos
                               </Link>
                             </div>
-                            <div className={`mt-4 grid gap-3 sm:grid-cols-2 ${block.cols}`}>
-                              {block.items.map((category) => (
-                                <Link
-                                  key={category.slug}
-                                  href={`/categoria/${category.slug}`}
-                                  className="flex items-center gap-3 text-sm font-semibold text-meow-charcoal hover:text-meow-deep"
-                                  onClick={closeAll}
-                                >
-                                  <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-meow-red/20 bg-meow-cream">
-                                    <img
-                                      src={category.highlight}
-                                      alt={category.label}
-                                      className="h-full w-full object-cover"
-                                    />
-                                  </span>
-                                  <span className="flex items-center gap-2">
-                                    {category.label}
-                                    {popularCategorySlugs.has(category.slug) ? (
-                                      <span className="rounded-full bg-meow-deep px-2 py-0.5 text-[10px] font-bold uppercase text-white">
-                                        Popular
+                            <div className="mt-4 flex flex-col gap-6 sm:flex-row sm:gap-8">
+                              {splitIntoColumns(block.items, 8).map((column, columnIndex) => (
+                                <div key={`${block.title}-${columnIndex}`} className="flex flex-col gap-3">
+                                  {column.map((category) => (
+                                    <Link
+                                      key={category.slug}
+                                      href={`/categoria/${category.slug}`}
+                                      className="flex items-center gap-3 text-sm font-semibold text-meow-charcoal hover:text-meow-deep"
+                                      onClick={closeAll}
+                                    >
+                                      <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-meow-red/20 bg-meow-cream">
+                                        <img
+                                          src={category.highlight}
+                                          alt={category.label}
+                                          className="h-full w-full object-cover"
+                                        />
                                       </span>
-                                    ) : null}
-                                  </span>
-                                </Link>
+                                      <span className="flex items-center gap-2">
+                                        {category.label}
+                                        {popularCategorySlugs.has(category.slug) ? (
+                                          <span className="rounded-full bg-meow-deep px-2 py-0.5 text-[10px] font-bold uppercase text-white">
+                                            Popular
+                                          </span>
+                                        ) : null}
+                                      </span>
+                                    </Link>
+                                  ))}
+                                </div>
                               ))}
                             </div>
                           </div>

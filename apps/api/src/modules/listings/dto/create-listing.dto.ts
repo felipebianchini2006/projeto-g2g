@@ -16,6 +16,26 @@ export class CreateListingDto {
   @IsUUID()
   categoryId!: string;
 
+  @IsOptional()
+  @IsUUID()
+  categoryGroupId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  categorySectionId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  salesModelId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  originId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  recoveryOptionId?: string;
+
   @IsString()
   @MinLength(3)
   @MaxLength(160)

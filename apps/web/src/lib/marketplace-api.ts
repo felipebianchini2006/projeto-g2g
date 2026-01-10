@@ -16,6 +16,11 @@ export type Listing = {
   id: string;
   sellerId: string;
   categoryId: string;
+  categoryGroupId?: string | null;
+  categorySectionId?: string | null;
+  salesModelId?: string | null;
+  originId?: string | null;
+  recoveryOptionId?: string | null;
   title: string;
   description?: string | null;
   priceCents: number;
@@ -31,6 +36,11 @@ export type Listing = {
 
 export type ListingInput = {
   categoryId: string;
+  categoryGroupId?: string;
+  categorySectionId?: string;
+  salesModelId?: string;
+  originId?: string;
+  recoveryOptionId?: string;
   title: string;
   description?: string;
   priceCents: number;

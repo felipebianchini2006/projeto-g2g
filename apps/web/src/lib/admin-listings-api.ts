@@ -6,6 +6,11 @@ export type AdminListing = {
   id: string;
   sellerId: string;
   categoryId: string;
+  categoryGroupId?: string | null;
+  categorySectionId?: string | null;
+  salesModelId?: string | null;
+  originId?: string | null;
+  recoveryOptionId?: string | null;
   title: string;
   description?: string | null;
   priceCents: number;
@@ -25,10 +30,52 @@ export type AdminListing = {
     name: string;
     slug: string;
   } | null;
+  categoryGroup?: {
+    id: string;
+    name: string;
+    slug: string;
+  } | null;
+  categorySection?: {
+    id: string;
+    name: string;
+    slug: string;
+  } | null;
+  salesModel?: {
+    id: string;
+    name: string;
+    slug: string;
+  } | null;
+  origin?: {
+    id: string;
+    name: string;
+    slug: string;
+  } | null;
+  recoveryOption?: {
+    id: string;
+    name: string;
+    slug: string;
+  } | null;
 };
 
 type AdminDecisionInput = {
   reason?: string;
+};
+
+export type AdminCreateListingInput = {
+  sellerId: string;
+  categoryId: string;
+  categoryGroupId?: string;
+  categorySectionId?: string;
+  salesModelId?: string;
+  originId?: string;
+  recoveryOptionId?: string;
+  title: string;
+  description?: string;
+  priceCents: number;
+  currency?: string;
+  deliveryType: 'AUTO' | 'MANUAL';
+  deliverySlaHours: number;
+  refundPolicy: string;
 };
 
 const authHeaders = (token: string | null) =>
@@ -40,6 +87,13 @@ export const adminListingsApi = {
       status ? `/admin/listings?status=${encodeURIComponent(status)}` : '/admin/listings',
       { headers: authHeaders(token) },
     ),
+
+  createListing: (token: string | null, payload: AdminCreateListingInput) =>
+    apiFetch<AdminListing>('/admin/listings', {
+      method: 'POST',
+      headers: authHeaders(token),
+      body: JSON.stringify(payload),
+    }),
 
   approveListing: (token: string | null, listingId: string) =>
     apiFetch<AdminListing>(`/admin/listings/${listingId}/approve`, {

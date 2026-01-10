@@ -8,6 +8,12 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../components/auth/auth-provider';
 import { ApiClientError } from '../../../lib/api-client';
 import {
+  catalogPublicApi,
+  type CatalogGroup,
+  type CatalogOption,
+  type CatalogSection,
+} from '../../../lib/catalog-public-api';
+import {
   marketplaceApi,
   type Listing,
   type ListingInput,
@@ -39,11 +45,15 @@ export default function Page() {
   const [formState, setFormState] = useState<ListingInput>(emptyListing);
   const [priceInput, setPriceInput] = useState('');
   const [stock, setStock] = useState('1');
-  const [model, setModel] = useState<'normal' | 'dynamic' | 'service'>('normal');
   const [autoDelivery, setAutoDelivery] = useState(true);
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [listing, setListing] = useState<Listing | null>(null);
   const [categories, setCategories] = useState<CatalogCategory[]>([]);
+  const [groups, setGroups] = useState<CatalogGroup[]>([]);
+  const [sections, setSections] = useState<CatalogSection[]>([]);
+  const [salesModels, setSalesModels] = useState<CatalogOption[]>([]);
+  const [origins, setOrigins] = useState<CatalogOption[]>([]);
+  const [recoveryOptions, setRecoveryOptions] = useState<CatalogOption[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busyAction, setBusyAction] = useState<string | null>(null);
@@ -51,16 +61,42 @@ export default function Page() {
 
   useEffect(() => {
     let active = true;
-    const loadCategories = async () => {
-      const response = await fetchPublicCategories();
+    const loadCatalog = async () => {
+      const categoriesResponse = await fetchPublicCategories().catch(() => ({
+        categories: [],
+        source: 'api' as const,
+      }));
+      const [
+        groupsData,
+        sectionsData,
+        salesModelsData,
+        originsData,
+        recoveryData,
+      ] = await Promise.all([
+        catalogPublicApi.listGroups().catch(() => []),
+        catalogPublicApi.listSections().catch(() => []),
+        catalogPublicApi.listSalesModels().catch(() => []),
+        catalogPublicApi.listOrigins().catch(() => []),
+        catalogPublicApi.listRecoveryOptions().catch(() => []),
+      ]);
       if (!active) {
         return;
       }
-      setCategories(response.categories);
+      setCategories(categoriesResponse.categories);
+      setGroups(groupsData);
+      setSections(sectionsData);
+      setSalesModels(salesModelsData);
+      setOrigins(originsData);
+      setRecoveryOptions(recoveryData);
     };
-    loadCategories().catch(() => {
+    loadCatalog().catch(() => {
       if (active) {
         setCategories([]);
+        setGroups([]);
+        setSections([]);
+        setSalesModels([]);
+        setOrigins([]);
+        setRecoveryOptions([]);
       }
     });
     return () => {
@@ -78,6 +114,19 @@ export default function Page() {
   const previewTitle = formState.title || 'Seu titulo aparece aqui...';
   const previewPrice = formatCurrency(formState.priceCents, formState.currency ?? 'BRL');
   const titleCount = formState.title.length;
+  const filteredGroups = useMemo(() => {
+    if (!formState.categoryId) {
+      return groups;
+    }
+    return groups.filter((group) => group.categoryId === formState.categoryId);
+  }, [groups, formState.categoryId]);
+
+  const filteredSections = useMemo(() => {
+    if (!formState.categoryGroupId) {
+      return sections;
+    }
+    return sections.filter((section) => section.groupId === formState.categoryGroupId);
+  }, [sections, formState.categoryGroupId]);
 
   const canSubmit = useMemo(() => {
     return (
@@ -209,6 +258,8 @@ export default function Page() {
                       setFormState((prev) => ({
                         ...prev,
                         categoryId: event.target.value,
+                        categoryGroupId: undefined,
+                        categorySectionId: undefined,
                       }))
                     }
                   >
@@ -227,11 +278,23 @@ export default function Page() {
                   Jogo / Subcategoria
                 </label>
                 <div className="relative">
-                  <select className="w-full cursor-pointer rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700 focus:border-meow-300 focus:outline-none focus:ring-4 focus:ring-meow-100">
-                    <option>Selecione...</option>
-                    <option>League of Legends</option>
-                    <option>Valorant</option>
-                    <option>Fortnite</option>
+                  <select
+                    className="w-full cursor-pointer rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700 focus:border-meow-300 focus:outline-none focus:ring-4 focus:ring-meow-100"
+                    value={formState.categoryGroupId ?? ''}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        categoryGroupId: event.target.value || undefined,
+                        categorySectionId: undefined,
+                      }))
+                    }
+                  >
+                    <option value="">Selecione...</option>
+                    {filteredGroups.map((group) => (
+                      <option key={group.id} value={group.id}>
+                        {group.name}
+                      </option>
+                    ))}
                   </select>
                   <i className="fas fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
                 </div>
@@ -239,11 +302,22 @@ export default function Page() {
               <div className="space-y-1">
                 <label className="text-xs font-bold uppercase text-slate-500">Secao</label>
                 <div className="relative">
-                  <select className="w-full cursor-pointer rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700 focus:border-meow-300 focus:outline-none focus:ring-4 focus:ring-meow-100">
-                    <option>Selecione...</option>
-                    <option>Contas (Smurf)</option>
-                    <option>Contas (Main)</option>
-                    <option>Coaching</option>
+                  <select
+                    className="w-full cursor-pointer rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700 focus:border-meow-300 focus:outline-none focus:ring-4 focus:ring-meow-100"
+                    value={formState.categorySectionId ?? ''}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        categorySectionId: event.target.value || undefined,
+                      }))
+                    }
+                  >
+                    <option value="">Selecione...</option>
+                    {filteredSections.map((section) => (
+                      <option key={section.id} value={section.id}>
+                        {section.name}
+                      </option>
+                    ))}
                   </select>
                   <i className="fas fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
                 </div>
@@ -300,48 +374,53 @@ export default function Page() {
               <label className="mb-2 block text-xs font-bold uppercase text-slate-500">
                 Modelo de venda
               </label>
-              <div className="grid gap-3 md:grid-cols-3">
-                {[
-                  {
-                    id: 'normal',
-                    label: 'Normal',
-                    description: '1 produto unico por anuncio',
-                    icon: 'fa-box',
-                    color: 'text-blue-500 bg-blue-100',
-                  },
-                  {
-                    id: 'dynamic',
-                    label: 'Dinamico',
-                    description: 'Varios itens onde o cliente escolhe',
-                    icon: 'fa-layer-group',
-                    color: 'text-purple-500 bg-purple-100',
-                  },
-                  {
-                    id: 'service',
-                    label: 'Servico',
-                    description: 'Valor por orcamento ou hora',
-                    icon: 'fa-tools',
-                    color: 'text-orange-500 bg-orange-100',
-                  },
-                ].map((option) => (
-                  <button
-                    key={option.id}
-                    type="button"
-                    className={`relative flex flex-col items-center justify-center gap-2 rounded-2xl border-2 p-4 text-center transition ${
-                      model === option.id
-                        ? 'border-meow-300 bg-meow-50 shadow-cute'
-                        : 'border-slate-100 hover:border-meow-200'
-                    }`}
-                    onClick={() => setModel(option.id as typeof model)}
-                  >
-                    <div className={`grid h-10 w-10 place-items-center rounded-full ${option.color}`}>
-                      <i className={`fas ${option.icon}`} aria-hidden />
-                    </div>
-                    <span className="font-bold text-slate-700">{option.label}</span>
-                    <span className="text-[10px] text-slate-400">{option.description}</span>
-                  </button>
-                ))}
-              </div>
+              {salesModels.length === 0 ? (
+                <div className="state-card info">
+                  Nenhum tipo cadastrado. Faca o cadastro no painel admin.
+                </div>
+              ) : (
+                <div className="grid gap-3 md:grid-cols-3">
+                  {salesModels.map((option, index) => {
+                    const colors = [
+                      'text-blue-500 bg-blue-100',
+                      'text-purple-500 bg-purple-100',
+                      'text-orange-500 bg-orange-100',
+                      'text-emerald-500 bg-emerald-100',
+                    ];
+                    const icon = option.slug?.includes('serv')
+                      ? 'fa-tools'
+                      : option.slug?.includes('din')
+                        ? 'fa-layer-group'
+                        : 'fa-box';
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        className={`relative flex flex-col items-center justify-center gap-2 rounded-2xl border-2 p-4 text-center transition ${
+                          formState.salesModelId === option.id
+                            ? 'border-meow-300 bg-meow-50 shadow-cute'
+                            : 'border-slate-100 hover:border-meow-200'
+                        }`}
+                        onClick={() =>
+                          setFormState((prev) => ({ ...prev, salesModelId: option.id }))
+                        }
+                      >
+                        <div
+                          className={`grid h-10 w-10 place-items-center rounded-full ${
+                            colors[index % colors.length]
+                          }`}
+                        >
+                          <i className={`fas ${icon}`} aria-hidden />
+                        </div>
+                        <span className="font-bold text-slate-700">{option.name}</span>
+                        <span className="text-[10px] text-slate-400">
+                          {option.description ?? 'Tipo de venda configurado pelo admin.'}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
             <div className="mb-6 grid gap-4 md:grid-cols-2">
               <div className="space-y-1">
@@ -392,9 +471,22 @@ export default function Page() {
               <div className="space-y-1">
                 <label className="text-xs font-bold uppercase text-slate-500">Procedencia</label>
                 <div className="relative">
-                  <select className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700 focus:border-meow-300 focus:outline-none">
-                    <option>Criador (Sou dono original)</option>
-                    <option>Revenda (Comprei pra revender)</option>
+                  <select
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700 focus:border-meow-300 focus:outline-none"
+                    value={formState.originId ?? ''}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        originId: event.target.value || undefined,
+                      }))
+                    }
+                  >
+                    <option value="">Selecione...</option>
+                    {origins.map((origin) => (
+                      <option key={origin.id} value={origin.id}>
+                        {origin.name}
+                      </option>
+                    ))}
                   </select>
                   <i className="fas fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
                 </div>
@@ -404,10 +496,22 @@ export default function Page() {
                   Dados de recuperacao
                 </label>
                 <div className="relative">
-                  <select className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700 focus:border-meow-300 focus:outline-none">
-                    <option>Nao possui dados</option>
-                    <option>Possui e-mail de criacao</option>
-                    <option>Possui dados completos</option>
+                  <select
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700 focus:border-meow-300 focus:outline-none"
+                    value={formState.recoveryOptionId ?? ''}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        recoveryOptionId: event.target.value || undefined,
+                      }))
+                    }
+                  >
+                    <option value="">Selecione...</option>
+                    {recoveryOptions.map((option) => (
+                      <option key={option.id} value={option.id}>
+                        {option.name}
+                      </option>
+                    ))}
                   </select>
                   <i className="fas fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
                 </div>

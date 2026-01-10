@@ -16,6 +16,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import type { JwtPayload } from '../auth/auth.types';
+import { AdminCreateListingDto } from './dto/admin-create-listing.dto';
 import { AdminDecisionDto } from './dto/admin-decision.dto';
 import { ListingQueryDto } from './dto/listing-query.dto';
 import { ListingsService } from './listings.service';
@@ -31,6 +32,13 @@ export class AdminListingsController {
   @Get()
   list(@Query() query: ListingQueryDto) {
     return this.listingsService.listAdminListings(query);
+  }
+
+  @Post()
+  create(@Req() req: AuthenticatedRequest, @Body() dto: AdminCreateListingDto) {
+    const adminId = this.getUserId(req);
+    const meta = this.getRequestMeta(req);
+    return this.listingsService.createListingAsAdmin(adminId, dto, meta);
   }
 
   @Post(':id/approve')

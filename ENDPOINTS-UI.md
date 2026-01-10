@@ -21,6 +21,15 @@
 | GET /public/listings/:id | `/anuncios/[id]` | Detalhe do anuncio |
 | GET /public/categories | `/categoria`, `/categoria/[slug]` | Listas e filtros |
 
+## Catalogo publico
+| Endpoint | Tela/Rota | Entrada de UI |
+| --- | --- | --- |
+| GET /public/catalog/groups | `/anunciar` | Select de subcategoria/jogo |
+| GET /public/catalog/sections | `/anunciar` | Select de secao |
+| GET /public/catalog/sales-models | `/anunciar` | Cards de tipo de venda |
+| GET /public/catalog/origins | `/anunciar` | Select de procedencia |
+| GET /public/catalog/recovery-options | `/anunciar` | Select de dados de recuperacao |
+
 ## Seller (Listings + Midia + Inventario)
 | Endpoint | Tela/Rota | Entrada de UI |
 | --- | --- | --- |
@@ -78,6 +87,34 @@
 | GET /admin/disputes/:id | `/admin/disputas/[id]` | Detalhe de disputa |
 | POST /admin/disputes/:id/resolve | `/admin/disputas/[id]` | Resolver disputa |
 
+## Cadastros (Admin)
+| Endpoint | Tela/Rota | Entrada de UI |
+| --- | --- | --- |
+| GET /admin/catalog/categories | `/admin/cadastros` | Lista de categorias |
+| POST /admin/catalog/categories | `/admin/cadastros` | Criar categoria |
+| PATCH /admin/catalog/categories/:id | `/admin/cadastros` | Editar categoria |
+| DELETE /admin/catalog/categories/:id | `/admin/cadastros` | Remover categoria |
+| GET /admin/catalog/groups | `/admin/cadastros` | Lista de subcategorias |
+| POST /admin/catalog/groups | `/admin/cadastros` | Criar subcategoria |
+| PATCH /admin/catalog/groups/:id | `/admin/cadastros` | Editar subcategoria |
+| DELETE /admin/catalog/groups/:id | `/admin/cadastros` | Remover subcategoria |
+| GET /admin/catalog/sections | `/admin/cadastros` | Lista de secoes |
+| POST /admin/catalog/sections | `/admin/cadastros` | Criar secao |
+| PATCH /admin/catalog/sections/:id | `/admin/cadastros` | Editar secao |
+| DELETE /admin/catalog/sections/:id | `/admin/cadastros` | Remover secao |
+| GET /admin/catalog/sales-models | `/admin/cadastros` | Lista de tipos de venda |
+| POST /admin/catalog/sales-models | `/admin/cadastros` | Criar tipo de venda |
+| PATCH /admin/catalog/sales-models/:id | `/admin/cadastros` | Editar tipo de venda |
+| DELETE /admin/catalog/sales-models/:id | `/admin/cadastros` | Remover tipo de venda |
+| GET /admin/catalog/origins | `/admin/cadastros` | Lista de procedencias |
+| POST /admin/catalog/origins | `/admin/cadastros` | Criar procedencia |
+| PATCH /admin/catalog/origins/:id | `/admin/cadastros` | Editar procedencia |
+| DELETE /admin/catalog/origins/:id | `/admin/cadastros` | Remover procedencia |
+| GET /admin/catalog/recovery-options | `/admin/cadastros` | Lista de dados de recuperacao |
+| POST /admin/catalog/recovery-options | `/admin/cadastros` | Criar dados de recuperacao |
+| PATCH /admin/catalog/recovery-options/:id | `/admin/cadastros` | Editar dados de recuperacao |
+| DELETE /admin/catalog/recovery-options/:id | `/admin/cadastros` | Remover dados de recuperacao |
+
 ## Settings + Users (Admin)
 | Endpoint | Tela/Rota | Entrada de UI |
 | --- | --- | --- |
@@ -98,6 +135,15 @@
 | --- | --- | --- |
 | POST /admin/orders/:id/release | `/admin/pedidos` | Liberar pagamento |
 | POST /admin/orders/:id/refund | `/admin/pedidos` | Reembolsar buyer |
+
+## Admin Listings
+| Endpoint | Tela/Rota | Entrada de UI |
+| --- | --- | --- |
+| GET /admin/listings | `/admin/anuncios` | Lista de anuncios |
+| POST /admin/listings | `/admin/anuncios` | Criar anuncio |
+| POST /admin/listings/:id/approve | `/admin/anuncios` | Aprovar anuncio |
+| POST /admin/listings/:id/reject | `/admin/anuncios` | Reprovar anuncio |
+| POST /admin/listings/:id/suspend | `/admin/anuncios` | Suspender anuncio |
 
 ## Webhooks + Health
 | Endpoint | Tela/Rota | Entrada de UI |

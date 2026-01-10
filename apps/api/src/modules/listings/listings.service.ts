@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { AuditAction, DeliveryType, ListingStatus, Prisma } from '@prisma/client';
+import { AuditAction, DeliveryType, ListingStatus, Prisma, UserRole } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateListingDto } from './dto/create-listing.dto';
@@ -200,10 +200,24 @@ export class ListingsService {
   }
 
   async createListing(sellerId: string, dto: CreateListingDto) {
+    const catalog = await this.resolveCategoryLinks(
+      dto.categoryId,
+      dto.categoryGroupId,
+      dto.categorySectionId,
+    );
+    await this.ensureOptionExists('salesModel', dto.salesModelId);
+    await this.ensureOptionExists('origin', dto.originId);
+    await this.ensureOptionExists('recoveryOption', dto.recoveryOptionId);
+
     return this.prisma.listing.create({
       data: {
         sellerId,
         categoryId: dto.categoryId,
+        categoryGroupId: catalog.groupId ?? undefined,
+        categorySectionId: catalog.sectionId ?? undefined,
+        salesModelId: dto.salesModelId,
+        originId: dto.originId,
+        recoveryOptionId: dto.recoveryOptionId,
         title: dto.title,
         description: dto.description,
         priceCents: dto.priceCents,
@@ -236,11 +250,74 @@ export class ListingsService {
       include: {
         seller: { select: { id: true, email: true } },
         category: { select: { id: true, name: true, slug: true } },
+        categoryGroup: { select: { id: true, name: true, slug: true } },
+        categorySection: { select: { id: true, name: true, slug: true } },
+        salesModel: { select: { id: true, name: true, slug: true } },
+        origin: { select: { id: true, name: true, slug: true } },
+        recoveryOption: { select: { id: true, name: true, slug: true } },
       },
       orderBy: { createdAt: 'desc' },
       skip: query.skip,
       take: query.take ?? 50,
     });
+  }
+
+  async createListingAsAdmin(
+    adminId: string,
+    dto: CreateListingDto & { sellerId: string },
+    meta: AuditMeta,
+  ) {
+    const seller = await this.prisma.user.findUnique({ where: { id: dto.sellerId } });
+    if (!seller) {
+      throw new NotFoundException('Seller not found.');
+    }
+    if (seller.role !== UserRole.SELLER) {
+      throw new BadRequestException('Seller must have role SELLER.');
+    }
+
+    const catalog = await this.resolveCategoryLinks(
+      dto.categoryId,
+      dto.categoryGroupId,
+      dto.categorySectionId,
+    );
+    await this.ensureOptionExists('salesModel', dto.salesModelId);
+    await this.ensureOptionExists('origin', dto.originId);
+    await this.ensureOptionExists('recoveryOption', dto.recoveryOptionId);
+
+    const created = await this.prisma.listing.create({
+      data: {
+        sellerId: dto.sellerId,
+        categoryId: dto.categoryId,
+        categoryGroupId: catalog.groupId ?? undefined,
+        categorySectionId: catalog.sectionId ?? undefined,
+        salesModelId: dto.salesModelId,
+        originId: dto.originId,
+        recoveryOptionId: dto.recoveryOptionId,
+        title: dto.title,
+        description: dto.description,
+        priceCents: dto.priceCents,
+        currency: dto.currency,
+        deliveryType: dto.deliveryType,
+        deliverySlaHours: dto.deliverySlaHours,
+        refundPolicy: dto.refundPolicy,
+        status: ListingStatus.DRAFT,
+      },
+    });
+
+    await this.createAuditLog(
+      this.prisma,
+      adminId,
+      created.id,
+      {
+        action: AuditAction.CREATE,
+        reason: 'admin create',
+        from: ListingStatus.DRAFT,
+        to: created.status,
+      },
+      meta,
+    );
+
+    return created;
   }
 
   async getSellerListing(sellerId: string, listingId: string) {
@@ -274,9 +351,46 @@ export class ListingsService {
       throw new BadRequestException('Remove inventory before switching to manual delivery.');
     }
 
-    const data: UpdateListingDto & { status?: ListingStatus } = {
+    const data: UpdateListingDto & {
+      status?: ListingStatus;
+      categoryGroupId?: string | null;
+      categorySectionId?: string | null;
+      salesModelId?: string | null;
+      originId?: string | null;
+      recoveryOptionId?: string | null;
+    } = {
       ...dto,
     };
+
+    const categoryId = dto.categoryId ?? listing.categoryId;
+    const shouldValidateCategory =
+      dto.categoryId !== undefined ||
+      dto.categoryGroupId !== undefined ||
+      dto.categorySectionId !== undefined;
+    if (shouldValidateCategory) {
+      const catalog = await this.resolveCategoryLinks(
+        categoryId,
+        dto.categoryGroupId ?? listing.categoryGroupId ?? undefined,
+        dto.categorySectionId ?? listing.categorySectionId ?? undefined,
+      );
+      if (dto.categoryGroupId !== undefined || dto.categorySectionId !== undefined) {
+        data.categoryGroupId = catalog.groupId ?? undefined;
+        data.categorySectionId = catalog.sectionId ?? undefined;
+      }
+    }
+
+    if (dto.salesModelId !== undefined) {
+      await this.ensureOptionExists('salesModel', dto.salesModelId);
+      data.salesModelId = dto.salesModelId ?? null;
+    }
+    if (dto.originId !== undefined) {
+      await this.ensureOptionExists('origin', dto.originId);
+      data.originId = dto.originId ?? null;
+    }
+    if (dto.recoveryOptionId !== undefined) {
+      await this.ensureOptionExists('recoveryOption', dto.recoveryOptionId);
+      data.recoveryOptionId = dto.recoveryOptionId ?? null;
+    }
 
     if (listing.status === ListingStatus.PUBLISHED) {
       data.status = ListingStatus.PENDING;
@@ -484,5 +598,74 @@ export class ListingsService {
         payload,
       },
     });
+  }
+
+  private async resolveCategoryLinks(
+    categoryId: string,
+    groupId?: string,
+    sectionId?: string,
+  ) {
+    let resolvedGroupId = groupId;
+    if (resolvedGroupId) {
+      const group = await this.prisma.categoryGroup.findUnique({
+        where: { id: resolvedGroupId },
+      });
+      if (!group) {
+        throw new NotFoundException('Subcategoria nao encontrada.');
+      }
+      if (group.categoryId !== categoryId) {
+        throw new BadRequestException('Subcategoria nao pertence a categoria.');
+      }
+    }
+
+    if (sectionId) {
+      const section = await this.prisma.categorySection.findUnique({
+        where: { id: sectionId },
+      });
+      if (!section) {
+        throw new NotFoundException('Secao nao encontrada.');
+      }
+      if (resolvedGroupId && section.groupId !== resolvedGroupId) {
+        throw new BadRequestException('Secao nao pertence a subcategoria.');
+      }
+      if (!resolvedGroupId) {
+        const group = await this.prisma.categoryGroup.findUnique({
+          where: { id: section.groupId },
+        });
+        if (!group) {
+          throw new NotFoundException('Subcategoria nao encontrada.');
+        }
+        if (group.categoryId !== categoryId) {
+          throw new BadRequestException('Secao nao pertence a categoria.');
+        }
+        resolvedGroupId = section.groupId;
+      }
+    }
+
+    return { groupId: resolvedGroupId, sectionId };
+  }
+
+  private async ensureOptionExists(
+    option: 'salesModel' | 'origin' | 'recoveryOption',
+    id?: string,
+  ) {
+    if (!id) {
+      return;
+    }
+    const exists =
+      option === 'salesModel'
+        ? await this.prisma.salesModel.findUnique({ where: { id } })
+        : option === 'origin'
+          ? await this.prisma.originOption.findUnique({ where: { id } })
+          : await this.prisma.recoveryOption.findUnique({ where: { id } });
+    if (!exists) {
+      const label =
+        option === 'salesModel'
+          ? 'Tipo de venda'
+          : option === 'origin'
+            ? 'Procedencia'
+            : 'Dados de recuperacao';
+      throw new NotFoundException(`${label} nao encontrado.`);
+    }
   }
 }

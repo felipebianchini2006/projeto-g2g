@@ -171,9 +171,6 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
                 </span>
               </div>
               <h3 className="mt-4 text-lg font-black text-meow-charcoal">{displayName}</h3>
-              <p className="text-xs font-semibold uppercase text-meow-muted">
-                Cliente VIP | Nivel 12
-              </p>
             </div>
 
             <div className="mt-6 grid gap-5">

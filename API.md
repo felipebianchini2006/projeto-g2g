@@ -43,6 +43,11 @@ Listing:
   "id": "listing-uuid",
   "sellerId": "seller-uuid",
   "categoryId": "category-uuid",
+  "categoryGroupId": "group-uuid",
+  "categorySectionId": "section-uuid",
+  "salesModelId": "sales-model-uuid",
+  "originId": "origin-uuid",
+  "recoveryOptionId": "recovery-option-uuid",
   "title": "Conta Steam",
   "description": "Conta com jogos premium",
   "priceCents": 4990,
@@ -253,6 +258,35 @@ Exemplo de resposta:
   }
 ]
 
+### Catalogo publico
+- GET /public/catalog/groups?categoryId=...
+- GET /public/catalog/sections?groupId=...
+- GET /public/catalog/sales-models
+- GET /public/catalog/origins
+- GET /public/catalog/recovery-options
+
+Exemplo de resposta (group):
+[
+  {
+    "id": "group-uuid",
+    "categoryId": "category-uuid",
+    "slug": "valorant",
+    "name": "Valorant",
+    "description": "Subcategoria do jogo"
+  }
+]
+
+Exemplo de resposta (section):
+[
+  {
+    "id": "section-uuid",
+    "groupId": "group-uuid",
+    "slug": "contas-smurf",
+    "name": "Contas (Smurf)",
+    "description": "Secao especifica do jogo"
+  }
+]
+
 ### Listings do seller (role SELLER)
 - POST /listings
 - GET /listings?status=...
@@ -265,6 +299,11 @@ Exemplo: criar listing
 Request:
 {
   "categoryId": "category-uuid",
+  "categoryGroupId": "group-uuid",
+  "categorySectionId": "section-uuid",
+  "salesModelId": "sales-model-uuid",
+  "originId": "origin-uuid",
+  "recoveryOptionId": "recovery-option-uuid",
   "title": "Conta Steam",
   "description": "Conta com jogos premium",
   "priceCents": 4990,
@@ -413,6 +452,32 @@ Request:
 Response:
 { "status": "partial_refund", "disputeId": "dispute-uuid" }
 
+### Listings (ADMIN)
+- GET /admin/listings?status=...
+- POST /admin/listings
+- POST /admin/listings/:id/approve
+- POST /admin/listings/:id/reject
+- POST /admin/listings/:id/suspend
+
+Exemplo: criar listing (admin)
+Request:
+{
+  "sellerId": "seller-uuid",
+  "categoryId": "category-uuid",
+  "categoryGroupId": "group-uuid",
+  "categorySectionId": "section-uuid",
+  "salesModelId": "sales-model-uuid",
+  "originId": "origin-uuid",
+  "recoveryOptionId": "recovery-option-uuid",
+  "title": "Conta Steam",
+  "description": "Conta com jogos premium",
+  "priceCents": 4990,
+  "currency": "BRL",
+  "deliveryType": "AUTO",
+  "deliverySlaHours": 24,
+  "refundPolicy": "Reembolso em ate 7 dias."
+}
+
 ### Settings (ADMIN)
 - GET /admin/settings
 - PUT /admin/settings
@@ -421,6 +486,32 @@ Exemplo: atualizar settings
 Request:
 { "platformFeeBps": 250, "orderPaymentTtlSeconds": 900, "settlementReleaseDelayHours": 24 }
 Response: PlatformSetting
+
+### Catalogo (ADMIN)
+- GET /admin/catalog/categories
+- POST /admin/catalog/categories
+- PATCH /admin/catalog/categories/:id
+- DELETE /admin/catalog/categories/:id
+- GET /admin/catalog/groups?categoryId=...
+- POST /admin/catalog/groups
+- PATCH /admin/catalog/groups/:id
+- DELETE /admin/catalog/groups/:id
+- GET /admin/catalog/sections?groupId=...
+- POST /admin/catalog/sections
+- PATCH /admin/catalog/sections/:id
+- DELETE /admin/catalog/sections/:id
+- GET /admin/catalog/sales-models
+- POST /admin/catalog/sales-models
+- PATCH /admin/catalog/sales-models/:id
+- DELETE /admin/catalog/sales-models/:id
+- GET /admin/catalog/origins
+- POST /admin/catalog/origins
+- PATCH /admin/catalog/origins/:id
+- DELETE /admin/catalog/origins/:id
+- GET /admin/catalog/recovery-options
+- POST /admin/catalog/recovery-options
+- PATCH /admin/catalog/recovery-options/:id
+- DELETE /admin/catalog/recovery-options/:id
 
 ### Users (ADMIN)
 - GET /admin/users?role=SELLER&blocked=false&search=gmail&skip=0&take=50

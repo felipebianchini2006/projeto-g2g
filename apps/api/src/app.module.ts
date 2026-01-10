@@ -20,6 +20,7 @@ import { WalletModule } from './modules/wallet/wallet.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { UsersModule } from './modules/users/users.module';
+import { CatalogModule } from './modules/catalog/catalog.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { UsersModule } from './modules/users/users.module';
     DisputesModule,
     EmailModule,
     ChatModule,
+    CatalogModule,
     HealthModule,
     ListingsModule,
     NotificationsModule,

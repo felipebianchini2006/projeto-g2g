@@ -65,6 +65,10 @@ export const AdminShell = ({ breadcrumbs, children }: AdminShellProps) => {
         ],
       },
       {
+        title: 'Cadastros',
+        items: [{ label: 'Cadastros', href: '/admin/cadastros' }],
+      },
+      {
         title: 'Conta',
         items: [
           { label: 'Voltar ao site', href: '/' },
@@ -136,6 +140,7 @@ export const AdminShell = ({ breadcrumbs, children }: AdminShellProps) => {
                       Webhooks: <Activity size={16} aria-hidden />,
                       Sistema: <Activity size={16} aria-hidden />,
                       Parametros: <Settings size={16} aria-hidden />,
+                      Cadastros: <Settings size={16} aria-hidden />,
                     };
 
                     if (item.onClick) {
