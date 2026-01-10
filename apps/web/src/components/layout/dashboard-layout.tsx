@@ -14,6 +14,7 @@ import {
   Settings,
   Shield,
   ShoppingBag,
+  Sparkles,
   Ticket,
   User,
   Users,
@@ -90,21 +91,14 @@ const accountNav = (logout: () => Promise<void>, goHome: () => void): MenuSectio
       { label: 'Visao geral', href: '/conta' },
       { label: 'Minhas compras', href: '/conta/pedidos' },
       { label: 'Favoritos', href: '/conta/favoritos' },
-      { label: 'Carteira & cashback', href: '/conta/carteira' },
+      { label: 'Carteira', href: '/conta/carteira' },
       { label: 'Meus tickets', href: '/conta/tickets' },
-      { label: 'Meus anuncios', href: '/conta/anuncios' },
-      { label: 'Minhas vendas', href: '/conta/vendas' },
+      { label: 'Configuracoes', href: '/conta/config' },
     ],
   },
   {
     title: 'Conta',
     items: [
-      { label: 'Minha conta', href: '/conta/minha-conta' },
-      { label: 'Meus dados', href: '/conta/meus-dados' },
-      { label: 'Seguranca', href: '/conta/seguranca' },
-      { label: 'Sessoes', href: '/conta/sessoes' },
-      { label: 'Central de ajuda', href: '/conta/ajuda' },
-      { label: 'Notificacoes', href: '/central-de-notificacoes' },
       {
         label: 'Sair da conta',
         tone: 'danger',
@@ -156,7 +150,7 @@ const iconMap: Record<string, React.ReactNode> = {
   'Visao geral': <LayoutGrid size={16} aria-hidden />,
   'Minhas compras': <ShoppingBag size={16} aria-hidden />,
   Favoritos: <Heart size={16} aria-hidden />,
-  'Carteira & cashback': <CreditCard size={16} aria-hidden />,
+  Carteira: <CreditCard size={16} aria-hidden />,
   'Meus tickets': <Ticket size={16} aria-hidden />,
   'Meus anuncios': <ShoppingBag size={16} aria-hidden />,
   'Minhas vendas': <ShoppingBag size={16} aria-hidden />,
@@ -166,6 +160,7 @@ const iconMap: Record<string, React.ReactNode> = {
   Sessoes: <Settings size={16} aria-hidden />,
   'Central de ajuda': <Ticket size={16} aria-hidden />,
   Notificacoes: <Bell size={16} aria-hidden />,
+  Configuracoes: <Settings size={16} aria-hidden />,
   'Sair da conta': <LogOut size={16} aria-hidden />,
   Atendimento: <Ticket size={16} aria-hidden />,
   Disputas: <Shield size={16} aria-hidden />,
@@ -261,6 +256,101 @@ const SidebarCard = ({
   </Card>
 );
 
+const AccountSidebar = ({
+  sections,
+  pathname,
+  onNavigate,
+  displayName,
+  initials,
+}: {
+  sections: MenuSection[];
+  pathname: string;
+  onNavigate?: () => void;
+  displayName: string;
+  initials: string;
+}) => (
+  <aside className="rounded-[30px] border border-meow-red/10 bg-white p-5 shadow-card">
+    <Link
+      href="/"
+      className="inline-flex items-center gap-2 rounded-full border border-meow-red/20 bg-white px-4 py-2 text-xs font-bold text-meow-deep shadow-card"
+      onClick={onNavigate}
+    >
+      <span className="grid h-7 w-7 place-items-center rounded-full bg-meow-100 text-meow-deep">
+        <Sparkles size={14} aria-hidden />
+      </span>
+      Voltar a loja
+    </Link>
+
+    <div className="mt-6 flex flex-col items-center text-center">
+      <div className="relative">
+        <div className="grid h-20 w-20 place-items-center rounded-full bg-gradient-to-br from-meow-200 to-meow-300 text-2xl font-black text-white shadow-cute">
+          {initials}
+        </div>
+        <span className="absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-full bg-meow-300 text-xs font-black text-white shadow-cute">
+          <User size={12} aria-hidden />
+        </span>
+      </div>
+      <h3 className="mt-4 text-lg font-black text-meow-charcoal">{displayName}</h3>
+      <span className="mt-1 rounded-full bg-meow-100 px-3 py-1 text-[10px] font-bold uppercase text-meow-deep">
+        Conta padrao
+      </span>
+      <div className="mt-3 w-full rounded-full bg-meow-100/70 px-3 py-2 text-[10px] font-bold uppercase text-meow-muted">
+        Nivel inicial
+      </div>
+    </div>
+
+    <div className="mt-6 grid gap-5">
+      {sections.map((section) => (
+        <div key={section.title}>
+          <p className="text-[11px] font-bold uppercase tracking-[0.4px] text-meow-muted">
+            {section.title}
+          </p>
+          <div className="mt-3 grid gap-1 text-sm">
+            {section.items.map((item) => {
+              const baseClasses =
+                'flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold transition';
+              const activeClasses = isActivePath(pathname, item.href)
+                ? 'bg-meow-100 text-meow-deep'
+                : 'text-meow-charcoal/80 hover:bg-meow-50 hover:text-meow-charcoal';
+              const dangerClasses =
+                item.tone === 'danger' ? 'text-red-500 hover:text-red-600' : '';
+
+              if (item.onClick) {
+                return (
+                  <button
+                    key={item.label}
+                    type="button"
+                    className={cn(baseClasses, activeClasses, dangerClasses)}
+                    onClick={async () => {
+                      await item.onClick?.();
+                      onNavigate?.();
+                    }}
+                  >
+                    {iconMap[item.label] ?? <LayoutGrid size={16} aria-hidden />}
+                    {item.label}
+                  </button>
+                );
+              }
+
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href ?? '#'}
+                  className={cn(baseClasses, activeClasses, dangerClasses)}
+                  onClick={onNavigate}
+                >
+                  {iconMap[item.label] ?? <LayoutGrid size={16} aria-hidden />}
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  </aside>
+);
+
 type DashboardLayoutProps = {
   children: React.ReactNode;
 };
@@ -319,13 +409,22 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
             <div className="mt-6 grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
               <aside className="hidden lg:block">
-                <SidebarCard
-                  title={headerTitle}
-                  sections={menuSections}
-                  pathname={pathname}
-                  displayName={displayName}
-                  initials={initials}
-                />
+                {isAdminRoute ? (
+                  <SidebarCard
+                    title={headerTitle}
+                    sections={menuSections}
+                    pathname={pathname}
+                    displayName={displayName}
+                    initials={initials}
+                  />
+                ) : (
+                  <AccountSidebar
+                    sections={menuSections}
+                    pathname={pathname}
+                    displayName={displayName}
+                    initials={initials}
+                  />
+                )}
               </aside>
               <div className="space-y-6">{children}</div>
             </div>
@@ -352,14 +451,24 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 </button>
               </div>
               <div className="mt-5">
-                <SidebarCard
-                  title={headerTitle}
-                  sections={menuSections}
-                  pathname={pathname}
-                  onNavigate={() => setSidebarOpen(false)}
-                  displayName={displayName}
-                  initials={initials}
-                />
+                {isAdminRoute ? (
+                  <SidebarCard
+                    title={headerTitle}
+                    sections={menuSections}
+                    pathname={pathname}
+                    onNavigate={() => setSidebarOpen(false)}
+                    displayName={displayName}
+                    initials={initials}
+                  />
+                ) : (
+                  <AccountSidebar
+                    sections={menuSections}
+                    pathname={pathname}
+                    onNavigate={() => setSidebarOpen(false)}
+                    displayName={displayName}
+                    initials={initials}
+                  />
+                )}
               </div>
             </div>
           </div>

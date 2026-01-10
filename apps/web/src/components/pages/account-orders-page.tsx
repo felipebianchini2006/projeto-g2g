@@ -7,6 +7,7 @@ import { ApiClientError } from '../../lib/api-client';
 import { ordersApi, type Order, type PaymentStatus } from '../../lib/orders-api';
 import { useAuth } from '../auth/auth-provider';
 import { AccountShell } from '../account/account-shell';
+import { Select } from '../ui/select';
 
 type OrdersState = {
   status: 'loading' | 'ready';
@@ -55,12 +56,20 @@ export const AccountOrdersContent = () => {
     status: 'loading',
     orders: [],
   });
+  const [statusFilter, setStatusFilter] = useState<'all' | keyof typeof statusLabel>('all');
 
   const ordersSorted = useMemo(() => {
     return [...state.orders].sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
   }, [state.orders]);
+
+  const filteredOrders = useMemo(() => {
+    if (statusFilter === 'all') {
+      return ordersSorted;
+    }
+    return ordersSorted.filter((order) => order.status === statusFilter);
+  }, [ordersSorted, statusFilter]);
 
   useEffect(() => {
     if (!accessToken) {
@@ -131,6 +140,23 @@ export const AccountOrdersContent = () => {
           <p className="text-sm text-meow-muted">Acompanhe seus pedidos e entregas.</p>
         </div>
 
+        <div className="max-w-xs">
+          <Select
+            className="rounded-xl border-meow-red/20 bg-white text-sm font-semibold text-meow-charcoal"
+            value={statusFilter}
+            onChange={(event) =>
+              setStatusFilter(event.target.value as 'all' | keyof typeof statusLabel)
+            }
+          >
+            <option value="all">Todos os status</option>
+            {Object.entries(statusLabel).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </Select>
+        </div>
+
         {state.error ? (
           <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {state.error}
@@ -143,14 +169,14 @@ export const AccountOrdersContent = () => {
           </div>
         ) : null}
 
-        {state.status === 'ready' && ordersSorted.length === 0 ? (
+        {state.status === 'ready' && filteredOrders.length === 0 ? (
           <div className="rounded-2xl border border-slate-100 bg-meow-50 px-4 py-3 text-sm text-meow-muted">
             Nenhuma compra encontrada.
           </div>
         ) : null}
 
         <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
-          {ordersSorted.map((order) => {
+          {filteredOrders.map((order) => {
             const firstItem = order.items[0];
             const payment = order.payments?.[0];
             const deliveryLabel =

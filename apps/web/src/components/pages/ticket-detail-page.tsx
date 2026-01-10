@@ -12,6 +12,9 @@ import {
 } from '../../lib/tickets-api';
 import { useAuth } from '../auth/auth-provider';
 import { AccountShell } from '../account/account-shell';
+import { Button } from '../ui/button';
+import { Card } from '../ui/card';
+import { Textarea } from '../ui/textarea';
 
 type TicketDetailContentProps = {
   ticketId: string;
@@ -139,10 +142,10 @@ export const TicketDetailContent = ({ ticketId }: TicketDetailContentProps) => {
         { label: `Ticket #${ticketCode}` },
       ]}
     >
-      <div className="rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+      <Card className="rounded-2xl border border-meow-red/20 p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
         <h1 className="text-xl font-black text-meow-charcoal">Ticket #{ticketCode}</h1>
         <p className="mt-2 text-sm text-meow-muted">{summaryText}</p>
-      </div>
+      </Card>
 
       {error ? (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -161,7 +164,7 @@ export const TicketDetailContent = ({ ticketId }: TicketDetailContentProps) => {
         </div>
       ) : (
         <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+          <Card className="rounded-2xl border border-meow-red/20 p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
             <div className="flex flex-wrap items-center gap-6 text-sm text-meow-muted">
               <div>
                 <span className="text-xs font-semibold uppercase tracking-[0.4px]">Status</span>
@@ -205,16 +208,16 @@ export const TicketDetailContent = ({ ticketId }: TicketDetailContentProps) => {
                 ))
               )}
             </div>
-          </div>
+          </Card>
 
-          <div className="rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+          <Card className="rounded-2xl border border-meow-red/20 p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
             <h3 className="text-base font-bold text-meow-charcoal">Nova mensagem</h3>
             <p className="mt-2 text-xs text-meow-muted">Anexos sao opcionais (MVP).</p>
             <form className="mt-4 grid gap-3" onSubmit={handleSendMessage}>
               <label className="grid gap-1 text-xs font-semibold text-meow-muted">
                 Mensagem
-                <textarea
-                  className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
+                <Textarea
+                  className="rounded-xl border-meow-red/20 bg-white text-sm text-meow-charcoal"
                   rows={4}
                   value={draft}
                   onChange={(event) => setDraft(event.target.value)}
@@ -224,23 +227,19 @@ export const TicketDetailContent = ({ ticketId }: TicketDetailContentProps) => {
               </label>
               <label className="grid gap-1 text-xs font-semibold text-meow-muted">
                 Anexos (links)
-                <textarea
-                  className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
+                <Textarea
+                  className="rounded-xl border-meow-red/20 bg-white text-sm text-meow-charcoal"
                   rows={2}
                   value={attachmentsInput}
                   onChange={(event) => setAttachmentsInput(event.target.value)}
                   placeholder="Opcional: URLs separadas por virgula"
                 />
               </label>
-              <button
-                className="rounded-full bg-meow-linear px-4 py-2 text-xs font-bold text-white"
-                type="submit"
-                disabled={busy}
-              >
+              <Button type="submit" size="sm" disabled={busy}>
                 {busy ? 'Enviando...' : 'Enviar mensagem'}
-              </button>
+              </Button>
             </form>
-          </div>
+          </Card>
         </div>
       )}
     </AccountShell>

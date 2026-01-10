@@ -7,6 +7,8 @@ import { ApiClientError } from '../../lib/api-client';
 import { walletApi, type WalletSummary } from '../../lib/wallet-api';
 import { useAuth } from '../auth/auth-provider';
 import { AccountShell } from '../account/account-shell';
+import { Button } from '../ui/button';
+import { Card } from '../ui/card';
 
 const formatCurrency = (value: number, currency = 'BRL') =>
   new Intl.NumberFormat('pt-BR', {
@@ -115,29 +117,22 @@ export const WalletSummaryContent = () => {
         { label: 'Carteira' },
       ]}
     >
-      <div className="rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+      <Card className="rounded-2xl border border-meow-red/20 p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-xl font-black text-meow-charcoal">Carteira</h1>
             <p className="mt-2 text-sm text-meow-muted">{subtitle}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Link
-              className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
-              href="/conta/carteira/extrato"
-            >
+            <Link href="/conta/carteira/extrato" className="text-xs font-bold text-meow-deep">
               Ver extrato
             </Link>
-            <button
-              className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
-              type="button"
-              onClick={loadSummary}
-            >
+            <Button variant="secondary" size="sm" type="button" onClick={loadSummary}>
               Atualizar
-            </button>
+            </Button>
           </div>
         </div>
-      </div>
+      </Card>
 
       {state.error ? (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -147,7 +142,7 @@ export const WalletSummaryContent = () => {
 
       {state.summary ? (
         <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+          <Card className="rounded-2xl border border-meow-red/20 p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
             <p className="text-xs font-semibold uppercase tracking-[0.4px] text-meow-muted">
               A receber
             </p>
@@ -157,8 +152,8 @@ export const WalletSummaryContent = () => {
             <p className="mt-2 text-xs text-meow-muted">
               Pedidos confirmados, aguardando liberacao.
             </p>
-          </div>
-          <div className="rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+          </Card>
+          <Card className="rounded-2xl border border-meow-red/20 p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
             <p className="text-xs font-semibold uppercase tracking-[0.4px] text-meow-muted">
               Bloqueado
             </p>
@@ -166,8 +161,8 @@ export const WalletSummaryContent = () => {
               {formatCurrency(state.summary.reversedCents, state.summary.currency)}
             </p>
             <p className="mt-2 text-xs text-meow-muted">Valores em disputa ou reembolso.</p>
-          </div>
-          <div className="rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+          </Card>
+          <Card className="rounded-2xl border border-meow-red/20 p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
             <p className="text-xs font-semibold uppercase tracking-[0.4px] text-meow-muted">
               Disponivel
             </p>
@@ -175,7 +170,7 @@ export const WalletSummaryContent = () => {
               {formatCurrency(state.summary.availableCents, state.summary.currency)}
             </p>
             <p className="mt-2 text-xs text-meow-muted">Pronto para sacar ou usar.</p>
-          </div>
+          </Card>
         </div>
       ) : null}
 

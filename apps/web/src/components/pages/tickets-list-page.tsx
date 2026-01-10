@@ -12,6 +12,11 @@ import {
 } from '../../lib/tickets-api';
 import { useAuth } from '../auth/auth-provider';
 import { AccountShell } from '../account/account-shell';
+import { Button } from '../ui/button';
+import { Card } from '../ui/card';
+import { Input } from '../ui/input';
+import { Select } from '../ui/select';
+import { Textarea } from '../ui/textarea';
 
 type TicketsListContentProps = {
   initialOrderId?: string;
@@ -161,10 +166,10 @@ export const TicketsListContent = ({ initialOrderId }: TicketsListContentProps) 
         { label: 'Tickets' },
       ]}
     >
-      <div className="rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+      <Card className="rounded-2xl border border-meow-red/20 p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
         <h1 className="text-xl font-black text-meow-charcoal">Tickets de suporte</h1>
         <p className="mt-2 text-sm text-meow-muted">{summaryText}</p>
-      </div>
+      </Card>
 
       {state.error ? (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -178,11 +183,11 @@ export const TicketsListContent = ({ initialOrderId }: TicketsListContentProps) 
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+        <Card className="rounded-2xl border border-meow-red/20 p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-base font-bold text-meow-charcoal">Seus tickets</h2>
-            <select
-              className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-xs text-meow-charcoal"
+            <Select
+              className="rounded-xl border-meow-red/20 bg-white text-xs text-meow-charcoal"
               value={filterStatus}
               onChange={(event) => setFilterStatus(event.target.value as TicketStatus | 'all')}
             >
@@ -191,7 +196,7 @@ export const TicketsListContent = ({ initialOrderId }: TicketsListContentProps) 
               <option value="IN_PROGRESS">Em andamento</option>
               <option value="RESOLVED">Resolvidos</option>
               <option value="CLOSED">Fechados</option>
-            </select>
+            </Select>
           </div>
 
           {state.status === 'loading' ? (
@@ -228,16 +233,16 @@ export const TicketsListContent = ({ initialOrderId }: TicketsListContentProps) 
               </Link>
             ))}
           </div>
-        </div>
+        </Card>
 
-        <div className="rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+        <Card className="rounded-2xl border border-meow-red/20 p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
           <h2 className="text-base font-bold text-meow-charcoal">Abrir ticket</h2>
           <p className="mt-2 text-xs text-meow-muted">Anexos sao opcionais (MVP).</p>
           <form className="mt-4 grid gap-3" onSubmit={handleCreateTicket}>
             <label className="grid gap-1 text-xs font-semibold text-meow-muted">
               Pedido (opcional)
-              <input
-                className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
+              <Input
+                className="rounded-xl border-meow-red/20 bg-white text-sm text-meow-charcoal"
                 value={formState.orderId ?? ''}
                 onChange={(event) =>
                   setFormState((prev) => ({ ...prev, orderId: event.target.value }))
@@ -247,8 +252,8 @@ export const TicketsListContent = ({ initialOrderId }: TicketsListContentProps) 
             </label>
             <label className="grid gap-1 text-xs font-semibold text-meow-muted">
               Assunto
-              <input
-                className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
+              <Input
+                className="rounded-xl border-meow-red/20 bg-white text-sm text-meow-charcoal"
                 value={formState.subject}
                 onChange={(event) =>
                   setFormState((prev) => ({ ...prev, subject: event.target.value }))
@@ -259,8 +264,8 @@ export const TicketsListContent = ({ initialOrderId }: TicketsListContentProps) 
             </label>
             <label className="grid gap-1 text-xs font-semibold text-meow-muted">
               Mensagem inicial
-              <textarea
-                className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
+              <Textarea
+                className="rounded-xl border-meow-red/20 bg-white text-sm text-meow-charcoal"
                 rows={4}
                 value={formState.message}
                 onChange={(event) =>
@@ -272,23 +277,19 @@ export const TicketsListContent = ({ initialOrderId }: TicketsListContentProps) 
             </label>
             <label className="grid gap-1 text-xs font-semibold text-meow-muted">
               Anexos (links)
-              <textarea
-                className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
+              <Textarea
+                className="rounded-xl border-meow-red/20 bg-white text-sm text-meow-charcoal"
                 rows={2}
                 value={attachmentsInput}
                 onChange={(event) => setAttachmentsInput(event.target.value)}
                 placeholder="Opcional: URLs separadas por virgula"
               />
             </label>
-            <button
-              className="rounded-full bg-meow-linear px-4 py-2 text-xs font-bold text-white"
-              type="submit"
-              disabled={busy}
-            >
+            <Button type="submit" size="sm" disabled={busy}>
               {busy ? 'Enviando...' : 'Abrir ticket'}
-            </button>
+            </Button>
           </form>
-        </div>
+        </Card>
       </div>
     </AccountShell>
   );

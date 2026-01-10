@@ -23,6 +23,7 @@ export type PublicListing = {
   id: string;
   title: string;
   description?: string | null;
+  oldPriceCents?: number;
   priceCents: number;
   currency: string;
   status: ListingStatus;
@@ -233,6 +234,7 @@ const fallbackListings: PublicListing[] = products.map((product) => {
     id: slugify(product.name),
     title: product.name,
     description: product.description,
+    oldPriceCents: parsePriceToCents(product.oldPrice),
     priceCents: parsePriceToCents(product.currentPrice),
     currency: 'BRL',
     status: 'PUBLISHED',

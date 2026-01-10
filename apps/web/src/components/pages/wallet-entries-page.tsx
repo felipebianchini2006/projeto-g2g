@@ -13,6 +13,10 @@ import {
 } from '../../lib/wallet-api';
 import { useAuth } from '../auth/auth-provider';
 import { AccountShell } from '../account/account-shell';
+import { Button } from '../ui/button';
+import { Card } from '../ui/card';
+import { Input } from '../ui/input';
+import { Select } from '../ui/select';
 
 const formatCurrency = (value: number, currency = 'BRL') =>
   new Intl.NumberFormat('pt-BR', {
@@ -185,36 +189,36 @@ export const WalletEntriesContent = () => {
       ]}
     >
       <div className="grid gap-4 lg:grid-cols-[1.2fr_repeat(2,1fr)]">
-        <div className="rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+        <Card className="rounded-2xl border border-meow-red/20 p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
           <p className="text-xs font-semibold uppercase tracking-[0.4px] text-meow-muted">
             Transacoes de credito
           </p>
           <p className="mt-2 text-sm text-meow-muted">{summaryText}</p>
-        </div>
-        <div className="rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+        </Card>
+        <Card className="rounded-2xl border border-meow-red/20 p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
           <p className="text-xs font-semibold uppercase tracking-[0.4px] text-meow-muted">
             Saldo a liberar
           </p>
           <p className="mt-2 text-2xl font-black text-meow-charcoal">
             {formatCurrency(summaryState.summary?.heldCents ?? 0)}
           </p>
-        </div>
-        <div className="rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+        </Card>
+        <Card className="rounded-2xl border border-meow-red/20 p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
           <p className="text-xs font-semibold uppercase tracking-[0.4px] text-meow-muted">
             Saldo disponivel
           </p>
           <p className="mt-2 text-2xl font-black text-meow-charcoal">
             {formatCurrency(summaryState.summary?.availableCents ?? 0)}
           </p>
-        </div>
+        </Card>
       </div>
 
-      <div className="rounded-2xl border border-meow-red/20 bg-white p-4 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+      <Card className="rounded-2xl border border-meow-red/20 p-4 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
         <div className="grid gap-3 md:grid-cols-[repeat(3,1fr)_auto]">
           <label className="grid gap-1 text-xs font-semibold text-meow-muted">
             De
-            <input
-              className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
+            <Input
+              className="rounded-xl border-meow-red/20 bg-white text-sm text-meow-charcoal"
               type="date"
               value={draftFilters.from}
               onChange={(event) =>
@@ -224,8 +228,8 @@ export const WalletEntriesContent = () => {
           </label>
           <label className="grid gap-1 text-xs font-semibold text-meow-muted">
             Ate
-            <input
-              className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
+            <Input
+              className="rounded-xl border-meow-red/20 bg-white text-sm text-meow-charcoal"
               type="date"
               value={draftFilters.to}
               onChange={(event) =>
@@ -235,8 +239,8 @@ export const WalletEntriesContent = () => {
           </label>
           <label className="grid gap-1 text-xs font-semibold text-meow-muted">
             Origem
-            <select
-              className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
+            <Select
+              className="rounded-xl border-meow-red/20 bg-white text-sm text-meow-charcoal"
               value={draftFilters.source}
               onChange={(event) =>
                 setDraftFilters((prev) => ({ ...prev, source: event.target.value }))
@@ -247,26 +251,18 @@ export const WalletEntriesContent = () => {
               <option value="REFUND">Reembolso</option>
               <option value="FEE">Taxa</option>
               <option value="PAYOUT">Saque</option>
-            </select>
+            </Select>
           </label>
           <div className="flex flex-wrap items-end gap-2">
-            <button
-              className="rounded-full bg-meow-linear px-4 py-2 text-xs font-bold text-white"
-              type="button"
-              onClick={applyFilters}
-            >
+            <Button size="sm" type="button" onClick={applyFilters}>
               Aplicar
-            </button>
-            <button
-              className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
-              type="button"
-              onClick={clearFilters}
-            >
+            </Button>
+            <Button variant="secondary" size="sm" type="button" onClick={clearFilters}>
               Limpar
-            </button>
+            </Button>
           </div>
         </div>
-      </div>
+      </Card>
 
       {state.error ? (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -315,22 +311,24 @@ export const WalletEntriesContent = () => {
       </div>
 
       <div className="flex items-center justify-end gap-2">
-        <button
-          className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
+        <Button
+          variant="secondary"
+          size="sm"
           type="button"
           onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
           disabled={!canPrev}
         >
           Anterior
-        </button>
-        <button
-          className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
+        </Button>
+        <Button
+          variant="secondary"
+          size="sm"
           type="button"
           onClick={() => setPage((prev) => prev + 1)}
           disabled={!canNext}
         >
           Proxima
-        </button>
+        </Button>
       </div>
     </AccountShell>
   );

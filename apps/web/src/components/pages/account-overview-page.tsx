@@ -83,7 +83,7 @@ export const AccountOverviewContent = () => {
         }
         setOrdersState({
           status: 'ready',
-          orders: orders.slice(0, 3),
+          orders,
         });
       } catch (error) {
         if (!active) {
@@ -142,20 +142,28 @@ export const AccountOverviewContent = () => {
         </p>
       </Card>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-3">
         {[
           {
             label: 'Total comprado',
             value: formatCurrency(
-              (summaryState.summary?.availableCents ?? 0) +
-                (summaryState.summary?.heldCents ?? 0),
+              ordersState.orders
+                .filter((order) =>
+                  ['PAID', 'DELIVERED', 'COMPLETED'].includes(order.status),
+                )
+                .reduce((acc, order) => acc + order.totalAmountCents, 0),
             ),
             accent: 'bg-rose-50 text-meow-deep',
           },
           {
-            label: 'Cashback',
+            label: 'Saldo disponivel',
             value: formatCurrency(summaryState.summary?.availableCents ?? 0),
             accent: 'bg-purple-50 text-purple-500',
+          },
+          {
+            label: 'Nexus points',
+            value: '0 pts',
+            accent: 'bg-amber-50 text-amber-500',
           },
         ].map((card) => (
           <Card key={card.label} className="rounded-[26px] border border-slate-100 p-5 shadow-card">
@@ -208,7 +216,7 @@ export const AccountOverviewContent = () => {
         ) : null}
 
         <div className="mt-4 grid gap-3">
-          {ordersState.orders.map((order) => {
+          {ordersState.orders.slice(0, 3).map((order) => {
             const firstItem = order.items[0];
             const status =
               order.status === 'DELIVERED' || order.status === 'COMPLETED'

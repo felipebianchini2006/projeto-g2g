@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { Heart, Star } from 'lucide-react';
+import { Heart } from 'lucide-react';
 
 import { fetchPublicListing, type PublicListing } from '../../lib/marketplace-public';
 import { useSite } from '../site-context';
@@ -44,11 +44,9 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
         source: response.source,
         error: response.error,
       });
-      if (response.listing?.media?.[0]?.url) {
-        setActiveMedia(response.listing.media[0].url);
-      } else {
-        setActiveMedia(null);
-      }
+      const fallbackImage = '/assets/meoow/highlight-01.webp';
+      const nextMedia = response.listing?.media?.[0]?.url ?? null;
+      setActiveMedia(nextMedia ?? fallbackImage);
     };
     loadListing().catch(() => {
       if (active) {
@@ -89,19 +87,21 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
 
   const listing = state.listing;
   const categoryLabel = listing.categoryLabel ?? listing.categorySlug ?? 'Marketplace';
-  const rating = 5.0;
-  const reviews = 42;
-  const oldPriceCents = Math.round(listing.priceCents * 1.28);
-  const discountPercent = Math.max(
-    Math.round(((oldPriceCents - listing.priceCents) / oldPriceCents) * 100),
-    5,
-  );
   const favoriteActive = isFavorite(listing.id);
   const tabs = [
     { id: 'descricao', label: 'Descricao' },
-    { id: 'avaliacoes', label: `Avaliacoes (${reviews})` },
+    { id: 'avaliacoes', label: 'Avaliacoes' },
     { id: 'duvidas', label: 'Duvidas' },
   ] as const;
+  const fallbackImage = '/assets/meoow/highlight-01.webp';
+  const mediaItems =
+    listing.media && listing.media.length > 0
+      ? listing.media.map((media) => ({
+          id: media.id,
+          url: media.url,
+          type: media.type,
+        }))
+      : [{ id: 'fallback', url: fallbackImage, type: 'IMAGE' }];
 
   return (
     <section className="bg-meow-50/60 pb-16 pt-10">
@@ -134,9 +134,11 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
         <div className="mt-6 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
             <div className="relative rounded-[24px] bg-slate-50 p-6">
-              <span className="inline-flex rounded-full bg-meow-300 px-4 py-1 text-[11px] font-bold uppercase text-white shadow-cute">
-                Exclusivo
-              </span>
+              {state.source === 'fallback' ? (
+                <span className="inline-flex rounded-full bg-meow-300 px-4 py-1 text-[11px] font-bold uppercase text-white shadow-cute">
+                  Exclusivo
+                </span>
+              ) : null}
               <button
                 type="button"
                 className="absolute right-6 top-6 grid h-10 w-10 place-items-center rounded-full bg-white text-meow-deep shadow-card"
@@ -155,14 +157,14 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
               </button>
               <div className="mt-6 flex min-h-[320px] items-center justify-center">
                 <img
-                  src={activeMedia ?? listing.media?.[0]?.url ?? '/assets/meoow/highlight-01.webp'}
+                  src={activeMedia ?? fallbackImage}
                   alt={listing.title}
                   className="max-h-[280px] object-contain drop-shadow-2xl"
                 />
               </div>
             </div>
             <div className="mt-5 flex flex-wrap gap-3">
-              {(listing.media ?? []).map((media) => (
+              {mediaItems.map((media) => (
                 <button
                   key={media.id}
                   type="button"
@@ -181,59 +183,21 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
 
           <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
             <h1 className="text-2xl font-black text-meow-charcoal">{listing.title}</h1>
-            <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-meow-muted">
-              <div className="flex items-center gap-1 text-amber-400">
-                {Array.from({ length: 5 }).map((_, index) => (
-                  <Star key={`star-${index}`} size={14} fill="currentColor" />
-                ))}
-              </div>
-              <span className="font-semibold text-meow-charcoal">
-                {rating.toFixed(1)}
-              </span>
-              <span className="text-meow-muted">({reviews})</span>
-              <span className="text-emerald-600">
-                {listing.deliveryType === 'AUTO' ? 'Entrega automatica' : 'Entrega manual'}
-              </span>
-            </div>
-
-            <div className="mt-6 rounded-2xl border border-meow-200 bg-meow-50 px-4 py-4">
-              <span className="text-xs font-bold uppercase text-meow-muted">
-                Escolha a edicao
-              </span>
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                {[
-                  { id: 'padrao', label: 'Padrao', price: listing.priceCents },
-                  { id: 'deluxe', label: 'Deluxe (+1k V)', price: listing.priceCents },
-                ].map((edition) => (
-                  <button
-                    key={edition.id}
-                    type="button"
-                    className={`rounded-2xl border px-4 py-3 text-sm font-semibold ${
-                      edition.id === 'padrao'
-                        ? 'border-meow-300 text-meow-deep shadow-cute'
-                        : 'border-slate-100 text-meow-charcoal'
-                    }`}
-                  >
-                    <div>{edition.label}</div>
-                    <div className="text-xs text-meow-muted">
-                      {formatCurrency(edition.price, listing.currency)}
-                    </div>
-                  </button>
-                ))}
-              </div>
+            <div className="mt-2 text-sm text-meow-muted">
+              {listing.deliveryType === 'AUTO' ? (
+                <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">
+                  Entrega automatica
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
+                  Entrega manual
+                </span>
+              )}
             </div>
 
             <div className="mt-6">
-              <div className="text-xs font-semibold text-meow-muted line-through">
-                {formatCurrency(oldPriceCents, listing.currency)}
-              </div>
-              <div className="mt-1 flex items-center gap-2">
-                <div className="text-3xl font-black text-meow-300">
-                  {formatCurrency(listing.priceCents, listing.currency)}
-                </div>
-                <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">
-                  -{discountPercent}%
-                </span>
+              <div className="text-3xl font-black text-meow-300">
+                {formatCurrency(listing.priceCents, listing.currency)}
               </div>
             </div>
 
@@ -260,17 +224,6 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
                 Adicionar ao carrinho
               </button>
             </div>
-
-            <div className="mt-6 grid gap-3 text-sm text-meow-muted">
-              <div className="flex items-center justify-between rounded-2xl border border-slate-100 px-4 py-3">
-                <span>SLA</span>
-                <strong className="text-meow-charcoal">{listing.deliverySlaHours ?? 24}h</strong>
-              </div>
-              <div className="flex items-center justify-between rounded-2xl border border-slate-100 px-4 py-3">
-                <span>Categoria</span>
-                <strong className="text-meow-charcoal">{categoryLabel}</strong>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -288,10 +241,10 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
               <p>{listing.description ?? 'Descricao nao informada.'}</p>
             </TabsContent>
             <TabsContent value="avaliacoes">
-              <p>Este anuncio ainda nao possui avaliacoes.</p>
+              <p>Em breve.</p>
             </TabsContent>
             <TabsContent value="duvidas">
-              <p>Envie sua duvida no chat apos a compra.</p>
+              <p>Em breve.</p>
             </TabsContent>
           </Tabs>
         </div>

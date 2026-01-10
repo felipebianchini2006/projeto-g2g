@@ -7,14 +7,15 @@ import { useSite } from '../site-context';
 
 type ListingCardProps = {
   title: string;
-  price: string;
+  id: string;
+  description?: string | null;
+  priceCents: number;
+  oldPriceCents?: number;
+  currency: string;
   image: string;
   isAuto?: boolean;
   href: string;
   variant?: 'red' | 'dark';
-  id: string;
-  priceCents: number;
-  currency: string;
 };
 
 const mediaVariants = {
@@ -24,25 +25,42 @@ const mediaVariants = {
 
 export const ListingCard = ({
   title,
-  price,
   image,
   isAuto,
   href,
   variant = 'red',
   id,
+  description,
   priceCents,
+  oldPriceCents,
   currency,
 }: ListingCardProps) => {
   const { isFavorite, toggleFavorite } = useSite();
   const favorite = isFavorite(id);
+  const fallbackDescription = description?.trim() || 'Entrega segura e comprovada.';
+  const showOldPrice = typeof oldPriceCents === 'number' && oldPriceCents > priceCents;
+  const formatCurrency = (value: number, targetCurrency: string) =>
+    new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: targetCurrency,
+      maximumFractionDigits: 2,
+    }).format(value / 100);
 
   return (
-    <article className="flex flex-col overflow-hidden rounded-[22px] bg-white shadow-meow transition-transform hover:-translate-y-1.5">
-      <div
-        className={`relative flex h-[240px] items-center justify-center ${mediaVariants[variant]}`}
-      >
+    <article className="group flex flex-col overflow-hidden rounded-[28px] border border-meow-red/10 bg-white shadow-card transition hover:-translate-y-1">
+      <div className="relative p-4">
+        <div
+          className={`relative h-[230px] overflow-hidden rounded-[22px] ${mediaVariants[variant]}`}
+        >
+          <img
+            src={image}
+            alt={title}
+            className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
+        </div>
         {isAuto ? (
-          <span className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-green-600 px-3 py-1 text-xs font-bold uppercase text-white shadow-[0_10px_20px_rgba(22,163,74,0.35)]">
+          <span className="absolute left-8 top-8 inline-flex items-center gap-2 rounded-full bg-emerald-500 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.3px] text-white shadow-cute">
             <Zap size={12} aria-hidden />
             Entrega auto
           </span>
@@ -58,23 +76,28 @@ export const ListingCard = ({
               image,
             })
           }
-          className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-meow-deep shadow-[0_10px_20px_rgba(15,23,42,0.18)]"
+          className="absolute right-8 top-8 flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-meow-deep shadow-card"
           aria-label={favorite ? 'Remover favorito' : 'Salvar favorito'}
         >
           <Heart size={16} className={favorite ? 'fill-meow-deep' : ''} aria-hidden />
         </button>
-        <img src={image} alt={title} className="w-[70%] drop-shadow-2xl" />
       </div>
-      <div className="flex flex-1 flex-col gap-4 p-6">
+      <div className="flex flex-1 flex-col gap-4 px-6 pb-6">
         <div>
-          <h3 className="text-[22px] font-extrabold text-meow-charcoal">
-            {title}
-          </h3>
-          <div className="text-[28px] font-black text-slate-900">{price}</div>
+          <h3 className="text-lg font-extrabold text-meow-charcoal">{title}</h3>
+          <p className="mt-2 text-sm text-slate-500">{fallbackDescription}</p>
+        </div>
+        {showOldPrice ? (
+          <div className="text-xs text-slate-400 line-through">
+            {formatCurrency(oldPriceCents, currency)}
+          </div>
+        ) : null}
+        <div className="text-2xl font-black text-slate-900">
+          {formatCurrency(priceCents, currency)}
         </div>
         <Link
           href={href}
-          className="mt-auto inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-br from-meow-indigo to-[#3837c8] py-3 text-sm font-bold text-white"
+          className="mt-auto inline-flex w-full items-center justify-center rounded-full bg-meow-indigo px-5 py-3 text-sm font-bold text-white shadow-cute transition hover:bg-meow-indigoDark"
         >
           Ver detalhes
         </Link>
