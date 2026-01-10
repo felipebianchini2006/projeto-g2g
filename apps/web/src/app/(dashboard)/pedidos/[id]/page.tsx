@@ -1,9 +1,10 @@
 import { OrderDetailContent } from '../../../../components/pages/order-detail-page';
 
 type OrderDetailPageProps = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
-export default function Page({ params }: OrderDetailPageProps) {
-  return <OrderDetailContent orderId={params.id} scope="buyer" />;
+export default async function Page({ params }: OrderDetailPageProps) {
+  const { id } = await params;
+  return <OrderDetailContent orderId={id} scope="buyer" />;
 }

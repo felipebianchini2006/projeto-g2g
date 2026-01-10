@@ -10,6 +10,9 @@ import { ordersApi, type Order } from '../../lib/orders-api';
 import { useAuth } from '../auth/auth-provider';
 import { AdminShell } from '../admin/admin-shell';
 import { NotificationsBell } from '../notifications/notifications-bell';
+import { Badge } from '../ui/badge';
+import { buttonVariants } from '../ui/button';
+import { Card } from '../ui/card';
 
 type AdminDisputeDetailContentProps = {
   disputeId: string;
@@ -26,6 +29,13 @@ const eventLabel: Record<string, string> = {
   DISPUTED: 'Disputa aberta',
   REFUNDED: 'Pedido reembolsado',
   NOTE: 'Atualizacao',
+};
+
+const disputeBadge: Record<string, 'warning' | 'info' | 'success' | 'danger' | 'neutral'> = {
+  OPEN: 'danger',
+  REVIEW: 'warning',
+  RESOLVED: 'success',
+  REJECTED: 'neutral',
 };
 
 export const AdminDisputeDetailContent = ({ disputeId }: AdminDisputeDetailContentProps) => {
@@ -179,7 +189,7 @@ export const AdminDisputeDetailContent = ({ disputeId }: AdminDisputeDetailConte
         { label: 'Detalhe' },
       ]}
     >
-      <div className="rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+      <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="text-xl font-black text-meow-charcoal">Decisao de disputa</h1>
@@ -190,50 +200,58 @@ export const AdminDisputeDetailContent = ({ disputeId }: AdminDisputeDetailConte
           <div className="flex items-center gap-2">
             <NotificationsBell />
             <Link
-              className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
+              className={buttonVariants({ variant: 'secondary', size: 'sm' })}
               href="/admin/atendimento"
             >
               Voltar
             </Link>
           </div>
         </div>
-      </div>
+      </Card>
 
-      {notice ? <div className="state-card info">{notice}</div> : null}
+      {notice ? (
+        <div className="rounded-2xl border border-meow-red/20 bg-meow-50 px-4 py-3 text-sm text-meow-muted">
+          {notice}
+        </div>
+      ) : null}
 
       {!dispute ? (
-        <div className={`state-card${error ? ' error' : ''}`}>
+        <div className={`rounded-2xl border px-4 py-3 text-sm ${error ? 'border-red-200 bg-red-50 text-red-700' : 'border-meow-red/20 bg-white text-meow-muted'}`}>
           {error ?? 'Carregando disputa...'}
         </div>
       ) : (
-        <div className="admin-dispute-grid">
-          <div className="order-card">
-            <h3>Resumo</h3>
-            <div className="ticket-summary">
-              <div>
-                <span className="summary-label">Status</span>
-                <strong>{dispute.status}</strong>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
+            <h3 className="text-base font-bold text-meow-charcoal">Resumo</h3>
+            <div className="mt-4 grid gap-3 text-sm text-meow-muted">
+              <div className="flex items-center justify-between">
+                <span>Status</span>
+                <Badge variant={disputeBadge[dispute.status] ?? 'neutral'}>{dispute.status}</Badge>
               </div>
-              <div>
-                <span className="summary-label">Criado em</span>
-                <strong>{new Date(dispute.createdAt).toLocaleString('pt-BR')}</strong>
+              <div className="flex items-center justify-between">
+                <span>Criado em</span>
+                <strong className="text-meow-charcoal">
+                  {new Date(dispute.createdAt).toLocaleString('pt-BR')}
+                </strong>
               </div>
-              <div>
-                <span className="summary-label">Ticket</span>
-                <Link className="mono" href={`/conta/tickets/${dispute.ticketId}`}>
+              <div className="flex items-center justify-between">
+                <span>Ticket</span>
+                <Link className="font-mono text-xs text-meow-deep" href={`/conta/tickets/${dispute.ticketId}`}>
                   {dispute.ticketId.slice(0, 8)}
                 </Link>
               </div>
-              <div>
-                <span className="summary-label">Pedido</span>
-                <strong>{dispute.orderId.slice(0, 8)}</strong>
+              <div className="flex items-center justify-between">
+                <span>Pedido</span>
+                <strong className="text-meow-charcoal">{dispute.orderId.slice(0, 8)}</strong>
               </div>
             </div>
-            <div className="state-card info">{dispute.reason}</div>
+            <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+              {dispute.reason}
+            </div>
 
-            <div className="order-actions">
+            <div className="mt-6 flex flex-wrap gap-3">
               <button
-                className="primary-button"
+                className={buttonVariants({ variant: 'primary', size: 'sm' })}
                 type="button"
                 onClick={() => handleResolve('release')}
                 disabled={actionBusy}
@@ -241,105 +259,114 @@ export const AdminDisputeDetailContent = ({ disputeId }: AdminDisputeDetailConte
                 {actionBusy ? 'Processando...' : 'Liberar seller'}
               </button>
               <button
-                className="ghost-button"
+                className={buttonVariants({ variant: 'secondary', size: 'sm' })}
                 type="button"
                 onClick={() => handleResolve('refund')}
                 disabled={actionBusy}
               >
                 {actionBusy ? 'Processando...' : 'Reembolsar buyer'}
               </button>
-              <button className="ghost-button" type="button" disabled>
+              <button className={buttonVariants({ variant: 'ghost', size: 'sm' })} type="button" disabled>
                 Parcial (MVP)
               </button>
             </div>
-          </div>
+          </Card>
 
-          <div className="order-card">
-            <h3>Pedido</h3>
+          <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
+            <h3 className="text-base font-bold text-meow-charcoal">Pedido</h3>
             {order ? (
-              <div className="order-summary">
-                <div>
-                  <span className="summary-label">Status</span>
-                  <strong>{order.status}</strong>
+              <div className="mt-4 grid gap-3 text-sm text-meow-muted">
+                <div className="flex items-center justify-between">
+                  <span>Status</span>
+                  <strong className="text-meow-charcoal">{order.status}</strong>
                 </div>
-                <div>
-                  <span className="summary-label">Valor</span>
-                  <strong>
+                <div className="flex items-center justify-between">
+                  <span>Valor</span>
+                  <strong className="text-meow-charcoal">
                     {new Intl.NumberFormat('pt-BR', {
                       style: 'currency',
                       currency: order.currency,
                     }).format(order.totalAmountCents / 100)}
                   </strong>
                 </div>
-                <div>
-                  <span className="summary-label">Criado em</span>
-                  <strong>{new Date(order.createdAt).toLocaleString('pt-BR')}</strong>
+                <div className="flex items-center justify-between">
+                  <span>Criado em</span>
+                  <strong className="text-meow-charcoal">
+                    {new Date(order.createdAt).toLocaleString('pt-BR')}
+                  </strong>
                 </div>
               </div>
             ) : (
-              <div className="state-card">Carregando pedido...</div>
+              <div className="mt-4 rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-muted">
+                Carregando pedido...
+              </div>
             )}
 
-            <h3>Eventos</h3>
-            <div className="timeline">
+            <h3 className="mt-6 text-base font-bold text-meow-charcoal">Eventos</h3>
+            <div className="mt-3 grid gap-2 text-xs text-meow-muted">
               {order?.events?.map((event) => (
-                <div className="timeline-item" key={event.id}>
-                  <div className="timeline-dot" />
-                  <div>
-                    <strong>{eventLabel[event.type] ?? event.type}</strong>
-                    <span>{new Date(event.createdAt).toLocaleString('pt-BR')}</span>
-                  </div>
+                <div key={event.id} className="rounded-xl border border-meow-red/10 bg-meow-50/60 px-3 py-2">
+                  <p className="font-semibold text-meow-charcoal">
+                    {eventLabel[event.type] ?? event.type}
+                  </p>
+                  <span>{new Date(event.createdAt).toLocaleString('pt-BR')}</span>
                 </div>
               ))}
               {order?.events?.length === 0 ? (
-                <div className="state-card">Nenhum evento registrado.</div>
+                <div className="rounded-xl border border-meow-red/20 bg-white px-3 py-2">
+                  Nenhum evento registrado.
+                </div>
               ) : null}
             </div>
-          </div>
+          </Card>
 
-          <div className="order-card">
-            <h3>Evidencias</h3>
+          <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
+            <h3 className="text-base font-bold text-meow-charcoal">Evidencias</h3>
             {order?.items?.length ? (
-              <div className="delivery-block">
+              <div className="mt-4 grid gap-3">
                 {order.items.map((item) => (
-                  <div key={item.id} className="ticket-evidence">
-                    <strong>{item.title}</strong>
+                  <div key={item.id} className="rounded-xl border border-meow-red/10 bg-meow-50/60 px-4 py-3">
+                    <strong className="text-sm text-meow-charcoal">{item.title}</strong>
                     {item.inventoryItems?.length ? (
-                      <ul>
+                      <ul className="mt-2 grid gap-1 text-xs text-meow-muted">
                         {item.inventoryItems.map((inv) => (
-                          <li key={inv.id} className="mono">
+                          <li key={inv.id} className="rounded bg-white px-2 py-1 font-mono">
                             {inv.code}
                           </li>
                         ))}
                       </ul>
                     ) : null}
                     {item.deliveryEvidence?.length ? (
-                      <ul>
+                      <ul className="mt-2 grid gap-1 text-xs text-meow-muted">
                         {item.deliveryEvidence.map((evidence) => (
                           <li key={evidence.id}>{evidence.content}</li>
                         ))}
                       </ul>
                     ) : (
-                      <p className="auth-helper">Sem evidencias enviadas.</p>
+                      <p className="mt-2 text-xs text-meow-muted">Sem evidencias enviadas.</p>
                     )}
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="state-card">Nenhuma evidencia registrada.</div>
+              <div className="mt-4 rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-muted">
+                Nenhuma evidencia registrada.
+              </div>
             )}
-          </div>
+          </Card>
 
-          <div className="order-card">
-            <h3>Chat</h3>
+          <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
+            <h3 className="text-base font-bold text-meow-charcoal">Chat</h3>
             {chatView.length === 0 ? (
-              <div className="state-card">Nenhuma mensagem no chat.</div>
+              <div className="mt-4 rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-muted">
+                Nenhuma mensagem no chat.
+              </div>
             ) : (
-              <div className="chat-log">
+              <div className="mt-4 grid gap-3">
                 {chatView.map((message) => (
-                  <div className="chat-message" key={message.id}>
-                    <p className="chat-text">{message.content}</p>
-                    <div className="chat-meta">
+                  <div key={message.id} className="rounded-xl border border-meow-red/10 bg-meow-50/60 px-3 py-2">
+                    <p className="text-sm text-meow-charcoal">{message.content}</p>
+                    <div className="mt-1 flex items-center justify-between text-[10px] text-meow-muted">
                       <span>{message.senderId.slice(0, 8)}</span>
                       <small>{new Date(message.createdAt).toLocaleString('pt-BR')}</small>
                     </div>
@@ -349,7 +376,7 @@ export const AdminDisputeDetailContent = ({ disputeId }: AdminDisputeDetailConte
             )}
             {hasMoreChat ? (
               <button
-                className="ghost-button"
+                className={`mt-4 ${buttonVariants({ variant: 'secondary', size: 'sm' })}`}
                 type="button"
                 onClick={() => dispute?.orderId && loadChat(dispute.orderId, chatCursor)}
                 disabled={chatBusy}
@@ -357,7 +384,7 @@ export const AdminDisputeDetailContent = ({ disputeId }: AdminDisputeDetailConte
                 {chatBusy ? 'Carregando...' : 'Carregar mais'}
               </button>
             ) : null}
-          </div>
+          </Card>
         </div>
       )}
     </AdminShell>

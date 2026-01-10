@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { CheckoutContent } from '../../../../components/pages/checkout-page';
 
 type CheckoutPageProps = {
-  params: { listingId: string };
+  params: Promise<{ listingId: string }>;
 };
 
 export const metadata: Metadata = {
@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   description: 'Finalize seu pedido com pagamento Pix.',
 };
 
-export default function Page({ params }: CheckoutPageProps) {
-  return <CheckoutContent listingId={params.listingId} />;
+export default async function Page({ params }: CheckoutPageProps) {
+  const { listingId } = await params;
+  return <CheckoutContent listingId={listingId} />;
 }

@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { ListingDetailContent } from '../../../../components/pages/listing-detail-page';
 
 type ListingDetailPageProps = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 export const metadata: Metadata = {
@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   description: 'Detalhes do anuncio e compra segura.',
 };
 
-export default function Page({ params }: ListingDetailPageProps) {
-  return <ListingDetailContent listingId={params.id} />;
+export default async function Page({ params }: ListingDetailPageProps) {
+  const { id } = await params;
+  return <ListingDetailContent listingId={id} />;
 }

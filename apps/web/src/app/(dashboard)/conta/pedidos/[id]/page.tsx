@@ -1,9 +1,10 @@
-import { AccountOrderDetailContent } from '../../../../../components/pages/account-order-detail-page';
+import { OrderDetailContent } from '../../../../../components/pages/order-detail-page';
 
 type OrderDetailPageProps = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
-export default function Page({ params }: OrderDetailPageProps) {
-  return <AccountOrderDetailContent orderId={params.id} />;
+export default async function Page({ params }: OrderDetailPageProps) {
+  const { id } = await params;
+  return <OrderDetailContent orderId={id} scope="buyer" />;
 }

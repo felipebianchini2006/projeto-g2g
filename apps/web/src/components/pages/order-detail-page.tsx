@@ -81,7 +81,7 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
 
   const listHref = scope === 'seller' ? '/conta/vendas' : '/conta/pedidos';
   const listLabel = scope === 'seller' ? 'Minhas vendas' : 'Minhas compras';
-  const orderCode = orderId.slice(0, 7).toUpperCase();
+  const orderCode = orderId ? orderId.slice(0, 7).toUpperCase() : '----';
 
   const loadOrder = async (silent = false) => {
     if (!accessToken) {
@@ -110,13 +110,13 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
   };
 
   useEffect(() => {
-    if (accessToken) {
+    if (accessToken && orderId) {
       loadOrder();
     }
   }, [accessToken, orderId]);
 
   useEffect(() => {
-    if (!accessToken || !state.order) {
+    if (!accessToken || !state.order || !orderId) {
       return;
     }
     if (state.order.status !== 'AWAITING_PAYMENT') {
@@ -129,7 +129,7 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
   }, [accessToken, state.order?.status, orderId]);
 
   const handleAction = async (action: () => Promise<Order>, successMessage: string) => {
-    if (!accessToken) {
+    if (!accessToken || !orderId) {
       return;
     }
     try {
@@ -153,7 +153,7 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
 
   const handleAddEvidence = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!accessToken || evidenceBusy) {
+    if (!accessToken || !orderId || evidenceBusy) {
       return;
     }
     const trimmed = evidenceForm.content.trim();
@@ -250,6 +250,22 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
             href="/login"
           >
             Fazer login
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
+  if (!orderId) {
+    return (
+      <section className="bg-white px-6 py-12">
+        <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center">
+          <p className="text-sm text-meow-muted">Pedido nao encontrado.</p>
+          <Link
+            href={listHref}
+            className="mt-4 inline-flex rounded-full border border-meow-red/30 px-6 py-2 text-sm font-bold text-meow-deep"
+          >
+            Voltar
           </Link>
         </div>
       </section>
@@ -595,9 +611,7 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
             </div>
 
             {accessToken ? (
-              <div className="rounded-2xl border border-meow-red/20 bg-white p-4 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
-                <OrderChat orderId={orderId} accessToken={accessToken} userId={user.id} />
-              </div>
+              <OrderChat orderId={orderId} accessToken={accessToken} userId={user.id} />
             ) : (
               <div className="rounded-2xl border border-meow-red/20 bg-white px-4 py-3 text-sm text-meow-muted">
                 Carregando chat...

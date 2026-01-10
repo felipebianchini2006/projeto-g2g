@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { CategoryContent } from '../../../../components/pages/category-page';
 
 type CategoryPageProps = {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 };
 
 export const metadata: Metadata = {
@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   description: 'Explore anuncios por categoria.',
 };
 
-export default function Page({ params }: CategoryPageProps) {
-  return <CategoryContent slug={params.slug} />;
+export default async function Page({ params }: CategoryPageProps) {
+  const { slug } = await params;
+  return <CategoryContent slug={slug} />;
 }

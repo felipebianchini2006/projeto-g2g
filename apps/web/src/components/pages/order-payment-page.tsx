@@ -8,6 +8,9 @@ import { ordersApi, type Order } from '../../lib/orders-api';
 import { paymentsApi, type PixPayment } from '../../lib/payments-api';
 import { useAuth } from '../auth/auth-provider';
 import { AccountShell } from '../account/account-shell';
+import { buttonVariants } from '../ui/button';
+import { Card } from '../ui/card';
+import { Textarea } from '../ui/textarea';
 
 const formatCurrency = (value: number, currency = 'BRL') =>
   new Intl.NumberFormat('pt-BR', {
@@ -15,6 +18,16 @@ const formatCurrency = (value: number, currency = 'BRL') =>
     currency,
     maximumFractionDigits: 2,
   }).format(value / 100);
+
+const resolveQrImage = (value?: string | null) => {
+  if (!value) {
+    return null;
+  }
+  if (value.startsWith('data:image') || value.startsWith('http')) {
+    return value;
+  }
+  return null;
+};
 
 export const OrderPaymentContent = ({ orderId }: { orderId: string }) => {
   const { user, accessToken, loading } = useAuth();
@@ -56,6 +69,7 @@ export const OrderPaymentContent = ({ orderId }: { orderId: string }) => {
   const payment = order?.payments?.[0];
   const activePayment = pixPayment ?? payment;
   const orderCode = orderId.slice(0, 7).toUpperCase();
+  const qrImage = resolveQrImage(activePayment?.qrCode ?? null);
 
   const statusLabel = useMemo(() => {
     if (!order) {
@@ -136,60 +150,64 @@ export const OrderPaymentContent = ({ orderId }: { orderId: string }) => {
       ) : null}
 
       {error ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700">
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
           {error}
         </div>
       ) : null}
 
       {user ? (
-        <div className="grid gap-6">
-          <div className="rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
-            <h2 className="text-lg font-black text-meow-charcoal">Pedido</h2>
-            <p className="text-sm text-meow-muted">
+        <div className="grid gap-6 lg:grid-cols-[1fr_1.1fr]">
+          <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
+            <h2 className="text-base font-bold text-meow-charcoal">Resumo</h2>
+            <p className="mt-2 text-sm text-meow-muted">
               Codigo do pedido: <strong className="text-meow-charcoal">{orderCode}</strong>
             </p>
-            <div className="mt-4 grid gap-4 md:grid-cols-[1fr_auto]">
-              <div className="space-y-2 text-sm text-meow-muted">
-                <div>
-                  Data:{' '}
+            <div className="mt-4 grid gap-3 text-sm text-meow-muted">
+              <div className="flex items-center justify-between">
+                <span>Status</span>
+                <strong className="text-meow-charcoal">{statusLabel || '-'}</strong>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Total</span>
+                <strong className="text-meow-charcoal">
+                  {order ? formatCurrency(order.totalAmountCents, order.currency) : '-'}
+                </strong>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Criado em</span>
+                <strong className="text-meow-charcoal">
                   {order?.createdAt
                     ? new Date(order.createdAt).toLocaleString('pt-BR')
                     : '-'}
+                </strong>
+              </div>
+            </div>
+
+            {firstItem ? (
+              <div className="mt-4 flex items-center gap-4 rounded-xl border border-meow-red/20 bg-meow-cream/60 px-4 py-3">
+                <div className="h-16 w-16 overflow-hidden rounded-lg bg-white">
+                  <img
+                    src={
+                      firstItem.deliveryEvidence?.[0]?.content ??
+                      '/assets/meoow/highlight-01.webp'
+                    }
+                    alt={firstItem.title}
+                    className="h-full w-full object-cover"
+                  />
                 </div>
-                <div>Status: {statusLabel}</div>
                 <div>
-                  Subtotal:{' '}
-                  {order ? formatCurrency(order.totalAmountCents, order.currency) : '-'}
+                  <p className="text-sm font-semibold text-meow-charcoal">{firstItem.title}</p>
+                  <p className="text-xs text-meow-muted">
+                    {firstItem.quantity} x{' '}
+                    {formatCurrency(firstItem.unitPriceCents, order?.currency ?? 'BRL')}
+                  </p>
                 </div>
               </div>
-              {firstItem ? (
-                <div className="flex items-center gap-4 rounded-xl border border-meow-red/20 bg-meow-cream/60 px-4 py-3">
-                  <div className="h-16 w-16 overflow-hidden rounded-lg bg-white">
-                    <img
-                      src={
-                        firstItem.deliveryEvidence?.[0]?.content ??
-                        '/assets/meoow/highlight-01.webp'
-                      }
-                      alt={firstItem.title}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-meow-charcoal">
-                      {firstItem.title}
-                    </p>
-                    <p className="text-xs text-meow-muted">
-                      {firstItem.quantity} x{' '}
-                      {formatCurrency(firstItem.unitPriceCents, order?.currency ?? 'BRL')}
-                    </p>
-                  </div>
-                </div>
-              ) : null}
-            </div>
-          </div>
+            ) : null}
+          </Card>
 
-          <div className="rounded-2xl border border-meow-red/20 bg-meow-cream/40 p-6 text-center shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
-            <h2 className="text-lg font-black text-meow-charcoal">Pagamento</h2>
+          <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
+            <h2 className="text-base font-bold text-meow-charcoal">Pagamento Pix</h2>
             <p className="mt-2 text-sm text-meow-muted">
               {activePayment
                 ? `Valor final do pedido: ${formatCurrency(
@@ -199,9 +217,35 @@ export const OrderPaymentContent = ({ orderId }: { orderId: string }) => {
                 : 'Pagamento pendente.'}
             </p>
 
-            {activePayment?.copyPaste ? (
+            {activePayment?.expiresAt ? (
+              <div className="mt-3 text-xs text-meow-muted">
+                Expira em {new Date(activePayment.expiresAt).toLocaleString('pt-BR')}
+              </div>
+            ) : null}
+
+            {qrImage ? (
+              <div className="mt-4 rounded-2xl border border-meow-red/20 bg-white p-4">
+                <img src={qrImage} alt="QR Code Pix" className="mx-auto h-40 w-40" />
+              </div>
+            ) : null}
+
+            {activePayment?.qrCode && !qrImage ? (
               <div className="mt-4 rounded-xl border border-meow-red/20 bg-white px-4 py-3 text-xs text-meow-muted">
-                {activePayment.copyPaste}
+                QR Code Pix: {activePayment.qrCode}
+              </div>
+            ) : null}
+
+            {activePayment?.copyPaste ? (
+              <div className="mt-4">
+                <label className="text-xs font-semibold uppercase text-meow-muted">
+                  Copia e cola
+                </label>
+                <Textarea
+                  readOnly
+                  rows={3}
+                  className="mt-2 text-xs"
+                  value={activePayment.copyPaste}
+                />
               </div>
             ) : null}
 
@@ -211,17 +255,17 @@ export const OrderPaymentContent = ({ orderId }: { orderId: string }) => {
               </div>
             ) : null}
 
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+            <div className="mt-4 flex flex-wrap items-center gap-3">
               <Link
                 href={`/conta/pedidos/${orderId}`}
-                className="rounded-full border border-meow-red/30 px-5 py-2 text-xs font-bold text-meow-deep"
+                className={buttonVariants({ variant: 'secondary', size: 'sm' })}
               >
                 Ver pedido
               </Link>
               {activePayment?.copyPaste ? (
                 <button
                   type="button"
-                  className="rounded-full bg-meow-linear px-6 py-2 text-xs font-bold text-white"
+                  className={buttonVariants({ variant: 'primary', size: 'sm' })}
                   onClick={handleCopy}
                 >
                   Copiar codigo
@@ -229,7 +273,7 @@ export const OrderPaymentContent = ({ orderId }: { orderId: string }) => {
               ) : null}
               <button
                 type="button"
-                className="rounded-full border border-meow-red/30 px-5 py-2 text-xs font-bold text-meow-deep"
+                className={buttonVariants({ variant: 'secondary', size: 'sm' })}
                 onClick={handleCreatePix}
                 disabled={pixBusy}
               >
@@ -239,7 +283,7 @@ export const OrderPaymentContent = ({ orderId }: { orderId: string }) => {
             {copyStatus ? (
               <div className="mt-3 text-xs font-semibold text-meow-muted">{copyStatus}</div>
             ) : null}
-          </div>
+          </Card>
         </div>
       ) : null}
     </AccountShell>

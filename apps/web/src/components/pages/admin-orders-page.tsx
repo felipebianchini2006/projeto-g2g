@@ -9,6 +9,7 @@ import { ordersApi, type Order } from '../../lib/orders-api';
 import { useAuth } from '../auth/auth-provider';
 import { AdminShell } from '../admin/admin-shell';
 import { NotificationsBell } from '../notifications/notifications-bell';
+import { Badge } from '../ui/badge';
 
 export const AdminOrdersContent = () => {
   const { user, accessToken, loading } = useAuth();
@@ -174,9 +175,9 @@ export const AdminOrdersContent = () => {
           </div>
         </div>
 
-        <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
-          <h2 className="text-base font-bold text-meow-charcoal">Resumo</h2>
-          {!order ? (
+      <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+        <h2 className="text-base font-bold text-meow-charcoal">Resumo</h2>
+        {!order ? (
             <div className="mt-4 rounded-xl border border-slate-100 bg-meow-50 px-4 py-3 text-sm text-meow-muted">
               Nenhum pedido carregado.
             </div>
@@ -186,6 +187,17 @@ export const AdminOrdersContent = () => {
                 <span>Status</span>
                 <strong className="text-meow-charcoal">{order.status}</strong>
               </div>
+              {order.payments?.length ? (
+                <div className="flex items-center justify-between">
+                  <span>Pagamento</span>
+                  <Badge variant="info">{order.payments[0]?.status ?? 'PENDENTE'}</Badge>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between">
+                  <span>Pagamento</span>
+                  <Badge variant="neutral">Sem cobranca</Badge>
+                </div>
+              )}
               <div className="flex items-center justify-between">
                 <span>Total</span>
                 <strong className="text-meow-charcoal">
@@ -207,6 +219,31 @@ export const AdminOrdersContent = () => {
           )}
         </div>
       </div>
+
+      {order ? (
+        <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+          <h2 className="text-base font-bold text-meow-charcoal">Logs do pedido</h2>
+          <div className="mt-3 grid gap-2 text-xs text-meow-muted">
+            {order.events?.map((event) => (
+              <div key={event.id} className="rounded-xl border border-meow-red/10 bg-meow-50/60 px-3 py-2">
+                <p className="font-semibold text-meow-charcoal">{event.type}</p>
+                <span>{new Date(event.createdAt).toLocaleString('pt-BR')}</span>
+                {event.metadata && typeof event.metadata === 'object' ? (
+                  <p className="mt-1 text-[11px] text-meow-muted">
+                    {event.metadata['from'] ? `De ${event.metadata['from']} ` : ''}
+                    {event.metadata['to'] ? `para ${event.metadata['to']}` : ''}
+                  </p>
+                ) : null}
+              </div>
+            ))}
+            {order.events?.length === 0 ? (
+              <div className="rounded-xl border border-meow-red/20 bg-white px-3 py-2">
+                Nenhum evento registrado.
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
 
       <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
         <h2 className="text-base font-bold text-meow-charcoal">Acoes</h2>
