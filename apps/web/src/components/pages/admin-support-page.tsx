@@ -265,20 +265,26 @@ export const AdminSupportContent = () => {
           <div className="support-list">
             {filteredDisputes.map((dispute) => (
               <Link
-                className="support-row"
+                className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-red-100 bg-red-50/60 px-5 py-4 shadow-card"
                 href={`/admin/disputas/${dispute.id}`}
                 key={dispute.id}
               >
-                <div>
-                  <strong>Pedido {dispute.orderId.slice(0, 8)}</strong>
-                  <span className="auth-helper">{dispute.ticket?.subject ?? 'Sem ticket'}</span>
-                </div>
-                <div className="ticket-meta">
-                  <span className={`status-pill status-${dispute.status.toLowerCase()}`}>
-                    {disputeStatusLabel[dispute.status]}
+                <div className="flex items-center gap-4">
+                  <span className="rounded-lg bg-red-100 px-3 py-1 text-xs font-bold text-red-600">
+                    {dispute.status === 'OPEN' ? 'Em aberto' : disputeStatusLabel[dispute.status]}
                   </span>
-                  <small>{new Date(dispute.createdAt).toLocaleDateString('pt-BR')}</small>
+                  <div>
+                    <p className="text-sm font-semibold text-meow-charcoal">
+                      Reclamacao #{dispute.orderId.slice(0, 6)}
+                    </p>
+                    <p className="text-xs text-meow-muted">
+                      {dispute.ticket?.subject ?? 'Sem ticket'} • Prazo para resposta: 12h
+                    </p>
+                  </div>
                 </div>
+                <span className="rounded-2xl bg-red-500 px-4 py-2 text-xs font-bold text-white shadow-cute">
+                  Responder agora
+                </span>
               </Link>
             ))}
           </div>

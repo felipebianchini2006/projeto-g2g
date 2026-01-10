@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import { ApiClientError } from '../../lib/api-client';
+import { ordersApi, type Order } from '../../lib/orders-api';
 import { walletApi, type WalletSummary } from '../../lib/wallet-api';
 import { useAuth } from '../auth/auth-provider';
 import { AccountShell } from '../account/account-shell';
@@ -11,6 +12,12 @@ import { AccountShell } from '../account/account-shell';
 type SummaryState = {
   status: 'loading' | 'ready';
   summary: WalletSummary | null;
+  error?: string;
+};
+
+type RecentOrdersState = {
+  status: 'loading' | 'ready';
+  orders: Order[];
   error?: string;
 };
 
@@ -26,6 +33,10 @@ export const AccountOverviewContent = () => {
   const [summaryState, setSummaryState] = useState<SummaryState>({
     status: 'loading',
     summary: null,
+  });
+  const [ordersState, setOrdersState] = useState<RecentOrdersState>({
+    status: 'loading',
+    orders: [],
   });
 
   useEffect(() => {
@@ -52,6 +63,38 @@ export const AccountOverviewContent = () => {
       }
     };
     loadSummary();
+    return () => {
+      active = false;
+    };
+  }, [accessToken]);
+
+  useEffect(() => {
+    if (!accessToken) {
+      return;
+    }
+    let active = true;
+    const loadOrders = async () => {
+      try {
+        const orders = await ordersApi.listOrders(accessToken, 'buyer');
+        if (!active) {
+          return;
+        }
+        setOrdersState({
+          status: 'ready',
+          orders: orders.slice(0, 3),
+        });
+      } catch (error) {
+        if (!active) {
+          return;
+        }
+        const message =
+          error instanceof ApiClientError
+            ? error.message
+            : 'Nao foi possivel carregar pedidos recentes.';
+        setOrdersState({ status: 'ready', orders: [], error: message });
+      }
+    };
+    loadOrders();
     return () => {
       active = false;
     };
@@ -90,92 +133,138 @@ export const AccountOverviewContent = () => {
         { label: 'Conta' },
       ]}
     >
-      <div className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
-          <p className="text-xs font-semibold uppercase tracking-[0.4px] text-meow-muted">
-            Saldo a liberar
-          </p>
-          <p className="mt-2 text-2xl font-black text-meow-charcoal">
-            {formatCurrency(summaryState.summary?.heldCents ?? 0)}
-          </p>
-        </div>
-        <div className="rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
-          <p className="text-xs font-semibold uppercase tracking-[0.4px] text-meow-muted">
-            Saldo bloqueado
-          </p>
-          <p className="mt-2 text-2xl font-black text-meow-charcoal">
-            {formatCurrency(summaryState.summary?.reversedCents ?? 0)}
-          </p>
-        </div>
-        <div className="rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
-          <p className="text-xs font-semibold uppercase tracking-[0.4px] text-meow-muted">
-            Saldo disponivel
-          </p>
-          <p className="mt-2 text-2xl font-black text-meow-charcoal">
-            {formatCurrency(summaryState.summary?.availableCents ?? 0)}
-          </p>
-          <Link
-            href="/conta/carteira/extrato"
-            className="mt-3 inline-flex rounded-full border border-meow-red/30 px-3 py-1 text-[11px] font-bold text-meow-deep"
+      <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+        <h1 className="text-2xl font-black text-meow-charcoal">Ola, {user.email}!</h1>
+        <p className="mt-1 text-sm text-meow-muted">
+          Aqui esta o resumo da sua conta hoje.
+        </p>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        {[
+          {
+            label: 'Total comprado',
+            value: formatCurrency(
+              (summaryState.summary?.availableCents ?? 0) +
+                (summaryState.summary?.heldCents ?? 0),
+            ),
+            accent: 'bg-rose-50 text-meow-deep',
+          },
+          {
+            label: 'Cashback',
+            value: formatCurrency(summaryState.summary?.availableCents ?? 0),
+            accent: 'bg-purple-50 text-purple-500',
+          },
+        ].map((card) => (
+          <div
+            key={card.label}
+            className="rounded-[26px] border border-slate-100 bg-white p-5 shadow-card"
           >
-            Ver transacoes
-          </Link>
-        </div>
+            <div
+              className={`grid h-11 w-11 place-items-center rounded-2xl text-sm font-black ${card.accent}`}
+            >
+              {card.label.split(' ')[0].slice(0, 1)}
+            </div>
+            <p className="mt-4 text-xs font-semibold uppercase text-meow-muted">
+              {card.label}
+            </p>
+            <p className="mt-2 text-2xl font-black text-meow-charcoal">{card.value}</p>
+          </div>
+        ))}
       </div>
 
       {summaryState.error ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {summaryState.error}
         </div>
       ) : null}
 
-      <div className="rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-xl font-black text-meow-charcoal">
-              Ola, {user.email}
-            </h1>
-            <p className="mt-2 text-sm text-meow-muted">
-              Aqui voce acompanha pedidos, anuncios e sua carteira.
-            </p>
-          </div>
-          <Link
-            href="/conta/minha-conta"
-            className="rounded-full bg-meow-linear px-4 py-2 text-xs font-bold text-white"
-          >
-            Ver meu perfil
-          </Link>
-        </div>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="rounded-2xl border border-meow-red/20 bg-meow-cream/50 p-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.4px] text-meow-muted">
-            Minhas compras
-          </p>
-          <p className="mt-2 text-sm text-meow-charcoal">
-            Acompanhe entregas e pagamentos pendentes.
-          </p>
+      <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-lg font-black text-meow-charcoal">Pedidos recentes</h2>
           <Link
             href="/conta/pedidos"
-            className="mt-4 inline-flex rounded-full bg-meow-linear px-4 py-2 text-xs font-bold text-white"
+            className="text-xs font-bold text-meow-deep"
           >
-            Ver compras
+            Ver todos
           </Link>
         </div>
-        <div className="rounded-2xl border border-meow-red/20 bg-meow-cream/50 p-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.4px] text-meow-muted">
-            Meus anuncios
-          </p>
-          <p className="mt-2 text-sm text-meow-charcoal">
-            Gerencie anuncios ativos e pendentes.
-          </p>
-          <Link
-            href="/conta/anuncios"
-            className="mt-4 inline-flex rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
-          >
-            Ver anuncios
-          </Link>
+
+        {ordersState.error ? (
+          <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {ordersState.error}
+          </div>
+        ) : null}
+
+        {ordersState.status === 'loading' ? (
+          <div className="mt-4 rounded-xl border border-slate-100 bg-meow-50 px-4 py-3 text-sm text-meow-muted">
+            Carregando pedidos...
+          </div>
+        ) : null}
+
+        {ordersState.status === 'ready' && ordersState.orders.length === 0 ? (
+          <div className="mt-4 rounded-xl border border-slate-100 bg-meow-50 px-4 py-3 text-sm text-meow-muted">
+            Nenhum pedido recente encontrado.
+          </div>
+        ) : null}
+
+        <div className="mt-4 grid gap-3">
+          {ordersState.orders.map((order) => {
+            const firstItem = order.items[0];
+            const status =
+              order.status === 'DELIVERED' || order.status === 'COMPLETED'
+                ? 'Entregue'
+                : order.status === 'AWAITING_PAYMENT'
+                  ? 'Processando'
+                  : 'Pedido aberto';
+            const statusTone =
+              order.status === 'DELIVERED' || order.status === 'COMPLETED'
+                ? 'bg-emerald-100 text-emerald-700'
+                : order.status === 'AWAITING_PAYMENT'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'bg-slate-100 text-slate-600';
+
+            return (
+              <div
+                key={order.id}
+                className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-100 bg-meow-50/60 px-4 py-3"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="h-12 w-12 overflow-hidden rounded-xl bg-white">
+                    <img
+                      src={
+                        firstItem?.deliveryEvidence?.[0]?.content ??
+                        '/assets/meoow/highlight-01.webp'
+                      }
+                      alt={firstItem?.title ?? 'Pedido'}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-meow-charcoal">
+                      {firstItem?.title ?? 'Pedido em processamento'}
+                    </p>
+                    <p className="text-xs text-meow-muted">
+                      Pedido #{order.id.slice(0, 6).toUpperCase()} -{' '}
+                      {new Date(order.createdAt).toLocaleDateString('pt-BR')}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 text-sm font-semibold text-meow-charcoal">
+                  {formatCurrency(order.totalAmountCents, order.currency)}
+                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${statusTone}`}>
+                    {status}
+                  </span>
+                  <Link
+                    href={`/conta/pedidos/${order.id}`}
+                    className="rounded-full border border-slate-200 px-4 py-2 text-xs font-bold text-meow-charcoal"
+                  >
+                    Detalhes
+                  </Link>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </AccountShell>

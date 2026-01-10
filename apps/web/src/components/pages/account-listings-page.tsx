@@ -122,6 +122,14 @@ export const AccountListingsContent = () => {
     );
   }
 
+  const tabs: { label: string; value: ListingStatus | 'ALL' }[] = [
+    { label: 'Todos', value: 'ALL' },
+    { label: 'Ativos', value: 'PUBLISHED' },
+    { label: 'Pausados', value: 'SUSPENDED' },
+    { label: 'Em analise', value: 'PENDING' },
+    { label: 'Rascunhos', value: 'DRAFT' },
+  ];
+
   return (
     <AccountShell
       breadcrumbs={[
@@ -130,37 +138,36 @@ export const AccountListingsContent = () => {
         { label: 'Meus anuncios' },
       ]}
     >
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-meow-red/20 bg-white p-4 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
-        <label className="grid gap-1 text-xs font-semibold text-meow-muted">
-          Status
-          <select
-            className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
-            value={statusFilter}
-            onChange={(event) => setStatusFilter(event.target.value as ListingStatus | 'ALL')}
-          >
-            <option value="ALL">Todos</option>
-            {Object.entries(statusLabel).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
-            onClick={() => setStatusFilter('ALL')}
-          >
-            Limpar
-          </button>
-          <Link
-            href="/anunciar"
-            className="rounded-full bg-meow-linear px-4 py-2 text-xs font-bold text-white"
-          >
-            Criar anuncio
-          </Link>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-black text-meow-charcoal">Meus anuncios</h1>
+          <p className="text-sm text-meow-muted">
+            Gerencie anuncios ativos, pendentes ou pausados.
+          </p>
         </div>
+        <Link
+          href="/anunciar"
+          className="rounded-full bg-meow-300 px-5 py-2 text-sm font-black text-white shadow-cute"
+        >
+          + Novo anuncio
+        </Link>
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        {tabs.map((tab) => (
+          <button
+            key={tab.value}
+            type="button"
+            className={`rounded-full px-4 py-2 text-xs font-bold ${
+              statusFilter === tab.value
+                ? 'bg-meow-charcoal text-white'
+                : 'border border-slate-200 bg-white text-meow-muted'
+            }`}
+            onClick={() => setStatusFilter(tab.value)}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {state.error ? (
@@ -181,14 +188,14 @@ export const AccountListingsContent = () => {
         </div>
       ) : null}
 
-      <div className="grid gap-4">
+      <div className="mt-6 grid gap-4">
         {filteredListings.map((listing) => (
           <div
             key={listing.id}
-            className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]"
+            className="flex flex-wrap items-center justify-between gap-4 rounded-[26px] border border-slate-100 bg-white p-5 shadow-card"
           >
             <div className="flex items-center gap-4">
-              <div className="h-16 w-16 overflow-hidden rounded-xl bg-meow-cream">
+              <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-slate-100 text-lg font-black text-meow-charcoal">
                 <img
                   src={listing.media?.[0]?.url ?? '/assets/meoow/highlight-02.webp'}
                   alt={listing.title}
@@ -198,19 +205,43 @@ export const AccountListingsContent = () => {
               <div>
                 <p className="text-sm font-semibold text-meow-charcoal">{listing.title}</p>
                 <p className="text-xs text-meow-muted">
-                  {formatCurrency(listing.priceCents, listing.currency)}
+                  Visualizacoes: {Math.max(1200 - listing.title.length * 13, 180)} - Vendas:
+                  {listing.status === 'PUBLISHED' ? ' 0' : ' 0'}
                 </p>
-                <span className="mt-2 inline-flex rounded-full bg-meow-cream px-3 py-1 text-[11px] font-bold text-meow-charcoal">
-                  {statusLabel[listing.status] ?? listing.status}
-                </span>
               </div>
             </div>
-            <Link
-              href={`/anuncios/${listing.id}`}
-              className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
-            >
-              Ver anuncio
-            </Link>
+
+            <div className="flex flex-wrap items-center gap-4">
+              <span className="rounded-full bg-meow-100 px-3 py-1 text-xs font-bold text-meow-deep">
+                {statusLabel[listing.status] ?? listing.status}
+              </span>
+              <div className="text-sm font-black text-meow-charcoal">
+                {formatCurrency(listing.priceCents, listing.currency)}
+                <span className="ml-2 text-xs font-semibold text-meow-muted">
+                  Estoque: 1
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Link
+                  href={`/anuncios/${listing.id}`}
+                  className="rounded-full border border-slate-200 px-3 py-2 text-xs font-bold text-meow-charcoal"
+                >
+                  Ver
+                </Link>
+                <Link
+                  href="/dashboard"
+                  className="rounded-full border border-slate-200 px-3 py-2 text-xs font-bold text-meow-charcoal"
+                >
+                  Editar
+                </Link>
+                <button
+                  type="button"
+                  className="rounded-full border border-red-100 px-3 py-2 text-xs font-bold text-red-500"
+                >
+                  Pausar
+                </button>
+              </div>
+            </div>
           </div>
         ))}
       </div>

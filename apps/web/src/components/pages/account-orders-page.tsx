@@ -126,103 +126,82 @@ export const AccountOrdersContent = () => {
       ]}
     >
       <div className="space-y-4">
-        <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-meow-red/20 bg-white p-4 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
-          {[
-            { label: 'Pagamento', options: ['Todos', 'Pendente', 'Pago'] },
-            { label: 'Pedido', options: ['Todos', 'Ultimos 30 dias'] },
-            { label: 'Avaliacao', options: ['Todas', 'Pendentes'] },
-            { label: 'Codigo do pedido', options: ['Codigo do pedido'] },
-          ].map((filter) => (
-            <label key={filter.label} className="grid gap-1 text-xs font-semibold text-meow-muted">
-              {filter.label}
-              <select className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal">
-                {filter.options.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ))}
+        <div>
+          <h1 className="text-2xl font-black text-meow-charcoal">Minhas compras</h1>
+          <p className="text-sm text-meow-muted">Acompanhe seus pedidos e entregas.</p>
         </div>
 
         {state.error ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {state.error}
           </div>
         ) : null}
 
         {state.status === 'loading' ? (
-          <div className="rounded-xl border border-meow-red/20 bg-white px-4 py-3 text-sm text-meow-muted">
+          <div className="rounded-2xl border border-slate-100 bg-meow-50 px-4 py-3 text-sm text-meow-muted">
             Carregando pedidos...
           </div>
         ) : null}
 
         {state.status === 'ready' && ordersSorted.length === 0 ? (
-          <div className="rounded-xl border border-meow-red/20 bg-white px-4 py-3 text-sm text-meow-muted">
+          <div className="rounded-2xl border border-slate-100 bg-meow-50 px-4 py-3 text-sm text-meow-muted">
             Nenhuma compra encontrada.
           </div>
         ) : null}
 
-        {ordersSorted.map((order) => {
-          const firstItem = order.items[0];
-          const payment = order.payments?.[0];
-          const deliveryLabel =
-            order.status === 'DELIVERED' || order.status === 'COMPLETED'
-              ? 'Entregue'
-              : 'Entrega pendente';
-          const deliveryTone =
-            order.status === 'DELIVERED' || order.status === 'COMPLETED'
-              ? 'text-emerald-600'
-              : 'text-meow-muted';
-          const orderCode = order.id.slice(0, 7).toUpperCase();
+        <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+          {ordersSorted.map((order) => {
+            const firstItem = order.items[0];
+            const payment = order.payments?.[0];
+            const deliveryLabel =
+              order.status === 'DELIVERED' || order.status === 'COMPLETED'
+                ? 'Entregue'
+                : 'Entrega pendente';
+            const deliveryTone =
+              order.status === 'DELIVERED' || order.status === 'COMPLETED'
+                ? 'text-emerald-600'
+                : 'text-meow-muted';
+            const orderCode = order.id.slice(0, 7).toUpperCase();
 
-          return (
-            <div
-              key={order.id}
-              className="rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]"
-            >
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="text-sm font-bold text-meow-charcoal">
-                  Compra <span className="text-meow-muted">#{orderCode}</span>
+            return (
+              <div
+                key={order.id}
+                className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-100 bg-meow-50/70 px-4 py-3"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="grid h-10 w-10 place-items-center rounded-xl bg-white text-xs font-black text-meow-charcoal">
+                    #{orderCode.slice(0, 4)}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-meow-charcoal">
+                      {firstItem?.title ?? 'Compra'}
+                    </p>
+                    <p className="text-xs text-meow-muted">
+                      {new Date(order.createdAt).toLocaleDateString('pt-BR')} - {deliveryLabel}
+                    </p>
+                  </div>
                 </div>
-                <Link
-                  href={`/conta/pedidos/${order.id}`}
-                  className="rounded-full bg-meow-linear px-4 py-2 text-xs font-bold text-white"
-                >
-                  Ver pedido
-                </Link>
-              </div>
-              <div className="mt-3 text-sm text-meow-muted">
-                {firstItem ? (
-                  <>
-                    {firstItem.quantity} x {firstItem.title}
-                    <span className="px-2 text-meow-red/40">|</span>
-                    {formatCurrency(firstItem.unitPriceCents, order.currency)}
-                  </>
-                ) : (
-                  'Item indisponivel.'
-                )}
-              </div>
-              <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-meow-muted">
-                <span>{new Date(order.createdAt).toLocaleString('pt-BR')}</span>
-                <span>Subtotal: {formatCurrency(order.totalAmountCents, order.currency)}</span>
-                <span className={deliveryTone}>{deliveryLabel}</span>
-                <span>{statusLabel[order.status] ?? order.status}</span>
-              </div>
-              {payment ? (
-                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-                  <span
-                    className={`inline-flex items-center gap-2 rounded-full px-3 py-1 font-semibold ${paymentTone[payment.status]}`}
+                <div className="flex items-center gap-3 text-sm font-semibold text-meow-charcoal">
+                  {formatCurrency(order.totalAmountCents, order.currency)}
+                  <span className={deliveryTone}>{statusLabel[order.status] ?? order.status}</span>
+                  {payment ? (
+                    <span
+                      className={`rounded-full px-3 py-1 text-[11px] font-semibold ${paymentTone[payment.status]}`}
+                    >
+                      {paymentLabel[payment.status]}
+                    </span>
+                  ) : null}
+                  <Link
+                    href={`/conta/pedidos/${order.id}`}
+                    className="rounded-full border border-slate-200 px-3 py-2 text-xs font-bold text-meow-charcoal"
                   >
-                    Pix - {formatCurrency(order.totalAmountCents, order.currency)}
-                  </span>
-                  <span className="text-meow-muted">{paymentLabel[payment.status]}</span>
+                    Detalhes
+                  </Link>
                 </div>
-              ) : null}
-            </div>
-          );
-        })}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </AccountShell>
   );

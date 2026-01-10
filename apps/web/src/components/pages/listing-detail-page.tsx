@@ -1,9 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { Heart, Star } from 'lucide-react';
 
 import { fetchPublicListing, type PublicListing } from '../../lib/marketplace-public';
+import { useSite } from '../site-context';
 
 type ListingDetailState = {
   status: 'loading' | 'ready';
@@ -20,12 +22,16 @@ const formatCurrency = (value: number, currency = 'BRL') =>
   }).format(value / 100);
 
 export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
+  const { addToCart, isFavorite, toggleFavorite } = useSite();
   const [state, setState] = useState<ListingDetailState>({
     status: 'loading',
     listing: null,
     source: 'api',
   });
   const [activeMedia, setActiveMedia] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'descricao' | 'avaliacoes' | 'duvidas'>(
+    'descricao',
+  );
 
   useEffect(() => {
     let active = true;
@@ -84,78 +90,220 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
   }
 
   const listing = state.listing;
+  const categoryLabel = listing.categoryLabel ?? listing.categorySlug ?? 'Marketplace';
+  const rating = 5.0;
+  const reviews = 42;
+  const oldPriceCents = Math.round(listing.priceCents * 1.28);
+  const discountPercent = Math.max(
+    Math.round(((oldPriceCents - listing.priceCents) / oldPriceCents) * 100),
+    5,
+  );
+  const favoriteActive = isFavorite(listing.id);
+  const tabs = [
+    { id: 'descricao', label: 'Descricao' },
+    { id: 'avaliacoes', label: `Avaliacoes (${reviews})` },
+    { id: 'duvidas', label: 'Duvidas' },
+  ] as const;
 
   return (
-    <section className="listing-detail">
-      <div className="container">
-        <div className="listing-detail-header">
-          <Link href="/produtos" className="ghost-button">
+    <section className="bg-meow-50/60 pb-16 pt-10">
+      <div className="mx-auto w-full max-w-[1200px] px-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-semibold text-meow-muted">
+          <div>
+            <Link href="/" className="text-meow-deep">
+              Inicio
+            </Link>{' '}
+            &gt;{' '}
+            <Link href="/categoria" className="text-meow-deep">
+              {categoryLabel}
+            </Link>{' '}
+            &gt; {listing.title}
+          </div>
+          <Link
+            href="/produtos"
+            className="rounded-full border border-meow-200 bg-white px-4 py-2 text-xs font-bold text-meow-deep"
+          >
             Voltar ao catalogo
           </Link>
-          <span className="state-pill">
-            {state.source === 'fallback' ? 'Modo offline' : 'API ativa'}
-          </span>
         </div>
 
         {state.error ? (
-          <div className="state-card info">{state.error}</div>
+          <div className="mt-4 rounded-2xl border border-meow-200 bg-white px-4 py-3 text-sm text-meow-muted shadow-card">
+            {state.error}
+          </div>
         ) : null}
 
-        <div className="listing-detail-grid">
-          <div className="listing-gallery">
-            <div className="listing-main">
-              <img
-                src={activeMedia ?? listing.media?.[0]?.url ?? '/assets/meoow/highlight-01.webp'}
-                alt={listing.title}
-              />
+        <div className="mt-6 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+            <div className="relative rounded-[24px] bg-slate-50 p-6">
+              <span className="inline-flex rounded-full bg-meow-300 px-4 py-1 text-[11px] font-bold uppercase text-white shadow-cute">
+                Exclusivo
+              </span>
+              <button
+                type="button"
+                className="absolute right-6 top-6 grid h-10 w-10 place-items-center rounded-full bg-white text-meow-deep shadow-card"
+                onClick={() =>
+                  toggleFavorite({
+                    id: listing.id,
+                    title: listing.title,
+                    priceCents: listing.priceCents,
+                    currency: listing.currency,
+                    image: listing.media?.[0]?.url ?? null,
+                  })
+                }
+                aria-pressed={favoriteActive}
+              >
+                <Heart size={18} fill={favoriteActive ? 'currentColor' : 'none'} />
+              </button>
+              <div className="mt-6 flex min-h-[320px] items-center justify-center">
+                <img
+                  src={activeMedia ?? listing.media?.[0]?.url ?? '/assets/meoow/highlight-01.webp'}
+                  alt={listing.title}
+                  className="max-h-[280px] object-contain drop-shadow-2xl"
+                />
+              </div>
             </div>
-            <div className="listing-thumbs">
+            <div className="mt-5 flex flex-wrap gap-3">
               {(listing.media ?? []).map((media) => (
                 <button
                   key={media.id}
                   type="button"
-                  className={`thumb${activeMedia === media.url ? ' active' : ''}`}
+                  className={`grid h-20 w-20 place-items-center rounded-2xl border bg-slate-50 ${
+                    activeMedia === media.url
+                      ? 'border-meow-300 shadow-cute'
+                      : 'border-slate-100'
+                  }`}
                   onClick={() => setActiveMedia(media.url)}
                 >
-                  <img src={media.url} alt={media.type} />
+                  <img src={media.url} alt={media.type} className="h-14 w-14 object-cover" />
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="listing-summary">
-            <h1>{listing.title}</h1>
-            <p>{listing.description}</p>
-            <div className="listing-price">
-              {formatCurrency(listing.priceCents, listing.currency)}
-            </div>
-            <div className="listing-tags">
-              <span className={`tag-pill tag-${listing.deliveryType.toLowerCase()}`}>
-                {listing.deliveryType === 'AUTO' ? 'Entrega auto' : 'Entrega manual'}
+          <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+            <h1 className="text-2xl font-black text-meow-charcoal">{listing.title}</h1>
+            <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-meow-muted">
+              <div className="flex items-center gap-1 text-amber-400">
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <Star key={`star-${index}`} size={14} fill="currentColor" />
+                ))}
+              </div>
+              <span className="font-semibold text-meow-charcoal">
+                {rating.toFixed(1)}
               </span>
-              <span className="tag-pill tag-status">{listing.status}</span>
+              <span className="text-meow-muted">({reviews})</span>
+              <span className="text-emerald-600">
+                {listing.deliveryType === 'AUTO' ? 'Entrega automatica' : 'Entrega manual'}
+              </span>
             </div>
-            <div className="listing-info">
-              <div>
-                <span>SLA</span>
-                <strong>{listing.deliverySlaHours ?? 24}h</strong>
-              </div>
-              <div>
-                <span>Categoria</span>
-                <strong>{listing.categoryLabel ?? listing.categorySlug ?? 'Marketplace'}</strong>
+
+            <div className="mt-6 rounded-2xl border border-meow-200 bg-meow-50 px-4 py-4">
+              <span className="text-xs font-bold uppercase text-meow-muted">
+                Escolha a edicao
+              </span>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                {[
+                  { id: 'padrao', label: 'Padrao', price: listing.priceCents },
+                  { id: 'deluxe', label: 'Deluxe (+1k V)', price: listing.priceCents },
+                ].map((edition) => (
+                  <button
+                    key={edition.id}
+                    type="button"
+                    className={`rounded-2xl border px-4 py-3 text-sm font-semibold ${
+                      edition.id === 'padrao'
+                        ? 'border-meow-300 text-meow-deep shadow-cute'
+                        : 'border-slate-100 text-meow-charcoal'
+                    }`}
+                  >
+                    <div>{edition.label}</div>
+                    <div className="text-xs text-meow-muted">
+                      {formatCurrency(edition.price, listing.currency)}
+                    </div>
+                  </button>
+                ))}
               </div>
             </div>
-            <p className="listing-policy">
-              {listing.refundPolicy ?? 'Politica de reembolso disponivel na confirmacao.'}
-            </p>
-            <div className="listing-actions">
-              <Link className="primary-button" href={`/checkout/${listing.id}`}>
+
+            <div className="mt-6">
+              <div className="text-xs font-semibold text-meow-muted line-through">
+                {formatCurrency(oldPriceCents, listing.currency)}
+              </div>
+              <div className="mt-1 flex items-center gap-2">
+                <div className="text-3xl font-black text-meow-300">
+                  {formatCurrency(listing.priceCents, listing.currency)}
+                </div>
+                <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">
+                  -{discountPercent}%
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-3">
+              <Link
+                className="rounded-2xl bg-meow-300 px-6 py-3 text-center text-sm font-black text-white shadow-cute transition hover:bg-meow-500"
+                href={`/checkout/${listing.id}`}
+              >
                 Comprar agora
               </Link>
-              <Link href="/conta" className="ghost-button">
-                Falar com o seller
-              </Link>
+              <button
+                type="button"
+                className="rounded-2xl border border-meow-200 bg-meow-50 px-6 py-3 text-sm font-bold text-meow-deep"
+                onClick={() =>
+                  addToCart({
+                    id: listing.id,
+                    title: listing.title,
+                    priceCents: listing.priceCents,
+                    currency: listing.currency,
+                    image: listing.media?.[0]?.url ?? null,
+                  })
+                }
+              >
+                Adicionar ao carrinho
+              </button>
             </div>
+
+            <div className="mt-6 grid gap-3 text-sm text-meow-muted">
+              <div className="flex items-center justify-between rounded-2xl border border-slate-100 px-4 py-3">
+                <span>SLA</span>
+                <strong className="text-meow-charcoal">{listing.deliverySlaHours ?? 24}h</strong>
+              </div>
+              <div className="flex items-center justify-between rounded-2xl border border-slate-100 px-4 py-3">
+                <span>Categoria</span>
+                <strong className="text-meow-charcoal">{categoryLabel}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-10 rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+          <div className="flex flex-wrap items-center gap-3">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                className={`rounded-full px-4 py-2 text-xs font-bold ${
+                  activeTab === tab.id
+                    ? 'bg-meow-300 text-white shadow-cute'
+                    : 'bg-meow-50 text-meow-muted'
+                }`}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-6 text-sm text-meow-muted">
+            {activeTab === 'descricao' ? (
+              <p>{listing.description ?? 'Descricao nao informada.'}</p>
+            ) : null}
+            {activeTab === 'avaliacoes' ? (
+              <p>Este anuncio ainda nao possui avaliacoes.</p>
+            ) : null}
+            {activeTab === 'duvidas' ? (
+              <p>Envie sua duvida no chat apos a compra.</p>
+            ) : null}
           </div>
         </div>
       </div>

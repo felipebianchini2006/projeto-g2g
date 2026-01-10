@@ -137,6 +137,13 @@ export const marketplaceApi = {
       headers: authHeaders(token),
     }),
 
+  reserveInventory: (token: string | null, listingId: string, quantity = 1) =>
+    apiFetch<InventoryActionResult>(`/listings/${listingId}/inventory/reserve`, {
+      method: 'POST',
+      headers: authHeaders(token),
+      body: JSON.stringify({ quantity }),
+    }),
+
   uploadMedia: async (
     token: string | null,
     listingId: string,

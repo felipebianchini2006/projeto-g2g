@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { Heart } from 'lucide-react';
 
 import {
   catalogCategories,
@@ -28,7 +29,7 @@ const formatCurrency = (value: number, currency = 'BRL') =>
   }).format(value / 100);
 
 export const ProdutosContent = () => {
-  const { addToCart } = useSite();
+  const { addToCart, isFavorite, toggleFavorite } = useSite();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [categories, setCategories] = useState<CatalogCategory[]>(catalogCategories);
@@ -266,32 +267,66 @@ export const ProdutosContent = () => {
 
             <div className="listing-grid">
               {state.listings.map((listing) => (
-                <article className="listing-card" key={listing.id}>
-                  <div className="listing-media">
+                <article
+                  className="group overflow-hidden rounded-[26px] border border-slate-100 bg-white shadow-card transition hover:-translate-y-1"
+                  key={listing.id}
+                >
+                  <div className="relative h-56 overflow-hidden bg-slate-100">
                     <img
                       src={listing.media?.[0]?.url ?? '/assets/meoow/highlight-02.webp'}
                       alt={listing.title}
+                      className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                     />
-                    <span className={`badge badge-${listing.deliveryType.toLowerCase()}`}>
-                      {listing.deliveryType === 'AUTO' ? 'Auto' : 'Manual'}
+                    <span className="absolute left-4 top-4 rounded-full bg-emerald-500 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.3px] text-white shadow-cute">
+                      {listing.deliveryType === 'AUTO' ? 'Entrega auto' : 'Entrega manual'}
                     </span>
+                    <button
+                      type="button"
+                      className="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-white/90 text-meow-deep shadow-card"
+                      onClick={() =>
+                        toggleFavorite({
+                          id: listing.id,
+                          title: listing.title,
+                          priceCents: listing.priceCents,
+                          currency: listing.currency,
+                          image: listing.media?.[0]?.url ?? null,
+                        })
+                      }
+                      aria-pressed={isFavorite(listing.id)}
+                    >
+                      <Heart
+                        size={18}
+                        fill={isFavorite(listing.id) ? 'currentColor' : 'none'}
+                      />
+                    </button>
                   </div>
-                  <div className="listing-body">
-                    <h3>{listing.title}</h3>
-                    <p>{listing.description}</p>
-                    <div className="listing-meta">
-                      <span>{listing.categoryLabel ?? listing.categorySlug ?? 'Marketplace'}</span>
-                      <span>{listing.status}</span>
+                  <div className="grid gap-3 p-5">
+                    <div>
+                      <h3 className="text-lg font-black text-meow-charcoal">{listing.title}</h3>
+                      <p className="mt-1 text-sm text-slate-500">
+                        {listing.description ?? 'Descricao indisponivel.'}
+                      </p>
                     </div>
-                    <div className="listing-price">
+                    <div className="flex items-center gap-2 text-xs text-slate-400">
+                      <span className="line-through">
+                        {formatCurrency(Math.round(listing.priceCents * 1.1), listing.currency)}
+                      </span>
+                      <span className="rounded bg-meow-100 px-2 py-0.5 font-bold text-meow-500">
+                        -10%
+                      </span>
+                    </div>
+                    <div className="text-2xl font-black text-meow-charcoal">
                       {formatCurrency(listing.priceCents, listing.currency)}
                     </div>
-                    <div className="listing-actions">
-                      <Link className="ghost-button" href={`/anuncios/${listing.id}`}>
-                        Ver anuncio
+                    <div className="flex items-center gap-3">
+                      <Link
+                        className="flex-1 rounded-full bg-meow-indigo px-4 py-3 text-center text-sm font-bold text-white shadow-cute transition hover:bg-meow-indigoDark"
+                        href={`/anuncios/${listing.id}`}
+                      >
+                        Ver detalhes
                       </Link>
                       <button
-                        className="primary-button"
+                        className="rounded-full border border-meow-200 px-4 py-3 text-xs font-bold text-meow-deep"
                         type="button"
                         onClick={() =>
                           addToCart({
@@ -303,7 +338,7 @@ export const ProdutosContent = () => {
                           })
                         }
                       >
-                        Comprar
+                        Carrinho
                       </button>
                     </div>
                   </div>

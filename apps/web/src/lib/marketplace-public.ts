@@ -3,6 +3,7 @@ import type { DeliveryType, ListingMedia, ListingStatus } from './marketplace-ap
 import { products } from './site-data';
 
 export type CatalogCategory = {
+  id?: string;
   slug: string;
   label: string;
   description: string;
@@ -171,6 +172,7 @@ const popularLabels = new Set(['Free Fire', 'Genshin Impact', 'Minecraft']);
 
 export const catalogCategories: CatalogCategory[] = ggmaxCategoryLabels.map(
   (label, index) => ({
+    id: slugify(label),
     slug: slugify(label),
     label,
     description: 'Explore anuncios selecionados.',
@@ -186,6 +188,7 @@ const fallbackCategoryBySlug = new Map(
 const buildCatalogCategory = (category: PublicCategory): CatalogCategory => {
   const fallback = fallbackCategoryBySlug.get(category.slug);
   return {
+    id: category.id,
     slug: category.slug,
     label: category.name,
     description:

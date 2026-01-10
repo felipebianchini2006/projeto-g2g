@@ -3,15 +3,18 @@
 @tailwind utilities;
 
 :root {
-    --red: #f2a4c3;
-    --deep-red: #d86b95;
-    --cream: #fff3f8;
-    --charcoal: #402532;
-    --muted: #7b5f6a;
-    --gold: #ffcc8b;
-    --indigo: #4c4bec;
-    --indigo-dark: #3837c8;
-    --shadow: 0 18px 45px rgba(64, 37, 50, 0.16);
+    --red: #ff6b95;
+    --deep-red: #f43f5e;
+    --cream: #fff0f5;
+    --charcoal: #1f2937;
+    --muted: #6b7280;
+    --gold: #fcd34d;
+    --indigo: #4f46e5;
+    --indigo-dark: #4338ca;
+    --shadow: 0 18px 45px rgba(31, 41, 55, 0.12);
+    --surface: #ffffff;
+    --surface-muted: #f8fafc;
+    --border-soft: rgba(15, 23, 42, 0.08);
     --radius-lg: 24px;
     --radius-md: 16px;
     --radius-sm: 10px;
@@ -27,7 +30,7 @@
 
 body {
     font-family: var(--font-body);
-    background: radial-gradient(circle at top, #ffe9f3 0%, #fff7fb 50%, #ffffff 100%);
+    background: radial-gradient(circle at top, #ffe9f3 0%, #fff7fb 55%, #f8fafc 100%);
     color: var(--charcoal);
     letter-spacing: 0.1px;
 }

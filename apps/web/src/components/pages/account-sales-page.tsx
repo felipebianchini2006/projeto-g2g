@@ -143,24 +143,19 @@ export const AccountSalesContent = () => {
         { label: 'Minhas vendas' },
       ]}
     >
-      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-meow-red/20 bg-white p-4 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
-        {[
-          { label: 'Pagamento', options: ['Todos', 'Aprovado', 'Pendente'] },
-          { label: 'Pedido', options: ['Todos', 'Ultimos 30 dias'] },
-          { label: 'Avaliacao', options: ['Todas', 'Pendentes'] },
-          { label: 'Codigo da venda', options: ['Codigo da venda'] },
-        ].map((filter) => (
-          <label key={filter.label} className="grid gap-1 text-xs font-semibold text-meow-muted">
-            {filter.label}
-            <select className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal">
-              {filter.options.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </label>
-        ))}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-black text-meow-charcoal">Vendas recentes</h1>
+          <p className="text-sm text-meow-muted">
+            Ultimas transacoes feitas na sua loja.
+          </p>
+        </div>
+        <Link
+          href="/conta/vendas"
+          className="text-xs font-bold text-meow-deep"
+        >
+          Ver todas
+        </Link>
       </div>
 
       {state.error ? (
@@ -181,65 +176,61 @@ export const AccountSalesContent = () => {
         </div>
       ) : null}
 
-      {ordersSorted.map((order) => {
-        const firstItem = order.items[0];
-        const payment = order.payments?.[0];
-        const deliveryLabel =
-          order.status === 'DELIVERED' || order.status === 'COMPLETED'
-            ? 'Entregue'
-            : 'Entrega pendente';
-        const deliveryTone =
-          order.status === 'DELIVERED' || order.status === 'COMPLETED'
-            ? 'text-emerald-600'
-            : 'text-meow-muted';
-        const orderCode = order.id.slice(0, 7).toUpperCase();
+      <div className="mt-4 rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+        {ordersSorted.map((order) => {
+          const firstItem = order.items[0];
+          const payment = order.payments?.[0];
+          const statusTag =
+            order.status === 'PAID' || order.status === 'COMPLETED'
+              ? { label: 'Aprovado', tone: 'bg-emerald-100 text-emerald-700' }
+              : order.status === 'AWAITING_PAYMENT'
+                ? { label: 'Em analise', tone: 'bg-amber-100 text-amber-700' }
+                : { label: 'Entregue', tone: 'bg-blue-100 text-blue-700' };
 
-        return (
-          <div
-            key={order.id}
-            className="rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]"
-          >
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="text-sm font-bold text-meow-charcoal">
-                Venda <span className="text-meow-muted">#{orderCode}</span>
+          return (
+            <div
+              key={order.id}
+              className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-100 bg-meow-50/70 px-4 py-3"
+            >
+              <div className="flex items-center gap-3">
+                <div className="grid h-10 w-10 place-items-center rounded-xl bg-white text-xs font-black text-meow-charcoal">
+                  #{order.id.slice(0, 4)}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-meow-charcoal">
+                    {firstItem?.title ?? 'Venda'}
+                  </p>
+                  <p className="text-xs text-meow-muted">
+                    Comp: {order.buyer?.email ?? order.buyerId} -{' '}
+                    {new Date(order.createdAt).toLocaleDateString('pt-BR')}
+                  </p>
+                </div>
               </div>
-              <Link
-                href={`/conta/vendas/${order.id}`}
-                className="rounded-full bg-meow-linear px-4 py-2 text-xs font-bold text-white"
-              >
-                Ver pedido
-              </Link>
-            </div>
-            <div className="mt-3 text-sm text-meow-muted">
-              {firstItem ? (
-                <>
-                  {firstItem.quantity} x {firstItem.title}
-                  <span className="px-2 text-meow-red/40">|</span>
-                  {formatCurrency(firstItem.unitPriceCents, order.currency)}
-                </>
-              ) : (
-                'Item indisponivel.'
-              )}
-            </div>
-            <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-meow-muted">
-              <span>{new Date(order.createdAt).toLocaleString('pt-BR')}</span>
-              <span>Total: {formatCurrency(order.totalAmountCents, order.currency)}</span>
-              <span className={deliveryTone}>{deliveryLabel}</span>
-              <span>{statusLabel[order.status] ?? order.status}</span>
-            </div>
-            {payment ? (
-              <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-                <span
-                  className={`inline-flex items-center gap-2 rounded-full px-3 py-1 font-semibold ${paymentTone[payment.status]}`}
-                >
-                  Pix - {formatCurrency(order.totalAmountCents, order.currency)}
+              <div className="flex items-center gap-4">
+                <div className="text-sm font-black text-meow-charcoal">
+                  {formatCurrency(order.totalAmountCents, order.currency)}
+                </div>
+                <span className={`rounded-full px-3 py-1 text-xs font-bold ${statusTag.tone}`}>
+                  {statusTag.label}
                 </span>
-                <span className="text-meow-muted">{paymentLabel[payment.status]}</span>
+                {payment ? (
+                  <span
+                    className={`rounded-full px-3 py-1 text-[11px] font-semibold ${paymentTone[payment.status]}`}
+                  >
+                    {paymentLabel[payment.status]}
+                  </span>
+                ) : null}
+                <Link
+                  href={`/conta/vendas/${order.id}`}
+                  className="rounded-full border border-slate-200 px-3 py-2 text-xs font-bold text-meow-charcoal"
+                >
+                  Detalhes
+                </Link>
               </div>
-            ) : null}
-          </div>
-        );
-      })}
+            </div>
+          );
+        })}
+      </div>
     </AccountShell>
   );
 };

@@ -54,6 +54,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
   const [paymentState, setPaymentState] = useState<PaymentState>({ status: 'idle' });
   const [quantity, setQuantity] = useState(1);
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
+  const [manualOrderStatus, setManualOrderStatus] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -170,6 +171,26 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
     }
   };
 
+  const handleCreateOrder = async () => {
+    if (!accessToken || !listingState.listing || checkoutBlockedReason) {
+      return;
+    }
+    setManualOrderStatus(null);
+    try {
+      const order = await ordersApi.createOrder(accessToken, listingId, quantity);
+      setManualOrderStatus('Pedido criado. Acompanhe na sua conta.');
+      router.push(`/conta/pedidos/${order.id}`);
+    } catch (error) {
+      const message =
+        error instanceof ApiClientError
+          ? error.message
+          : error instanceof Error
+            ? error.message
+            : 'Nao foi possivel criar o pedido.';
+      setManualOrderStatus(message);
+    }
+  };
+
   const handleCopy = async () => {
     const payload = paymentState.data?.payment.copyPaste;
     if (!payload) {
@@ -279,14 +300,27 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                     <div className="state-card info">{checkoutBlockedReason}</div>
                   ) : null}
 
-                  <button
-                    className="primary-button"
-                    type="button"
-                    onClick={handleCheckout}
-                    disabled={Boolean(checkoutBlockedReason) || paymentState.status === 'loading'}
-                  >
-                    {paymentState.status === 'loading' ? 'Gerando Pix...' : 'Gerar Pix'}
-                  </button>
+                  <div className="grid gap-3">
+                    <button
+                      className="primary-button"
+                      type="button"
+                      onClick={handleCheckout}
+                      disabled={Boolean(checkoutBlockedReason) || paymentState.status === 'loading'}
+                    >
+                      {paymentState.status === 'loading' ? 'Gerando Pix...' : 'Gerar Pix'}
+                    </button>
+                    <button
+                      className="ghost-button"
+                      type="button"
+                      onClick={handleCreateOrder}
+                      disabled={Boolean(checkoutBlockedReason)}
+                    >
+                      Criar pedido sem Pix
+                    </button>
+                  </div>
+                  {manualOrderStatus ? (
+                    <div className="state-card info">{manualOrderStatus}</div>
+                  ) : null}
                 </div>
 
                 <div className="checkout-card payment-card">

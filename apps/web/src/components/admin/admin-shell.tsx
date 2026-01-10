@@ -3,6 +3,15 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useMemo } from 'react';
+import {
+  Activity,
+  Settings,
+  Shield,
+  Ticket,
+  Users,
+  Wallet,
+  Wrench,
+} from 'lucide-react';
 
 import { useAuth } from '../auth/auth-provider';
 
@@ -49,6 +58,9 @@ export const AdminShell = ({ breadcrumbs, children }: AdminShellProps) => {
           { label: 'Disputas', href: '/admin/disputas' },
           { label: 'Moderacao', href: '/admin/anuncios' },
           { label: 'Usuarios', href: '/admin/usuarios' },
+          { label: 'Pedidos', href: '/admin/pedidos' },
+          { label: 'Webhooks', href: '/admin/webhooks' },
+          { label: 'Sistema', href: '/admin/sistema' },
           { label: 'Parametros', href: '/admin/parametros' },
         ],
       },
@@ -72,16 +84,16 @@ export const AdminShell = ({ breadcrumbs, children }: AdminShellProps) => {
   );
 
   return (
-    <section className="bg-white px-6 py-10">
+    <section className="bg-meow-50/60 px-6 py-10">
       <div className="mx-auto w-full max-w-[1200px]">
         {breadcrumbs?.length ? (
-          <div className="text-xs text-meow-muted">
+          <div className="text-xs font-semibold text-meow-muted">
             {breadcrumbs.map((crumb, index) => {
               const isLast = index === breadcrumbs.length - 1;
               if (crumb.href && !isLast) {
                 return (
                   <span key={crumb.label}>
-                    <Link href={crumb.href} className="font-semibold text-meow-deep">
+                    <Link href={crumb.href} className="text-meow-deep">
                       {crumb.label}
                     </Link>{' '}
                     &gt;{' '}
@@ -99,21 +111,32 @@ export const AdminShell = ({ breadcrumbs, children }: AdminShellProps) => {
         ) : null}
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
-          <aside className="rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+          <aside className="rounded-[28px] border border-meow-100 bg-white p-5 shadow-card">
             {menuSections.map((section) => (
               <div key={section.title} className="mb-6 last:mb-0">
-                <p className="text-xs font-bold uppercase tracking-[0.4px] text-meow-muted">
+                <p className="text-[11px] font-bold uppercase tracking-[0.4px] text-meow-muted">
                   {section.title}
                 </p>
                 <div className="mt-3 grid gap-1 text-sm">
                   {section.items.map((item) => {
                     const baseClasses =
-                      'flex items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold transition';
+                      'flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold transition';
                     const activeClasses = isActivePath(pathname, item.href)
-                      ? 'bg-meow-cream text-meow-charcoal'
-                      : 'text-meow-muted hover:bg-meow-cream/70 hover:text-meow-charcoal';
+                      ? 'bg-meow-100 text-meow-deep'
+                      : 'text-meow-charcoal/80 hover:bg-meow-50 hover:text-meow-charcoal';
                     const dangerClasses =
-                      item.tone === 'danger' ? 'text-red-600 hover:text-red-700' : '';
+                      item.tone === 'danger' ? 'text-red-500 hover:text-red-600' : '';
+
+                    const iconMap: Record<string, React.ReactNode> = {
+                      Atendimento: <Ticket size={16} aria-hidden />,
+                      Disputas: <Shield size={16} aria-hidden />,
+                      Moderacao: <Wrench size={16} aria-hidden />,
+                      Usuarios: <Users size={16} aria-hidden />,
+                      Pedidos: <Wallet size={16} aria-hidden />,
+                      Webhooks: <Activity size={16} aria-hidden />,
+                      Sistema: <Activity size={16} aria-hidden />,
+                      Parametros: <Settings size={16} aria-hidden />,
+                    };
 
                     if (item.onClick) {
                       return (
@@ -123,6 +146,7 @@ export const AdminShell = ({ breadcrumbs, children }: AdminShellProps) => {
                           className={`${baseClasses} ${activeClasses} ${dangerClasses}`}
                           onClick={item.onClick}
                         >
+                          {iconMap[item.label] ?? <Settings size={16} aria-hidden />}
                           {item.label}
                         </button>
                       );
@@ -134,6 +158,7 @@ export const AdminShell = ({ breadcrumbs, children }: AdminShellProps) => {
                         href={item.href ?? '#'}
                         className={`${baseClasses} ${activeClasses} ${dangerClasses}`}
                       >
+                        {iconMap[item.label] ?? <Settings size={16} aria-hidden />}
                         {item.label}
                       </Link>
                     );

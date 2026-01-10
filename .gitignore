@@ -34,3 +34,5 @@ apps/api/dist/
 # Misc
 .DS_Store
 *.vscode
+
+imagens/

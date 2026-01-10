@@ -130,17 +130,37 @@ export const NotificationsCenterContent = () => {
                 {filtered.map((notification) => (
                   <div
                     key={notification.id}
-                    className="flex items-start gap-3 rounded-xl border border-meow-red/20 px-4 py-3"
+                    className={`flex items-start gap-3 rounded-xl border px-4 py-3 ${
+                      notification.readAt
+                        ? 'border-meow-red/20 bg-white'
+                        : 'border-indigo-200 bg-indigo-50/50'
+                    }`}
                   >
                     <div className="mt-1 flex h-6 w-6 items-center justify-center rounded-md border border-meow-red/20">
                       {notification.readAt ? <Check size={12} aria-hidden /> : null}
                     </div>
-                    <div>
+                    <button
+                      type="button"
+                      className="text-left"
+                      onClick={async () => {
+                        if (!accessToken || notification.readAt) {
+                          return;
+                        }
+                        await notificationsApi.markRead(accessToken, notification.id);
+                        setNotifications((prev) =>
+                          prev.map((item) =>
+                            item.id === notification.id
+                              ? { ...item, readAt: new Date().toISOString() }
+                              : item,
+                          ),
+                        );
+                      }}
+                    >
                       <p className="text-sm font-semibold text-meow-charcoal">
                         {notification.title}
                       </p>
                       <p className="text-xs text-meow-muted">{notification.body}</p>
-                    </div>
+                    </button>
                   </div>
                 ))}
               </div>

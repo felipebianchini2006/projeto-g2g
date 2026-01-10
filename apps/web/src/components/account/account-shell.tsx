@@ -3,6 +3,17 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useMemo } from 'react';
+import {
+  Bell,
+  CreditCard,
+  Heart,
+  LayoutGrid,
+  LogOut,
+  Settings,
+  ShoppingBag,
+  Ticket,
+  User,
+} from 'lucide-react';
 
 import { useAuth } from '../auth/auth-provider';
 
@@ -46,7 +57,7 @@ const isActivePath = (pathname: string, href?: string) => {
 };
 
 export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const router = useRouter();
   const pathname = usePathname() ?? '';
 
@@ -55,15 +66,17 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
       {
         title: 'Menu',
         items: [
-          { label: 'Resumo', href: '/conta' },
-          { label: 'Transacoes', href: '/conta/carteira/extrato' },
-          { label: 'Meus anuncios', href: '/conta/anuncios' },
+          { label: 'Visao geral', href: '/conta' },
           { label: 'Minhas compras', href: '/conta/pedidos' },
+          { label: 'Favoritos', href: '/conta/favoritos' },
+          { label: 'Carteira & cashback', href: '/conta/carteira' },
+          { label: 'Meus tickets', href: '/conta/tickets' },
+          { label: 'Meus anuncios', href: '/conta/anuncios' },
           { label: 'Minhas vendas', href: '/conta/vendas' },
         ],
       },
       {
-        title: 'Configuracoes',
+        title: 'Conta',
         items: [
           { label: 'Minha conta', href: '/conta/minha-conta' },
           { label: 'Meus dados', href: '/conta/meus-dados' },
@@ -72,7 +85,7 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
           { label: 'Central de ajuda', href: '/conta/ajuda' },
           { label: 'Notificacoes', href: '/central-de-notificacoes' },
           {
-            label: 'Sair',
+            label: 'Sair da conta',
             tone: 'danger',
             onClick: async () => {
               await logout();
@@ -85,17 +98,51 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
     [logout, router],
   );
 
+  const displayName = useMemo(() => {
+    if (!user?.email) {
+      return 'Jogador';
+    }
+    return user.email.split('@')[0] || 'Jogador';
+  }, [user?.email]);
+
+  const initials = displayName
+    .split(' ')
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+
   return (
-    <section className="bg-white px-6 py-10">
+    <section className="bg-meow-50/60 px-6 py-10">
       <div className="mx-auto w-full max-w-[1200px]">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 rounded-full bg-meow-100 px-4 py-2 text-sm font-bold text-meow-deep"
+          >
+            <span className="grid h-8 w-8 place-items-center rounded-full bg-white text-meow-deep">
+              <ShoppingBag size={16} aria-hidden />
+            </span>
+            Voltar a loja
+          </Link>
+
+          <Link
+            href="/central-de-notificacoes"
+            className="inline-flex items-center gap-2 rounded-full border border-meow-200 bg-white px-4 py-2 text-sm font-semibold text-meow-charcoal shadow-card"
+          >
+            <Bell size={16} aria-hidden />
+            Notificacoes
+          </Link>
+        </div>
+
         {breadcrumbs?.length ? (
-          <div className="text-xs text-meow-muted">
+          <div className="mt-6 text-xs font-semibold text-meow-muted">
             {breadcrumbs.map((crumb, index) => {
               const isLast = index === breadcrumbs.length - 1;
               if (crumb.href && !isLast) {
                 return (
                   <span key={crumb.label}>
-                    <Link href={crumb.href} className="font-semibold text-meow-deep">
+                    <Link href={crumb.href} className="text-meow-deep">
                       {crumb.label}
                     </Link>{' '}
                     &gt;{' '}
@@ -112,49 +159,87 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
           </div>
         ) : null}
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
-          <aside className="rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
-            {menuSections.map((section) => (
-              <div key={section.title} className="mb-6 last:mb-0">
-                <p className="text-xs font-bold uppercase tracking-[0.4px] text-meow-muted">
-                  {section.title}
-                </p>
-                <div className="mt-3 grid gap-1 text-sm">
-                  {section.items.map((item) => {
-                    const baseClasses =
-                      'flex items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold transition';
-                    const activeClasses = isActivePath(pathname, item.href)
-                      ? 'bg-meow-cream text-meow-charcoal'
-                      : 'text-meow-muted hover:bg-meow-cream/70 hover:text-meow-charcoal';
-                    const dangerClasses =
-                      item.tone === 'danger' ? 'text-red-600 hover:text-red-700' : '';
-
-                    if (item.onClick) {
-                      return (
-                        <button
-                          key={item.label}
-                          type="button"
-                          className={`${baseClasses} ${activeClasses} ${dangerClasses}`}
-                          onClick={item.onClick}
-                        >
-                          {item.label}
-                        </button>
-                      );
-                    }
-
-                    return (
-                      <Link
-                        key={item.label}
-                        href={item.href ?? '#'}
-                        className={`${baseClasses} ${activeClasses} ${dangerClasses}`}
-                      >
-                        {item.label}
-                      </Link>
-                    );
-                  })}
+        <div className="mt-6 grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+          <aside className="rounded-[28px] border border-meow-100 bg-white p-5 shadow-card">
+            <div className="flex flex-col items-center text-center">
+              <div className="relative">
+                <div className="grid h-20 w-20 place-items-center rounded-full bg-gradient-to-br from-meow-200 to-meow-300 text-white text-2xl font-black shadow-cute">
+                  {initials}
                 </div>
+                <span className="absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-full bg-meow-300 text-xs font-black text-white shadow-cute">
+                  <User size={12} aria-hidden />
+                </span>
               </div>
-            ))}
+              <h3 className="mt-4 text-lg font-black text-meow-charcoal">{displayName}</h3>
+              <p className="text-xs font-semibold uppercase text-meow-muted">
+                Cliente VIP | Nivel 12
+              </p>
+            </div>
+
+            <div className="mt-6 grid gap-5">
+              {menuSections.map((section) => (
+                <div key={section.title}>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.4px] text-meow-muted">
+                    {section.title}
+                  </p>
+                  <div className="mt-3 grid gap-1 text-sm">
+                    {section.items.map((item) => {
+                      const baseClasses =
+                        'flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold transition';
+                      const activeClasses = isActivePath(pathname, item.href)
+                        ? 'bg-meow-100 text-meow-deep'
+                        : 'text-meow-charcoal/80 hover:bg-meow-50 hover:text-meow-charcoal';
+                      const dangerClasses =
+                        item.tone === 'danger'
+                          ? 'text-red-500 hover:text-red-600'
+                          : '';
+
+                      const iconMap: Record<string, React.ReactNode> = {
+                        'Visao geral': <LayoutGrid size={16} aria-hidden />,
+                        'Minhas compras': <ShoppingBag size={16} aria-hidden />,
+                        Favoritos: <Heart size={16} aria-hidden />,
+                        'Carteira & cashback': <CreditCard size={16} aria-hidden />,
+                        'Meus tickets': <Ticket size={16} aria-hidden />,
+                        'Meus anuncios': <ShoppingBag size={16} aria-hidden />,
+                        'Minhas vendas': <ShoppingBag size={16} aria-hidden />,
+                        'Minha conta': <User size={16} aria-hidden />,
+                        'Meus dados': <User size={16} aria-hidden />,
+                        Seguranca: <Settings size={16} aria-hidden />,
+                        Sessoes: <Settings size={16} aria-hidden />,
+                        'Central de ajuda': <Ticket size={16} aria-hidden />,
+                        Notificacoes: <Bell size={16} aria-hidden />,
+                        'Sair da conta': <LogOut size={16} aria-hidden />,
+                      };
+
+                      if (item.onClick) {
+                        return (
+                          <button
+                            key={item.label}
+                            type="button"
+                            className={`${baseClasses} ${activeClasses} ${dangerClasses}`}
+                            onClick={item.onClick}
+                          >
+                            {iconMap[item.label] ?? <LayoutGrid size={16} aria-hidden />}
+                            {item.label}
+                          </button>
+                        );
+                      }
+
+                      return (
+                        <Link
+                          key={item.label}
+                          href={item.href ?? '#'}
+                          className={`${baseClasses} ${activeClasses} ${dangerClasses}`}
+                        >
+                          {iconMap[item.label] ?? <LayoutGrid size={16} aria-hidden />}
+                          {item.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
           </aside>
 
           <div className="space-y-6">{children}</div>

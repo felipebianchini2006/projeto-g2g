@@ -76,6 +76,11 @@ export const DashboardContent = () => {
   const canSubmit = selectedListing?.status === 'DRAFT';
   const canArchive = selectedListing?.status !== 'SUSPENDED';
 
+  const todaySales = listings.length * 15000;
+  const totalBalance = listings.length * 85000;
+  const pendingQuestions = listings.length ? 3 : 0;
+  const openTickets = listings.length ? 1 : 0;
+
   const handleError = (error: unknown, fallback = 'Nao foi possivel concluir a operacao.') => {
     if (error instanceof ApiClientError) {
       setError(error.message);
@@ -386,329 +391,454 @@ export const DashboardContent = () => {
   }
 
   return (
-    <div className="seller-dashboard">
-      <div className="seller-header">
-        <div>
-          <h1>Painel do seller</h1>
-          <p className="auth-helper">Gerencie anuncios, inventario e midias.</p>
-        </div>
-        <div className="dashboard-actions">
-          <Link className="ghost-button" href="/conta/carteira">
-            Carteira
-          </Link>
-          <button className="ghost-button" type="button" onClick={resetForm}>
-            Novo anuncio
-          </button>
-          <button className="primary-button" type="button" onClick={handleLogout} disabled={busyAction === 'logout'}>
-            {busyAction === 'logout' ? 'Saindo...' : 'Sair'}
-          </button>
-        </div>
-      </div>
-
-      {error ? <div className="state-card error">Erro: {error}</div> : null}
-      {notice ? <div className="state-card success">{notice}</div> : null}
-
-      <div className="seller-grid">
-        <section className="seller-panel">
-          <div className="panel-header">
-            <h2>Seus anuncios</h2>
-            <button className="ghost-button" type="button" onClick={loadListings} disabled={busyAction === 'load'}>
-              {busyAction === 'load' ? 'Atualizando...' : 'Atualizar'}
-            </button>
+    <section className="bg-meow-50/60 px-6 py-10">
+      <div className="mx-auto grid w-full max-w-[1200px] gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
+        <aside className="space-y-6">
+          <div className="rounded-[26px] border border-slate-100 bg-white p-5 text-center shadow-card">
+            <div className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-gradient-to-br from-meow-200 to-meow-300 text-xl font-black text-white shadow-cute">
+              LP
+            </div>
+            <h2 className="mt-4 text-lg font-black text-meow-charcoal">Loja do Seller</h2>
+            <p className="text-xs font-semibold text-meow-muted">4.9 (2.3k vendas)</p>
+            <Link
+              className="mt-4 inline-flex w-full items-center justify-center rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-meow-charcoal"
+              href="/produtos"
+            >
+              Visualizar loja publica
+            </Link>
           </div>
 
-          {busyAction === 'load' ? (
-            <div className="state-card">Carregando anuncios...</div>
-          ) : null}
-
-          {listings.length === 0 && busyAction !== 'load' ? (
-            <div className="state-card">Nenhum anuncio criado ainda.</div>
-          ) : null}
-
-          <div className="listing-stack">
-            {listings.map((listing) => (
-              <button
-                className={`listing-row${listing.id === selectedId ? ' active' : ''}`}
-                key={listing.id}
-                type="button"
-                onClick={() => handleSelectListing(listing)}
+          <div className="rounded-[26px] border border-slate-100 bg-white p-4 shadow-card">
+            <p className="text-[11px] font-bold uppercase tracking-[0.4px] text-meow-muted">
+              Gestao
+            </p>
+            <div className="mt-3 grid gap-1 text-sm">
+              <button className="rounded-xl bg-meow-50 px-3 py-2 text-left text-sm font-semibold text-meow-deep">
+                Visao geral
+              </button>
+              <Link
+                className="rounded-xl px-3 py-2 text-sm font-semibold text-meow-charcoal/80 hover:bg-meow-50"
+                href="/conta/vendas"
               >
-                <div>
-                  <h3>{listing.title}</h3>
-                  <p className="listing-meta">
-                    {formatCurrency(listing.priceCents, listing.currency)} ·{' '}
-                    {deliveryLabel[listing.deliveryType] ?? listing.deliveryType}
-                  </p>
-                </div>
-                <span className={`status-pill status-${listing.status.toLowerCase()}`}>
-                  {statusLabel[listing.status] ?? listing.status}
-                </span>
-              </button>
-            ))}
+                Minhas vendas
+              </Link>
+              <Link
+                className="rounded-xl px-3 py-2 text-sm font-semibold text-meow-charcoal/80 hover:bg-meow-50"
+                href="/conta/tickets"
+              >
+                Perguntas
+              </Link>
+              <Link
+                className="rounded-xl px-3 py-2 text-sm font-semibold text-meow-charcoal/80 hover:bg-meow-50"
+                href="/conta/tickets"
+              >
+                Intermediacoes
+              </Link>
+            </div>
+            <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.4px] text-meow-muted">
+              Financeiro
+            </p>
+            <div className="mt-3 grid gap-1 text-sm">
+              <Link
+                className="rounded-xl px-3 py-2 text-sm font-semibold text-meow-charcoal/80 hover:bg-meow-50"
+                href="/conta/carteira"
+              >
+                Carteira
+              </Link>
+              <Link
+                className="rounded-xl px-3 py-2 text-sm font-semibold text-meow-charcoal/80 hover:bg-meow-50"
+                href="/conta/carteira/extrato"
+              >
+                Extrato
+              </Link>
+            </div>
           </div>
-        </section>
+        </aside>
 
-        <section className="seller-panel">
-          <div className="panel-header">
-            <h2>{formMode === 'edit' ? 'Editar anuncio' : 'Novo anuncio'}</h2>
-            {selectedListing ? (
-              <div className="seller-listing-summary">
-                <span>{listingSummary?.status}</span>
-                <span>{listingSummary?.delivery}</span>
-                <span>{listingSummary?.mediaCount ?? 0} midias</span>
+        <div className="space-y-6">
+          <div className="rounded-[26px] border border-slate-100 bg-white p-6 shadow-card">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h1 className="text-2xl font-black text-meow-charcoal">Visao geral</h1>
+                <p className="mt-1 text-sm text-meow-muted">
+                  Acompanhe o desempenho da sua loja.
+                </p>
               </div>
-            ) : null}
-          </div>
-
-          <form className="seller-form" onSubmit={handleCreateOrUpdate}>
-            <label className="form-field">
-              Categoria (ID)
-              <input
-                className="form-input"
-                value={formState.categoryId}
-                onChange={(event) =>
-                  setFormState((prev) => ({ ...prev, categoryId: event.target.value }))
-                }
-                placeholder="UUID da categoria"
-                required
-              />
-            </label>
-            <label className="form-field">
-              Titulo
-              <input
-                className="form-input"
-                value={formState.title}
-                onChange={(event) =>
-                  setFormState((prev) => ({ ...prev, title: event.target.value }))
-                }
-                placeholder="Nome do anuncio"
-                required
-              />
-            </label>
-            <label className="form-field">
-              Descricao
-              <textarea
-                className="form-textarea"
-                value={formState.description}
-                onChange={(event) =>
-                  setFormState((prev) => ({ ...prev, description: event.target.value }))
-                }
-                rows={3}
-              />
-            </label>
-            <div className="form-grid">
-              <label className="form-field">
-                Preco (centavos)
-                <input
-                  className="form-input"
-                  type="number"
-                  min={1}
-                  value={formState.priceCents}
-                  onChange={(event) =>
-                    setFormState((prev) => ({
-                      ...prev,
-                      priceCents: Number(event.target.value || 0),
-                    }))
-                  }
-                  required
-                />
-              </label>
-              <label className="form-field">
-                Moeda
-                <input
-                  className="form-input"
-                  value={formState.currency}
-                  onChange={(event) =>
-                    setFormState((prev) => ({ ...prev, currency: event.target.value }))
-                  }
-                />
-              </label>
-            </div>
-            <div className="form-grid">
-              <label className="form-field">
-                Tipo de entrega
-                <select
-                  className="form-input"
-                  value={formState.deliveryType}
-                  onChange={(event) =>
-                    setFormState((prev) => ({
-                      ...prev,
-                      deliveryType: event.target.value as ListingInput['deliveryType'],
-                    }))
-                  }
-                >
-                  <option value="AUTO">AUTO</option>
-                  <option value="MANUAL">MANUAL</option>
-                </select>
-              </label>
-              <label className="form-field">
-                SLA (horas)
-                <input
-                  className="form-input"
-                  type="number"
-                  min={1}
-                  max={720}
-                  value={formState.deliverySlaHours}
-                  onChange={(event) =>
-                    setFormState((prev) => ({
-                      ...prev,
-                      deliverySlaHours: Number(event.target.value || 0),
-                    }))
-                  }
-                />
-              </label>
-            </div>
-            <label className="form-field">
-              Politica de reembolso
-              <textarea
-                className="form-textarea"
-                value={formState.refundPolicy}
-                onChange={(event) =>
-                  setFormState((prev) => ({ ...prev, refundPolicy: event.target.value }))
-                }
-                rows={3}
-              />
-            </label>
-            <div className="form-actions">
-              <button className="primary-button" type="submit" disabled={busyAction === formMode}>
-                {busyAction === formMode
-                  ? 'Salvando...'
-                  : formMode === 'edit'
-                    ? 'Salvar alteracoes'
-                    : 'Criar anuncio'}
-              </button>
-              {formMode === 'edit' ? (
-                <>
-                  <button
-                    className="ghost-button"
-                    type="button"
-                    onClick={handleSubmitListing}
-                    disabled={!canSubmit || busyAction === 'submit'}
-                  >
-                    {busyAction === 'submit' ? 'Enviando...' : 'Enviar para aprovacao'}
-                  </button>
-                  <button
-                    className="ghost-button"
-                    type="button"
-                    onClick={handleArchiveListing}
-                    disabled={!canArchive || busyAction === 'archive'}
-                  >
-                    {busyAction === 'archive' ? 'Suspenso...' : 'Suspender anuncio'}
-                  </button>
-                </>
-              ) : null}
-            </div>
-          </form>
-
-          {selectedListing ? (
-            <div className="seller-section">
-              <h3>Midias</h3>
-              <div className="media-grid">
-                {(selectedListing.media ?? []).map((media) => (
-                  <div className="media-card" key={media.id}>
-                    <img src={media.url} alt={media.type} />
-                    <button
-                      className="ghost-button"
-                      type="button"
-                      onClick={() => handleRemoveMedia(media.id)}
-                      disabled={busyAction === 'media-remove'}
-                    >
-                      Remover
-                    </button>
-                  </div>
-                ))}
-                {selectedListing.media && selectedListing.media.length === 0 ? (
-                  <div className="state-card">Nenhuma midia enviada ainda.</div>
-                ) : null}
-              </div>
-              <div className="media-upload">
-                <input
-                  type="file"
-                  onChange={(event) => setMediaFile(event.target.files?.[0] ?? null)}
-                />
-                <input
-                  className="form-input"
-                  type="number"
-                  min={0}
-                  max={50}
-                  value={mediaPosition}
-                  onChange={(event) => setMediaPosition(event.target.value)}
-                />
-                <button
-                  className="primary-button"
-                  type="button"
-                  onClick={handleUploadMedia}
-                  disabled={busyAction === 'media-upload'}
-                >
-                  {busyAction === 'media-upload' ? 'Enviando...' : 'Enviar midia'}
+              <div className="flex flex-wrap items-center gap-2">
+                <Link className="rounded-full border border-slate-200 px-4 py-2 text-xs font-bold text-meow-charcoal" href="/conta/carteira">
+                  Carteira
+                </Link>
+                <button className="rounded-full border border-slate-200 px-4 py-2 text-xs font-bold text-meow-charcoal" type="button" onClick={resetForm}>
+                  Novo anuncio
+                </button>
+                <button className="rounded-full bg-meow-300 px-4 py-2 text-xs font-bold text-white shadow-cute" type="button" onClick={handleLogout} disabled={busyAction === 'logout'}>
+                  {busyAction === 'logout' ? 'Saindo...' : 'Sair'}
                 </button>
               </div>
             </div>
-          ) : null}
+          </div>
 
-          {selectedListing && selectedListing.deliveryType === 'AUTO' ? (
-            <div className="seller-section">
-              <h3>Inventario (auto)</h3>
-              <p className="auth-helper">
-                O painel suporta add/import/remove. Para listar itens completos sera preciso
-                endpoint dedicado.
-              </p>
-              <label className="form-field">
-                Adicionar codigos
-                <textarea
-                  className="form-textarea"
-                  value={inventoryCodes}
-                  onChange={(event) => setInventoryCodes(event.target.value)}
-                  rows={3}
-                  placeholder="Um por linha ou separado por virgula"
-                />
-              </label>
-              <button
-                className="ghost-button"
-                type="button"
-                onClick={handleAddInventory}
-                disabled={busyAction === 'inventory-add'}
-              >
-                {busyAction === 'inventory-add' ? 'Adicionando...' : 'Adicionar inventario'}
-              </button>
-              <label className="form-field">
-                Importar CSV/texto
-                <textarea
-                  className="form-textarea"
-                  value={inventoryPayload}
-                  onChange={(event) => setInventoryPayload(event.target.value)}
-                  rows={3}
-                />
-              </label>
-              <button
-                className="ghost-button"
-                type="button"
-                onClick={handleImportInventory}
-                disabled={busyAction === 'inventory-import'}
-              >
-                {busyAction === 'inventory-import' ? 'Importando...' : 'Importar'}
-              </button>
-              <label className="form-field">
-                Remover por itemId
-                <input
-                  className="form-input"
-                  value={inventoryRemoveId}
-                  onChange={(event) => setInventoryRemoveId(event.target.value)}
-                  placeholder="UUID do item"
-                />
-              </label>
-              <button
-                className="ghost-button"
-                type="button"
-                onClick={handleRemoveInventory}
-                disabled={busyAction === 'inventory-remove'}
-              >
-                {busyAction === 'inventory-remove' ? 'Removendo...' : 'Remover item'}
+          {error ? <div className="state-card error">Erro: {error}</div> : null}
+          {notice ? <div className="state-card success">{notice}</div> : null}
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {[
+              {
+                label: 'Vendas hoje',
+                value: formatCurrency(todaySales),
+                hint: '+12% vs ontem',
+                tone: 'bg-rose-50 text-meow-deep',
+              },
+              {
+                label: 'Saldo total',
+                value: formatCurrency(totalBalance),
+                hint: 'Disp: R$ 2.450',
+                tone: 'bg-emerald-50 text-emerald-600',
+              },
+              {
+                label: 'Perguntas',
+                value: `${pendingQuestions}`,
+                hint: 'Responder agora',
+                tone: 'bg-orange-50 text-orange-500',
+              },
+              {
+                label: 'Ticket aberto',
+                value: `${openTickets}`,
+                hint: 'Acao necessaria',
+                tone: 'bg-red-50 text-red-500',
+              },
+            ].map((card) => (
+              <div key={card.label} className="rounded-[22px] border border-slate-100 bg-white p-5 shadow-card">
+                <div className={`grid h-11 w-11 place-items-center rounded-2xl text-sm font-black ${card.tone}`}>
+                  {card.label.slice(0, 1)}
+                </div>
+                <p className="mt-4 text-xs font-semibold uppercase text-meow-muted">{card.label}</p>
+                <p className="mt-2 text-2xl font-black text-meow-charcoal">{card.value}</p>
+                <p className="mt-1 text-xs text-meow-muted">{card.hint}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="rounded-[26px] border border-slate-100 bg-white p-6 shadow-card">
+            <div className="flex items-center justify-between gap-4">
+              <h2 className="text-lg font-black text-meow-charcoal">Desempenho de vendas</h2>
+              <button className="rounded-full border border-slate-200 px-4 py-2 text-xs font-bold text-meow-charcoal">
+                Ultimos 7 dias
               </button>
             </div>
-          ) : null}
-        </section>
+            <div className="mt-4 h-40 rounded-2xl bg-gradient-to-r from-meow-50 to-slate-50" />
+          </div>
+
+          <div className="seller-grid">
+            <section className="seller-panel">
+              <div className="panel-header">
+                <h2>Seus anuncios</h2>
+                <button
+                  className="ghost-button"
+                  type="button"
+                  onClick={loadListings}
+                  disabled={busyAction === 'load'}
+                >
+                  {busyAction === 'load' ? 'Atualizando...' : 'Atualizar'}
+                </button>
+              </div>
+
+              {busyAction === 'load' ? (
+                <div className="state-card">Carregando anuncios...</div>
+              ) : null}
+
+              {listings.length === 0 && busyAction !== 'load' ? (
+                <div className="state-card">Nenhum anuncio criado ainda.</div>
+              ) : null}
+
+              <div className="listing-stack">
+                {listings.map((listing) => (
+                  <button
+                    className={`listing-row${listing.id === selectedId ? ' active' : ''}`}
+                    key={listing.id}
+                    type="button"
+                    onClick={() => handleSelectListing(listing)}
+                  >
+                    <div>
+                      <h3>{listing.title}</h3>
+                      <p className="listing-meta">
+                        {formatCurrency(listing.priceCents, listing.currency)} |{' '}
+                        {deliveryLabel[listing.deliveryType] ?? listing.deliveryType}
+                      </p>
+                    </div>
+                    <span className={`status-pill status-${listing.status.toLowerCase()}`}>
+                      {statusLabel[listing.status] ?? listing.status}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            <section className="seller-panel">
+              <div className="panel-header">
+                <h2>{formMode === 'edit' ? 'Editar anuncio' : 'Novo anuncio'}</h2>
+                {selectedListing ? (
+                  <div className="seller-listing-summary">
+                    <span>{listingSummary?.status}</span>
+                    <span>{listingSummary?.delivery}</span>
+                    <span>{listingSummary?.mediaCount ?? 0} midias</span>
+                  </div>
+                ) : null}
+              </div>
+
+              <form className="seller-form" onSubmit={handleCreateOrUpdate}>
+                <label className="form-field">
+                  Categoria (ID)
+                  <input
+                    className="form-input"
+                    value={formState.categoryId}
+                    onChange={(event) =>
+                      setFormState((prev) => ({ ...prev, categoryId: event.target.value }))
+                    }
+                    placeholder="UUID da categoria"
+                    required
+                  />
+                </label>
+                <label className="form-field">
+                  Titulo
+                  <input
+                    className="form-input"
+                    value={formState.title}
+                    onChange={(event) =>
+                      setFormState((prev) => ({ ...prev, title: event.target.value }))
+                    }
+                    placeholder="Nome do anuncio"
+                    required
+                  />
+                </label>
+                <label className="form-field">
+                  Descricao
+                  <textarea
+                    className="form-textarea"
+                    value={formState.description}
+                    onChange={(event) =>
+                      setFormState((prev) => ({ ...prev, description: event.target.value }))
+                    }
+                    rows={3}
+                  />
+                </label>
+                <div className="form-grid">
+                  <label className="form-field">
+                    Preco (centavos)
+                    <input
+                      className="form-input"
+                      type="number"
+                      min={1}
+                      value={formState.priceCents}
+                      onChange={(event) =>
+                        setFormState((prev) => ({
+                          ...prev,
+                          priceCents: Number(event.target.value || 0),
+                        }))
+                      }
+                      required
+                    />
+                  </label>
+                  <label className="form-field">
+                    Moeda
+                    <input
+                      className="form-input"
+                      value={formState.currency}
+                      onChange={(event) =>
+                        setFormState((prev) => ({ ...prev, currency: event.target.value }))
+                      }
+                    />
+                  </label>
+                </div>
+                <div className="form-grid">
+                  <label className="form-field">
+                    Tipo de entrega
+                    <select
+                      className="form-input"
+                      value={formState.deliveryType}
+                      onChange={(event) =>
+                        setFormState((prev) => ({
+                          ...prev,
+                          deliveryType: event.target.value as ListingInput['deliveryType'],
+                        }))
+                      }
+                    >
+                      <option value="AUTO">AUTO</option>
+                      <option value="MANUAL">MANUAL</option>
+                    </select>
+                  </label>
+                  <label className="form-field">
+                    SLA (horas)
+                    <input
+                      className="form-input"
+                      type="number"
+                      min={1}
+                      max={720}
+                      value={formState.deliverySlaHours}
+                      onChange={(event) =>
+                        setFormState((prev) => ({
+                          ...prev,
+                          deliverySlaHours: Number(event.target.value || 0),
+                        }))
+                      }
+                    />
+                  </label>
+                </div>
+                <label className="form-field">
+                  Politica de reembolso
+                  <textarea
+                    className="form-textarea"
+                    value={formState.refundPolicy}
+                    onChange={(event) =>
+                      setFormState((prev) => ({ ...prev, refundPolicy: event.target.value }))
+                    }
+                    rows={3}
+                  />
+                </label>
+                <div className="form-actions">
+                  <button className="primary-button" type="submit" disabled={busyAction === formMode}>
+                    {busyAction === formMode
+                      ? 'Salvando...'
+                      : formMode === 'edit'
+                        ? 'Salvar alteracoes'
+                        : 'Criar anuncio'}
+                  </button>
+                  {formMode === 'edit' ? (
+                    <>
+                      <button
+                        className="ghost-button"
+                        type="button"
+                        onClick={handleSubmitListing}
+                        disabled={!canSubmit || busyAction === 'submit'}
+                      >
+                        {busyAction === 'submit' ? 'Enviando...' : 'Enviar para aprovacao'}
+                      </button>
+                      <button
+                        className="ghost-button"
+                        type="button"
+                        onClick={handleArchiveListing}
+                        disabled={!canArchive || busyAction === 'archive'}
+                      >
+                        {busyAction === 'archive' ? 'Suspenso...' : 'Suspender anuncio'}
+                      </button>
+                    </>
+                  ) : null}
+                </div>
+              </form>
+
+              {selectedListing ? (
+                <div className="seller-section">
+                  <h3>Midias</h3>
+                  <div className="media-grid">
+                    {(selectedListing.media ?? []).map((media) => (
+                      <div className="media-card" key={media.id}>
+                        <img src={media.url} alt={media.type} />
+                        <button
+                          className="ghost-button"
+                          type="button"
+                          onClick={() => handleRemoveMedia(media.id)}
+                          disabled={busyAction === 'media-remove'}
+                        >
+                          Remover
+                        </button>
+                      </div>
+                    ))}
+                    {selectedListing.media && selectedListing.media.length === 0 ? (
+                      <div className="state-card">Nenhuma midia enviada ainda.</div>
+                    ) : null}
+                  </div>
+                  <div className="media-upload">
+                    <input
+                      type="file"
+                      onChange={(event) => setMediaFile(event.target.files?.[0] ?? null)}
+                    />
+                    <input
+                      className="form-input"
+                      type="number"
+                      min={0}
+                      max={50}
+                      value={mediaPosition}
+                      onChange={(event) => setMediaPosition(event.target.value)}
+                    />
+                    <button
+                      className="primary-button"
+                      type="button"
+                      onClick={handleUploadMedia}
+                      disabled={busyAction === 'media-upload'}
+                    >
+                      {busyAction === 'media-upload' ? 'Enviando...' : 'Enviar midia'}
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+
+              {selectedListing && selectedListing.deliveryType === 'AUTO' ? (
+                <div className="seller-section">
+                  <h3>Inventario (auto)</h3>
+                  <p className="auth-helper">
+                    O painel suporta add/import/remove. Para listar itens completos sera preciso
+                    endpoint dedicado.
+                  </p>
+                  <label className="form-field">
+                    Adicionar codigos
+                    <textarea
+                      className="form-textarea"
+                      value={inventoryCodes}
+                      onChange={(event) => setInventoryCodes(event.target.value)}
+                      rows={3}
+                      placeholder="Um por linha ou separado por virgula"
+                    />
+                  </label>
+                  <button
+                    className="ghost-button"
+                    type="button"
+                    onClick={handleAddInventory}
+                    disabled={busyAction === 'inventory-add'}
+                  >
+                    {busyAction === 'inventory-add'
+                      ? 'Adicionando...'
+                      : 'Adicionar inventario'}
+                  </button>
+                  <label className="form-field">
+                    Importar CSV/texto
+                    <textarea
+                      className="form-textarea"
+                      value={inventoryPayload}
+                      onChange={(event) => setInventoryPayload(event.target.value)}
+                      rows={3}
+                    />
+                  </label>
+                  <button
+                    className="ghost-button"
+                    type="button"
+                    onClick={handleImportInventory}
+                    disabled={busyAction === 'inventory-import'}
+                  >
+                    {busyAction === 'inventory-import' ? 'Importando...' : 'Importar'}
+                  </button>
+                  <label className="form-field">
+                    Remover por itemId
+                    <input
+                      className="form-input"
+                      value={inventoryRemoveId}
+                      onChange={(event) => setInventoryRemoveId(event.target.value)}
+                      placeholder="UUID do item"
+                    />
+                  </label>
+                  <button
+                    className="ghost-button"
+                    type="button"
+                    onClick={handleRemoveInventory}
+                    disabled={busyAction === 'inventory-remove'}
+                  >
+                    {busyAction === 'inventory-remove' ? 'Removendo...' : 'Remover item'}
+                  </button>
+                </div>
+              ) : null}
+            </section>
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
   );
 };

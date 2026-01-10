@@ -9,6 +9,7 @@ import {
   type AdminListing,
   type AdminListingStatus,
 } from '../../lib/admin-listings-api';
+import { marketplaceApi } from '../../lib/marketplace-api';
 import { useAuth } from '../auth/auth-provider';
 import { AdminShell } from '../admin/admin-shell';
 import { NotificationsBell } from '../notifications/notifications-bell';
@@ -38,6 +39,7 @@ export const AdminListingsContent = () => {
   const [selectedListing, setSelectedListing] = useState<AdminListing | null>(null);
   const [statusFilter, setStatusFilter] = useState<AdminListingStatus | 'all'>('PENDING');
   const [actionReason, setActionReason] = useState('');
+  const [reserveQty, setReserveQty] = useState(1);
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -131,6 +133,23 @@ export const AdminListingsContent = () => {
       setActionReason('');
     } catch (error) {
       handleError(error, 'Nao foi possivel atualizar o anuncio.');
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const handleReserveInventory = async () => {
+    if (!accessToken || !selectedListing) {
+      return;
+    }
+    setBusyAction('reserve');
+    setError(null);
+    setNotice(null);
+    try {
+      await marketplaceApi.reserveInventory(accessToken, selectedListing.id, reserveQty);
+      setNotice('Reserva de inventario enviada.');
+    } catch (error) {
+      handleError(error, 'Nao foi possivel reservar inventario.');
     } finally {
       setBusyAction(null);
     }
@@ -327,6 +346,28 @@ export const AdminListingsContent = () => {
                   disabled={!actionReason.trim() || busyAction === 'suspend'}
                 >
                   {busyAction === 'suspend' ? 'Suspendendo...' : 'Suspender'}
+                </button>
+              </div>
+
+              <div className="seller-section">
+                <h3>Inventario (admin)</h3>
+                <label className="form-field">
+                  Reservar quantidade
+                  <input
+                    className="form-input"
+                    type="number"
+                    min={1}
+                    value={reserveQty}
+                    onChange={(event) => setReserveQty(Number(event.target.value || 1))}
+                  />
+                </label>
+                <button
+                  className="ghost-button"
+                  type="button"
+                  onClick={handleReserveInventory}
+                  disabled={busyAction === 'reserve'}
+                >
+                  {busyAction === 'reserve' ? 'Reservando...' : 'Reservar inventario'}
                 </button>
               </div>
             </>

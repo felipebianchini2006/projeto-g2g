@@ -119,6 +119,13 @@ export const ordersApi = {
       body: JSON.stringify({ listingId, quantity }),
     }),
 
+  createOrder: (token: string | null, listingId: string, quantity = 1) =>
+    apiFetch<Order>('/orders', {
+      method: 'POST',
+      headers: authHeaders(token),
+      body: JSON.stringify({ listingId, quantity }),
+    }),
+
   listOrders: (token: string | null, scope: 'buyer' | 'seller') =>
     apiFetch<Order[]>(`/orders?scope=${scope}`, {
       headers: authHeaders(token),

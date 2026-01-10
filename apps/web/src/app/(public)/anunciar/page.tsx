@@ -1,7 +1,8 @@
+
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { useAuth } from '../../../components/auth/auth-provider';
@@ -11,8 +12,10 @@ import {
   type Listing,
   type ListingInput,
 } from '../../../lib/marketplace-api';
-
-const steps = ['Conta', 'Anuncio', 'Imagens', 'Resumo'] as const;
+import {
+  fetchPublicCategories,
+  type CatalogCategory,
+} from '../../../lib/marketplace-public';
 
 const emptyListing: ListingInput = {
   categoryId: '',
@@ -25,92 +28,120 @@ const emptyListing: ListingInput = {
   refundPolicy: 'Reembolso disponivel enquanto o pedido estiver em aberto.',
 };
 
+const parsePriceToCents = (value: string) => {
+  const digits = value.replace(/[^0-9]/g, '');
+  return digits ? Number(digits) : 0;
+};
+
 export default function Page() {
-  const { user, accessToken, logout } = useAuth();
+  const { user, accessToken } = useAuth();
   const router = useRouter();
-  const [step, setStep] = useState(0);
   const [formState, setFormState] = useState<ListingInput>(emptyListing);
+  const [priceInput, setPriceInput] = useState('');
+  const [stock, setStock] = useState('1');
+  const [model, setModel] = useState<'normal' | 'dynamic' | 'service'>('normal');
+  const [autoDelivery, setAutoDelivery] = useState(true);
+  const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [listing, setListing] = useState<Listing | null>(null);
-  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [categories, setCategories] = useState<CatalogCategory[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busyAction, setBusyAction] = useState<string | null>(null);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
-  const handleContinue = async () => {
-    setError(null);
-    setNotice(null);
-
-    if (step === 1) {
-      if (!accessToken) {
-        setError('Sessao expirada.');
+  useEffect(() => {
+    let active = true;
+    const loadCategories = async () => {
+      const response = await fetchPublicCategories();
+      if (!active) {
         return;
       }
-      setBusyAction('create');
-      try {
-        const created = await marketplaceApi.createListing(accessToken, {
-          ...formState,
-          description: formState.description?.trim() || undefined,
-        });
-        setListing(created);
-        setStep(2);
-      } catch (error) {
-        const message =
-          error instanceof ApiClientError
-            ? error.message
-            : 'Nao foi possivel criar o anuncio.';
-        setError(message);
-      } finally {
-        setBusyAction(null);
+      setCategories(response.categories);
+    };
+    loadCategories().catch(() => {
+      if (active) {
+        setCategories([]);
       }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    setFormState((prev) => ({
+      ...prev,
+      deliveryType: autoDelivery ? 'AUTO' : 'MANUAL',
+    }));
+  }, [autoDelivery]);
+
+  const previewTitle = formState.title || 'Seu titulo aparece aqui...';
+  const previewPrice = formatCurrency(formState.priceCents, formState.currency ?? 'BRL');
+  const titleCount = formState.title.length;
+
+  const canSubmit = useMemo(() => {
+    return (
+      formState.title.trim().length > 0 &&
+      formState.categoryId.trim().length > 0 &&
+      formState.priceCents > 0 &&
+      termsAccepted
+    );
+  }, [formState, termsAccepted]);
+
+  const handleCreateOrUpdate = async (submitAfter = false) => {
+    if (!accessToken) {
+      setError('Sessao expirada. Entre novamente.');
       return;
     }
-
-    if (step < steps.length - 1) {
-      setStep((prev) => prev + 1);
-    }
-  };
-
-  const handleUpload = async () => {
-    if (!listing || !accessToken || !mediaFile) {
-      setError('Selecione uma imagem.');
+    if (!formState.categoryId.trim()) {
+      setError('Selecione uma categoria.');
       return;
     }
-    setBusyAction('upload');
+    if (!formState.title.trim()) {
+      setError('Informe um titulo para o anuncio.');
+      return;
+    }
+    if (formState.priceCents <= 0) {
+      setError('Informe um valor valido.');
+      return;
+    }
+    if (submitAfter && !termsAccepted) {
+      setError('Aceite os termos antes de publicar.');
+      return;
+    }
     setError(null);
     setNotice(null);
+    setBusyAction(submitAfter ? 'publish' : 'draft');
+
     try {
-      await marketplaceApi.uploadMedia(accessToken, listing.id, mediaFile, 0);
-      const updated = await marketplaceApi.getSellerListing(accessToken, listing.id);
-      setListing(updated);
-      setNotice('Imagem enviada com sucesso.');
-      setMediaFile(null);
+      const payload: ListingInput = {
+        ...formState,
+        description: formState.description?.trim() || undefined,
+      };
+
+      const created =
+        listing && listing.id
+          ? await marketplaceApi.updateListing(accessToken, listing.id, payload)
+          : await marketplaceApi.createListing(accessToken, payload);
+      setListing(created);
+
+      if (mediaFiles.length > 0) {
+        await marketplaceApi.uploadMedia(accessToken, created.id, mediaFiles[0], 0);
+      }
+
+      if (submitAfter) {
+        await marketplaceApi.submitListing(accessToken, created.id);
+        setNotice('Anuncio enviado para aprovacao.');
+        router.push('/conta/anuncios');
+        return;
+      }
+
+      setNotice('Rascunho salvo com sucesso.');
     } catch (error) {
       const message =
         error instanceof ApiClientError
           ? error.message
-          : 'Nao foi possivel enviar a imagem.';
-      setError(message);
-    } finally {
-      setBusyAction(null);
-    }
-  };
-
-  const handleSubmitListing = async () => {
-    if (!listing || !accessToken) {
-      return;
-    }
-    setBusyAction('submit');
-    setError(null);
-    setNotice(null);
-    try {
-      const updated = await marketplaceApi.submitListing(accessToken, listing.id);
-      setListing(updated);
-      setNotice('Anuncio enviado para aprovacao.');
-    } catch (error) {
-      const message =
-        error instanceof ApiClientError
-          ? error.message
-          : 'Nao foi possivel enviar para aprovacao.';
+          : 'Nao foi possivel salvar o anuncio.';
       setError(message);
     } finally {
       setBusyAction(null);
@@ -119,15 +150,15 @@ export default function Page() {
 
   if (!user) {
     return (
-      <section className="flex min-h-screen items-center justify-center bg-white px-6 py-16">
-        <div className="w-full max-w-xl rounded-2xl border border-meow-red/20 bg-white p-8 text-center shadow-meow">
+      <section className="flex min-h-screen items-center justify-center bg-meow-50 px-6 py-16">
+        <div className="w-full max-w-xl rounded-[32px] border border-meow-100 bg-white p-8 text-center shadow-card">
           <h1 className="text-2xl font-black text-meow-charcoal">Criar anuncio</h1>
           <p className="mt-2 text-sm text-meow-muted">
             Entre com sua conta para anunciar.
           </p>
           <Link
             href="/login"
-            className="mt-6 inline-flex items-center justify-center rounded-full bg-meow-linear px-6 py-2 text-sm font-bold text-white"
+            className="mt-6 inline-flex items-center justify-center rounded-full bg-meow-300 px-6 py-2 text-sm font-bold text-white shadow-cute"
           >
             Fazer login
           </Link>
@@ -137,273 +168,489 @@ export default function Page() {
   }
 
   return (
-    <section className="min-h-screen bg-white px-6 py-10">
-      <div className="mx-auto w-full max-w-[980px]">
-        <div className="flex flex-wrap items-center justify-between gap-4 text-xs text-meow-muted">
-          <Link href="/" className="font-semibold text-meow-deep">
-            Voltar ao site
-          </Link>
-          <img src="/assets/meoow/logo.png" alt="Meoww" className="h-10" />
-        </div>
-
-        <div className="mt-8 flex flex-col items-center gap-6">
-          <div className="relative flex w-full max-w-[620px] items-center justify-between">
-            <div className="absolute left-0 right-0 top-4 h-px bg-meow-red/20" />
-            {steps.map((label, index) => (
-              <div key={label} className="relative z-10 flex flex-col items-center gap-2">
-                <span
-                  className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${
-                    index <= step
-                      ? 'bg-meow-deep text-white'
-                      : 'bg-meow-cream text-meow-muted'
-                  }`}
-                >
-                  {index + 1}
-                </span>
-                <span
-                  className={`text-xs font-semibold ${
-                    index === step ? 'text-meow-charcoal' : 'text-meow-muted'
-                  }`}
-                >
-                  {label}
-                </span>
-              </div>
-            ))}
+    <div className="min-h-screen bg-meow-50 text-slate-600 antialiased">
+      <div className="mx-auto flex max-w-[1200px] flex-col gap-8 px-4 py-8 lg:flex-row">
+        <main className="flex-1 space-y-8">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-black text-slate-800">Anuncio</h1>
+              <p className="text-sm font-bold text-meow-300">Criar novo anuncio</p>
+            </div>
           </div>
-        </div>
 
-        <div className="mt-10 rounded-2xl border border-meow-red/20 bg-white p-8 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
           {error ? (
-            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700">
+            <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {error}
             </div>
           ) : null}
           {notice ? (
-            <div className="mb-4 rounded-xl border border-meow-red/20 bg-meow-cream/70 px-4 py-2 text-xs font-semibold text-meow-muted">
+            <div className="rounded-2xl border border-meow-100 bg-meow-50 px-4 py-3 text-sm text-meow-muted">
               {notice}
             </div>
           ) : null}
 
-          {step === 0 ? (
-            <div className="grid gap-6">
-              <div className="rounded-2xl border border-meow-red/20 bg-white p-6 shadow-sm">
-                <div className="grid gap-6 md:grid-cols-[1fr_auto_1fr] md:items-center">
-                  <div className="space-y-3">
-                    <h2 className="text-lg font-black text-meow-charcoal">Conta Meoww</h2>
-                    <p className="text-sm text-meow-muted">
-                      Ola, {user.email}! Clique no botao abaixo para continuar.
-                    </p>
-                    <button
-                      className="rounded-full bg-meow-linear px-6 py-2 text-sm font-bold text-white"
-                      type="button"
-                      onClick={handleContinue}
-                    >
-                      Continuar
-                    </button>
-                  </div>
-
-                  <div className="hidden h-20 w-px bg-meow-red/20 md:block" />
-
-                  <div className="space-y-3">
-                    <h3 className="text-sm font-bold text-meow-charcoal">
-                      Voce nao e o(a) {user.email}?
-                    </h3>
-                    <p className="text-sm text-meow-muted">
-                      Entre com outro usuario apertando o botao abaixo.
-                    </p>
-                    <button
-                      className="rounded-full border border-meow-red/30 bg-meow-gold/30 px-6 py-2 text-sm font-bold text-meow-charcoal"
-                      type="button"
-                      onClick={async () => {
-                        await logout();
-                        router.push('/login');
-                      }}
-                    >
-                      Sair
-                    </button>
-                  </div>
+          <section className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+            <h2 className="mb-4 flex items-center gap-2 text-lg font-black text-slate-800">
+              <span className="grid h-6 w-6 place-items-center rounded-full bg-meow-100 text-xs text-meow-500">
+                1
+              </span>
+              O que vamos vender?
+            </h2>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="space-y-1">
+                <label className="text-xs font-bold uppercase text-slate-500">
+                  Categoria
+                </label>
+                <div className="relative">
+                  <select
+                    className="w-full cursor-pointer rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700 focus:border-meow-300 focus:outline-none focus:ring-4 focus:ring-meow-100"
+                    value={formState.categoryId}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        categoryId: event.target.value,
+                      }))
+                    }
+                  >
+                    <option value="">Selecione...</option>
+                    {categories.map((category) => (
+                      <option key={category.slug} value={category.id ?? category.slug}>
+                        {category.label}
+                      </option>
+                    ))}
+                  </select>
+                  <i className="fas fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold uppercase text-slate-500">
+                  Jogo / Subcategoria
+                </label>
+                <div className="relative">
+                  <select className="w-full cursor-pointer rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700 focus:border-meow-300 focus:outline-none focus:ring-4 focus:ring-meow-100">
+                    <option>Selecione...</option>
+                    <option>League of Legends</option>
+                    <option>Valorant</option>
+                    <option>Fortnite</option>
+                  </select>
+                  <i className="fas fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold uppercase text-slate-500">Secao</label>
+                <div className="relative">
+                  <select className="w-full cursor-pointer rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700 focus:border-meow-300 focus:outline-none focus:ring-4 focus:ring-meow-100">
+                    <option>Selecione...</option>
+                    <option>Contas (Smurf)</option>
+                    <option>Contas (Main)</option>
+                    <option>Coaching</option>
+                  </select>
+                  <i className="fas fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
                 </div>
               </div>
             </div>
-          ) : null}
+          </section>
 
-          {step === 1 ? (
-            <div className="grid gap-4">
-              <h2 className="text-lg font-black text-meow-charcoal">Detalhes do anuncio</h2>
-              <label className="grid gap-2 text-sm font-semibold">
-                Categoria (ID)
-                <input
-                  className="rounded-xl border border-meow-red/20 bg-meow-cream/60 px-4 py-3 text-sm outline-none"
-                  value={formState.categoryId}
-                  onChange={(event) =>
-                    setFormState((prev) => ({ ...prev, categoryId: event.target.value }))
-                  }
-                  placeholder="UUID da categoria"
-                />
+          <section className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+            <h2 className="mb-4 flex items-center gap-2 text-lg font-black text-slate-800">
+              <span className="grid h-6 w-6 place-items-center rounded-full bg-meow-100 text-xs text-meow-500">
+                2
+              </span>
+              Detalhes do produto
+            </h2>
+
+            <div className="mb-6">
+              <label className="mb-1 block text-xs font-bold uppercase text-slate-500">
+                Titulo do anuncio <span className="text-red-400">*</span>
               </label>
-              <label className="grid gap-2 text-sm font-semibold">
-                Titulo
+              <div className="relative">
                 <input
-                  className="rounded-xl border border-meow-red/20 bg-meow-cream/60 px-4 py-3 text-sm outline-none"
+                  type="text"
+                  maxLength={80}
+                  placeholder="Ex: Conta LoL Diamante, 250 Tibia Coins..."
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-800 focus:border-meow-300 focus:outline-none focus:ring-4 focus:ring-meow-100"
                   value={formState.title}
                   onChange={(event) =>
                     setFormState((prev) => ({ ...prev, title: event.target.value }))
                   }
-                  placeholder="Nome do anuncio"
                 />
-              </label>
-              <label className="grid gap-2 text-sm font-semibold">
-                Descricao
-                <textarea
-                  className="rounded-xl border border-meow-red/20 bg-meow-cream/60 px-4 py-3 text-sm outline-none"
-                  rows={4}
-                  value={formState.description}
-                  onChange={(event) =>
-                    setFormState((prev) => ({ ...prev, description: event.target.value }))
-                  }
-                />
-              </label>
-              <div className="grid gap-4 md:grid-cols-2">
-                <label className="grid gap-2 text-sm font-semibold">
-                  Preco (centavos)
-                  <input
-                    className="rounded-xl border border-meow-red/20 bg-meow-cream/60 px-4 py-3 text-sm outline-none"
-                    type="number"
-                    min={1}
-                    value={formState.priceCents}
-                    onChange={(event) =>
-                      setFormState((prev) => ({
-                        ...prev,
-                        priceCents: Number(event.target.value || 0),
-                      }))
-                    }
-                  />
-                </label>
-                <label className="grid gap-2 text-sm font-semibold">
-                  Moeda
-                  <input
-                    className="rounded-xl border border-meow-red/20 bg-meow-cream/60 px-4 py-3 text-sm outline-none"
-                    value={formState.currency}
-                    onChange={(event) =>
-                      setFormState((prev) => ({ ...prev, currency: event.target.value }))
-                    }
-                  />
-                </label>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                  {titleCount}/80
+                </span>
               </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <label className="grid gap-2 text-sm font-semibold">
-                  Tipo de entrega
-                  <select
-                    className="rounded-xl border border-meow-red/20 bg-meow-cream/60 px-4 py-3 text-sm outline-none"
-                    value={formState.deliveryType}
-                    onChange={(event) =>
-                      setFormState((prev) => ({
-                        ...prev,
-                        deliveryType: event.target.value as ListingInput['deliveryType'],
-                      }))
-                    }
+              <div className="mt-2 flex flex-wrap gap-2">
+                {[
+                  'Conta LoL Diamante (Full Champs)',
+                  'Acesso Spotify Premium Vitalicio',
+                  '13.500 V-Bucks Fortnite',
+                ].map((text) => (
+                  <button
+                    key={text}
+                    type="button"
+                    className="rounded bg-slate-100 px-2 py-1 text-[10px] font-semibold text-slate-500 transition hover:bg-meow-50 hover:text-meow-500"
+                    onClick={() => setFormState((prev) => ({ ...prev, title: text }))}
                   >
-                    <option value="AUTO">AUTO</option>
-                    <option value="MANUAL">MANUAL</option>
-                  </select>
-                </label>
-                <label className="grid gap-2 text-sm font-semibold">
-                  SLA (horas)
+                    Ex: {text.split(' ')[0]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <label className="mb-2 block text-xs font-bold uppercase text-slate-500">
+                Modelo de venda
+              </label>
+              <div className="grid gap-3 md:grid-cols-3">
+                {[
+                  {
+                    id: 'normal',
+                    label: 'Normal',
+                    description: '1 produto unico por anuncio',
+                    icon: 'fa-box',
+                    color: 'text-blue-500 bg-blue-100',
+                  },
+                  {
+                    id: 'dynamic',
+                    label: 'Dinamico',
+                    description: 'Varios itens onde o cliente escolhe',
+                    icon: 'fa-layer-group',
+                    color: 'text-purple-500 bg-purple-100',
+                  },
+                  {
+                    id: 'service',
+                    label: 'Servico',
+                    description: 'Valor por orcamento ou hora',
+                    icon: 'fa-tools',
+                    color: 'text-orange-500 bg-orange-100',
+                  },
+                ].map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    className={`relative flex flex-col items-center justify-center gap-2 rounded-2xl border-2 p-4 text-center transition ${
+                      model === option.id
+                        ? 'border-meow-300 bg-meow-50 shadow-cute'
+                        : 'border-slate-100 hover:border-meow-200'
+                    }`}
+                    onClick={() => setModel(option.id as typeof model)}
+                  >
+                    <div className={`grid h-10 w-10 place-items-center rounded-full ${option.color}`}>
+                      <i className={`fas ${option.icon}`} aria-hidden />
+                    </div>
+                    <span className="font-bold text-slate-700">{option.label}</span>
+                    <span className="text-[10px] text-slate-400">{option.description}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="mb-6 grid gap-4 md:grid-cols-2">
+              <div className="space-y-1">
+                <label className="text-xs font-bold uppercase text-slate-500">Valor (BRL)</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">
+                    R$
+                  </span>
                   <input
-                    className="rounded-xl border border-meow-red/20 bg-meow-cream/60 px-4 py-3 text-sm outline-none"
-                    type="number"
-                    min={1}
-                    max={720}
-                    value={formState.deliverySlaHours}
-                    onChange={(event) =>
+                    type="text"
+                    placeholder="0,00"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-3 text-sm font-bold text-slate-800 focus:border-meow-300 focus:outline-none focus:ring-4 focus:ring-meow-100"
+                    value={priceInput}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      setPriceInput(value);
                       setFormState((prev) => ({
                         ...prev,
-                        deliverySlaHours: Number(event.target.value || 0),
-                      }))
-                    }
+                        priceCents: parsePriceToCents(value),
+                      }));
+                    }}
                   />
-                </label>
+                </div>
               </div>
-              <label className="grid gap-2 text-sm font-semibold">
-                Politica de reembolso
+              <div className="space-y-1">
+                <label className="text-xs font-bold uppercase text-slate-500">Estoque</label>
+                <input
+                  type="number"
+                  value={stock}
+                  onChange={(event) => setStock(event.target.value)}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-800 focus:border-meow-300 focus:outline-none focus:ring-4 focus:ring-meow-100"
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="space-y-1">
+                <label className="text-xs font-bold uppercase text-slate-500">Tipo</label>
+                <div className="relative">
+                  <select className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700 focus:border-meow-300 focus:outline-none">
+                    <option>Conta</option>
+                    <option>Gold / Moeda</option>
+                    <option>Item / Skin</option>
+                  </select>
+                  <i className="fas fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold uppercase text-slate-500">Procedencia</label>
+                <div className="relative">
+                  <select className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700 focus:border-meow-300 focus:outline-none">
+                    <option>Criador (Sou dono original)</option>
+                    <option>Revenda (Comprei pra revender)</option>
+                  </select>
+                  <i className="fas fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold uppercase text-slate-500">
+                  Dados de recuperacao
+                </label>
+                <div className="relative">
+                  <select className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700 focus:border-meow-300 focus:outline-none">
+                    <option>Nao possui dados</option>
+                    <option>Possui e-mail de criacao</option>
+                    <option>Possui dados completos</option>
+                  </select>
+                  <i className="fas fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="rounded-[28px] border border-emerald-100 bg-gradient-to-r from-emerald-50 to-green-50 p-6 shadow-card">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="grid h-10 w-10 place-items-center rounded-full bg-emerald-500 text-white shadow-cute">
+                  <i className="fas fa-bolt" aria-hidden />
+                </div>
+                <div>
+                  <h2 className="text-lg font-black text-slate-800">Entrega automatica</h2>
+                  <p className="text-xs font-bold text-slate-500">
+                    O sistema entrega o produto assim que o pagamento for aprovado.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                className={`relative h-6 w-12 rounded-full ${
+                  autoDelivery ? 'bg-meow-300' : 'bg-slate-300'
+                }`}
+                onClick={() => setAutoDelivery((prev) => !prev)}
+                aria-pressed={autoDelivery}
+              >
+                <span
+                  className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition ${
+                    autoDelivery ? 'right-0.5' : 'left-0.5'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {autoDelivery ? (
+              <div className="mt-4 border-t border-emerald-200 pt-4">
+                <label className="block text-xs font-bold uppercase text-emerald-700">
+                  Dados para entrega (oculto ate a venda)
+                </label>
                 <textarea
-                  className="rounded-xl border border-meow-red/20 bg-meow-cream/60 px-4 py-3 text-sm outline-none"
-                  rows={3}
-                  value={formState.refundPolicy}
+                  className="mt-2 h-24 w-full resize-none rounded-xl border border-emerald-200 bg-white p-4 text-sm text-slate-600 focus:border-emerald-400 focus:outline-none"
+                  placeholder="Ex: Login: usuario123 | Senha: senha123"
+                />
+                <p className="mt-2 text-[10px] font-semibold text-emerald-600">
+                  Esses dados sao criptografados e enviados apenas apos o pagamento.
+                </p>
+              </div>
+            ) : null}
+          </section>
+
+          <section className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+            <h2 className="mb-4 flex items-center gap-2 text-lg font-black text-slate-800">
+              <span className="grid h-6 w-6 place-items-center rounded-full bg-meow-100 text-xs text-meow-500">
+                3
+              </span>
+              Descricao e imagens
+            </h2>
+            <div className="mb-6">
+              <label className="mb-2 block text-xs font-bold uppercase text-slate-500">
+                Descricao detalhada
+              </label>
+              <textarea
+                className="h-40 w-full resize-y rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 focus:border-meow-300 focus:outline-none focus:ring-4 focus:ring-meow-100"
+                placeholder="Descreva seu produto com detalhes."
+                value={formState.description ?? ''}
+                onChange={(event) =>
+                  setFormState((prev) => ({ ...prev, description: event.target.value }))
+                }
+              />
+              <div className="mt-2 flex gap-3 rounded-lg border border-red-100 bg-red-50 p-3 text-xs text-red-700">
+                <i className="fas fa-exclamation-triangle mt-0.5 text-red-500" aria-hidden />
+                <p>
+                  E proibido informar contatos pessoais na descricao ou chat. O sistema
+                  detecta automaticamente e seu anuncio sera reprovado.
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-xs font-bold uppercase text-slate-500">
+                Imagens do produto (max 5MB)
+              </label>
+              <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 p-8 text-center transition hover:border-meow-300 hover:bg-slate-50">
+                <div className="mb-3 grid h-16 w-16 place-items-center rounded-full bg-slate-100 text-slate-400">
+                  <i className="fas fa-cloud-upload-alt text-2xl" aria-hidden />
+                </div>
+                <h4 className="text-sm font-bold text-slate-700">
+                  Arraste e solte ou clique para enviar
+                </h4>
+                <p className="mt-1 text-xs text-slate-400">
+                  JPG, PNG ou JPEG. Nao mostre nicks ou dados sensiveis.
+                </p>
+                <input
+                  type="file"
+                  className="hidden"
                   onChange={(event) =>
-                    setFormState((prev) => ({ ...prev, refundPolicy: event.target.value }))
+                    setMediaFiles(event.target.files ? Array.from(event.target.files) : [])
                   }
                 />
               </label>
-              <button
-                className="mt-2 rounded-full bg-meow-linear px-6 py-2 text-sm font-bold text-white"
-                type="button"
-                onClick={handleContinue}
-                disabled={busyAction === 'create'}
-              >
-                {busyAction === 'create' ? 'Salvando...' : 'Continuar'}
-              </button>
-            </div>
-          ) : null}
-
-          {step === 2 ? (
-            <div className="grid gap-4">
-              <h2 className="text-lg font-black text-meow-charcoal">Imagens</h2>
-              <p className="text-sm text-meow-muted">
-                Adicione pelo menos uma imagem para destacar seu anuncio.
-              </p>
-              <input
-                type="file"
-                onChange={(event) => setMediaFile(event.target.files?.[0] ?? null)}
-              />
-              <button
-                className="rounded-full border border-meow-red/30 px-6 py-2 text-sm font-bold text-meow-deep"
-                type="button"
-                onClick={handleUpload}
-                disabled={busyAction === 'upload'}
-              >
-                {busyAction === 'upload' ? 'Enviando...' : 'Enviar imagem'}
-              </button>
-              <button
-                className="rounded-full bg-meow-linear px-6 py-2 text-sm font-bold text-white"
-                type="button"
-                onClick={handleContinue}
-              >
-                Continuar
-              </button>
-            </div>
-          ) : null}
-
-          {step === 3 ? (
-            <div className="grid gap-4">
-              <h2 className="text-lg font-black text-meow-charcoal">Resumo</h2>
-              <div className="rounded-xl border border-meow-red/20 bg-meow-cream/60 px-4 py-3 text-sm">
-                <p className="font-semibold">{listing?.title ?? formState.title}</p>
-                <p className="text-xs text-meow-muted">
-                  {listing?.description ?? formState.description}
+              {mediaFiles.length > 0 ? (
+                <p className="mt-2 text-xs font-semibold text-meow-muted">
+                  {mediaFiles.length} arquivo(s) selecionado(s).
                 </p>
-                <p className="mt-2 text-xs text-meow-muted">
-                  Preco: {formState.priceCents} {formState.currency}
-                </p>
+              ) : null}
+            </div>
+          </section>
+
+          <section className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+            <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+              <div className="space-y-4">
+                <h4 className="text-sm font-bold text-slate-700">Notificacoes</h4>
+                <label className="flex items-center gap-3 text-sm font-bold text-slate-600">
+                  <input type="checkbox" className="h-4 w-4 rounded border-slate-300" defaultChecked />
+                  <span>
+                    <i className="fab fa-discord mr-1 text-indigo-500" aria-hidden />
+                    Notificar via Discord
+                  </span>
+                </label>
+                <label className="flex items-center gap-3 text-sm font-bold text-slate-600">
+                  <input type="checkbox" className="h-4 w-4 rounded border-slate-300" />
+                  <span>
+                    <i className="fas fa-bell mr-1 text-yellow-500" aria-hidden />
+                    Notificar no navegador
+                  </span>
+                </label>
               </div>
-              <button
-                className="rounded-full bg-meow-linear px-6 py-2 text-sm font-bold text-white"
-                type="button"
-                onClick={handleSubmitListing}
-                disabled={busyAction === 'submit'}
-              >
-                {busyAction === 'submit' ? 'Enviando...' : 'Enviar para aprovacao'}
-              </button>
-              <Link
-                href="/conta"
-                className="text-center text-xs font-semibold text-meow-deep"
-              >
-                Voltar ao site
-              </Link>
+
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-xs text-slate-500">
+                <h4 className="mb-2 text-sm font-bold text-slate-700">
+                  <i className="fas fa-shield-alt text-meow-300" aria-hidden /> Seguranca garantida
+                </h4>
+                <p className="mb-2">
+                  A Meoww atua como intermediadora. O valor pago pelo comprador fica retido
+                  conosco ate voce entregar o produto.
+                </p>
+                <p>Isso garante protecao total para ambas as partes.</p>
+              </div>
             </div>
-          ) : null}
-        </div>
+
+            <div className="mt-6 border-t border-slate-100 pt-6">
+              <label className="flex items-start gap-3 text-xs text-slate-500">
+                <input
+                  type="checkbox"
+                  className="mt-1 h-4 w-4 rounded border-slate-300"
+                  checked={termsAccepted}
+                  onChange={(event) => setTermsAccepted(event.target.checked)}
+                />
+                <span>
+                  Declaro que li e aceito os{' '}
+                  <Link href="/institucional/termos" className="font-bold text-meow-400 underline">
+                    Termos de uso
+                  </Link>{' '}
+                  e{' '}
+                  <Link
+                    href="/institucional/termos"
+                    className="font-bold text-meow-400 underline"
+                  >
+                    Contrato do vendedor
+                  </Link>
+                  . Entendo que qualquer alteracao no anuncio passara por nova analise.
+                </span>
+              </label>
+            </div>
+          </section>
+
+          <div className="flex flex-col gap-4 pt-4 md:flex-row">
+            <button
+              type="button"
+              className="flex-1 rounded-2xl bg-meow-300 py-4 text-sm font-black text-white shadow-cute transition hover:-translate-y-1 hover:bg-meow-500"
+              onClick={() => handleCreateOrUpdate(true)}
+              disabled={!canSubmit || busyAction === 'publish'}
+            >
+              {busyAction === 'publish' ? 'Publicando...' : 'Publicar anuncio agora'}
+            </button>
+            <button
+              type="button"
+              className="flex-1 rounded-2xl border border-slate-200 bg-white py-4 text-sm font-bold text-slate-500 transition hover:bg-slate-50"
+              onClick={() => handleCreateOrUpdate(false)}
+              disabled={busyAction === 'draft'}
+            >
+              {busyAction === 'draft' ? 'Salvando...' : 'Salvar rascunho'}
+            </button>
+          </div>
+        </main>
+
+        <aside className="hidden w-full max-w-[320px] space-y-6 lg:block">
+          <div className="sticky top-24 rounded-[28px] border border-slate-100 bg-white p-5 shadow-card">
+            <h3 className="mb-4 text-sm font-black uppercase tracking-wide text-slate-800">
+              Pre-visualizacao
+            </h3>
+            <div className="relative rounded-2xl border border-slate-100 bg-white p-3 shadow-sm">
+              <div className="mb-3 flex h-32 items-center justify-center rounded-xl bg-slate-100 text-slate-300">
+                <i className="fas fa-image text-3xl" aria-hidden />
+              </div>
+              <span className="rounded bg-meow-50 px-2 py-0.5 text-[10px] font-bold uppercase text-meow-500">
+                Jogos
+              </span>
+              <h4 className="mt-2 text-sm font-bold text-slate-800">{previewTitle}</h4>
+              <div className="mt-4 flex items-end justify-between">
+                <span className="text-lg font-black text-slate-800">{previewPrice}</span>
+                <div className="grid h-8 w-8 place-items-center rounded-full bg-meow-300 text-xs text-white shadow-cute">
+                  <i className="fas fa-arrow-right" aria-hidden />
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 space-y-4">
+              <div className="flex gap-3">
+                <div className="grid h-8 w-8 place-items-center rounded-full bg-blue-50 text-blue-400">
+                  <i className="fas fa-lightbulb" aria-hidden />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-700">Titulo chamativo</h4>
+                  <p className="text-[10px] text-slate-400">
+                    Use palavras-chave como Diamante e Entrega rapida.
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <div className="grid h-8 w-8 place-items-center rounded-full bg-green-50 text-green-400">
+                  <i className="fas fa-camera" aria-hidden />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-700">Boas imagens</h4>
+                  <p className="text-[10px] text-slate-400">
+                    Mostre inventario e niveis. Oculte nicks.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </aside>
       </div>
-    </section>
+    </div>
   );
 }
+
+const formatCurrency = (value: number, currency = 'BRL') =>
+  new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: 2,
+  }).format(value / 100);
