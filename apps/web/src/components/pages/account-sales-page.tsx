@@ -7,6 +7,8 @@ import { ApiClientError } from '../../lib/api-client';
 import { ordersApi, type Order, type PaymentStatus } from '../../lib/orders-api';
 import { useAuth } from '../auth/auth-provider';
 import { AccountShell } from '../account/account-shell';
+import { Badge } from '../ui/badge';
+import { Card } from '../ui/card';
 
 type OrdersState = {
   status: 'loading' | 'ready';
@@ -150,10 +152,7 @@ export const AccountSalesContent = () => {
             Ultimas transacoes feitas na sua loja.
           </p>
         </div>
-        <Link
-          href="/conta/vendas"
-          className="text-xs font-bold text-meow-deep"
-        >
+        <Link href="/conta/vendas" className="text-xs font-bold text-meow-deep">
           Ver todas
         </Link>
       </div>
@@ -176,16 +175,16 @@ export const AccountSalesContent = () => {
         </div>
       ) : null}
 
-      <div className="mt-4 rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+      <Card className="mt-4 rounded-[28px] border border-slate-100 p-6 shadow-card">
         {ordersSorted.map((order) => {
           const firstItem = order.items[0];
           const payment = order.payments?.[0];
           const statusTag =
             order.status === 'PAID' || order.status === 'COMPLETED'
-              ? { label: 'Aprovado', tone: 'bg-emerald-100 text-emerald-700' }
+              ? { label: 'Aprovado', tone: 'success' }
               : order.status === 'AWAITING_PAYMENT'
-                ? { label: 'Em analise', tone: 'bg-amber-100 text-amber-700' }
-                : { label: 'Entregue', tone: 'bg-blue-100 text-blue-700' };
+                ? { label: 'Em analise', tone: 'warning' }
+                : { label: 'Entregue', tone: 'info' };
 
           return (
             <div
@@ -210,9 +209,7 @@ export const AccountSalesContent = () => {
                 <div className="text-sm font-black text-meow-charcoal">
                   {formatCurrency(order.totalAmountCents, order.currency)}
                 </div>
-                <span className={`rounded-full px-3 py-1 text-xs font-bold ${statusTag.tone}`}>
-                  {statusTag.label}
-                </span>
+                <Badge variant={statusTag.tone}>{statusTag.label}</Badge>
                 {payment ? (
                   <span
                     className={`rounded-full px-3 py-1 text-[11px] font-semibold ${paymentTone[payment.status]}`}
@@ -230,7 +227,7 @@ export const AccountSalesContent = () => {
             </div>
           );
         })}
-      </div>
+      </Card>
     </AccountShell>
   );
 };

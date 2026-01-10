@@ -62,9 +62,10 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
   const router = useRouter();
   const pathname = usePathname() ?? '';
   const { inDashboardLayout } = useDashboardLayout();
+  const isSeller = user?.role === 'SELLER' || user?.role === 'ADMIN';
 
-  const menuSections = useMemo<MenuSection[]>(
-    () => [
+  const menuSections = useMemo<MenuSection[]>(() => {
+    const sections: MenuSection[] = [
       {
         title: 'Menu',
         items: [
@@ -76,22 +77,35 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
           { label: 'Configuracoes', href: '/conta/config' },
         ],
       },
-      {
-        title: 'Conta',
+    ];
+
+    if (isSeller) {
+      sections.unshift({
+        title: 'Vendedor',
         items: [
-          {
-            label: 'Sair da conta',
-            tone: 'danger',
-            onClick: async () => {
-              await logout();
-              router.push('/');
-            },
-          },
+          { label: 'Painel do vendedor', href: '/conta/vendedor' },
+          { label: 'Meus anuncios', href: '/conta/anuncios' },
+          { label: 'Minhas vendas', href: '/conta/vendas' },
         ],
-      },
-    ],
-    [logout, router],
-  );
+      });
+    }
+
+    sections.push({
+      title: 'Conta',
+      items: [
+        {
+          label: 'Sair da conta',
+          tone: 'danger',
+          onClick: async () => {
+            await logout();
+            router.push('/');
+          },
+        },
+      ],
+    });
+
+    return sections;
+  }, [isSeller, logout, router]);
 
   const displayName = useMemo(() => {
     if (!user?.email) {
@@ -224,6 +238,9 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
                         Carteira: <CreditCard size={16} aria-hidden />,
                         'Meus tickets': <Ticket size={16} aria-hidden />,
                         Configuracoes: <Settings size={16} aria-hidden />,
+                        'Painel do vendedor': <LayoutGrid size={16} aria-hidden />,
+                        'Meus anuncios': <ShoppingBag size={16} aria-hidden />,
+                        'Minhas vendas': <ShoppingBag size={16} aria-hidden />,
                         'Sair da conta': <LogOut size={16} aria-hidden />,
                       };
 

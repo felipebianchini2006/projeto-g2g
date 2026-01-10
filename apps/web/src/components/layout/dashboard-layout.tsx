@@ -84,19 +84,37 @@ const isActivePath = (pathname: string, href?: string) => {
   return false;
 };
 
-const accountNav = (logout: () => Promise<void>, goHome: () => void): MenuSection[] => [
-  {
-    title: 'Menu',
-    items: [
-      { label: 'Visao geral', href: '/conta' },
-      { label: 'Minhas compras', href: '/conta/pedidos' },
-      { label: 'Favoritos', href: '/conta/favoritos' },
-      { label: 'Carteira', href: '/conta/carteira' },
-      { label: 'Meus tickets', href: '/conta/tickets' },
-      { label: 'Configuracoes', href: '/conta/config' },
-    ],
-  },
-  {
+const accountNav = (
+  logout: () => Promise<void>,
+  goHome: () => void,
+  isSeller: boolean,
+): MenuSection[] => {
+  const sections: MenuSection[] = [
+    {
+      title: 'Menu',
+      items: [
+        { label: 'Visao geral', href: '/conta' },
+        { label: 'Minhas compras', href: '/conta/pedidos' },
+        { label: 'Favoritos', href: '/conta/favoritos' },
+        { label: 'Carteira', href: '/conta/carteira' },
+        { label: 'Meus tickets', href: '/conta/tickets' },
+        { label: 'Configuracoes', href: '/conta/config' },
+      ],
+    },
+  ];
+
+  if (isSeller) {
+    sections.unshift({
+      title: 'Vendedor',
+      items: [
+        { label: 'Painel do vendedor', href: '/conta/vendedor' },
+        { label: 'Meus anuncios', href: '/conta/anuncios' },
+        { label: 'Minhas vendas', href: '/conta/vendas' },
+      ],
+    });
+  }
+
+  sections.push({
     title: 'Conta',
     items: [
       {
@@ -108,8 +126,10 @@ const accountNav = (logout: () => Promise<void>, goHome: () => void): MenuSectio
         },
       },
     ],
-  },
-];
+  });
+
+  return sections;
+};
 
 const adminNav = (logout: () => Promise<void>, goHome: () => void): MenuSection[] => [
   {
@@ -154,6 +174,7 @@ const iconMap: Record<string, React.ReactNode> = {
   'Meus tickets': <Ticket size={16} aria-hidden />,
   'Meus anuncios': <ShoppingBag size={16} aria-hidden />,
   'Minhas vendas': <ShoppingBag size={16} aria-hidden />,
+  'Painel do vendedor': <LayoutGrid size={16} aria-hidden />,
   'Minha conta': <User size={16} aria-hidden />,
   'Meus dados': <User size={16} aria-hidden />,
   Seguranca: <Settings size={16} aria-hidden />,
@@ -291,12 +312,6 @@ const AccountSidebar = ({
         </span>
       </div>
       <h3 className="mt-4 text-lg font-black text-meow-charcoal">{displayName}</h3>
-      <span className="mt-1 rounded-full bg-meow-100 px-3 py-1 text-[10px] font-bold uppercase text-meow-deep">
-        Conta padrao
-      </span>
-      <div className="mt-3 w-full rounded-full bg-meow-100/70 px-3 py-2 text-[10px] font-bold uppercase text-meow-muted">
-        Nivel inicial
-      </div>
     </div>
 
     <div className="mt-6 grid gap-5">
@@ -377,15 +392,25 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     .slice(0, 2)
     .toUpperCase();
 
+  const isSeller = user?.role === 'SELLER' || user?.role === 'ADMIN';
+
   const menuSections = useMemo(
     () =>
       isAdminRoute
         ? adminNav(logout, () => router.push('/'))
-        : accountNav(logout, () => router.push('/')),
-    [isAdminRoute, logout, router],
+        : accountNav(logout, () => router.push('/'), isSeller),
+    [isAdminRoute, isSeller, logout, router],
   );
 
-  const headerTitle = isAdminRoute ? 'Painel do admin' : 'Minha conta';
+  const isSellerRoute =
+    pathname.startsWith('/conta/vendedor') ||
+    pathname.startsWith('/conta/anuncios') ||
+    pathname.startsWith('/conta/vendas');
+  const headerTitle = isAdminRoute
+    ? 'Painel do admin'
+    : isSellerRoute
+      ? 'Painel do vendedor'
+      : 'Minha conta';
 
   return (
     <DashboardLayoutContext.Provider value={{ inDashboardLayout: true }}>

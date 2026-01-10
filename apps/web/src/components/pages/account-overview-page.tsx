@@ -142,7 +142,7 @@ export const AccountOverviewContent = () => {
         </p>
       </Card>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2">
         {[
           {
             label: 'Total comprado',
@@ -159,11 +159,6 @@ export const AccountOverviewContent = () => {
             label: 'Saldo disponivel',
             value: formatCurrency(summaryState.summary?.availableCents ?? 0),
             accent: 'bg-purple-50 text-purple-500',
-          },
-          {
-            label: 'Nexus points',
-            value: '0 pts',
-            accent: 'bg-amber-50 text-amber-500',
           },
         ].map((card) => (
           <Card key={card.label} className="rounded-[26px] border border-slate-100 p-5 shadow-card">

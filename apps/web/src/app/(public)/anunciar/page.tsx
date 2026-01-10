@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -6,17 +5,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { useAuth } from '../../../components/auth/auth-provider';
+import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { Select } from '../../../components/ui/select';
 import { Textarea } from '../../../components/ui/textarea';
 import { Toggle } from '../../../components/ui/toggle';
 import { ApiClientError } from '../../../lib/api-client';
-import {
-  catalogPublicApi,
-  type CatalogGroup,
-  type CatalogOption,
-  type CatalogSection,
-} from '../../../lib/catalog-public-api';
 import {
   marketplaceApi,
   type Listing,
@@ -38,71 +32,58 @@ const emptyListing: ListingInput = {
   refundPolicy: 'Reembolso disponivel enquanto o pedido estiver em aberto.',
 };
 
+const steps = [
+  { id: 1, title: 'Categoria', subtitle: 'O que vamos vender?' },
+  { id: 2, title: 'Detalhes', subtitle: 'Titulo, descricao e preco' },
+  { id: 3, title: 'Entrega', subtitle: 'Entrega automatica e dados' },
+  { id: 4, title: 'Imagens', subtitle: 'Upload do anuncio' },
+  { id: 5, title: 'Revisao', subtitle: 'Confirme e publique' },
+];
+
 const parsePriceToCents = (value: string) => {
   const digits = value.replace(/[^0-9]/g, '');
   return digits ? Number(digits) : 0;
 };
 
+const parseInventoryItems = (payload: string) =>
+  payload
+    .split(/[\n,;]+/)
+    .map((value) => value.trim())
+    .filter(Boolean);
+
 export default function Page() {
   const { user, accessToken } = useAuth();
   const router = useRouter();
+  const [step, setStep] = useState(1);
+  const [maxStep, setMaxStep] = useState(1);
   const [formState, setFormState] = useState<ListingInput>(emptyListing);
   const [priceInput, setPriceInput] = useState('');
-  const [stock, setStock] = useState('1');
   const [autoDelivery, setAutoDelivery] = useState(true);
+  const [inventoryPayload, setInventoryPayload] = useState('');
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [listing, setListing] = useState<Listing | null>(null);
   const [categories, setCategories] = useState<CatalogCategory[]>([]);
-  const [groups, setGroups] = useState<CatalogGroup[]>([]);
-  const [sections, setSections] = useState<CatalogSection[]>([]);
-  const [salesModels, setSalesModels] = useState<CatalogOption[]>([]);
-  const [origins, setOrigins] = useState<CatalogOption[]>([]);
-  const [recoveryOptions, setRecoveryOptions] = useState<CatalogOption[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [notifyDiscord, setNotifyDiscord] = useState(true);
-  const [notifyBrowser, setNotifyBrowser] = useState(false);
 
   useEffect(() => {
     let active = true;
-    const loadCatalog = async () => {
+    const loadCategories = async () => {
       const categoriesResponse = await fetchPublicCategories().catch(() => ({
         categories: [],
         source: 'api' as const,
       }));
-      const [
-        groupsData,
-        sectionsData,
-        salesModelsData,
-        originsData,
-        recoveryData,
-      ] = await Promise.all([
-        catalogPublicApi.listGroups().catch(() => []),
-        catalogPublicApi.listSections().catch(() => []),
-        catalogPublicApi.listSalesModels().catch(() => []),
-        catalogPublicApi.listOrigins().catch(() => []),
-        catalogPublicApi.listRecoveryOptions().catch(() => []),
-      ]);
       if (!active) {
         return;
       }
       setCategories(categoriesResponse.categories);
-      setGroups(groupsData);
-      setSections(sectionsData);
-      setSalesModels(salesModelsData);
-      setOrigins(originsData);
-      setRecoveryOptions(recoveryData);
     };
-    loadCatalog().catch(() => {
+    loadCategories().catch(() => {
       if (active) {
         setCategories([]);
-        setGroups([]);
-        setSections([]);
-        setSalesModels([]);
-        setOrigins([]);
-        setRecoveryOptions([]);
       }
     });
     return () => {
@@ -117,37 +98,78 @@ export default function Page() {
     }));
   }, [autoDelivery]);
 
+  useEffect(() => {
+    if (mediaFiles.length === 0) {
+      setMediaPreview(null);
+      return undefined;
+    }
+    const url = URL.createObjectURL(mediaFiles[0]);
+    setMediaPreview(url);
+    return () => {
+      URL.revokeObjectURL(url);
+    };
+  }, [mediaFiles]);
+
+  const inventoryItems = useMemo(
+    () => parseInventoryItems(inventoryPayload),
+    [inventoryPayload],
+  );
+
+  const inventoryCount = inventoryItems.length;
   const previewTitle = formState.title || 'Seu titulo aparece aqui...';
   const previewPrice = formatCurrency(formState.priceCents, formState.currency ?? 'BRL');
-  const titleCount = formState.title.length;
-  const filteredGroups = useMemo(() => {
-    if (!formState.categoryId) {
-      return groups;
-    }
-    return groups.filter((group) => group.categoryId === formState.categoryId);
-  }, [groups, formState.categoryId]);
+  const previewCategory =
+    categories.find(
+      (category) =>
+        category.id === formState.categoryId || category.slug === formState.categoryId,
+    )?.label ?? 'Categoria';
 
-  const filteredSections = useMemo(() => {
-    if (!formState.categoryGroupId) {
-      return sections;
-    }
-    return sections.filter((section) => section.groupId === formState.categoryGroupId);
-  }, [sections, formState.categoryGroupId]);
+  const previewImage =
+    listing?.media?.[0]?.url ?? mediaPreview ?? '/assets/meoow/highlight-01.webp';
 
-  const canSubmit = useMemo(() => {
-    return (
-      formState.title.trim().length > 0 &&
-      formState.categoryId.trim().length > 0 &&
-      formState.priceCents > 0 &&
-      termsAccepted
-    );
-  }, [formState, termsAccepted]);
+  const goToStep = (nextStep: number) => {
+    setStep(nextStep);
+    setMaxStep((prev) => Math.max(prev, nextStep));
+  };
 
-  const handleCreateOrUpdate = async (submitAfter = false) => {
+  const ensureListing = async () => {
     if (!accessToken) {
       setError('Sessao expirada. Entre novamente.');
+      return null;
+    }
+    const payload: ListingInput = {
+      ...formState,
+      description: formState.description?.trim() || undefined,
+      refundPolicy: formState.refundPolicy?.trim() || emptyListing.refundPolicy,
+      deliverySlaHours: Number(formState.deliverySlaHours) || 24,
+    };
+
+    try {
+      const saved = listing?.id
+        ? await marketplaceApi.updateListing(accessToken, listing.id, payload)
+        : await marketplaceApi.createListing(accessToken, payload);
+      setListing(saved);
+      return saved;
+    } catch (err) {
+      const message =
+        err instanceof ApiClientError
+          ? err.message
+          : 'Nao foi possivel salvar o anuncio.';
+      setError(message);
+      return null;
+    }
+  };
+
+  const handleNextFromCategory = () => {
+    if (!formState.categoryId.trim()) {
+      setError('Selecione uma categoria para continuar.');
       return;
     }
+    setError(null);
+    goToStep(2);
+  };
+
+  const handleNextFromDetails = async () => {
     if (!formState.categoryId.trim()) {
       setError('Selecione uma categoria.');
       return;
@@ -160,43 +182,118 @@ export default function Page() {
       setError('Informe um valor valido.');
       return;
     }
-    if (submitAfter && !termsAccepted) {
-      setError('Aceite os termos antes de publicar.');
-      return;
+    setError(null);
+    setNotice(null);
+    setBusyAction('save');
+    const saved = await ensureListing();
+    setBusyAction(null);
+    if (saved) {
+      setNotice('Detalhes salvos.');
+      goToStep(3);
+    }
+  };
+
+  const handleNextFromDelivery = async () => {
+    setError(null);
+    setNotice(null);
+    setBusyAction('save');
+    const saved = await ensureListing();
+    setBusyAction(null);
+    if (saved) {
+      setNotice('Entrega atualizada.');
+      goToStep(4);
+    }
+  };
+
+  const handleUploadMedia = async () => {
+    if (mediaFiles.length === 0) {
+      setNotice('Selecione ao menos uma imagem.');
+      return false;
     }
     setError(null);
     setNotice(null);
-    setBusyAction(submitAfter ? 'publish' : 'draft');
+    setBusyAction('media');
+    const saved = await ensureListing();
+    if (!saved) {
+      setBusyAction(null);
+      return false;
+    }
 
     try {
-      const payload: ListingInput = {
-        ...formState,
-        description: formState.description?.trim() || undefined,
-      };
-
-      const created =
-        listing && listing.id
-          ? await marketplaceApi.updateListing(accessToken, listing.id, payload)
-          : await marketplaceApi.createListing(accessToken, payload);
-      setListing(created);
-
-      if (mediaFiles.length > 0) {
-        await marketplaceApi.uploadMedia(accessToken, created.id, mediaFiles[0], 0);
+      const startPosition = saved.media?.length ?? 0;
+      for (const [index, file] of mediaFiles.entries()) {
+        // Upload sequentially to preserve ordering
+        // eslint-disable-next-line no-await-in-loop
+        await marketplaceApi.uploadMedia(accessToken, saved.id, file, startPosition + index);
       }
+      const refreshed = await marketplaceApi.getSellerListing(accessToken, saved.id);
+      setListing(refreshed);
+      setMediaFiles([]);
+      setNotice('Midias enviadas com sucesso.');
+      return true;
+    } catch (err) {
+      const message =
+        err instanceof ApiClientError
+          ? err.message
+          : 'Nao foi possivel enviar as midias.';
+      setError(message);
+      return false;
+    } finally {
+      setBusyAction(null);
+    }
+  };
 
-      if (submitAfter) {
-        await marketplaceApi.submitListing(accessToken, created.id);
-        setNotice('Anuncio enviado para aprovacao.');
-        router.push('/conta/anuncios');
+  const handleNextFromMedia = async () => {
+    if (mediaFiles.length > 0) {
+      const uploaded = await handleUploadMedia();
+      if (!uploaded) {
         return;
       }
+    }
+    goToStep(5);
+  };
 
-      setNotice('Rascunho salvo com sucesso.');
-    } catch (error) {
+  const handlePublish = async () => {
+    if (!termsAccepted) {
+      setError('Aceite os termos antes de publicar.');
+      return;
+    }
+    if (autoDelivery && inventoryCount === 0) {
+      setError('Adicione os dados de entrega ou desative a entrega automatica.');
+      return;
+    }
+
+    setError(null);
+    setNotice(null);
+    setBusyAction('publish');
+
+    const saved = await ensureListing();
+    if (!saved) {
+      setBusyAction(null);
+      return;
+    }
+
+    try {
+      if (mediaFiles.length > 0) {
+        const startPosition = saved.media?.length ?? 0;
+        for (const [index, file] of mediaFiles.entries()) {
+          // eslint-disable-next-line no-await-in-loop
+          await marketplaceApi.uploadMedia(accessToken, saved.id, file, startPosition + index);
+        }
+      }
+
+      if (inventoryPayload.trim()) {
+        await marketplaceApi.importInventoryItems(accessToken, saved.id, inventoryPayload.trim());
+      }
+
+      await marketplaceApi.submitListing(accessToken, saved.id);
+      setNotice('Anuncio enviado para aprovacao.');
+      router.push('/conta/anuncios');
+    } catch (err) {
       const message =
-        error instanceof ApiClientError
-          ? error.message
-          : 'Nao foi possivel salvar o anuncio.';
+        err instanceof ApiClientError
+          ? err.message
+          : 'Nao foi possivel publicar o anuncio.';
       setError(message);
     } finally {
       setBusyAction(null);
@@ -225,12 +322,35 @@ export default function Page() {
   return (
     <div className="min-h-screen bg-meow-50 text-slate-600 antialiased">
       <div className="mx-auto flex max-w-[1200px] flex-col gap-8 px-4 py-8 lg:flex-row">
-        <main className="flex-1 space-y-8">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-black text-slate-800">Anuncio</h1>
-              <p className="text-sm font-bold text-meow-300">Criar novo anuncio</p>
-            </div>
+        <main className="flex-1 space-y-6">
+          <div>
+            <h1 className="text-3xl font-black text-slate-800">Anuncio</h1>
+            <p className="text-sm font-bold text-meow-300">Criar novo anuncio</p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {steps.map((item) => {
+              const isActive = item.id === step;
+              const isAvailable = item.id <= maxStep;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  disabled={!isAvailable}
+                  onClick={() => isAvailable && goToStep(item.id)}
+                  className={`flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-bold transition ${
+                    isActive
+                      ? 'border-meow-300 bg-meow-100 text-meow-deep'
+                      : 'border-slate-200 bg-white text-slate-400 hover:border-meow-200 hover:text-meow-500'
+                  } ${!isAvailable ? 'cursor-not-allowed opacity-50' : ''}`}
+                >
+                  <span className="grid h-6 w-6 place-items-center rounded-full bg-white text-[11px] text-slate-600 shadow-sm">
+                    {item.id}
+                  </span>
+                  {item.title}
+                </button>
+              );
+            })}
           </div>
 
           {error ? (
@@ -244,18 +364,16 @@ export default function Page() {
             </div>
           ) : null}
 
-          <section className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
-            <h2 className="mb-4 flex items-center gap-2 text-lg font-black text-slate-800">
-              <span className="grid h-6 w-6 place-items-center rounded-full bg-meow-100 text-xs text-meow-500">
-                1
-              </span>
-              O que vamos vender?
-            </h2>
-            <div className="grid gap-4 md:grid-cols-3">
+          {step === 1 ? (
+            <section className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+              <h2 className="mb-4 flex items-center gap-2 text-lg font-black text-slate-800">
+                <span className="grid h-6 w-6 place-items-center rounded-full bg-meow-100 text-xs text-meow-500">
+                  1
+                </span>
+                O que vamos vender?
+              </h2>
               <div className="space-y-1">
-                <label className="text-xs font-bold uppercase text-slate-500">
-                  Categoria
-                </label>
+                <label className="text-xs font-bold uppercase text-slate-500">Categoria</label>
                 <div className="relative">
                   <Select
                     className="rounded-xl border-slate-200 bg-slate-50 text-sm font-bold text-slate-700"
@@ -264,8 +382,6 @@ export default function Page() {
                       setFormState((prev) => ({
                         ...prev,
                         categoryId: event.target.value,
-                        categoryGroupId: undefined,
-                        categorySectionId: undefined,
                       }))
                     }
                   >
@@ -279,320 +395,202 @@ export default function Page() {
                   <i className="fas fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
                 </div>
               </div>
-              <div className="space-y-1">
-                <label className="text-xs font-bold uppercase text-slate-500">
-                  Jogo / Subcategoria
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+                <Button type="button" variant="secondary" onClick={() => router.push('/')}>
+                  Cancelar
+                </Button>
+                <Button type="button" onClick={handleNextFromCategory}>
+                  Continuar
+                </Button>
+              </div>
+            </section>
+          ) : null}
+
+          {step === 2 ? (
+            <section className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+              <h2 className="mb-4 flex items-center gap-2 text-lg font-black text-slate-800">
+                <span className="grid h-6 w-6 place-items-center rounded-full bg-meow-100 text-xs text-meow-500">
+                  2
+                </span>
+                Detalhes do produto
+              </h2>
+
+              <div className="mb-6">
+                <label className="mb-1 block text-xs font-bold uppercase text-slate-500">
+                  Titulo do anuncio <span className="text-red-400">*</span>
                 </label>
                 <div className="relative">
-                  <Select
-                    className="rounded-xl border-slate-200 bg-slate-50 text-sm font-bold text-slate-700"
-                    value={formState.categoryGroupId ?? ''}
-                    onChange={(event) =>
-                      setFormState((prev) => ({
-                        ...prev,
-                        categoryGroupId: event.target.value || undefined,
-                        categorySectionId: undefined,
-                      }))
-                    }
-                  >
-                    <option value="">Selecione...</option>
-                    {filteredGroups.map((group) => (
-                      <option key={group.id} value={group.id}>
-                        {group.name}
-                      </option>
-                    ))}
-                  </Select>
-                  <i className="fas fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                </div>
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-bold uppercase text-slate-500">Secao</label>
-                <div className="relative">
-                  <Select
-                    className="rounded-xl border-slate-200 bg-slate-50 text-sm font-bold text-slate-700"
-                    value={formState.categorySectionId ?? ''}
-                    onChange={(event) =>
-                      setFormState((prev) => ({
-                        ...prev,
-                        categorySectionId: event.target.value || undefined,
-                      }))
-                    }
-                  >
-                    <option value="">Selecione...</option>
-                    {filteredSections.map((section) => (
-                      <option key={section.id} value={section.id}>
-                        {section.name}
-                      </option>
-                    ))}
-                  </Select>
-                  <i className="fas fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
-            <h2 className="mb-4 flex items-center gap-2 text-lg font-black text-slate-800">
-              <span className="grid h-6 w-6 place-items-center rounded-full bg-meow-100 text-xs text-meow-500">
-                2
-              </span>
-              Detalhes do produto
-            </h2>
-
-            <div className="mb-6">
-              <label className="mb-1 block text-xs font-bold uppercase text-slate-500">
-                Titulo do anuncio <span className="text-red-400">*</span>
-              </label>
-              <div className="relative">
-                <Input
-                  type="text"
-                  maxLength={80}
-                  placeholder="Ex: Conta LoL Diamante, 250 Tibia Coins..."
-                  className="rounded-xl border-slate-200 bg-slate-50 text-sm font-bold text-slate-800"
-                  value={formState.title}
-                  onChange={(event) =>
-                    setFormState((prev) => ({ ...prev, title: event.target.value }))
-                  }
-                />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
-                  {titleCount}/80
-                </span>
-              </div>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {[
-                  'Conta LoL Diamante (Full Champs)',
-                  'Acesso Spotify Premium Vitalicio',
-                  '13.500 V-Bucks Fortnite',
-                ].map((text) => (
-                  <button
-                    key={text}
-                    type="button"
-                    className="rounded bg-slate-100 px-2 py-1 text-[10px] font-semibold text-slate-500 transition hover:bg-meow-50 hover:text-meow-500"
-                    onClick={() => setFormState((prev) => ({ ...prev, title: text }))}
-                  >
-                    Ex: {text.split(' ')[0]}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <label className="mb-2 block text-xs font-bold uppercase text-slate-500">
-                Modelo de venda
-              </label>
-              {salesModels.length === 0 ? (
-                <div className="state-card info">
-                  Nenhum tipo cadastrado. Faca o cadastro no painel admin.
-                </div>
-              ) : (
-                <div className="grid gap-3 md:grid-cols-3">
-                  {salesModels.map((option, index) => {
-                    const colors = [
-                      'text-blue-500 bg-blue-100',
-                      'text-purple-500 bg-purple-100',
-                      'text-orange-500 bg-orange-100',
-                      'text-emerald-500 bg-emerald-100',
-                    ];
-                    const icon = option.slug?.includes('serv')
-                      ? 'fa-tools'
-                      : option.slug?.includes('din')
-                        ? 'fa-layer-group'
-                        : 'fa-box';
-                    return (
-                      <button
-                        key={option.id}
-                        type="button"
-                        className={`relative flex flex-col items-center justify-center gap-2 rounded-2xl border-2 p-4 text-center transition ${
-                          formState.salesModelId === option.id
-                            ? 'border-meow-300 bg-meow-50 shadow-cute'
-                            : 'border-slate-100 hover:border-meow-200'
-                        }`}
-                        onClick={() =>
-                          setFormState((prev) => ({ ...prev, salesModelId: option.id }))
-                        }
-                      >
-                        <div
-                          className={`grid h-10 w-10 place-items-center rounded-full ${
-                            colors[index % colors.length]
-                          }`}
-                        >
-                          <i className={`fas ${icon}`} aria-hidden />
-                        </div>
-                        <span className="font-bold text-slate-700">{option.name}</span>
-                        <span className="text-[10px] text-slate-400">
-                          {option.description ?? 'Tipo de venda configurado pelo admin.'}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-            <div className="mb-6 grid gap-4 md:grid-cols-2">
-              <div className="space-y-1">
-                <label className="text-xs font-bold uppercase text-slate-500">Valor (BRL)</label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">
-                    R$
-                  </span>
                   <Input
                     type="text"
-                    placeholder="0,00"
-                    className="rounded-xl border-slate-200 bg-slate-50 pl-10 pr-4 text-sm font-bold text-slate-800"
-                    value={priceInput}
-                    onChange={(event) => {
-                      const value = event.target.value;
-                      setPriceInput(value);
-                      setFormState((prev) => ({
-                        ...prev,
-                        priceCents: parsePriceToCents(value),
-                      }));
-                    }}
+                    maxLength={80}
+                    placeholder="Ex: Conta LoL Diamante, 250 Tibia Coins..."
+                    className="rounded-xl border-slate-200 bg-slate-50 text-sm font-bold text-slate-800"
+                    value={formState.title}
+                    onChange={(event) =>
+                      setFormState((prev) => ({ ...prev, title: event.target.value }))
+                    }
                   />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                    {formState.title.length}/80
+                  </span>
                 </div>
               </div>
-              <div className="space-y-1">
-                <label className="text-xs font-bold uppercase text-slate-500">Estoque</label>
-                <Input
-                  type="number"
-                  value={stock}
-                  onChange={(event) => setStock(event.target.value)}
-                  className="rounded-xl border-slate-200 bg-slate-50 text-sm font-bold text-slate-800"
-                />
-              </div>
-            </div>
 
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="space-y-1">
-                <label className="text-xs font-bold uppercase text-slate-500">Tipo</label>
-                <div className="relative">
-                  <Select className="rounded-xl border-slate-200 bg-slate-50 text-sm font-bold text-slate-700">
-                    <option>Conta</option>
-                    <option>Gold / Moeda</option>
-                    <option>Item / Skin</option>
-                  </Select>
-                  <i className="fas fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                </div>
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-bold uppercase text-slate-500">Procedencia</label>
-                <div className="relative">
-                  <Select
-                    className="rounded-xl border-slate-200 bg-slate-50 text-sm font-bold text-slate-700"
-                    value={formState.originId ?? ''}
-                    onChange={(event) =>
-                      setFormState((prev) => ({
-                        ...prev,
-                        originId: event.target.value || undefined,
-                      }))
-                    }
-                  >
-                    <option value="">Selecione...</option>
-                    {origins.map((origin) => (
-                      <option key={origin.id} value={origin.id}>
-                        {origin.name}
-                      </option>
-                    ))}
-                  </Select>
-                  <i className="fas fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                </div>
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-bold uppercase text-slate-500">
-                  Dados de recuperacao
+              <div className="mb-6">
+                <label className="mb-2 block text-xs font-bold uppercase text-slate-500">
+                  Descricao detalhada
                 </label>
-                <div className="relative">
-                  <Select
-                    className="rounded-xl border-slate-200 bg-slate-50 text-sm font-bold text-slate-700"
-                    value={formState.recoveryOptionId ?? ''}
-                    onChange={(event) =>
-                      setFormState((prev) => ({
-                        ...prev,
-                        recoveryOptionId: event.target.value || undefined,
-                      }))
-                    }
-                  >
-                    <option value="">Selecione...</option>
-                    {recoveryOptions.map((option) => (
-                      <option key={option.id} value={option.id}>
-                        {option.name}
-                      </option>
-                    ))}
-                  </Select>
-                  <i className="fas fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="rounded-[28px] border border-emerald-100 bg-gradient-to-r from-emerald-50 to-green-50 p-6 shadow-card">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="grid h-10 w-10 place-items-center rounded-full bg-emerald-500 text-white shadow-cute">
-                  <i className="fas fa-bolt" aria-hidden />
-                </div>
-                <div>
-                  <h2 className="text-lg font-black text-slate-800">Entrega automatica</h2>
-                  <p className="text-xs font-bold text-slate-500">
-                    O sistema entrega o produto assim que o pagamento for aprovado.
+                <Textarea
+                  className="h-40 rounded-xl border-slate-200 bg-slate-50 text-sm text-slate-700"
+                  placeholder="Descreva seu produto com detalhes."
+                  value={formState.description ?? ''}
+                  onChange={(event) =>
+                    setFormState((prev) => ({ ...prev, description: event.target.value }))
+                  }
+                />
+                <div className="mt-2 flex gap-3 rounded-lg border border-red-100 bg-red-50 p-3 text-xs text-red-700">
+                  <i className="fas fa-exclamation-triangle mt-0.5 text-red-500" aria-hidden />
+                  <p>
+                    E proibido informar contatos pessoais na descricao ou chat. O sistema detecta
+                    automaticamente e seu anuncio sera reprovado.
                   </p>
                 </div>
               </div>
-              <Toggle
-                checked={autoDelivery}
-                onCheckedChange={setAutoDelivery}
-                className="h-6 w-12"
-              />
-            </div>
 
-            {autoDelivery ? (
-              <div className="mt-4 border-t border-emerald-200 pt-4">
-                <label className="block text-xs font-bold uppercase text-emerald-700">
-                  Dados para entrega (oculto ate a venda)
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold uppercase text-slate-500">Valor (BRL)</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">
+                      R$
+                    </span>
+                    <Input
+                      type="text"
+                      placeholder="0,00"
+                      className="rounded-xl border-slate-200 bg-slate-50 pl-10 pr-4 text-sm font-bold text-slate-800"
+                      value={priceInput}
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        setPriceInput(value);
+                        setFormState((prev) => ({
+                          ...prev,
+                          priceCents: parsePriceToCents(value),
+                        }));
+                      }}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold uppercase text-slate-500">Estoque</label>
+                  <Input
+                    readOnly
+                    value={inventoryCount}
+                    className="rounded-xl border-slate-200 bg-slate-50 text-sm font-bold text-slate-800"
+                  />
+                  <p className="text-[10px] text-slate-400">
+                    Estoque e calculado a partir dos itens adicionados na entrega.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+                <Button type="button" variant="secondary" onClick={() => goToStep(1)}>
+                  Voltar
+                </Button>
+                <Button type="button" onClick={handleNextFromDetails} disabled={busyAction === 'save'}>
+                  {busyAction === 'save' ? 'Salvando...' : 'Salvar e continuar'}
+                </Button>
+              </div>
+            </section>
+          ) : null}
+
+          {step === 3 ? (
+            <section className="rounded-[28px] border border-emerald-100 bg-gradient-to-r from-emerald-50 to-green-50 p-6 shadow-card">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="grid h-10 w-10 place-items-center rounded-full bg-emerald-500 text-white shadow-cute">
+                    <i className="fas fa-bolt" aria-hidden />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-black text-slate-800">Entrega automatica</h2>
+                    <p className="text-xs font-bold text-slate-500">
+                      O sistema entrega o produto assim que o pagamento for aprovado.
+                    </p>
+                  </div>
+                </div>
+                <Toggle checked={autoDelivery} onCheckedChange={setAutoDelivery} className="h-6 w-12" />
+              </div>
+
+              {autoDelivery ? (
+                <div className="mt-4 border-t border-emerald-200 pt-4">
+                  <label className="block text-xs font-bold uppercase text-emerald-700">
+                    Dados para entrega (oculto ate a venda)
+                  </label>
+                  <Textarea
+                    className="mt-2 h-28 resize-none rounded-xl border-emerald-200 bg-white text-sm text-slate-600 focus:border-emerald-400 focus:ring-0"
+                    placeholder="Ex: Login: usuario123 | Senha: senha123"
+                    value={inventoryPayload}
+                    onChange={(event) => setInventoryPayload(event.target.value)}
+                  />
+                  <p className="mt-2 text-[10px] font-semibold text-emerald-600">
+                    Itens informados: {inventoryCount}.
+                  </p>
+                </div>
+              ) : (
+                <div className="mt-4 rounded-xl border border-emerald-200 bg-white p-3 text-xs text-emerald-700">
+                  Entrega manual selecionada. Voce pode ativar a entrega automatica a qualquer momento.
+                </div>
+              )}
+
+              <div className="mt-6 grid gap-4 md:grid-cols-2">
+                <label className="grid gap-2 text-xs font-bold uppercase text-slate-500">
+                  SLA de entrega (horas)
+                  <Input
+                    type="number"
+                    min={1}
+                    className="rounded-xl border-emerald-200 bg-white text-sm font-bold text-slate-700"
+                    value={formState.deliverySlaHours}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        deliverySlaHours: Number(event.target.value),
+                      }))
+                    }
+                  />
                 </label>
-                <Textarea
-                  className="mt-2 h-24 resize-none rounded-xl border-emerald-200 bg-white text-sm text-slate-600 focus:border-emerald-400 focus:ring-0"
-                  placeholder="Ex: Login: usuario123 | Senha: senha123"
-                />
-                <p className="mt-2 text-[10px] font-semibold text-emerald-600">
-                  Esses dados sao criptografados e enviados apenas apos o pagamento.
-                </p>
+                <label className="grid gap-2 text-xs font-bold uppercase text-slate-500">
+                  Politica de reembolso
+                  <Textarea
+                    rows={3}
+                    className="rounded-xl border-emerald-200 bg-white text-sm text-slate-700"
+                    value={formState.refundPolicy}
+                    onChange={(event) =>
+                      setFormState((prev) => ({ ...prev, refundPolicy: event.target.value }))
+                    }
+                  />
+                </label>
               </div>
-            ) : null}
-          </section>
 
-          <section className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
-            <h2 className="mb-4 flex items-center gap-2 text-lg font-black text-slate-800">
-              <span className="grid h-6 w-6 place-items-center rounded-full bg-meow-100 text-xs text-meow-500">
-                3
-              </span>
-              Descricao e imagens
-            </h2>
-            <div className="mb-6">
-              <label className="mb-2 block text-xs font-bold uppercase text-slate-500">
-                Descricao detalhada
-              </label>
-              <Textarea
-                className="h-40 rounded-xl border-slate-200 bg-slate-50 text-sm text-slate-700"
-                placeholder="Descreva seu produto com detalhes."
-                value={formState.description ?? ''}
-                onChange={(event) =>
-                  setFormState((prev) => ({ ...prev, description: event.target.value }))
-                }
-              />
-              <div className="mt-2 flex gap-3 rounded-lg border border-red-100 bg-red-50 p-3 text-xs text-red-700">
-                <i className="fas fa-exclamation-triangle mt-0.5 text-red-500" aria-hidden />
-                <p>
-                  E proibido informar contatos pessoais na descricao ou chat. O sistema
-                  detecta automaticamente e seu anuncio sera reprovado.
-                </p>
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+                <Button type="button" variant="secondary" onClick={() => goToStep(2)}>
+                  Voltar
+                </Button>
+                <Button type="button" onClick={handleNextFromDelivery} disabled={busyAction === 'save'}>
+                  {busyAction === 'save' ? 'Salvando...' : 'Salvar e continuar'}
+                </Button>
               </div>
-            </div>
+            </section>
+          ) : null}
 
-            <div>
-              <label className="mb-2 block text-xs font-bold uppercase text-slate-500">
-                Imagens do produto (max 5MB)
-              </label>
+          {step === 4 ? (
+            <section className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+              <h2 className="mb-4 flex items-center gap-2 text-lg font-black text-slate-800">
+                <span className="grid h-6 w-6 place-items-center rounded-full bg-meow-100 text-xs text-meow-500">
+                  4
+                </span>
+                Imagens do anuncio
+              </h2>
+
               <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 p-8 text-center transition hover:border-meow-300 hover:bg-slate-50">
                 <div className="mb-3 grid h-16 w-16 place-items-center rounded-full bg-slate-100 text-slate-400">
                   <i className="fas fa-cloud-upload-alt text-2xl" aria-hidden />
@@ -606,95 +604,105 @@ export default function Page() {
                 <input
                   type="file"
                   className="hidden"
+                  multiple
                   onChange={(event) =>
                     setMediaFiles(event.target.files ? Array.from(event.target.files) : [])
                   }
                 />
               </label>
               {mediaFiles.length > 0 ? (
-                <p className="mt-2 text-xs font-semibold text-meow-muted">
-                  {mediaFiles.length} arquivo(s) selecionado(s).
-                </p>
+                <div className="mt-3 rounded-xl border border-slate-100 bg-slate-50 p-3 text-xs text-slate-500">
+                  {mediaFiles.length} arquivo(s) selecionado(s):{' '}
+                  {mediaFiles.map((file) => file.name).join(', ')}
+                </div>
               ) : null}
-            </div>
-          </section>
 
-          <section className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
-            <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-              <div className="space-y-4">
-                <h4 className="text-sm font-bold text-slate-700">Notificacoes</h4>
-                <label className="flex items-center gap-3 text-sm font-bold text-slate-600">
-                  <Toggle checked={notifyDiscord} onCheckedChange={setNotifyDiscord} />
-                  <span>
-                    <i className="fab fa-discord mr-1 text-indigo-500" aria-hidden />
-                    Notificar via Discord
-                  </span>
-                </label>
-                <label className="flex items-center gap-3 text-sm font-bold text-slate-600">
-                  <Toggle checked={notifyBrowser} onCheckedChange={setNotifyBrowser} />
-                  <span>
-                    <i className="fas fa-bell mr-1 text-yellow-500" aria-hidden />
-                    Notificar no navegador
-                  </span>
-                </label>
-              </div>
-
-              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-xs text-slate-500">
-                <h4 className="mb-2 text-sm font-bold text-slate-700">
-                  <i className="fas fa-shield-alt text-meow-300" aria-hidden /> Seguranca garantida
-                </h4>
-                <p className="mb-2">
-                  A Meoww atua como intermediadora. O valor pago pelo comprador fica retido
-                  conosco ate voce entregar o produto.
-                </p>
-                <p>Isso garante protecao total para ambas as partes.</p>
-              </div>
-            </div>
-
-            <div className="mt-6 border-t border-slate-100 pt-6">
-              <label className="flex items-start gap-3 text-xs text-slate-500">
-                <input
-                  type="checkbox"
-                  className="mt-1 h-4 w-4 rounded border-slate-300"
-                  checked={termsAccepted}
-                  onChange={(event) => setTermsAccepted(event.target.checked)}
-                />
-                <span>
-                  Declaro que li e aceito os{' '}
-                  <Link href="/institucional/termos" className="font-bold text-meow-400 underline">
-                    Termos de uso
-                  </Link>{' '}
-                  e{' '}
-                  <Link
-                    href="/institucional/termos"
-                    className="font-bold text-meow-400 underline"
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+                <Button type="button" variant="secondary" onClick={() => goToStep(3)}>
+                  Voltar
+                </Button>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={handleUploadMedia}
+                    disabled={busyAction === 'media' || mediaFiles.length === 0}
                   >
-                    Contrato do vendedor
-                  </Link>
-                  . Entendo que qualquer alteracao no anuncio passara por nova analise.
-                </span>
-              </label>
-            </div>
-          </section>
+                    {busyAction === 'media' ? 'Enviando...' : 'Enviar imagens'}
+                  </Button>
+                  <Button type="button" onClick={handleNextFromMedia}>
+                    Continuar
+                  </Button>
+                </div>
+              </div>
+            </section>
+          ) : null}
 
-          <div className="flex flex-col gap-4 pt-4 md:flex-row">
-            <button
-              type="button"
-              className="flex-1 rounded-2xl bg-meow-300 py-4 text-sm font-black text-white shadow-cute transition hover:-translate-y-1 hover:bg-meow-500"
-              onClick={() => handleCreateOrUpdate(true)}
-              disabled={!canSubmit || busyAction === 'publish'}
-            >
-              {busyAction === 'publish' ? 'Publicando...' : 'Publicar anuncio agora'}
-            </button>
-            <button
-              type="button"
-              className="flex-1 rounded-2xl border border-slate-200 bg-white py-4 text-sm font-bold text-slate-500 transition hover:bg-slate-50"
-              onClick={() => handleCreateOrUpdate(false)}
-              disabled={busyAction === 'draft'}
-            >
-              {busyAction === 'draft' ? 'Salvando...' : 'Salvar rascunho'}
-            </button>
-          </div>
+          {step === 5 ? (
+            <section className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+              <h2 className="mb-4 flex items-center gap-2 text-lg font-black text-slate-800">
+                <span className="grid h-6 w-6 place-items-center rounded-full bg-meow-100 text-xs text-meow-500">
+                  5
+                </span>
+                Revisao final
+              </h2>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4 text-sm">
+                  <p className="text-xs font-bold uppercase text-slate-400">Resumo</p>
+                  <p className="mt-2 font-semibold text-slate-700">Categoria: {previewCategory}</p>
+                  <p className="mt-1 font-semibold text-slate-700">Titulo: {previewTitle}</p>
+                  <p className="mt-1 font-semibold text-slate-700">Preco: {previewPrice}</p>
+                  <p className="mt-1 font-semibold text-slate-700">
+                    Entrega: {autoDelivery ? 'Automatica' : 'Manual'}
+                  </p>
+                  <p className="mt-1 font-semibold text-slate-700">
+                    Estoque: {inventoryCount} item(s)
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4 text-xs text-slate-500">
+                  <h4 className="mb-2 text-sm font-bold text-slate-700">
+                    <i className="fas fa-shield-alt text-meow-300" aria-hidden /> Seguranca garantida
+                  </h4>
+                  <p className="mb-2">
+                    A Meoww atua como intermediadora. O valor pago pelo comprador fica retido conosco ate voce entregar o produto.
+                  </p>
+                  <p>Isso garante protecao total para ambas as partes.</p>
+                </div>
+              </div>
+
+              <div className="mt-6 border-t border-slate-100 pt-6">
+                <label className="flex items-start gap-3 text-xs text-slate-500">
+                  <input
+                    type="checkbox"
+                    className="mt-1 h-4 w-4 rounded border-slate-300"
+                    checked={termsAccepted}
+                    onChange={(event) => setTermsAccepted(event.target.checked)}
+                  />
+                  <span>
+                    Declaro que li e aceito os{' '}
+                    <Link href="/institucional/termos" className="font-bold text-meow-400 underline">
+                      Termos de uso
+                    </Link>{' '}
+                    e{' '}
+                    <Link href="/institucional/termos" className="font-bold text-meow-400 underline">
+                      Contrato do vendedor
+                    </Link>
+                    . Entendo que qualquer alteracao no anuncio passara por nova analise.
+                  </span>
+                </label>
+              </div>
+
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+                <Button type="button" variant="secondary" onClick={() => goToStep(4)}>
+                  Voltar
+                </Button>
+                <Button type="button" onClick={handlePublish} disabled={busyAction === 'publish'}>
+                  {busyAction === 'publish' ? 'Publicando...' : 'Publicar anuncio agora'}
+                </Button>
+              </div>
+            </section>
+          ) : null}
         </main>
 
         <aside className="hidden w-full max-w-[320px] space-y-6 lg:block">
@@ -703,11 +711,11 @@ export default function Page() {
               Pre-visualizacao
             </h3>
             <div className="relative rounded-2xl border border-slate-100 bg-white p-3 shadow-sm">
-              <div className="mb-3 flex h-32 items-center justify-center rounded-xl bg-slate-100 text-slate-300">
-                <i className="fas fa-image text-3xl" aria-hidden />
+              <div className="mb-3 flex h-32 items-center justify-center overflow-hidden rounded-xl bg-slate-100 text-slate-300">
+                <img src={previewImage} alt={previewTitle} className="h-full w-full object-cover" />
               </div>
               <span className="rounded bg-meow-50 px-2 py-0.5 text-[10px] font-bold uppercase text-meow-500">
-                Jogos
+                {previewCategory}
               </span>
               <h4 className="mt-2 text-sm font-bold text-slate-800">{previewTitle}</h4>
               <div className="mt-4 flex items-end justify-between">
