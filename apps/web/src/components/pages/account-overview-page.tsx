@@ -8,6 +8,8 @@ import { ordersApi, type Order } from '../../lib/orders-api';
 import { walletApi, type WalletSummary } from '../../lib/wallet-api';
 import { useAuth } from '../auth/auth-provider';
 import { AccountShell } from '../account/account-shell';
+import { Badge } from '../ui/badge';
+import { Card } from '../ui/card';
 
 type SummaryState = {
   status: 'loading' | 'ready';
@@ -133,12 +135,12 @@ export const AccountOverviewContent = () => {
         { label: 'Conta' },
       ]}
     >
-      <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+      <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
         <h1 className="text-2xl font-black text-meow-charcoal">Ola, {user.email}!</h1>
         <p className="mt-1 text-sm text-meow-muted">
           Aqui esta o resumo da sua conta hoje.
         </p>
-      </div>
+      </Card>
 
       <div className="grid gap-4 md:grid-cols-2">
         {[
@@ -156,10 +158,7 @@ export const AccountOverviewContent = () => {
             accent: 'bg-purple-50 text-purple-500',
           },
         ].map((card) => (
-          <div
-            key={card.label}
-            className="rounded-[26px] border border-slate-100 bg-white p-5 shadow-card"
-          >
+          <Card key={card.label} className="rounded-[26px] border border-slate-100 p-5 shadow-card">
             <div
               className={`grid h-11 w-11 place-items-center rounded-2xl text-sm font-black ${card.accent}`}
             >
@@ -169,7 +168,7 @@ export const AccountOverviewContent = () => {
               {card.label}
             </p>
             <p className="mt-2 text-2xl font-black text-meow-charcoal">{card.value}</p>
-          </div>
+          </Card>
         ))}
       </div>
 
@@ -179,7 +178,7 @@ export const AccountOverviewContent = () => {
         </div>
       ) : null}
 
-      <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+      <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-lg font-black text-meow-charcoal">Pedidos recentes</h2>
           <Link
@@ -219,10 +218,10 @@ export const AccountOverviewContent = () => {
                   : 'Pedido aberto';
             const statusTone =
               order.status === 'DELIVERED' || order.status === 'COMPLETED'
-                ? 'bg-emerald-100 text-emerald-700'
+                ? 'success'
                 : order.status === 'AWAITING_PAYMENT'
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'bg-slate-100 text-slate-600';
+                  ? 'info'
+                  : 'neutral';
 
             return (
               <div
@@ -252,9 +251,7 @@ export const AccountOverviewContent = () => {
                 </div>
                 <div className="flex items-center gap-3 text-sm font-semibold text-meow-charcoal">
                   {formatCurrency(order.totalAmountCents, order.currency)}
-                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${statusTone}`}>
-                    {status}
-                  </span>
+                  <Badge variant={statusTone}>{status}</Badge>
                   <Link
                     href={`/conta/pedidos/${order.id}`}
                     className="rounded-full border border-slate-200 px-4 py-2 text-xs font-bold text-meow-charcoal"
@@ -266,7 +263,7 @@ export const AccountOverviewContent = () => {
             );
           })}
         </div>
-      </div>
+      </Card>
     </AccountShell>
   );
 };

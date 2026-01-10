@@ -6,6 +6,8 @@ import { Heart, Star } from 'lucide-react';
 
 import { fetchPublicListing, type PublicListing } from '../../lib/marketplace-public';
 import { useSite } from '../site-context';
+import { buttonVariants } from '../ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 
 type ListingDetailState = {
   status: 'loading' | 'ready';
@@ -29,10 +31,6 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
     source: 'api',
   });
   const [activeMedia, setActiveMedia] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'descricao' | 'avaliacoes' | 'duvidas'>(
-    'descricao',
-  );
-
   useEffect(() => {
     let active = true;
     const loadListing = async () => {
@@ -241,14 +239,14 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
 
             <div className="mt-6 grid gap-3">
               <Link
-                className="rounded-2xl bg-meow-300 px-6 py-3 text-center text-sm font-black text-white shadow-cute transition hover:bg-meow-500"
+                className={buttonVariants({ variant: 'primary', size: 'lg', className: 'w-full' })}
                 href={`/checkout/${listing.id}`}
               >
                 Comprar agora
               </Link>
               <button
                 type="button"
-                className="rounded-2xl border border-meow-200 bg-meow-50 px-6 py-3 text-sm font-bold text-meow-deep"
+                className={buttonVariants({ variant: 'secondary', size: 'lg', className: 'w-full' })}
                 onClick={() =>
                   addToCart({
                     id: listing.id,
@@ -277,34 +275,25 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
         </div>
 
         <div className="mt-10 rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
-          <div className="flex flex-wrap items-center gap-3">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                className={`rounded-full px-4 py-2 text-xs font-bold ${
-                  activeTab === tab.id
-                    ? 'bg-meow-300 text-white shadow-cute'
-                    : 'bg-meow-50 text-meow-muted'
-                }`}
-                onClick={() => setActiveTab(tab.id)}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+          <Tabs defaultValue="descricao">
+            <TabsList>
+              {tabs.map((tab) => (
+                <TabsTrigger key={tab.id} value={tab.id}>
+                  {tab.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
 
-          <div className="mt-6 text-sm text-meow-muted">
-            {activeTab === 'descricao' ? (
+            <TabsContent value="descricao">
               <p>{listing.description ?? 'Descricao nao informada.'}</p>
-            ) : null}
-            {activeTab === 'avaliacoes' ? (
+            </TabsContent>
+            <TabsContent value="avaliacoes">
               <p>Este anuncio ainda nao possui avaliacoes.</p>
-            ) : null}
-            {activeTab === 'duvidas' ? (
+            </TabsContent>
+            <TabsContent value="duvidas">
               <p>Envie sua duvida no chat apos a compra.</p>
-            ) : null}
-          </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </section>

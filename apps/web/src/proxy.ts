@@ -5,7 +5,21 @@ const REFRESH_COOKIE = 'g2g_refresh';
 export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (!pathname.startsWith('/dashboard')) {
+  const protectedPaths = [
+    '/dashboard',
+    '/conta',
+    '/pedidos',
+    '/tickets',
+    '/vendas',
+    '/admin',
+    '/carteira',
+  ];
+
+  const needsAuth = protectedPaths.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+
+  if (!needsAuth) {
     return NextResponse.next();
   }
 
@@ -21,5 +35,13 @@ export default function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*'],
+  matcher: [
+    '/dashboard/:path*',
+    '/conta/:path*',
+    '/pedidos/:path*',
+    '/tickets/:path*',
+    '/vendas/:path*',
+    '/admin/:path*',
+    '/carteira/:path*',
+  ],
 };

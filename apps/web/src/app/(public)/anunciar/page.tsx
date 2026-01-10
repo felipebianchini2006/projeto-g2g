@@ -6,6 +6,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { useAuth } from '../../../components/auth/auth-provider';
+import { Input } from '../../../components/ui/input';
+import { Select } from '../../../components/ui/select';
+import { Textarea } from '../../../components/ui/textarea';
+import { Toggle } from '../../../components/ui/toggle';
 import { ApiClientError } from '../../../lib/api-client';
 import {
   catalogPublicApi,
@@ -58,6 +62,8 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [notifyDiscord, setNotifyDiscord] = useState(true);
+  const [notifyBrowser, setNotifyBrowser] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -251,8 +257,8 @@ export default function Page() {
                   Categoria
                 </label>
                 <div className="relative">
-                  <select
-                    className="w-full cursor-pointer rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700 focus:border-meow-300 focus:outline-none focus:ring-4 focus:ring-meow-100"
+                  <Select
+                    className="rounded-xl border-slate-200 bg-slate-50 text-sm font-bold text-slate-700"
                     value={formState.categoryId}
                     onChange={(event) =>
                       setFormState((prev) => ({
@@ -269,7 +275,7 @@ export default function Page() {
                         {category.label}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                   <i className="fas fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
                 </div>
               </div>
@@ -278,8 +284,8 @@ export default function Page() {
                   Jogo / Subcategoria
                 </label>
                 <div className="relative">
-                  <select
-                    className="w-full cursor-pointer rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700 focus:border-meow-300 focus:outline-none focus:ring-4 focus:ring-meow-100"
+                  <Select
+                    className="rounded-xl border-slate-200 bg-slate-50 text-sm font-bold text-slate-700"
                     value={formState.categoryGroupId ?? ''}
                     onChange={(event) =>
                       setFormState((prev) => ({
@@ -295,15 +301,15 @@ export default function Page() {
                         {group.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                   <i className="fas fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
                 </div>
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-bold uppercase text-slate-500">Secao</label>
                 <div className="relative">
-                  <select
-                    className="w-full cursor-pointer rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700 focus:border-meow-300 focus:outline-none focus:ring-4 focus:ring-meow-100"
+                  <Select
+                    className="rounded-xl border-slate-200 bg-slate-50 text-sm font-bold text-slate-700"
                     value={formState.categorySectionId ?? ''}
                     onChange={(event) =>
                       setFormState((prev) => ({
@@ -318,7 +324,7 @@ export default function Page() {
                         {section.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                   <i className="fas fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
                 </div>
               </div>
@@ -338,11 +344,11 @@ export default function Page() {
                 Titulo do anuncio <span className="text-red-400">*</span>
               </label>
               <div className="relative">
-                <input
+                <Input
                   type="text"
                   maxLength={80}
                   placeholder="Ex: Conta LoL Diamante, 250 Tibia Coins..."
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-800 focus:border-meow-300 focus:outline-none focus:ring-4 focus:ring-meow-100"
+                  className="rounded-xl border-slate-200 bg-slate-50 text-sm font-bold text-slate-800"
                   value={formState.title}
                   onChange={(event) =>
                     setFormState((prev) => ({ ...prev, title: event.target.value }))
@@ -429,10 +435,10 @@ export default function Page() {
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">
                     R$
                   </span>
-                  <input
+                  <Input
                     type="text"
                     placeholder="0,00"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-3 text-sm font-bold text-slate-800 focus:border-meow-300 focus:outline-none focus:ring-4 focus:ring-meow-100"
+                    className="rounded-xl border-slate-200 bg-slate-50 pl-10 pr-4 text-sm font-bold text-slate-800"
                     value={priceInput}
                     onChange={(event) => {
                       const value = event.target.value;
@@ -447,11 +453,11 @@ export default function Page() {
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-bold uppercase text-slate-500">Estoque</label>
-                <input
+                <Input
                   type="number"
                   value={stock}
                   onChange={(event) => setStock(event.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-800 focus:border-meow-300 focus:outline-none focus:ring-4 focus:ring-meow-100"
+                  className="rounded-xl border-slate-200 bg-slate-50 text-sm font-bold text-slate-800"
                 />
               </div>
             </div>
@@ -460,19 +466,19 @@ export default function Page() {
               <div className="space-y-1">
                 <label className="text-xs font-bold uppercase text-slate-500">Tipo</label>
                 <div className="relative">
-                  <select className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700 focus:border-meow-300 focus:outline-none">
+                  <Select className="rounded-xl border-slate-200 bg-slate-50 text-sm font-bold text-slate-700">
                     <option>Conta</option>
                     <option>Gold / Moeda</option>
                     <option>Item / Skin</option>
-                  </select>
+                  </Select>
                   <i className="fas fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
                 </div>
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-bold uppercase text-slate-500">Procedencia</label>
                 <div className="relative">
-                  <select
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700 focus:border-meow-300 focus:outline-none"
+                  <Select
+                    className="rounded-xl border-slate-200 bg-slate-50 text-sm font-bold text-slate-700"
                     value={formState.originId ?? ''}
                     onChange={(event) =>
                       setFormState((prev) => ({
@@ -487,7 +493,7 @@ export default function Page() {
                         {origin.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                   <i className="fas fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
                 </div>
               </div>
@@ -496,8 +502,8 @@ export default function Page() {
                   Dados de recuperacao
                 </label>
                 <div className="relative">
-                  <select
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700 focus:border-meow-300 focus:outline-none"
+                  <Select
+                    className="rounded-xl border-slate-200 bg-slate-50 text-sm font-bold text-slate-700"
                     value={formState.recoveryOptionId ?? ''}
                     onChange={(event) =>
                       setFormState((prev) => ({
@@ -512,7 +518,7 @@ export default function Page() {
                         {option.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                   <i className="fas fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
                 </div>
               </div>
@@ -532,20 +538,11 @@ export default function Page() {
                   </p>
                 </div>
               </div>
-              <button
-                type="button"
-                className={`relative h-6 w-12 rounded-full ${
-                  autoDelivery ? 'bg-meow-300' : 'bg-slate-300'
-                }`}
-                onClick={() => setAutoDelivery((prev) => !prev)}
-                aria-pressed={autoDelivery}
-              >
-                <span
-                  className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition ${
-                    autoDelivery ? 'right-0.5' : 'left-0.5'
-                  }`}
-                />
-              </button>
+              <Toggle
+                checked={autoDelivery}
+                onCheckedChange={setAutoDelivery}
+                className="h-6 w-12"
+              />
             </div>
 
             {autoDelivery ? (
@@ -553,8 +550,8 @@ export default function Page() {
                 <label className="block text-xs font-bold uppercase text-emerald-700">
                   Dados para entrega (oculto ate a venda)
                 </label>
-                <textarea
-                  className="mt-2 h-24 w-full resize-none rounded-xl border border-emerald-200 bg-white p-4 text-sm text-slate-600 focus:border-emerald-400 focus:outline-none"
+                <Textarea
+                  className="mt-2 h-24 resize-none rounded-xl border-emerald-200 bg-white text-sm text-slate-600 focus:border-emerald-400 focus:ring-0"
                   placeholder="Ex: Login: usuario123 | Senha: senha123"
                 />
                 <p className="mt-2 text-[10px] font-semibold text-emerald-600">
@@ -575,8 +572,8 @@ export default function Page() {
               <label className="mb-2 block text-xs font-bold uppercase text-slate-500">
                 Descricao detalhada
               </label>
-              <textarea
-                className="h-40 w-full resize-y rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 focus:border-meow-300 focus:outline-none focus:ring-4 focus:ring-meow-100"
+              <Textarea
+                className="h-40 rounded-xl border-slate-200 bg-slate-50 text-sm text-slate-700"
                 placeholder="Descreva seu produto com detalhes."
                 value={formState.description ?? ''}
                 onChange={(event) =>
@@ -627,14 +624,14 @@ export default function Page() {
               <div className="space-y-4">
                 <h4 className="text-sm font-bold text-slate-700">Notificacoes</h4>
                 <label className="flex items-center gap-3 text-sm font-bold text-slate-600">
-                  <input type="checkbox" className="h-4 w-4 rounded border-slate-300" defaultChecked />
+                  <Toggle checked={notifyDiscord} onCheckedChange={setNotifyDiscord} />
                   <span>
                     <i className="fab fa-discord mr-1 text-indigo-500" aria-hidden />
                     Notificar via Discord
                   </span>
                 </label>
                 <label className="flex items-center gap-3 text-sm font-bold text-slate-600">
-                  <input type="checkbox" className="h-4 w-4 rounded border-slate-300" />
+                  <Toggle checked={notifyBrowser} onCheckedChange={setNotifyBrowser} />
                   <span>
                     <i className="fas fa-bell mr-1 text-yellow-500" aria-hidden />
                     Notificar no navegador

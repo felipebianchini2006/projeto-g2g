@@ -6,6 +6,7 @@ import { z } from 'zod';
 
 import { FormField } from '../../../components/forms/form-field';
 import { Button } from '../../../components/ui/button';
+import { Input } from '../../../components/ui/input';
 import {
   Card,
   CardContent,
@@ -81,9 +82,9 @@ export default function Page() {
         <CardContent className="grid gap-4">
           <form className="grid gap-4" onSubmit={handleSubmit}>
             <FormField label="E-mail" htmlFor="email" error={errors.email}>
-              <input
+              <Input
                 id="email"
-                className="rounded-xl border border-meow-red/30 bg-meow-cream/60 px-4 py-3 text-sm text-meow-charcoal outline-none transition focus:border-meow-deep/50"
+                className="border-meow-red/30 bg-meow-cream/60"
                 type="email"
                 value={formData.email}
                 onChange={handleChange('email')}

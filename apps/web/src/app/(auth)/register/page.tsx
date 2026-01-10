@@ -8,6 +8,8 @@ import { z } from 'zod';
 import { useAuth } from '../../../components/auth/auth-provider';
 import { FormField } from '../../../components/forms/form-field';
 import { Button } from '../../../components/ui/button';
+import { Input } from '../../../components/ui/input';
+import { Select } from '../../../components/ui/select';
 import {
   Card,
   CardContent,
@@ -83,9 +85,9 @@ export default function Page() {
         <CardContent className="grid gap-4">
           <form className="grid gap-4" onSubmit={handleSubmit}>
             <FormField label="E-mail" htmlFor="email" error={errors.email}>
-              <input
+              <Input
                 id="email"
-                className="rounded-xl border border-meow-red/30 bg-meow-cream/60 px-4 py-3 text-sm text-meow-charcoal outline-none transition focus:border-meow-deep/50"
+                className="border-meow-red/30 bg-meow-cream/60"
                 type="email"
                 value={formData.email}
                 onChange={handleChange('email')}
@@ -94,9 +96,9 @@ export default function Page() {
               />
             </FormField>
             <FormField label="Senha" htmlFor="password" error={errors.password}>
-              <input
+              <Input
                 id="password"
-                className="rounded-xl border border-meow-red/30 bg-meow-cream/60 px-4 py-3 text-sm text-meow-charcoal outline-none transition focus:border-meow-deep/50"
+                className="border-meow-red/30 bg-meow-cream/60"
                 type="password"
                 value={formData.password}
                 onChange={handleChange('password')}
@@ -105,15 +107,15 @@ export default function Page() {
               />
             </FormField>
             <FormField label="Perfil" htmlFor="role" error={errors.role}>
-              <select
+              <Select
                 id="role"
-                className="rounded-xl border border-meow-red/30 bg-meow-cream/60 px-4 py-3 text-sm text-meow-charcoal outline-none transition focus:border-meow-deep/50"
+                className="border-meow-red/30 bg-meow-cream/60"
                 value={formData.role}
                 onChange={handleChange('role')}
               >
                 <option value="USER">Comprador</option>
                 <option value="SELLER">Vendedor</option>
-              </select>
+              </Select>
             </FormField>
             {errors.form ? (
               <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700">

@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 
 import { useAuth } from '../auth/auth-provider';
+import { useDashboardLayout } from '../layout/dashboard-layout';
 
 type Breadcrumb = {
   label: string;
@@ -60,6 +61,7 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
   const { logout, user } = useAuth();
   const router = useRouter();
   const pathname = usePathname() ?? '';
+  const { inDashboardLayout } = useDashboardLayout();
 
   const menuSections = useMemo<MenuSection[]>(
     () => [
@@ -111,6 +113,37 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
     .join('')
     .slice(0, 2)
     .toUpperCase();
+
+  if (inDashboardLayout) {
+    return (
+      <div className="space-y-6">
+        {breadcrumbs?.length ? (
+          <div className="text-xs font-semibold text-meow-muted">
+            {breadcrumbs.map((crumb, index) => {
+              const isLast = index === breadcrumbs.length - 1;
+              if (crumb.href && !isLast) {
+                return (
+                  <span key={crumb.label}>
+                    <Link href={crumb.href} className="text-meow-deep">
+                      {crumb.label}
+                    </Link>{' '}
+                    &gt;{' '}
+                  </span>
+                );
+              }
+              return (
+                <span key={crumb.label}>
+                  {crumb.label}
+                  {!isLast ? ' > ' : ''}
+                </span>
+              );
+            })}
+          </div>
+        ) : null}
+        {children}
+      </div>
+    );
+  }
 
   return (
     <section className="bg-meow-50/60 px-6 py-10">

@@ -9,6 +9,7 @@ import { ticketsApi, type Ticket, type TicketStatus } from '../../lib/tickets-ap
 import { useAuth } from '../auth/auth-provider';
 import { AdminShell } from '../admin/admin-shell';
 import { NotificationsBell } from '../notifications/notifications-bell';
+import { Select } from '../ui/select';
 
 type SupportState<T> = {
   status: 'loading' | 'ready';
@@ -207,8 +208,7 @@ export const AdminSupportContent = () => {
       <div className="support-filters">
         <div className="form-field">
           <span className="summary-label">SLA</span>
-          <select
-            className="form-input"
+          <Select
             value={slaFilter}
             onChange={(event) => setSlaFilter(event.target.value as SlaFilter)}
           >
@@ -217,12 +217,11 @@ export const AdminSupportContent = () => {
                 {option.label}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <div className="form-field">
           <span className="summary-label">Tickets</span>
-          <select
-            className="form-input"
+          <Select
             value={ticketFilter}
             onChange={(event) => setTicketFilter(event.target.value as TicketStatus | 'all')}
           >
@@ -231,12 +230,11 @@ export const AdminSupportContent = () => {
             <option value="IN_PROGRESS">Em andamento</option>
             <option value="RESOLVED">Resolvidos</option>
             <option value="CLOSED">Fechados</option>
-          </select>
+          </Select>
         </div>
         <div className="form-field">
           <span className="summary-label">Disputas</span>
-          <select
-            className="form-input"
+          <Select
             value={disputeFilter}
             onChange={(event) => setDisputeFilter(event.target.value as DisputeStatus | 'all')}
           >
@@ -245,7 +243,7 @@ export const AdminSupportContent = () => {
             <option value="REVIEW">Em revisao</option>
             <option value="RESOLVED">Resolvidas</option>
             <option value="REJECTED">Rejeitadas</option>
-          </select>
+          </Select>
         </div>
       </div>
 

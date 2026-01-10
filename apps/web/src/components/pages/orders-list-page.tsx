@@ -6,6 +6,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { ApiClientError } from '../../lib/api-client';
 import { ordersApi, type Order } from '../../lib/orders-api';
 import { useAuth } from '../auth/auth-provider';
+import { Badge } from '../ui/badge';
+import { buttonVariants } from '../ui/button';
 
 type OrdersListContentProps = {
   scope: 'buyer' | 'seller';
@@ -27,6 +29,18 @@ const statusLabel: Record<string, string> = {
   CANCELLED: 'Cancelado',
   DISPUTED: 'Em disputa',
   REFUNDED: 'Reembolsado',
+};
+
+const statusVariant: Record<string, 'success' | 'info' | 'warning' | 'danger' | 'neutral'> = {
+  DELIVERED: 'success',
+  COMPLETED: 'success',
+  PAID: 'info',
+  IN_DELIVERY: 'info',
+  AWAITING_PAYMENT: 'warning',
+  CREATED: 'neutral',
+  CANCELLED: 'danger',
+  DISPUTED: 'danger',
+  REFUNDED: 'danger',
 };
 
 const formatCurrency = (value: number, currency = 'BRL') =>
@@ -102,7 +116,7 @@ export const OrdersListContent = ({ scope }: OrdersListContentProps) => {
     return (
       <div className="orders-shell">
         <div className="state-card">Entre para acessar seus pedidos.</div>
-        <Link className="primary-button" href="/login">
+        <Link className={buttonVariants({ variant: 'primary' })} href="/login">
           Fazer login
         </Link>
       </div>
@@ -113,7 +127,7 @@ export const OrdersListContent = ({ scope }: OrdersListContentProps) => {
     return (
       <div className="orders-shell">
         <div className="state-card">Acesso restrito ao seller.</div>
-        <Link className="ghost-button" href="/conta">
+        <Link className={buttonVariants({ variant: 'secondary' })} href="/conta">
           Voltar para conta
         </Link>
       </div>
@@ -127,7 +141,7 @@ export const OrdersListContent = ({ scope }: OrdersListContentProps) => {
           <h1>{headline}</h1>
           <p className="auth-helper">{summaryText}</p>
         </div>
-        <Link className="ghost-button" href="/conta">
+        <Link className={buttonVariants({ variant: 'secondary', size: 'sm' })} href="/conta">
           Voltar para conta
         </Link>
       </div>
@@ -145,12 +159,15 @@ export const OrdersListContent = ({ scope }: OrdersListContentProps) => {
         {state.orders.map((order) => (
           <div className="orders-row" key={order.id}>
             <span className="mono">#{order.id.slice(0, 8)}</span>
-            <span className={`status-pill status-${order.status.toLowerCase()}`}>
+            <Badge variant={statusVariant[order.status] ?? 'neutral'}>
               {statusLabel[order.status] ?? order.status}
-            </span>
+            </Badge>
             <span>{formatCurrency(order.totalAmountCents, order.currency)}</span>
             <span>{new Date(order.createdAt).toLocaleString('pt-BR')}</span>
-            <Link className="ghost-button" href={`${detailPrefix}/${order.id}`}>
+            <Link
+              className={buttonVariants({ variant: 'secondary', size: 'sm' })}
+              href={`${detailPrefix}/${order.id}`}
+            >
               Ver
             </Link>
           </div>
