@@ -427,9 +427,7 @@ export class OrdersService {
         throw new BadRequestException('Order cannot accept evidence in the current state.');
       }
 
-      const manualItems = order.items.filter(
-        (item) => item.deliveryType === DeliveryType.MANUAL,
-      );
+      const manualItems = order.items.filter((item) => item.deliveryType === DeliveryType.MANUAL);
       if (manualItems.length === 0) {
         throw new BadRequestException('Order has no manual items.');
       }
@@ -497,9 +495,7 @@ export class OrdersService {
         throw new BadRequestException('Order is not in delivery.');
       }
 
-      const manualItems = order.items.filter(
-        (item) => item.deliveryType === DeliveryType.MANUAL,
-      );
+      const manualItems = order.items.filter((item) => item.deliveryType === DeliveryType.MANUAL);
       if (manualItems.length === 0) {
         throw new BadRequestException('Order has no manual items.');
       }

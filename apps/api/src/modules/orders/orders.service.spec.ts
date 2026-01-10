@@ -1,5 +1,6 @@
-import { ForbiddenException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+/* eslint-disable @typescript-eslint/unbound-method */
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
+import type { ConfigService } from '@nestjs/config';
 import {
   DeliveryEvidenceType,
   DeliveryType,
@@ -8,18 +9,16 @@ import {
   UserRole,
 } from '@prisma/client';
 
-import { EmailQueueService } from '../email/email.service';
-import { InventoryService } from '../listings/inventory.service';
-import { AppLogger } from '../logger/logger.service';
-import { PrismaService } from '../prisma/prisma.service';
-import { SettlementService } from '../settlement/settlement.service';
-import { SettingsService } from '../settings/settings.service';
-import {
-  CreateDeliveryEvidenceDto,
-  DeliveryEvidenceInputType,
-} from './dto/create-delivery-evidence.dto';
-import { MarkDeliveredDto } from './dto/mark-delivered.dto';
-import { OrdersQueueService } from './orders.queue.service';
+import type { EmailQueueService } from '../email/email.service';
+import type { InventoryService } from '../listings/inventory.service';
+import type { AppLogger } from '../logger/logger.service';
+import type { PrismaService } from '../prisma/prisma.service';
+import type { SettlementService } from '../settlement/settlement.service';
+import type { SettingsService } from '../settings/settings.service';
+import type { CreateDeliveryEvidenceDto } from './dto/create-delivery-evidence.dto';
+import { DeliveryEvidenceInputType } from './dto/create-delivery-evidence.dto';
+import type { MarkDeliveredDto } from './dto/mark-delivered.dto';
+import type { OrdersQueueService } from './orders.queue.service';
 import { OrdersService } from './orders.service';
 
 describe('OrdersService (manual delivery)', () => {
@@ -132,19 +131,26 @@ describe('OrdersService (manual delivery)', () => {
       {},
     );
 
-    expect(prismaService.deliveryEvidence.create).toHaveBeenCalledWith({
-      data: {
-        orderItemId: 'item-1',
-        type: DeliveryEvidenceType.TEXT,
-        content: 'Proof of delivery',
-        createdByUserId: 'seller-1',
+    const deliveryEvidenceCreate = prismaService.deliveryEvidence.create as jest.Mock;
+    const evidenceCall = deliveryEvidenceCreate.mock.calls[0] as [
+      {
+        data: {
+          orderItemId: string;
+          type: DeliveryEvidenceType;
+          content: string;
+          createdByUserId: string;
+        };
       },
+    ];
+    expect(evidenceCall[0].data).toEqual({
+      orderItemId: 'item-1',
+      type: DeliveryEvidenceType.TEXT,
+      content: 'Proof of delivery',
+      createdByUserId: 'seller-1',
     });
-    expect(prismaService.orderEvent.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({ type: OrderEventType.NOTE }),
-      }),
-    );
+    const orderEventCreate = prismaService.orderEvent.create as jest.Mock;
+    const eventCall = orderEventCreate.mock.calls[0] as [{ data: { type: OrderEventType } }];
+    expect(eventCall[0].data.type).toBe(OrderEventType.NOTE);
     expect(result.evidence).toHaveLength(1);
   });
 
@@ -180,19 +186,52 @@ describe('OrdersService (manual delivery)', () => {
       {},
     );
 
-    expect(prismaService.order.update).toHaveBeenCalledWith({
-      where: { id: 'order-1' },
-      data: { status: OrderStatus.DELIVERED, deliveredAt: expect.any(Date) },
-    });
-    expect(prismaService.orderEvent.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({ type: OrderEventType.DELIVERED }),
-      }),
-    );
-    expect(ordersQueue.scheduleAutoComplete).toHaveBeenCalledWith(
-      'order-1',
-      24 * 60 * 60 * 1000,
-    );
+    const orderUpdate = prismaService.order.update as jest.Mock;
+    const updateCall = orderUpdate.mock.calls[0] as [
+      { data: { status: OrderStatus; deliveredAt: Date } },
+    ];
+    expect(updateCall[0].data.status).toBe(OrderStatus.DELIVERED);
+    expect(updateCall[0].data.deliveredAt).toBeInstanceOf(Date);
+    const orderEventCreate = prismaService.orderEvent.create as jest.Mock;
+    const eventCall = orderEventCreate.mock.calls[0] as [{ data: { type: OrderEventType } }];
+    expect(eventCall[0].data.type).toBe(OrderEventType.DELIVERED);
+    expect(ordersQueue.scheduleAutoComplete).toHaveBeenCalledWith('order-1', 24 * 60 * 60 * 1000);
     expect(result.status).toBe(OrderStatus.DELIVERED);
+  });
+
+  it('rejects marking delivered when not in delivery', async () => {
+    (prismaService.order.findUnique as jest.Mock).mockResolvedValue({
+      id: 'order-1',
+      status: OrderStatus.PAID,
+      items: [
+        {
+          id: 'item-1',
+          deliveryType: DeliveryType.MANUAL,
+          sellerId: 'seller-1',
+        },
+      ],
+    });
+
+    await expect(
+      service.markOrderDelivered(
+        'order-1',
+        'seller-1',
+        UserRole.SELLER,
+        { note: 'Delivered manually' },
+        {},
+      ),
+    ).rejects.toThrow(BadRequestException);
+  });
+
+  it('blocks receipt confirmation before delivered', async () => {
+    (prismaService.order.findUnique as jest.Mock).mockResolvedValue({
+      id: 'order-1',
+      buyerId: 'buyer-1',
+      status: OrderStatus.IN_DELIVERY,
+    });
+
+    await expect(service.confirmReceipt('order-1', 'buyer-1', { note: 'ok' }, {})).rejects.toThrow(
+      BadRequestException,
+    );
   });
 });
