@@ -37,22 +37,6 @@ export const HomeContent = () => {
               src="/assets/meoow/banner.png"
               alt="Meoww Games"
             />
-            <div className="hero-overlay" />
-            <div className="hero-content">
-              <span className="hero-eyebrow">Meoww Games</span>
-              <h1>comprar e vender itens digitais com seguranca</h1>
-              <p className="hero-subtitle">
-                Contas, jogos, gift cards e itens premium com entrega rapida e suporte humano.
-              </p>
-              <div className="hero-cta">
-                <Link className="primary-button" href="/categoria">
-                  Ver categorias
-                </Link>
-                <Link className="ghost-button" href="/produtos">
-                  Ver anuncios
-                </Link>
-              </div>
-            </div>
           </div>
         </div>
       </section>
