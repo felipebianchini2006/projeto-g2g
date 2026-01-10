@@ -96,13 +96,12 @@ export const AccountProfileContent = () => {
         </div>
 
         <div className="mt-4 flex justify-end">
-          <button
+          <Link
+            href="/conta/seguranca"
             className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
-            type="button"
-            disabled
           >
             Alterar senha
-          </button>
+          </Link>
         </div>
 
         <div className="mt-8 rounded-2xl border border-meow-red/20 bg-meow-cream/40 px-5 py-4">

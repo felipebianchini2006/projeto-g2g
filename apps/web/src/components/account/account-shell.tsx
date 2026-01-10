@@ -67,6 +67,8 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
         items: [
           { label: 'Minha conta', href: '/conta/minha-conta' },
           { label: 'Meus dados', href: '/conta/meus-dados' },
+          { label: 'Seguranca', href: '/conta/seguranca' },
+          { label: 'Sessoes', href: '/conta/sessoes' },
           { label: 'Central de ajuda', href: '/conta/ajuda' },
           { label: 'Notificacoes', href: '/central-de-notificacoes' },
           {
