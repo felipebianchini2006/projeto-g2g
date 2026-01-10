@@ -1,7 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
+  Get,
   HttpCode,
+  Param,
   Post,
   Req,
   UnauthorizedException,
@@ -79,6 +82,30 @@ export class AuthController {
     return this.authService.changePassword(userId, dto);
   }
 
+  @Get('sessions')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(200)
+  listSessions(@Req() request: AuthenticatedRequest) {
+    const userId = this.getUserId(request);
+    return this.authService.listSessions(userId, request.user?.sessionId);
+  }
+
+  @Delete('sessions/:id')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(200)
+  revokeSession(@Req() request: AuthenticatedRequest, @Param('id') sessionId: string) {
+    const actor = this.getUserInfo(request);
+    return this.authService.revokeSession(sessionId, actor);
+  }
+
+  @Post('logout-all')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(200)
+  logoutAll(@Req() request: AuthenticatedRequest) {
+    const userId = this.getUserId(request);
+    return this.authService.logoutAllSessions(userId, request.user?.sessionId);
+  }
+
   private getRequestMeta(request: Request): AuthRequestMeta {
     const userAgentHeader = request.headers['user-agent'];
     const userAgent = Array.isArray(userAgentHeader) ? userAgentHeader[0] : userAgentHeader;
@@ -94,5 +121,12 @@ export class AuthController {
       throw new UnauthorizedException('Missing user context.');
     }
     return request.user.sub;
+  }
+
+  private getUserInfo(request: AuthenticatedRequest) {
+    if (!request.user?.sub) {
+      throw new UnauthorizedException('Missing user context.');
+    }
+    return { id: request.user.sub, role: request.user.role };
   }
 }

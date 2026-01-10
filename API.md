@@ -141,6 +141,9 @@ Wallet summary:
 - POST /auth/forgot-password
 - POST /auth/reset-password
 - POST /auth/change-password
+- GET /auth/sessions
+- DELETE /auth/sessions/:id
+- POST /auth/logout-all
 
 Exemplo: register
 Request:
@@ -178,6 +181,30 @@ Response: { "success": true }
 Exemplo: change password (JWT)
 Request: { "currentPassword": "OldPass123", "newPassword": "NewPass123" }
 Response: { "success": true }
+
+Exemplo: listar sessoes (JWT)
+Response:
+[
+  {
+    "id": "session-uuid",
+    "createdAt": "2026-01-08T12:00:00.000Z",
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0",
+    "expiresAt": "2026-02-08T12:00:00.000Z",
+    "revokedAt": null,
+    "lastSeenAt": "2026-01-09T08:10:00.000Z",
+    "isCurrent": true
+  }
+]
+
+Exemplo: revogar sessao (JWT)
+Request: DELETE /auth/sessions/:id
+Response: { "success": true }
+
+Exemplo: logout-all (JWT)
+Request: POST /auth/logout-all
+Response: { "success": true, "revokedSessions": 2, "revokedTokens": 2 }
+Nota: quando a sessao atual e identificada no token, ela e mantida ativa.
 
 ### Listings publicas
 - GET /public/listings

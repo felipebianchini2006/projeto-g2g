@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -115,7 +116,7 @@ export class AuthService {
       existing.id,
     );
 
-    const accessToken = await this.signAccessToken(existing.user);
+    const accessToken = await this.signAccessToken(existing.user, existing.sessionId);
     return {
       user: this.buildAuthUser(existing.user),
       accessToken,
@@ -256,6 +257,95 @@ export class AuthService {
     return { success: true };
   }
 
+  async listSessions(userId: string, currentSessionId?: string | null) {
+    const sessions = await this.prismaService.session.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        createdAt: true,
+        updatedAt: true,
+        ip: true,
+        userAgent: true,
+        expiresAt: true,
+        revokedAt: true,
+      },
+    });
+
+    return sessions.map((session) => ({
+      id: session.id,
+      createdAt: session.createdAt,
+      ip: session.ip,
+      userAgent: session.userAgent,
+      expiresAt: session.expiresAt,
+      revokedAt: session.revokedAt,
+      lastSeenAt: session.updatedAt,
+      isCurrent: currentSessionId ? session.id === currentSessionId : false,
+    }));
+  }
+
+  async revokeSession(
+    sessionId: string,
+    actor: { id: string; role: UserRole },
+  ): Promise<{ success: true }> {
+    const session = await this.prismaService.session.findUnique({ where: { id: sessionId } });
+
+    if (!session) {
+      throw new NotFoundException('Session not found.');
+    }
+
+    if (actor.role !== UserRole.ADMIN && session.userId !== actor.id) {
+      throw new ForbiddenException('Session access denied.');
+    }
+
+    const now = new Date();
+    await this.prismaService.$transaction(async (tx) => {
+      await tx.session.updateMany({
+        where: { id: sessionId, revokedAt: null },
+        data: { revokedAt: now },
+      });
+
+      await tx.refreshToken.updateMany({
+        where: { sessionId, revokedAt: null },
+        data: { revokedAt: now },
+      });
+    });
+
+    return { success: true };
+  }
+
+  async logoutAllSessions(
+    userId: string,
+    currentSessionId?: string | null,
+  ): Promise<{ success: true; revokedSessions: number; revokedTokens: number }> {
+    const now = new Date();
+    const sessionsWhere = currentSessionId
+      ? { userId, revokedAt: null, NOT: { id: currentSessionId } }
+      : { userId, revokedAt: null };
+    const tokensWhere = currentSessionId
+      ? { userId, revokedAt: null, sessionId: { not: currentSessionId } }
+      : { userId, revokedAt: null };
+
+    const result = await this.prismaService.$transaction(async (tx) => {
+      const sessionsUpdated = await tx.session.updateMany({
+        where: sessionsWhere,
+        data: { revokedAt: now },
+      });
+
+      const tokensUpdated = await tx.refreshToken.updateMany({
+        where: tokensWhere,
+        data: { revokedAt: now },
+      });
+
+      return {
+        revokedSessions: sessionsUpdated.count,
+        revokedTokens: tokensUpdated.count,
+      };
+    });
+
+    return { success: true, ...result };
+  }
+
   private normalizeEmail(email: string) {
     return email.trim().toLowerCase();
   }
@@ -278,6 +368,7 @@ export class AuthService {
     const refreshTtlSeconds = this.getRefreshTtlSeconds();
     const expiresAt = new Date(Date.now() + refreshTtlSeconds * 1000);
     const { refreshToken, refreshTokenHash } = this.generateRefreshToken();
+    let sessionId: string | null = null;
 
     await this.prismaService.$transaction(async (tx) => {
       const session = await tx.session.create({
@@ -288,6 +379,7 @@ export class AuthService {
           expiresAt,
         },
       });
+      sessionId = session.id;
 
       await tx.refreshToken.create({
         data: {
@@ -299,7 +391,7 @@ export class AuthService {
       });
     });
 
-    const accessToken = await this.signAccessToken(user);
+    const accessToken = await this.signAccessToken(user, sessionId);
     return {
       user: this.buildAuthUser(user),
       accessToken,
@@ -346,8 +438,12 @@ export class AuthService {
     return { refreshToken };
   }
 
-  private async signAccessToken(user: User): Promise<string> {
-    return this.jwtService.signAsync({ sub: user.id, role: user.role });
+  private async signAccessToken(user: User, sessionId?: string | null): Promise<string> {
+    return this.jwtService.signAsync({
+      sub: user.id,
+      role: user.role,
+      sessionId: sessionId ?? undefined,
+    });
   }
 
   private getRefreshTtlSeconds() {

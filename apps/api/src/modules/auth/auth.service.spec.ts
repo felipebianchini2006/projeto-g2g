@@ -1,4 +1,8 @@
-import { BadRequestException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
@@ -22,6 +26,8 @@ describe('AuthService', () => {
       },
       session: {
         create: jest.fn(),
+        findMany: jest.fn(),
+        findUnique: jest.fn(),
         updateMany: jest.fn(),
       },
       refreshToken: {
@@ -211,5 +217,67 @@ describe('AuthService', () => {
         newPassword: 'new-pass-123',
       }),
     ).rejects.toThrow(BadRequestException);
+  });
+
+  it('lists sessions and marks current', async () => {
+    const now = new Date();
+    (prismaService.session.findMany as jest.Mock).mockResolvedValue([
+      {
+        id: 'session-1',
+        createdAt: now,
+        updatedAt: now,
+        ip: '127.0.0.1',
+        userAgent: 'jest',
+        expiresAt: new Date(Date.now() + 1000),
+        revokedAt: null,
+      },
+      {
+        id: 'session-2',
+        createdAt: now,
+        updatedAt: now,
+        ip: '127.0.0.2',
+        userAgent: 'jest',
+        expiresAt: new Date(Date.now() + 1000),
+        revokedAt: null,
+      },
+    ]);
+
+    const sessions = await authService.listSessions('user-1', 'session-2');
+
+    expect(sessions).toHaveLength(2);
+    expect(sessions.find((session) => session.id === 'session-2')?.isCurrent).toBe(true);
+  });
+
+  it('revokes session only for the owner', async () => {
+    (prismaService.session.findUnique as jest.Mock).mockResolvedValue({
+      id: 'session-1',
+      userId: 'user-1',
+      revokedAt: null,
+    });
+    (prismaService.refreshToken.updateMany as jest.Mock).mockResolvedValue({ count: 1 });
+    (prismaService.session.updateMany as jest.Mock).mockResolvedValue({ count: 1 });
+
+    await authService.revokeSession('session-1', { id: 'user-1', role: UserRole.USER });
+
+    expect(prismaService.session.updateMany).toHaveBeenCalledWith({
+      where: { id: 'session-1', revokedAt: null },
+      data: { revokedAt: expect.any(Date) },
+    });
+    expect(prismaService.refreshToken.updateMany).toHaveBeenCalledWith({
+      where: { sessionId: 'session-1', revokedAt: null },
+      data: { revokedAt: expect.any(Date) },
+    });
+  });
+
+  it('rejects revocation for other users', async () => {
+    (prismaService.session.findUnique as jest.Mock).mockResolvedValue({
+      id: 'session-1',
+      userId: 'user-1',
+      revokedAt: null,
+    });
+
+    await expect(
+      authService.revokeSession('session-1', { id: 'user-2', role: UserRole.USER }),
+    ).rejects.toThrow(ForbiddenException);
   });
 });
