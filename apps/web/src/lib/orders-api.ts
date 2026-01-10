@@ -33,7 +33,13 @@ export type OrderItem = {
   quantity: number;
   deliveryType: 'AUTO' | 'MANUAL';
   inventoryItems?: { id: string; code: string; status: string }[];
-  deliveryEvidence?: { id: string; type: string; content: string }[];
+  deliveryEvidence?: {
+    id: string;
+    type: string;
+    content: string;
+    createdAt?: string;
+    createdByUserId?: string | null;
+  }[];
 };
 
 export type OrderParty = {
@@ -85,6 +91,23 @@ export type CheckoutResponse = {
   };
 };
 
+export type CreateEvidencePayload = {
+  type: 'TEXT' | 'URL';
+  content: string;
+};
+
+export type DeliveryEvidenceResponse = {
+  orderId: string;
+  evidence: {
+    id: string;
+    orderItemId: string;
+    type: string;
+    content: string;
+    createdAt?: string;
+    createdByUserId?: string | null;
+  }[];
+};
+
 const authHeaders = (token: string | null) =>
   token ? { Authorization: `Bearer ${token}` } : {};
 
@@ -123,5 +146,19 @@ export const ordersApi = {
       method: 'POST',
       headers: authHeaders(token),
       body: JSON.stringify({ reason }),
+    }),
+
+  addEvidence: (token: string | null, orderId: string, payload: CreateEvidencePayload) =>
+    apiFetch<DeliveryEvidenceResponse>(`/orders/${orderId}/evidence`, {
+      method: 'POST',
+      headers: authHeaders(token),
+      body: JSON.stringify(payload),
+    }),
+
+  markDelivered: (token: string | null, orderId: string, note?: string) =>
+    apiFetch<Order>(`/orders/${orderId}/mark-delivered`, {
+      method: 'POST',
+      headers: authHeaders(token),
+      body: JSON.stringify({ note }),
     }),
 };

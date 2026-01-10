@@ -1,10 +1,15 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 
 import { ApiClientError } from '../../lib/api-client';
-import { ordersApi, type Order, type PaymentStatus } from '../../lib/orders-api';
+import {
+  ordersApi,
+  type CreateEvidencePayload,
+  type Order,
+  type PaymentStatus,
+} from '../../lib/orders-api';
 import { useAuth } from '../auth/auth-provider';
 import { AccountShell } from '../account/account-shell';
 import { OrderChat } from '../orders/order-chat';
@@ -68,6 +73,11 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
     status: 'loading',
     order: null,
   });
+  const [evidenceForm, setEvidenceForm] = useState<CreateEvidencePayload>({
+    type: 'TEXT',
+    content: '',
+  });
+  const [evidenceBusy, setEvidenceBusy] = useState(false);
 
   const listHref = scope === 'seller' ? '/conta/vendas' : '/conta/pedidos';
   const listLabel = scope === 'seller' ? 'Minhas vendas' : 'Minhas compras';
@@ -141,6 +151,46 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
     }
   };
 
+  const handleAddEvidence = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!accessToken || evidenceBusy) {
+      return;
+    }
+    const trimmed = evidenceForm.content.trim();
+    if (!trimmed) {
+      setState((prev) => ({
+        ...prev,
+        actionError: 'Informe o conteudo da evidencia.',
+        actionSuccess: undefined,
+      }));
+      return;
+    }
+    setEvidenceBusy(true);
+    try {
+      await ordersApi.addEvidence(accessToken, orderId, {
+        ...evidenceForm,
+        content: trimmed,
+      });
+      setEvidenceForm((prev) => ({ ...prev, content: '' }));
+      setState((prev) => ({
+        ...prev,
+        actionSuccess: 'Evidencia adicionada.',
+        actionError: undefined,
+      }));
+      await loadOrder(true);
+    } catch (error) {
+      const message =
+        error instanceof ApiClientError
+          ? error.message
+          : error instanceof Error
+            ? error.message
+            : 'Nao foi possivel adicionar a evidencia.';
+      setState((prev) => ({ ...prev, actionError: message, actionSuccess: undefined }));
+    } finally {
+      setEvidenceBusy(false);
+    }
+  };
+
   const isBuyer = user?.id && state.order?.buyerId === user.id;
   const canCancel =
     isBuyer &&
@@ -173,6 +223,12 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
     }
     return state.order.payments[0];
   }, [state.order]);
+
+  const canManageManualDelivery =
+    scope === 'seller' &&
+    (user?.role === 'SELLER' || user?.role === 'ADMIN') &&
+    state.order?.status === 'IN_DELIVERY' &&
+    (deliverySection?.manualItems.length ?? 0) > 0;
 
   if (loading) {
     return (
@@ -362,16 +418,113 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
                 <div className="mt-4 rounded-xl border border-meow-red/20 bg-meow-cream/40 px-4 py-3 text-sm text-meow-muted">
                   <p className="font-semibold text-meow-charcoal">Evidencias (manual)</p>
                   {deliverySection.manualItems.some((item) => item.deliveryEvidence?.length) ? (
-                    <ul className="mt-2 grid gap-1 text-xs">
+                    <ul className="mt-2 grid gap-2 text-xs">
                       {deliverySection.manualItems.flatMap((item) =>
                         (item.deliveryEvidence ?? []).map((evidence) => (
-                          <li key={evidence.id}>{evidence.content}</li>
+                          <li
+                            key={evidence.id}
+                            className="rounded-lg border border-meow-red/10 bg-white px-3 py-2"
+                          >
+                            <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-meow-muted">
+                              <span className="font-semibold text-meow-charcoal">
+                                {evidence.type === 'LINK' || evidence.type === 'URL'
+                                  ? 'URL'
+                                  : 'Texto'}
+                              </span>
+                              {evidence.createdAt ? (
+                                <span>
+                                  {new Date(evidence.createdAt).toLocaleString('pt-BR')}
+                                </span>
+                              ) : null}
+                            </div>
+                            <div className="mt-1 break-words text-xs text-meow-charcoal">
+                              {evidence.type === 'LINK' || evidence.type === 'URL' ? (
+                                <a
+                                  href={evidence.content}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-meow-deep underline"
+                                >
+                                  {evidence.content}
+                                </a>
+                              ) : (
+                                evidence.content
+                              )}
+                            </div>
+                            {evidence.createdByUserId ? (
+                              <div className="mt-1 text-[11px] text-meow-muted">
+                                Por {evidence.createdByUserId.slice(0, 7).toUpperCase()}
+                              </div>
+                            ) : null}
+                          </li>
                         )),
                       )}
                     </ul>
                   ) : (
                     <p className="mt-2 text-xs">Aguardando envio do seller.</p>
                   )}
+
+                  {canManageManualDelivery ? (
+                    <form onSubmit={handleAddEvidence} className="mt-4 grid gap-3">
+                      <div className="grid gap-3 sm:grid-cols-[130px_1fr]">
+                        <label className="grid gap-1 text-xs font-semibold text-meow-muted">
+                          Tipo
+                          <select
+                            className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
+                            value={evidenceForm.type}
+                            onChange={(event) =>
+                              setEvidenceForm((prev) => ({
+                                ...prev,
+                                type: event.target.value as CreateEvidencePayload['type'],
+                              }))
+                            }
+                          >
+                            <option value="TEXT">Texto</option>
+                            <option value="URL">URL</option>
+                          </select>
+                        </label>
+                        <label className="grid gap-1 text-xs font-semibold text-meow-muted">
+                          Conteudo
+                          <input
+                            className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
+                            placeholder={
+                              evidenceForm.type === 'URL'
+                                ? 'https://exemplo.com/entrega'
+                                : 'Descreva a entrega'
+                            }
+                            value={evidenceForm.content}
+                            onChange={(event) =>
+                              setEvidenceForm((prev) => ({
+                                ...prev,
+                                content: event.target.value,
+                              }))
+                            }
+                          />
+                        </label>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <button
+                          type="submit"
+                          className="rounded-full bg-meow-linear px-4 py-2 text-xs font-bold text-white"
+                          disabled={evidenceBusy}
+                        >
+                          {evidenceBusy ? 'Enviando...' : 'Adicionar evidencia'}
+                        </button>
+                        <button
+                          type="button"
+                          className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
+                          onClick={() =>
+                            handleAction(
+                              () => ordersApi.markDelivered(accessToken, orderId),
+                              'Pedido marcado como entregue.',
+                            )
+                          }
+                        >
+                          Marcar como entregue
+                        </button>
+                      </div>
+                    </form>
+                  ) : null}
                 </div>
               ) : null}
             </div>
