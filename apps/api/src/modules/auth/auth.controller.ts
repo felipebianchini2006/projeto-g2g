@@ -107,7 +107,7 @@ export class AuthController {
   }
 
   private getRequestMeta(request: Request): AuthRequestMeta {
-    const userAgentHeader = request.headers['user-agent'];
+    const userAgentHeader = request.headers['user-agent'] as string | string[] | undefined;
     const userAgent = Array.isArray(userAgentHeader) ? userAgentHeader[0] : userAgentHeader;
 
     return {

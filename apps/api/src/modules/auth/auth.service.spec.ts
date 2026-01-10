@@ -1,8 +1,5 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  UnauthorizedException,
-} from '@nestjs/common';
+/* eslint-disable @typescript-eslint/unbound-method */
+import { BadRequestException, ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
@@ -78,14 +75,16 @@ describe('AuthService', () => {
     const now = new Date();
 
     (prismaService.user.findUnique as jest.Mock).mockResolvedValue(null);
-    (prismaService.user.create as jest.Mock).mockImplementation(({ data }) => ({
-      id: 'user-1',
-      email: data.email,
-      role: data.role,
-      passwordHash: data.passwordHash,
-      createdAt: now,
-      updatedAt: now,
-    }));
+    (prismaService.user.create as jest.Mock).mockImplementation(
+      ({ data }: { data: { email: string; role: UserRole; passwordHash: string } }) => ({
+        id: 'user-1',
+        email: data.email,
+        role: data.role,
+        passwordHash: data.passwordHash,
+        createdAt: now,
+        updatedAt: now,
+      }),
+    );
     (prismaService.session.create as jest.Mock).mockResolvedValue({ id: 'session-1' });
     (prismaService.refreshToken.create as jest.Mock).mockResolvedValue({ id: 'refresh-1' });
     (jwtService.signAsync as jest.Mock).mockResolvedValue('access-token');
@@ -99,8 +98,10 @@ describe('AuthService', () => {
     expect(response.accessToken).toBe('access-token');
     expect(response.refreshToken).toBeDefined();
 
-    const createArgs = (prismaService.user.create as jest.Mock).mock.calls[0][0];
-    const hashedPassword = createArgs.data.passwordHash as string;
+    const createCall = (prismaService.user.create as jest.Mock).mock.calls[0] as [
+      { data: { passwordHash: string } },
+    ];
+    const hashedPassword = createCall[0].data.passwordHash;
     expect(hashedPassword).not.toBe('password123');
     expect(await bcrypt.compare('password123', hashedPassword)).toBe(true);
   });
@@ -159,7 +160,70 @@ describe('AuthService', () => {
 
     expect(response.accessToken).toBe('access-token');
     expect(response.refreshToken).toBeDefined();
-    expect(prismaService.refreshToken.updateMany).toHaveBeenCalled();
+    const refreshTokenUpdateMany = prismaService.refreshToken.updateMany as jest.Mock;
+    expect(refreshTokenUpdateMany).toHaveBeenCalled();
+  });
+
+  it('rejects refresh when token is revoked', async () => {
+    const now = new Date();
+    (prismaService.refreshToken.findUnique as jest.Mock).mockResolvedValue({
+      id: 'refresh-1',
+      userId: 'user-1',
+      sessionId: 'session-1',
+      tokenHash: 'hash',
+      createdAt: now,
+      updatedAt: now,
+      expiresAt: new Date(Date.now() + 3600 * 1000),
+      revokedAt: now,
+      user: {
+        id: 'user-1',
+        email: 'user@email.com',
+        role: UserRole.USER,
+        passwordHash: 'hash',
+        createdAt: now,
+        updatedAt: now,
+      },
+      session: {
+        id: 'session-1',
+        revokedAt: null,
+        expiresAt: new Date(Date.now() + 3600 * 1000),
+      },
+    });
+
+    await expect(authService.refresh({ refreshToken: 'refresh-token' })).rejects.toThrow(
+      UnauthorizedException,
+    );
+  });
+
+  it('rejects refresh when session is revoked', async () => {
+    const now = new Date();
+    (prismaService.refreshToken.findUnique as jest.Mock).mockResolvedValue({
+      id: 'refresh-1',
+      userId: 'user-1',
+      sessionId: 'session-1',
+      tokenHash: 'hash',
+      createdAt: now,
+      updatedAt: now,
+      expiresAt: new Date(Date.now() + 3600 * 1000),
+      revokedAt: null,
+      user: {
+        id: 'user-1',
+        email: 'user@email.com',
+        role: UserRole.USER,
+        passwordHash: 'hash',
+        createdAt: now,
+        updatedAt: now,
+      },
+      session: {
+        id: 'session-1',
+        revokedAt: now,
+        expiresAt: new Date(Date.now() + 3600 * 1000),
+      },
+    });
+
+    await expect(authService.refresh({ refreshToken: 'refresh-token' })).rejects.toThrow(
+      UnauthorizedException,
+    );
   });
 
   it('changes password and revokes sessions', async () => {
@@ -174,10 +238,12 @@ describe('AuthService', () => {
     };
 
     (prismaService.user.findUnique as jest.Mock).mockResolvedValue(user);
-    (prismaService.user.update as jest.Mock).mockImplementation(({ data }) => ({
-      ...user,
-      passwordHash: data.passwordHash,
-    }));
+    (prismaService.user.update as jest.Mock).mockImplementation(
+      ({ data }: { data: { passwordHash: string } }) => ({
+        ...user,
+        passwordHash: data.passwordHash,
+      }),
+    );
     (prismaService.refreshToken.updateMany as jest.Mock).mockResolvedValue({ count: 2 });
     (prismaService.session.updateMany as jest.Mock).mockResolvedValue({ count: 1 });
 
@@ -186,17 +252,22 @@ describe('AuthService', () => {
       newPassword: 'new-pass-123',
     });
 
-    const updateArgs = (prismaService.user.update as jest.Mock).mock.calls[0][0];
-    const hashedPassword = updateArgs.data.passwordHash as string;
+    const updateCall = (prismaService.user.update as jest.Mock).mock.calls[0] as [
+      { data: { passwordHash: string } },
+    ];
+    const hashedPassword = updateCall[0].data.passwordHash;
     expect(hashedPassword).not.toBe('new-pass-123');
     expect(await bcrypt.compare('new-pass-123', hashedPassword)).toBe(true);
-    expect(prismaService.refreshToken.updateMany).toHaveBeenCalledWith({
+    const refreshTokenUpdateMany = prismaService.refreshToken.updateMany as jest.Mock;
+    const revokedAtMatcher = expect.any(Date) as unknown as Date;
+    expect(refreshTokenUpdateMany).toHaveBeenCalledWith({
       where: { userId: 'user-1', revokedAt: null },
-      data: { revokedAt: expect.any(Date) },
+      data: { revokedAt: revokedAtMatcher },
     });
-    expect(prismaService.session.updateMany).toHaveBeenCalledWith({
+    const sessionUpdateMany = prismaService.session.updateMany as jest.Mock;
+    expect(sessionUpdateMany).toHaveBeenCalledWith({
       where: { userId: 'user-1', revokedAt: null },
-      data: { revokedAt: expect.any(Date) },
+      data: { revokedAt: revokedAtMatcher },
     });
   });
 
@@ -259,13 +330,16 @@ describe('AuthService', () => {
 
     await authService.revokeSession('session-1', { id: 'user-1', role: UserRole.USER });
 
-    expect(prismaService.session.updateMany).toHaveBeenCalledWith({
+    const sessionUpdateMany = prismaService.session.updateMany as jest.Mock;
+    const revokedAtMatcher = expect.any(Date) as unknown as Date;
+    expect(sessionUpdateMany).toHaveBeenCalledWith({
       where: { id: 'session-1', revokedAt: null },
-      data: { revokedAt: expect.any(Date) },
+      data: { revokedAt: revokedAtMatcher },
     });
-    expect(prismaService.refreshToken.updateMany).toHaveBeenCalledWith({
+    const refreshTokenUpdateMany = prismaService.refreshToken.updateMany as jest.Mock;
+    expect(refreshTokenUpdateMany).toHaveBeenCalledWith({
       where: { sessionId: 'session-1', revokedAt: null },
-      data: { revokedAt: expect.any(Date) },
+      data: { revokedAt: revokedAtMatcher },
     });
   });
 
