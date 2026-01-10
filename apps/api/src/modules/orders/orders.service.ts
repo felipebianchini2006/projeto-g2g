@@ -6,12 +6,14 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
+  DeliveryEvidenceType,
   DeliveryType,
   ListingStatus,
   OrderEventType,
   OrderStatus,
   NotificationType,
   Prisma,
+  UserRole,
 } from '@prisma/client';
 
 import type { AuthRequestMeta } from '../auth/auth.types';
@@ -27,6 +29,11 @@ import { ConfirmReceiptDto } from './dto/confirm-receipt.dto';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OpenDisputeDto } from './dto/open-dispute.dto';
 import { OrderQueryDto } from './dto/order-query.dto';
+import {
+  CreateDeliveryEvidenceDto,
+  DeliveryEvidenceInputType,
+} from './dto/create-delivery-evidence.dto';
+import { MarkDeliveredDto } from './dto/mark-delivered.dto';
 
 type OrderMeta = AuthRequestMeta & {
   source?: 'user' | 'system';
@@ -399,6 +406,164 @@ export class OrdersService {
     return result;
   }
 
+  async addDeliveryEvidence(
+    orderId: string,
+    actorId: string,
+    role: UserRole,
+    dto: CreateDeliveryEvidenceDto,
+    meta: AuthRequestMeta,
+  ) {
+    const evidenceType = this.mapEvidenceType(dto.type);
+
+    const evidence = await this.prisma.$transaction(async (tx) => {
+      const order = await tx.order.findUnique({
+        where: { id: orderId },
+        include: { items: true },
+      });
+      if (!order) {
+        throw new NotFoundException('Order not found.');
+      }
+      if (!this.isAllowedStatus(order.status, [OrderStatus.IN_DELIVERY, OrderStatus.DELIVERED])) {
+        throw new BadRequestException('Order cannot accept evidence in the current state.');
+      }
+
+      const manualItems = order.items.filter(
+        (item) => item.deliveryType === DeliveryType.MANUAL,
+      );
+      if (manualItems.length === 0) {
+        throw new BadRequestException('Order has no manual items.');
+      }
+
+      const allowedItems =
+        role === UserRole.ADMIN
+          ? manualItems
+          : manualItems.filter((item) => item.sellerId === actorId);
+
+      if (allowedItems.length === 0) {
+        throw new ForbiddenException('Only the listing seller can add evidence.');
+      }
+
+      const records = [];
+      for (const item of allowedItems) {
+        records.push(
+          await tx.deliveryEvidence.create({
+            data: {
+              orderItemId: item.id,
+              type: evidenceType,
+              content: dto.content,
+            },
+          }),
+        );
+      }
+
+      await this.createEvent(
+        tx,
+        order.id,
+        actorId,
+        OrderEventType.NOTE,
+        this.buildNoteMetadata(meta, {
+          action: 'delivery_evidence',
+          evidenceType,
+          orderItemIds: allowedItems.map((item) => item.id),
+        }),
+      );
+
+      return records;
+    });
+
+    return { orderId, evidence };
+  }
+
+  async markOrderDelivered(
+    orderId: string,
+    actorId: string,
+    role: UserRole,
+    dto: MarkDeliveredDto,
+    meta: AuthRequestMeta,
+  ) {
+    const emailOutboxIds: string[] = [];
+    const eventMeta: OrderMeta = { ...meta, reason: dto.note };
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const order = await tx.order.findUnique({
+        where: { id: orderId },
+        include: { items: true, buyer: true, seller: true },
+      });
+      if (!order) {
+        throw new NotFoundException('Order not found.');
+      }
+      if (order.status !== OrderStatus.IN_DELIVERY) {
+        throw new BadRequestException('Order is not in delivery.');
+      }
+
+      const manualItems = order.items.filter(
+        (item) => item.deliveryType === DeliveryType.MANUAL,
+      );
+      if (manualItems.length === 0) {
+        throw new BadRequestException('Order has no manual items.');
+      }
+
+      if (role !== UserRole.ADMIN) {
+        const hasOwnership = manualItems.some((item) => item.sellerId === actorId);
+        if (!hasOwnership) {
+          throw new ForbiddenException('Only the listing seller can mark delivered.');
+        }
+      }
+
+      const updated = await tx.order.update({
+        where: { id: order.id },
+        data: { status: OrderStatus.DELIVERED, deliveredAt: new Date() },
+      });
+
+      await this.createEvent(
+        tx,
+        updated.id,
+        actorId,
+        OrderEventType.DELIVERED,
+        this.buildMetadata(eventMeta, OrderStatus.IN_DELIVERY, OrderStatus.DELIVERED),
+      );
+
+      if (order.buyerId) {
+        await tx.notification.create({
+          data: {
+            userId: order.buyerId,
+            type: NotificationType.ORDER,
+            title: 'Pedido entregue',
+            body: `Pedido ${order.id} entregue.`,
+          },
+        });
+      }
+
+      if (order.sellerId) {
+        await tx.notification.create({
+          data: {
+            userId: order.sellerId,
+            type: NotificationType.ORDER,
+            title: 'Entrega concluida',
+            body: `Pedido ${order.id} entregue ao comprador.`,
+          },
+        });
+      }
+
+      if (order.buyer?.email) {
+        const outbox = await tx.emailOutbox.create({
+          data: {
+            to: order.buyer.email,
+            subject: 'Pedido entregue',
+            body: `Seu pedido ${order.id} foi entregue.`,
+          },
+        });
+        emailOutboxIds.push(outbox.id);
+      }
+
+      return updated;
+    });
+
+    await Promise.all(emailOutboxIds.map((id) => this.emailQueue.enqueueEmail(id)));
+    await this.ordersQueue.scheduleAutoComplete(updated.id, this.getAutoCompleteDelayMs());
+    return updated;
+  }
+
   async markPaid(orderId: string, actorId?: string, meta?: OrderMeta) {
     const result = await this.applyPaymentConfirmation(orderId, actorId, meta);
     if (result.applied) {
@@ -580,8 +745,7 @@ export class OrdersService {
       return;
     }
 
-    const autoCompleteHours = this.configService.get<number>('ORDER_AUTO_COMPLETE_HOURS') ?? 72;
-    const delayMs = autoCompleteHours * 60 * 60 * 1000;
+    const delayMs = this.getAutoCompleteDelayMs();
 
     const emailOutboxIds: string[] = [];
     await this.prisma.$transaction(async (tx) => {
@@ -670,6 +834,27 @@ export class OrdersService {
     return metadata;
   }
 
+  private buildNoteMetadata(
+    meta: OrderMeta | AuthRequestMeta | null | undefined,
+    payload: Record<string, Prisma.InputJsonValue>,
+  ): Prisma.InputJsonValue {
+    const metadata: Record<string, Prisma.InputJsonValue> = { ...payload };
+    if (!meta) {
+      return metadata;
+    }
+    if ('reason' in meta && meta.reason) {
+      metadata['reason'] = meta.reason;
+    }
+    metadata['source'] = 'source' in meta && meta.source ? meta.source : 'user';
+    if (meta.ip) {
+      metadata['ip'] = meta.ip;
+    }
+    if (meta.userAgent) {
+      metadata['userAgent'] = meta.userAgent;
+    }
+    return metadata;
+  }
+
   private async createEvent(
     tx: Prisma.TransactionClient,
     orderId: string,
@@ -700,5 +885,17 @@ export class OrdersService {
       const stack = error instanceof Error ? error.stack : undefined;
       this.logger.error(message, stack, `OrdersService:Settlement:${orderId}`);
     }
+  }
+
+  private getAutoCompleteDelayMs() {
+    const autoCompleteHours = this.configService.get<number>('ORDER_AUTO_COMPLETE_HOURS') ?? 72;
+    return autoCompleteHours * 60 * 60 * 1000;
+  }
+
+  private mapEvidenceType(type: DeliveryEvidenceInputType): DeliveryEvidenceType {
+    if (type === DeliveryEvidenceInputType.URL) {
+      return DeliveryEvidenceType.LINK;
+    }
+    return DeliveryEvidenceType.TEXT;
   }
 }
