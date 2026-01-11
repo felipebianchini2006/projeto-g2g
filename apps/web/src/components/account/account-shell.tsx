@@ -2,19 +2,24 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
+  BadgeDollarSign,
   Bell,
-  CreditCard,
+  ChevronDown,
+  Crown,
   Heart,
   LayoutGrid,
+  LifeBuoy,
   LogOut,
+  Megaphone,
   Monitor,
   Settings,
-  Shield,
+  ShieldCheck,
+  Store,
   ShoppingBag,
-  Ticket,
-  User,
+  UserRound,
+  Wallet,
 } from 'lucide-react';
 
 import { useAuth } from '../auth/auth-provider';
@@ -111,6 +116,36 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
 
     return sections;
   }, [isSeller, logout, router]);
+
+  const sectionIcons: Record<string, React.ReactNode> = {
+    Vendedor: <Store size={14} aria-hidden />,
+    Menu: <LayoutGrid size={14} aria-hidden />,
+    Conta: <UserRound size={14} aria-hidden />,
+  };
+
+  const initialOpenSections = useMemo(() => {
+    const activeSections = menuSections
+      .filter((section) =>
+        section.items.some((item) => isActivePath(pathname, item.href)),
+      )
+      .map((section) => section.title);
+    if (activeSections.length > 0) {
+      return activeSections;
+    }
+    return menuSections[0]?.title ? [menuSections[0].title] : [];
+  }, [menuSections, pathname]);
+
+  const [openSections, setOpenSections] = useState<string[]>(initialOpenSections);
+
+  useEffect(() => {
+    setOpenSections(initialOpenSections);
+  }, [initialOpenSections]);
+
+  const toggleSection = (title: string) => {
+    setOpenSections((prev) =>
+      prev.includes(title) ? prev.filter((item) => item !== title) : [...prev, title],
+    );
+  };
 
   const displayName = useMemo(() => {
     if (!user?.email) {
@@ -212,7 +247,7 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
                   {initials}
                 </div>
                 <span className="absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-full bg-meow-300 text-xs font-black text-white shadow-cute">
-                  <User size={12} aria-hidden />
+                  <UserRound size={12} aria-hidden />
                 </span>
               </div>
               <h3 className="mt-4 text-lg font-black text-meow-charcoal">{displayName}</h3>
@@ -221,63 +256,78 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
             <div className="mt-6 grid gap-5">
               {menuSections.map((section) => (
                 <div key={section.title}>
-                  <p className="text-[11px] font-bold uppercase tracking-[0.4px] text-meow-muted">
-                    {section.title}
-                  </p>
-                  <div className="mt-3 grid gap-1 text-sm">
-                    {section.items.map((item) => {
-                      const baseClasses =
-                        'flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold transition';
-                      const activeClasses = isActivePath(pathname, item.href)
-                        ? 'bg-meow-100 text-meow-deep'
-                        : 'text-meow-charcoal/80 hover:bg-meow-50 hover:text-meow-charcoal';
-                      const dangerClasses =
-                        item.tone === 'danger'
-                          ? 'text-red-500 hover:text-red-600'
-                          : '';
+                  <button
+                    type="button"
+                    className="flex w-full items-center justify-between text-[11px] font-bold uppercase tracking-[0.4px] text-meow-muted"
+                    onClick={() => toggleSection(section.title)}
+                  >
+                    <span className="flex items-center gap-2">
+                      {sectionIcons[section.title] ?? <LayoutGrid size={14} aria-hidden />}
+                      {section.title}
+                    </span>
+                    <ChevronDown
+                      size={14}
+                      className={`transition ${openSections.includes(section.title) ? 'rotate-180' : ''}`}
+                      aria-hidden
+                    />
+                  </button>
+                  {openSections.includes(section.title) ? (
+                    <div className="mt-3 grid gap-1 text-sm">
+                      {section.items.map((item) => {
+                        const baseClasses =
+                          'flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold transition';
+                        const activeClasses = isActivePath(pathname, item.href)
+                          ? 'bg-meow-100 text-meow-deep'
+                          : 'text-meow-charcoal/80 hover:bg-meow-50 hover:text-meow-charcoal';
+                        const dangerClasses =
+                          item.tone === 'danger'
+                            ? 'text-red-500 hover:text-red-600'
+                            : '';
 
-                      const iconMap: Record<string, React.ReactNode> = {
-                        'Visao geral': <LayoutGrid size={16} aria-hidden />,
-                        'Minhas compras': <ShoppingBag size={16} aria-hidden />,
-                        Favoritos: <Heart size={16} aria-hidden />,
-                        Carteira: <CreditCard size={16} aria-hidden />,
-                        'Meus tickets': <Ticket size={16} aria-hidden />,
-                        'Meus dados': <User size={16} aria-hidden />,
-                        Configuracoes: <Settings size={16} aria-hidden />,
-                        'Painel do vendedor': <LayoutGrid size={16} aria-hidden />,
-                        'Meus anuncios': <ShoppingBag size={16} aria-hidden />,
-                        'Minhas vendas': <ShoppingBag size={16} aria-hidden />,
-                        Seguranca: <Shield size={16} aria-hidden />,
-                        Sessoes: <Monitor size={16} aria-hidden />,
-                        'Sair da conta': <LogOut size={16} aria-hidden />,
-                      };
+                        const iconMap: Record<string, React.ReactNode> = {
+                          'Visao geral': <LayoutGrid size={16} aria-hidden />,
+                          'Minhas compras': <ShoppingBag size={16} aria-hidden />,
+                          Favoritos: <Heart size={16} aria-hidden />,
+                          Carteira: <Wallet size={16} aria-hidden />,
+                          'Meus tickets': <LifeBuoy size={16} aria-hidden />,
+                          'Meus dados': <UserRound size={16} aria-hidden />,
+                          Configuracoes: <Settings size={16} aria-hidden />,
+                          'Painel do vendedor': <Store size={16} aria-hidden />,
+                          'Meus anuncios': <Megaphone size={16} aria-hidden />,
+                          'Minhas vendas': <BadgeDollarSign size={16} aria-hidden />,
+                          Seguranca: <ShieldCheck size={16} aria-hidden />,
+                          Sessoes: <Monitor size={16} aria-hidden />,
+                          'Sair da conta': <LogOut size={16} aria-hidden />,
+                          'Menu admin': <Crown size={16} aria-hidden />,
+                        };
 
-                      if (item.onClick) {
+                        if (item.onClick) {
+                          return (
+                            <button
+                              key={item.label}
+                              type="button"
+                              className={`${baseClasses} ${activeClasses} ${dangerClasses}`}
+                              onClick={item.onClick}
+                            >
+                              {iconMap[item.label] ?? <LayoutGrid size={16} aria-hidden />}
+                              {item.label}
+                            </button>
+                          );
+                        }
+
                         return (
-                          <button
+                          <Link
                             key={item.label}
-                            type="button"
+                            href={item.href ?? '#'}
                             className={`${baseClasses} ${activeClasses} ${dangerClasses}`}
-                            onClick={item.onClick}
                           >
                             {iconMap[item.label] ?? <LayoutGrid size={16} aria-hidden />}
                             {item.label}
-                          </button>
+                          </Link>
                         );
-                      }
-
-                      return (
-                        <Link
-                          key={item.label}
-                          href={item.href ?? '#'}
-                          className={`${baseClasses} ${activeClasses} ${dangerClasses}`}
-                        >
-                          {iconMap[item.label] ?? <LayoutGrid size={16} aria-hidden />}
-                          {item.label}
-                        </Link>
-                      );
-                    })}
-                  </div>
+                      })}
+                    </div>
+                  ) : null}
                 </div>
               ))}
             </div>

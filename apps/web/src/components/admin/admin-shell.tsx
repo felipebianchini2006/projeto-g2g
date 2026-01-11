@@ -2,15 +2,22 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
-  Activity,
+  ChevronDown,
+  Database,
+  Gavel,
+  Headset,
+  House,
+  LogOut,
+  Receipt,
   Settings,
-  Shield,
-  Ticket,
+  Settings2,
+  ShieldAlert,
+  SlidersHorizontal,
+  UserRound,
   Users,
-  Wallet,
-  Wrench,
+  Webhook,
 } from 'lucide-react';
 
 import { useAuth } from '../auth/auth-provider';
@@ -89,6 +96,36 @@ export const AdminShell = ({ breadcrumbs, children }: AdminShellProps) => {
     [logout, router],
   );
 
+  const sectionIcons: Record<string, React.ReactNode> = {
+    Admin: <ShieldAlert size={14} aria-hidden />,
+    Cadastros: <Database size={14} aria-hidden />,
+    Conta: <UserRound size={14} aria-hidden />,
+  };
+
+  const initialOpenSections = useMemo(() => {
+    const activeSections = menuSections
+      .filter((section) =>
+        section.items.some((item) => isActivePath(pathname, item.href)),
+      )
+      .map((section) => section.title);
+    if (activeSections.length > 0) {
+      return activeSections;
+    }
+    return menuSections[0]?.title ? [menuSections[0].title] : [];
+  }, [menuSections, pathname]);
+
+  const [openSections, setOpenSections] = useState<string[]>(initialOpenSections);
+
+  useEffect(() => {
+    setOpenSections(initialOpenSections);
+  }, [initialOpenSections]);
+
+  const toggleSection = (title: string) => {
+    setOpenSections((prev) =>
+      prev.includes(title) ? prev.filter((item) => item !== title) : [...prev, title],
+    );
+  };
+
   if (inDashboardLayout) {
     return (
       <div className="space-y-6">
@@ -151,57 +188,74 @@ export const AdminShell = ({ breadcrumbs, children }: AdminShellProps) => {
           <aside className="rounded-[28px] border border-meow-100 bg-white p-5 shadow-card">
             {menuSections.map((section) => (
               <div key={section.title} className="mb-6 last:mb-0">
-                <p className="text-[11px] font-bold uppercase tracking-[0.4px] text-meow-muted">
-                  {section.title}
-                </p>
-                <div className="mt-3 grid gap-1 text-sm">
-                  {section.items.map((item) => {
-                    const baseClasses =
-                      'flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold transition';
-                    const activeClasses = isActivePath(pathname, item.href)
-                      ? 'bg-meow-100 text-meow-deep'
-                      : 'text-meow-charcoal/80 hover:bg-meow-50 hover:text-meow-charcoal';
-                    const dangerClasses =
-                      item.tone === 'danger' ? 'text-red-500 hover:text-red-600' : '';
+                <button
+                  type="button"
+                  className="flex w-full items-center justify-between text-[11px] font-bold uppercase tracking-[0.4px] text-meow-muted"
+                  onClick={() => toggleSection(section.title)}
+                >
+                  <span className="flex items-center gap-2">
+                    {sectionIcons[section.title] ?? <Settings size={14} aria-hidden />}
+                    {section.title}
+                  </span>
+                  <ChevronDown
+                    size={14}
+                    className={`transition ${openSections.includes(section.title) ? 'rotate-180' : ''}`}
+                    aria-hidden
+                  />
+                </button>
+                {openSections.includes(section.title) ? (
+                  <div className="mt-3 grid gap-1 text-sm">
+                    {section.items.map((item) => {
+                      const baseClasses =
+                        'flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold transition';
+                      const activeClasses = isActivePath(pathname, item.href)
+                        ? 'bg-meow-100 text-meow-deep'
+                        : 'text-meow-charcoal/80 hover:bg-meow-50 hover:text-meow-charcoal';
+                      const dangerClasses =
+                        item.tone === 'danger' ? 'text-red-500 hover:text-red-600' : '';
 
-                    const iconMap: Record<string, React.ReactNode> = {
-                      Atendimento: <Ticket size={16} aria-hidden />,
-                      Disputas: <Shield size={16} aria-hidden />,
-                      Moderacao: <Wrench size={16} aria-hidden />,
-                      Usuarios: <Users size={16} aria-hidden />,
-                      Pedidos: <Wallet size={16} aria-hidden />,
-                      Webhooks: <Activity size={16} aria-hidden />,
-                      Sistema: <Activity size={16} aria-hidden />,
-                      Parametros: <Settings size={16} aria-hidden />,
-                      Cadastros: <Settings size={16} aria-hidden />,
-                    };
+                      const iconMap: Record<string, React.ReactNode> = {
+                        Atendimento: <Headset size={16} aria-hidden />,
+                        Disputas: <Gavel size={16} aria-hidden />,
+                        Moderacao: <ShieldAlert size={16} aria-hidden />,
+                        Usuarios: <Users size={16} aria-hidden />,
+                        Pedidos: <Receipt size={16} aria-hidden />,
+                        Webhooks: <Webhook size={16} aria-hidden />,
+                        Sistema: <Settings2 size={16} aria-hidden />,
+                        Parametros: <SlidersHorizontal size={16} aria-hidden />,
+                        Cadastros: <Database size={16} aria-hidden />,
+                        'Voltar ao site': <House size={16} aria-hidden />,
+                        'Minha conta': <UserRound size={16} aria-hidden />,
+                        Sair: <LogOut size={16} aria-hidden />,
+                      };
 
-                    if (item.onClick) {
+                      if (item.onClick) {
+                        return (
+                          <button
+                            key={item.label}
+                            type="button"
+                            className={`${baseClasses} ${activeClasses} ${dangerClasses}`}
+                            onClick={item.onClick}
+                          >
+                            {iconMap[item.label] ?? <Settings size={16} aria-hidden />}
+                            {item.label}
+                          </button>
+                        );
+                      }
+
                       return (
-                        <button
+                        <Link
                           key={item.label}
-                          type="button"
+                          href={item.href ?? '#'}
                           className={`${baseClasses} ${activeClasses} ${dangerClasses}`}
-                          onClick={item.onClick}
                         >
                           {iconMap[item.label] ?? <Settings size={16} aria-hidden />}
                           {item.label}
-                        </button>
+                        </Link>
                       );
-                    }
-
-                    return (
-                      <Link
-                        key={item.label}
-                        href={item.href ?? '#'}
-                        className={`${baseClasses} ${activeClasses} ${dangerClasses}`}
-                      >
-                        {iconMap[item.label] ?? <Settings size={16} aria-hidden />}
-                        {item.label}
-                      </Link>
-                    );
-                  })}
-                </div>
+                    })}
+                  </div>
+                ) : null}
               </div>
             ))}
           </aside>

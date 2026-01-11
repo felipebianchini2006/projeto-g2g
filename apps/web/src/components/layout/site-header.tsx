@@ -6,11 +6,16 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Bell,
   ChevronDown,
+  Crown,
+  Headset,
+  LogOut,
   Menu,
   Moon,
   Search,
   ShoppingCart,
-  User,
+  Ticket,
+  UserRound,
+  Wallet,
 } from 'lucide-react';
 
 import { useAuth } from '../auth/auth-provider';
@@ -27,7 +32,7 @@ const formatCurrency = (value: number, currency = 'BRL') =>
 
 export const SiteHeader = () => {
   const { cartCount, cartItems, notify, removeFromCart } = useSite();
-  const { user, accessToken } = useAuth();
+  const { user, accessToken, logout } = useAuth();
   const [search, setSearch] = useState('');
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -55,6 +60,14 @@ export const SiteHeader = () => {
     }
     return user.email.split('@')[0] || 'jogador';
   }, [user?.email]);
+
+  const memberSinceYear = useMemo(() => {
+    if (!user?.createdAt) {
+      return new Date().getFullYear();
+    }
+    return new Date(user.createdAt).getFullYear();
+  }, [user?.createdAt]);
+
 
   const filteredCategories = useMemo(() => {
     const query = categoriesQuery.trim().toLowerCase();
@@ -257,17 +270,57 @@ export const SiteHeader = () => {
   const checkoutHref = hasCartItems ? `/checkout/${cartItems[0].id}` : '/carrinho';
 
   const menuPanelClass = darkMode
-    ? 'border-meow-deep/60 bg-meow-dark text-white shadow-[0_18px_45px_rgba(27,18,22,0.5)]'
+    ? 'border-white/10 bg-[#1a1116] text-white shadow-[0_18px_45px_rgba(27,18,22,0.5)]'
     : 'border-meow-red/20 bg-white text-meow-charcoal shadow-[0_18px_45px_rgba(64,37,50,0.16)]';
-  const menuHeaderTextClass = darkMode ? 'text-white/60' : 'text-meow-muted';
-  const menuItemClass = darkMode
-    ? 'text-white/80 hover:bg-white/5'
-    : 'text-meow-charcoal hover:bg-meow-cream';
-  const menuDividerClass = darkMode ? 'border-white/10' : 'border-meow-red/20';
-  const menuAvatarClass = darkMode
-    ? 'bg-white/10 text-white'
-    : 'border-meow-red/20 bg-meow-cream text-meow-deep';
+  const menuGradientClass = darkMode
+    ? 'bg-gradient-to-br from-[#2b1f26] via-[#24171e] to-[#1a1116]'
+    : 'bg-meow-linear';
+  const menuSubtleTextClass = darkMode ? 'text-white/70' : 'text-meow-muted';
+  const menuCardClass = darkMode
+    ? 'border-white/10 bg-white/5 text-white'
+    : 'border-meow-red/10 bg-white text-meow-charcoal';
   const isAdmin = user?.role === 'ADMIN';
+  const balanceLabel = 'R$ 0,00';
+  const menuLinks = [
+    {
+      label: 'Meu perfil',
+      description: 'Minhas compras e dados',
+      href: '/conta',
+      icon: UserRound,
+      tone: 'bg-sky-100 text-sky-500',
+    },
+    {
+      label: 'Meus chamados',
+      description: 'Status de reclamacoes',
+      href: '/conta/tickets',
+      icon: Ticket,
+      tone: 'bg-amber-100 text-amber-500',
+    },
+    {
+      label: 'Carteira',
+      description: 'Historico completo',
+      href: '/conta/carteira',
+      icon: Wallet,
+      tone: 'bg-emerald-100 text-emerald-500',
+    },
+    {
+      label: 'Fale conosco',
+      description: 'Ajuda e suporte',
+      href: '/conta/ajuda',
+      icon: Headset,
+      tone: 'bg-pink-100 text-pink-500',
+    },
+  ];
+
+  if (isAdmin) {
+    menuLinks.push({
+      label: 'Menu admin',
+      description: 'Painel administrativo',
+      href: '/admin/atendimento',
+      icon: Crown,
+      tone: 'bg-indigo-100 text-indigo-500',
+    });
+  }
 
   return (
     <>
@@ -546,63 +599,90 @@ export const SiteHeader = () => {
               </button>
               {menuOpen ? (
                 <div
-                  className={`absolute right-0 top-full z-50 mt-2 w-64 rounded-2xl border ${menuPanelClass}`}
+                  className={`absolute right-0 top-full z-50 mt-2 w-[320px] overflow-hidden rounded-[28px] border ${menuPanelClass}`}
                 >
-                  <div className="flex items-center gap-3 px-4 py-4">
-                    <div
-                      className={`flex h-11 w-11 items-center justify-center rounded-full border ${menuAvatarClass}`}
-                    >
-                      <User size={18} aria-hidden />
+                  <div className={`px-5 py-4 ${menuGradientClass}`}>
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-yellow-300 text-lg font-black text-meow-deep shadow-[0_10px_24px_rgba(0,0,0,0.18)]">
+                        {displayName.slice(0, 2).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-white">{displayName}</p>
+                        <p className="text-xs text-white/80">Membro desde {memberSinceYear}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold">Ola, {displayName}!</p>
+                  </div>
+                  <div className="px-5 py-4">
+                    <div className={`flex items-center justify-between rounded-2xl border px-4 py-3 ${menuCardClass}`}>
+                      <div>
+                        <span className={`text-[11px] font-semibold uppercase ${menuSubtleTextClass}`}>
+                          Seu saldo
+                        </span>
+                        <p className={`mt-1 text-lg font-black ${darkMode ? 'text-white' : 'text-meow-deep'}`}>
+                          {balanceLabel}
+                        </p>
+                      </div>
                       <Link
-                        href="/conta"
-                        className={`text-[11px] font-semibold uppercase tracking-[0.4px] ${menuHeaderTextClass}`}
+                        href="/conta/carteira"
+                        className={`text-[11px] font-semibold uppercase tracking-[0.4px] ${darkMode ? 'text-white/80' : 'text-meow-deep'}`}
                         onClick={closeAll}
                       >
-                        Ver minha conta
+                        Historico completo
                       </Link>
                     </div>
-                  </div>
-                  <div className={`border-t ${menuDividerClass}`}>
-                    <Link
-                      href="/conta/pedidos"
-                      className={`flex items-center justify-center px-4 py-3 text-sm font-semibold ${menuItemClass}`}
-                      onClick={closeAll}
-                    >
-                      Minhas compras
-                    </Link>
-                  </div>
-                  {isAdmin ? (
-                    <div className={`border-t ${menuDividerClass}`}>
-                      <Link
-                        href="/admin/atendimento"
-                        className={`flex items-center justify-center px-4 py-3 text-sm font-semibold ${menuItemClass}`}
-                        onClick={closeAll}
+
+                    <div className="mt-4 grid gap-2">
+                      {menuLinks.map((item) => (
+                        <Link
+                          key={item.label}
+                          href={item.href}
+                          onClick={closeAll}
+                          className={`flex items-center gap-3 rounded-2xl px-3 py-2 transition ${darkMode ? 'hover:bg-white/5' : 'hover:bg-meow-cream/60'}`}
+                        >
+                          <span
+                            className={`flex h-10 w-10 items-center justify-center rounded-2xl ${
+                              darkMode ? 'bg-white/10 text-white' : item.tone
+                            }`}
+                          >
+                            <item.icon size={18} aria-hidden />
+                          </span>
+                          <div className="flex-1">
+                            <p className={`text-sm font-semibold ${darkMode ? 'text-white' : 'text-meow-charcoal'}`}>
+                              {item.label}
+                            </p>
+                            <p className={`text-[11px] ${menuSubtleTextClass}`}>
+                              {item.description}
+                            </p>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+
+                    <div className={`mt-4 border-t pt-4 ${darkMode ? 'border-white/10' : 'border-meow-red/10'}`}>
+                      <button
+                        type="button"
+                        className={`flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold ${darkMode ? 'border-white/10 text-white/80 hover:bg-white/5' : 'border-meow-red/20 text-meow-charcoal hover:bg-meow-cream/50'}`}
+                        onClick={() => setDarkMode((prev) => !prev)}
                       >
-                        Menu admin
-                      </Link>
+                        <Moon size={14} aria-hidden />
+                        {darkMode ? 'Tema claro' : 'Tema escuro'}
+                      </button>
+                      <button
+                        type="button"
+                        className={`mt-3 flex w-full items-center justify-center gap-2 rounded-full text-xs font-semibold ${darkMode ? 'text-white/80' : 'text-meow-muted'}`}
+                        onClick={async () => {
+                          if (!user) {
+                            return;
+                          }
+                          await logout();
+                          closeAll();
+                          router.push('/');
+                        }}
+                      >
+                        <LogOut size={14} aria-hidden />
+                        Sair da conta
+                      </button>
                     </div>
-                  ) : null}
-                  <div className={`border-t ${menuDividerClass}`}>
-                    <Link
-                      href="/conta/favoritos"
-                      className={`flex items-center justify-center px-4 py-3 text-sm font-semibold ${menuItemClass}`}
-                      onClick={closeAll}
-                    >
-                      Meus favoritos
-                    </Link>
-                  </div>
-                  <div className={`border-t ${menuDividerClass}`}>
-                    <button
-                      type="button"
-                      className={`flex w-full items-center justify-center gap-2 px-4 py-3 text-sm font-semibold ${menuItemClass}`}
-                      onClick={() => setDarkMode((prev) => !prev)}
-                    >
-                      <Moon size={16} aria-hidden />
-                      {darkMode ? 'Tema claro' : 'Tema escuro'}
-                    </button>
                   </div>
                 </div>
               ) : null}
