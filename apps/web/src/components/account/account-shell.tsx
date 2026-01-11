@@ -9,7 +9,9 @@ import {
   Heart,
   LayoutGrid,
   LogOut,
+  Monitor,
   Settings,
+  Shield,
   ShoppingBag,
   Ticket,
   User,
@@ -74,6 +76,8 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
           { label: 'Favoritos', href: '/conta/favoritos' },
           { label: 'Carteira', href: '/conta/carteira' },
           { label: 'Meus tickets', href: '/conta/tickets' },
+          { label: 'Seguranca', href: '/conta/seguranca' },
+          { label: 'Sessoes', href: '/conta/sessoes' },
           { label: 'Configuracoes', href: '/conta/config' },
         ],
       },
@@ -241,6 +245,8 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
                         'Painel do vendedor': <LayoutGrid size={16} aria-hidden />,
                         'Meus anuncios': <ShoppingBag size={16} aria-hidden />,
                         'Minhas vendas': <ShoppingBag size={16} aria-hidden />,
+                        Seguranca: <Shield size={16} aria-hidden />,
+                        Sessoes: <Monitor size={16} aria-hidden />,
                         'Sair da conta': <LogOut size={16} aria-hidden />,
                       };
 

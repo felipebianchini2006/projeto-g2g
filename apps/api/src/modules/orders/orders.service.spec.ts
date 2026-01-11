@@ -154,6 +154,29 @@ describe('OrdersService (manual delivery)', () => {
     expect(result.evidence).toHaveLength(1);
   });
 
+  it('rejects evidence when order is not in delivery', async () => {
+    (prismaService.order.findUnique as jest.Mock).mockResolvedValue({
+      id: 'order-1',
+      status: OrderStatus.DELIVERED,
+      items: [
+        {
+          id: 'item-1',
+          deliveryType: DeliveryType.MANUAL,
+          sellerId: 'seller-1',
+        },
+      ],
+    });
+
+    const dto: CreateDeliveryEvidenceDto = {
+      type: DeliveryEvidenceInputType.TEXT,
+      content: 'Proof of delivery',
+    };
+
+    await expect(
+      service.addDeliveryEvidence('order-1', 'seller-1', UserRole.SELLER, dto, {}),
+    ).rejects.toThrow(BadRequestException);
+  });
+
   it('marks manual order delivered and schedules auto-complete', async () => {
     (prismaService.order.findUnique as jest.Mock).mockResolvedValue({
       id: 'order-1',

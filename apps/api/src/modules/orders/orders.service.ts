@@ -423,7 +423,7 @@ export class OrdersService {
       if (!order) {
         throw new NotFoundException('Order not found.');
       }
-      if (!this.isAllowedStatus(order.status, [OrderStatus.IN_DELIVERY, OrderStatus.DELIVERED])) {
+      if (!this.isAllowedStatus(order.status, [OrderStatus.IN_DELIVERY])) {
         throw new BadRequestException('Order cannot accept evidence in the current state.');
       }
 

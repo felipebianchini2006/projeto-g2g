@@ -13,6 +13,7 @@ import {
 import { useAuth } from '../auth/auth-provider';
 import { AccountShell } from '../account/account-shell';
 import { OrderChat } from '../orders/order-chat';
+import { Skeleton } from '../ui/skeleton';
 
 type OrderDetailContentProps = {
   orderId: string;
@@ -167,7 +168,7 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
     }
     setEvidenceBusy(true);
     try {
-      await ordersApi.addEvidence(accessToken, orderId, {
+      await ordersApi.addManualEvidence(accessToken, orderId, {
         ...evidenceForm,
         content: trimmed,
       });
@@ -200,6 +201,7 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
     isBuyer &&
     (state.order?.status === 'DELIVERED' || state.order?.status === 'COMPLETED') &&
     !state.order?.dispute;
+  const waitingSellerDelivery = scope === 'buyer' && state.order?.status === 'IN_DELIVERY';
 
   const deliverySection = useMemo(() => {
     const order = state.order;
@@ -227,14 +229,15 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
   const canManageManualDelivery =
     scope === 'seller' &&
     (user?.role === 'SELLER' || user?.role === 'ADMIN') &&
-    state.order?.status === 'IN_DELIVERY' &&
     (deliverySection?.manualItems.length ?? 0) > 0;
+  const canManageManualEvidence =
+    canManageManualDelivery && state.order?.status === 'IN_DELIVERY';
 
   if (loading) {
     return (
       <section className="bg-white px-6 py-12">
-        <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
-          Carregando sessao...
+        <div className="mx-auto w-full max-w-[1200px]">
+          <Skeleton className="h-24 w-full" />
         </div>
       </section>
     );
@@ -303,12 +306,20 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
       ) : null}
 
       {state.status === 'loading' ? (
-        <div className="rounded-xl border border-meow-red/20 bg-white px-4 py-3 text-sm text-meow-muted">
-          Carregando pedido...
+        <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="space-y-4">
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-48 w-full" />
+            <Skeleton className="h-64 w-full" />
+          </div>
+          <div className="space-y-4">
+            <Skeleton className="h-64 w-full" />
+            <Skeleton className="h-40 w-full" />
+          </div>
         </div>
       ) : null}
 
-      {state.order ? (
+      {state.order && state.status !== 'loading' ? (
         <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="space-y-4">
             <div className="rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
@@ -347,19 +358,20 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
                 >
                   Cancelar
                 </button>
-                <button
-                  className="rounded-full bg-meow-linear px-4 py-2 text-xs font-bold text-white"
-                  type="button"
-                  disabled={!canConfirm}
-                  onClick={() =>
-                    handleAction(
-                      () => ordersApi.confirmReceipt(accessToken, orderId),
-                      'Recebimento confirmado.',
-                    )
-                  }
-                >
-                  Confirmar recebimento
-                </button>
+                {canConfirm ? (
+                  <button
+                    className="rounded-full bg-meow-linear px-4 py-2 text-xs font-bold text-white"
+                    type="button"
+                    onClick={() =>
+                      handleAction(
+                        () => ordersApi.confirmReceipt(accessToken, orderId),
+                        'Recebimento confirmado.',
+                      )
+                    }
+                  >
+                    Confirmar recebimento
+                  </button>
+                ) : null}
                 <button
                   className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
                   type="button"
@@ -433,6 +445,9 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
               {deliverySection?.manualItems.length ? (
                 <div className="mt-4 rounded-xl border border-meow-red/20 bg-meow-cream/40 px-4 py-3 text-sm text-meow-muted">
                   <p className="font-semibold text-meow-charcoal">Evidencias (manual)</p>
+                  {waitingSellerDelivery ? (
+                    <p className="mt-2 text-xs">Aguardando entrega do vendedor.</p>
+                  ) : null}
                   {deliverySection.manualItems.some((item) => item.deliveryEvidence?.length) ? (
                     <ul className="mt-2 grid gap-2 text-xs">
                       {deliverySection.manualItems.flatMap((item) =>
@@ -442,10 +457,12 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
                             className="rounded-lg border border-meow-red/10 bg-white px-3 py-2"
                           >
                             <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-meow-muted">
-                              <span className="font-semibold text-meow-charcoal">
+                              <span className="rounded-full bg-meow-cream px-2 py-0.5 text-[10px] font-semibold text-meow-charcoal">
                                 {evidence.type === 'LINK' || evidence.type === 'URL'
                                   ? 'URL'
-                                  : 'Texto'}
+                                  : evidence.type === 'FILE'
+                                    ? 'FILE'
+                                    : 'TEXT'}
                               </span>
                               {evidence.createdAt ? (
                                 <span>
@@ -454,7 +471,9 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
                               ) : null}
                             </div>
                             <div className="mt-1 break-words text-xs text-meow-charcoal">
-                              {evidence.type === 'LINK' || evidence.type === 'URL' ? (
+                              {evidence.type === 'LINK' ||
+                              evidence.type === 'URL' ||
+                              evidence.type === 'FILE' ? (
                                 <a
                                   href={evidence.content}
                                   target="_blank"
@@ -476,8 +495,8 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
                         )),
                       )}
                     </ul>
-                  ) : (
-                    <p className="mt-2 text-xs">Aguardando envio do seller.</p>
+                  ) : waitingSellerDelivery ? null : (
+                    <p className="mt-2 text-xs">Aguardando envio do vendedor.</p>
                   )}
 
                   {canManageManualDelivery ? (
@@ -488,6 +507,7 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
                           <select
                             className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
                             value={evidenceForm.type}
+                            disabled={!canManageManualEvidence || evidenceBusy}
                             onChange={(event) =>
                               setEvidenceForm((prev) => ({
                                 ...prev,
@@ -501,37 +521,56 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
                         </label>
                         <label className="grid gap-1 text-xs font-semibold text-meow-muted">
                           Conteudo
-                          <input
-                            className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
-                            placeholder={
-                              evidenceForm.type === 'URL'
-                                ? 'https://exemplo.com/entrega'
-                                : 'Descreva a entrega'
-                            }
-                            value={evidenceForm.content}
-                            onChange={(event) =>
-                              setEvidenceForm((prev) => ({
-                                ...prev,
-                                content: event.target.value,
-                              }))
-                            }
-                          />
+                          {evidenceForm.type === 'URL' ? (
+                            <input
+                              className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
+                              placeholder="https://exemplo.com/entrega"
+                              value={evidenceForm.content}
+                              disabled={!canManageManualEvidence || evidenceBusy}
+                              onChange={(event) =>
+                                setEvidenceForm((prev) => ({
+                                  ...prev,
+                                  content: event.target.value,
+                                }))
+                              }
+                            />
+                          ) : (
+                            <textarea
+                              className="min-h-[92px] rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
+                              placeholder="Descreva a entrega"
+                              value={evidenceForm.content}
+                              disabled={!canManageManualEvidence || evidenceBusy}
+                              onChange={(event) =>
+                                setEvidenceForm((prev) => ({
+                                  ...prev,
+                                  content: event.target.value,
+                                }))
+                              }
+                            />
+                          )}
                         </label>
                       </div>
+                      {!canManageManualEvidence ? (
+                        <p className="text-xs text-meow-muted">
+                          Evidencias e marcacao de entrega so podem ser feitas enquanto o pedido
+                          estiver em entrega.
+                        </p>
+                      ) : null}
                       <div className="flex flex-wrap items-center gap-3">
                         <button
                           type="submit"
                           className="rounded-full bg-meow-linear px-4 py-2 text-xs font-bold text-white"
-                          disabled={evidenceBusy}
+                          disabled={evidenceBusy || !canManageManualEvidence}
                         >
                           {evidenceBusy ? 'Enviando...' : 'Adicionar evidencia'}
                         </button>
                         <button
                           type="button"
                           className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
+                          disabled={!canManageManualEvidence}
                           onClick={() =>
                             handleAction(
-                              () => ordersApi.markDelivered(accessToken, orderId),
+                              () => ordersApi.markManualDelivered(accessToken, orderId),
                               'Pedido marcado como entregue.',
                             )
                           }

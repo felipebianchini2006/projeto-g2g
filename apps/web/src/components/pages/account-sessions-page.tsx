@@ -7,6 +7,7 @@ import { ApiClientError } from '../../lib/api-client';
 import { accountSecurityApi, type SessionInfo } from '../../lib/account-security-api';
 import { useAuth } from '../auth/auth-provider';
 import { AccountShell } from '../account/account-shell';
+import { Skeleton } from '../ui/skeleton';
 
 type SessionsState = {
   status: 'loading' | 'ready';
@@ -14,6 +15,45 @@ type SessionsState = {
   error?: string;
   actionError?: string;
   actionSuccess?: string;
+};
+
+const parseUserAgent = (userAgent?: string | null) => {
+  if (!userAgent) {
+    return 'Agente nao informado';
+  }
+  const ua = userAgent.toLowerCase();
+  let device = '';
+  if (ua.includes('iphone')) {
+    device = 'iPhone';
+  } else if (ua.includes('ipad')) {
+    device = 'iPad';
+  } else if (ua.includes('android')) {
+    device = 'Android';
+  } else if (ua.includes('windows')) {
+    device = 'Windows';
+  } else if (ua.includes('mac os') || ua.includes('macintosh')) {
+    device = 'Mac';
+  } else if (ua.includes('linux')) {
+    device = 'Linux';
+  }
+
+  let browser = '';
+  if (ua.includes('edg')) {
+    browser = 'Edge';
+  } else if (ua.includes('opr') || ua.includes('opera')) {
+    browser = 'Opera';
+  } else if (ua.includes('chrome')) {
+    browser = 'Chrome';
+  } else if (ua.includes('firefox')) {
+    browser = 'Firefox';
+  } else if (ua.includes('safari')) {
+    browser = 'Safari';
+  }
+
+  if (browser && device) {
+    return `${browser} / ${device}`;
+  }
+  return device || browser || 'Dispositivo desconhecido';
 };
 
 export const AccountSessionsContent = () => {
@@ -80,6 +120,9 @@ export const AccountSessionsContent = () => {
     if (!accessToken || logoutAllBusy) {
       return;
     }
+    if (!window.confirm('Deseja sair de todas as sessoes?')) {
+      return;
+    }
     setLogoutAllBusy(true);
     try {
       const result = await accountSecurityApi.logoutAll(accessToken);
@@ -105,8 +148,8 @@ export const AccountSessionsContent = () => {
   if (loading) {
     return (
       <section className="bg-white px-6 py-12">
-        <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
-          Carregando sessao...
+        <div className="mx-auto w-full max-w-[1200px]">
+          <Skeleton className="h-24 w-full" />
         </div>
       </section>
     );
@@ -171,8 +214,9 @@ export const AccountSessionsContent = () => {
         ) : null}
 
         {state.status === 'loading' ? (
-          <div className="mt-4 rounded-xl border border-meow-red/20 bg-white px-4 py-3 text-sm text-meow-muted">
-            Carregando sessoes...
+          <div className="mt-4 grid gap-4">
+            <Skeleton className="h-28 w-full" />
+            <Skeleton className="h-28 w-full" />
           </div>
         ) : null}
 
@@ -185,12 +229,11 @@ export const AccountSessionsContent = () => {
         <div className="mt-4 grid gap-4">
           {state.sessions.map((session) => {
             const isRevoked = Boolean(session.revokedAt);
-            const statusLabel = isRevoked ? 'Encerrada' : session.isCurrent ? 'Atual' : 'Ativa';
+            const statusLabel = isRevoked ? 'Revogada' : 'Ativa';
             const statusTone = isRevoked
               ? 'bg-red-50 text-red-700'
-              : session.isCurrent
-                ? 'bg-emerald-50 text-emerald-700'
-                : 'bg-meow-cream text-meow-charcoal';
+              : 'bg-emerald-50 text-emerald-700';
+            const deviceLabel = parseUserAgent(session.userAgent);
 
             return (
               <div
@@ -203,7 +246,7 @@ export const AccountSessionsContent = () => {
                       Sessao #{session.id.slice(0, 8).toUpperCase()}
                     </p>
                     <p className="mt-1 text-xs text-meow-muted">
-                      IP: {session.ip ?? '-'} | {session.userAgent ?? 'Agente nao informado'}
+                      {deviceLabel} | IP: {session.ip ?? '-'}
                     </p>
                   </div>
                   <span
@@ -245,7 +288,7 @@ export const AccountSessionsContent = () => {
                   </button>
                   {session.isCurrent ? (
                     <span className="text-xs text-meow-muted">
-                      Sessao atual (use Sair para desconectar).
+                      Sessao atual (use Sair de todas para desconectar).
                     </span>
                   ) : null}
                 </div>

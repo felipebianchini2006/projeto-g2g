@@ -8,6 +8,7 @@ import { ApiClientError } from '../../lib/api-client';
 import { accountSecurityApi } from '../../lib/account-security-api';
 import { useAuth } from '../auth/auth-provider';
 import { AccountShell } from '../account/account-shell';
+import { Skeleton } from '../ui/skeleton';
 
 type SecurityState = {
   error?: string;
@@ -87,8 +88,8 @@ export const AccountSecurityContent = () => {
   if (loading) {
     return (
       <section className="bg-white px-6 py-12">
-        <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
-          Carregando sessao...
+        <div className="mx-auto w-full max-w-[1200px]">
+          <Skeleton className="h-24 w-full" />
         </div>
       </section>
     );
