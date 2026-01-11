@@ -1,9 +1,10 @@
 import { TicketsListContent } from '../../../components/pages/tickets-list-page';
 
 type TicketsPageProps = {
-  searchParams?: { orderId?: string };
+  searchParams?: Promise<{ orderId?: string }>;
 };
 
-export default function Page({ searchParams }: TicketsPageProps) {
-  return <TicketsListContent initialOrderId={searchParams?.orderId} />;
+export default async function Page({ searchParams }: TicketsPageProps) {
+  const params = searchParams ? await searchParams : undefined;
+  return <TicketsListContent initialOrderId={params?.orderId} />;
 }

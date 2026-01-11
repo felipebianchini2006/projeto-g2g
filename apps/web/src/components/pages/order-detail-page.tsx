@@ -208,8 +208,9 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
     if (!order) {
       return null;
     }
-    const autoItems = order.items.filter((item) => item.deliveryType === 'AUTO');
-    const manualItems = order.items.filter((item) => item.deliveryType === 'MANUAL');
+    const items = order.items ?? [];
+    const autoItems = items.filter((item) => item.deliveryType === 'AUTO');
+    const manualItems = items.filter((item) => item.deliveryType === 'MANUAL');
     const revealAllowed = order.status === 'DELIVERED' || order.status === 'COMPLETED';
 
     return {
@@ -402,7 +403,7 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
             <div className="rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
               <h2 className="text-base font-bold text-meow-charcoal">Itens</h2>
               <div className="mt-4 grid gap-3">
-                {state.order.items.map((item) => (
+                {(state.order.items ?? []).map((item) => (
                   <div
                     key={item.id}
                     className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-meow-red/10 bg-meow-cream/40 px-4 py-3"

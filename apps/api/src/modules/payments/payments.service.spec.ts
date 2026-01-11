@@ -11,6 +11,7 @@ describe('PaymentsService', () => {
   let paymentsService: PaymentsService;
   let prismaService: PrismaService;
   let efiClient: { createImmediateCharge: jest.Mock };
+  let configService: ConfigService;
 
   beforeEach(async () => {
     const prismaMock = {
@@ -46,6 +47,7 @@ describe('PaymentsService', () => {
 
     paymentsService = moduleRef.get(PaymentsService);
     prismaService = moduleRef.get(PrismaService);
+    configService = moduleRef.get(ConfigService);
   });
 
   it('creates a Pix payment using Efi', async () => {
@@ -89,6 +91,29 @@ describe('PaymentsService', () => {
     );
 
     expect(payment).toBe(existing);
+    expect(efiClient.createImmediateCharge).not.toHaveBeenCalled();
+  });
+
+  it('creates a Pix payment in mock mode', async () => {
+    (configService.get as jest.Mock).mockImplementation((key: string) => {
+      if (key === 'PIX_MOCK_MODE') return 'true';
+      if (key === 'PIX_MOCK_TTL_SECONDS') return 900;
+      return undefined;
+    });
+
+    (prismaService.payment.findFirst as jest.Mock).mockResolvedValue(null);
+    (prismaService.payment.create as jest.Mock).mockImplementation(({ data }) => ({
+      ...data,
+      id: 'payment-1',
+      status: PaymentStatus.PENDING,
+    }));
+
+    const payment = await paymentsService.createPixCharge(
+      { id: 'order-1', totalAmountCents: 1500, currency: 'BRL', expiresAt: null },
+      'buyer-1',
+    );
+
+    expect(payment.qrCode).toContain('PIX:');
     expect(efiClient.createImmediateCharge).not.toHaveBeenCalled();
   });
 

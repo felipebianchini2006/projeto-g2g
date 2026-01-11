@@ -18,6 +18,9 @@ describe('TicketsService', () => {
         findUnique: jest.fn(),
         create: jest.fn(),
       },
+      ticketMessage: {
+        create: jest.fn(),
+      },
     } as unknown as PrismaService;
 
     const moduleRef = await Test.createTestingModule({
@@ -101,5 +104,24 @@ describe('TicketsService', () => {
         message: 'Something went wrong',
       }),
     ).rejects.toThrow(ForbiddenException);
+  });
+
+  it('adds a message to the ticket', async () => {
+    (prisma.ticket.findUnique as jest.Mock).mockResolvedValue({
+      id: 'ticket-1',
+      openedById: 'user-1',
+      order: { buyerId: 'user-1', sellerId: 'seller-1' },
+    });
+    (prisma.ticketMessage.create as jest.Mock).mockResolvedValue({ id: 'message-1' });
+
+    await service.addMessage('ticket-1', 'user-1', UserRole.USER, { message: '  Ola  ' });
+
+    expect(prisma.ticketMessage.create).toHaveBeenCalledWith({
+      data: {
+        ticketId: 'ticket-1',
+        senderId: 'user-1',
+        message: 'Ola',
+      },
+    });
   });
 });

@@ -1,5 +1,5 @@
 import { Controller, Param, Post, Req } from '@nestjs/common';
-import { Request } from 'express';
+import type { Request } from 'express';
 
 import { PartnersService } from './partners.service';
 

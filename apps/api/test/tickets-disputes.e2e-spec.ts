@@ -11,6 +11,10 @@ import { AppModule } from './../src/app.module';
 import { PrismaService } from './../src/modules/prisma/prisma.service';
 import { RedisService } from './../src/modules/redis/redis.service';
 import { SettlementService } from './../src/modules/settlement/settlement.service';
+import { resetDatabase } from './utils/reset-db';
+import { createTestApp } from './utils/create-test-app';
+
+const { applyTestEnv } = require('./test-env.cjs');
 
 jest.setTimeout(20000);
 
@@ -30,18 +34,7 @@ describe('Tickets & Disputes (e2e)', () => {
   let orderRefundId: string;
 
   beforeAll(async () => {
-    process.env['NODE_ENV'] = 'test';
-    process.env['JWT_SECRET'] = 'test-secret';
-    process.env['TOKEN_TTL'] = '900';
-    process.env['REFRESH_TTL'] = '3600';
-    process.env['DATABASE_URL'] =
-      process.env['E2E_DATABASE_URL'] ??
-      process.env['DATABASE_URL'] ??
-      'postgresql://postgres:123456@localhost:5432/projeto_g2g';
-    process.env['REDIS_URL'] =
-      process.env['E2E_REDIS_URL'] ??
-      process.env['REDIS_URL'] ??
-      'redis://localhost:6379';
+    applyTestEnv();
 
     const redisMock = { ping: jest.fn().mockResolvedValue('PONG') };
     const settlementMock = {
@@ -72,11 +65,12 @@ describe('Tickets & Disputes (e2e)', () => {
       .useValue(settlementMock)
       .compile();
 
-    app = moduleFixture.createNestApplication();
-    await app.init();
+    app = await createTestApp(moduleFixture);
 
     prisma = moduleFixture.get(PrismaService);
     jwtService = moduleFixture.get(JwtService);
+
+    await resetDatabase(prisma);
 
     const admin = await prisma.user.create({
       data: {

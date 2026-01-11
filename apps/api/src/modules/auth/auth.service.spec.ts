@@ -125,6 +125,26 @@ describe('AuthService', () => {
     ).rejects.toThrow(UnauthorizedException);
   });
 
+  it('blocks login when user is marked as blocked', async () => {
+    const passwordHash = await bcrypt.hash('correct-pass', 12);
+    (prismaService.user.findUnique as jest.Mock).mockResolvedValue({
+      id: 'user-1',
+      email: 'user@email.com',
+      passwordHash,
+      role: UserRole.USER,
+      blockedAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    await expect(
+      authService.login(
+        { email: 'user@email.com', password: 'correct-pass' },
+        { ip: '127.0.0.1', userAgent: 'jest' },
+      ),
+    ).rejects.toThrow(ForbiddenException);
+  });
+
   it('rotates refresh tokens', async () => {
     const now = new Date();
     const user = {
@@ -175,6 +195,37 @@ describe('AuthService', () => {
       updatedAt: now,
       expiresAt: new Date(Date.now() + 3600 * 1000),
       revokedAt: now,
+      user: {
+        id: 'user-1',
+        email: 'user@email.com',
+        role: UserRole.USER,
+        passwordHash: 'hash',
+        createdAt: now,
+        updatedAt: now,
+      },
+      session: {
+        id: 'session-1',
+        revokedAt: null,
+        expiresAt: new Date(Date.now() + 3600 * 1000),
+      },
+    });
+
+    await expect(authService.refresh({ refreshToken: 'refresh-token' })).rejects.toThrow(
+      UnauthorizedException,
+    );
+  });
+
+  it('rejects refresh when token is expired', async () => {
+    const now = new Date();
+    (prismaService.refreshToken.findUnique as jest.Mock).mockResolvedValue({
+      id: 'refresh-1',
+      userId: 'user-1',
+      sessionId: 'session-1',
+      tokenHash: 'hash',
+      createdAt: now,
+      updatedAt: now,
+      expiresAt: new Date(Date.now() - 3600 * 1000),
+      revokedAt: null,
       user: {
         id: 'user-1',
         email: 'user@email.com',

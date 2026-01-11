@@ -1,7 +1,6 @@
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SupportChatRole, type SupportChatMessage } from '@prisma/client';
-import type { GoogleGenAI } from '@google/genai';
 
 import { AppLogger } from '../logger/logger.service';
 
@@ -27,9 +26,19 @@ type GeminiContent = {
   parts: Array<{ text: string }>;
 };
 
+type GoogleGenAIClient = {
+  models: {
+    generateContent: (input: {
+      model: string;
+      contents: GeminiContent[];
+      systemInstruction?: string;
+    }) => Promise<unknown>;
+  };
+};
+
 @Injectable()
 export class SupportAiService {
-  private client: GoogleGenAI | null = null;
+  private client: GoogleGenAIClient | null = null;
   private readonly model: string;
   private readonly enabled: boolean;
   private readonly apiKey: string;
@@ -70,7 +79,10 @@ export class SupportAiService {
       return this.client;
     }
     try {
-      const module = await import('@google/genai');
+      const moduleName = '@google/genai';
+      const module = (await import(moduleName)) as {
+        GoogleGenAI: new (options: { apiKey: string }) => GoogleGenAIClient;
+      };
       this.client = new module.GoogleGenAI({ apiKey: this.apiKey });
       return this.client;
     } catch (error) {

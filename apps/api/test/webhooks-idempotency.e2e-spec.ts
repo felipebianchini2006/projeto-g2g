@@ -13,6 +13,10 @@ import { EmailQueueService } from './../src/modules/email/email.service';
 import { PrismaService } from './../src/modules/prisma/prisma.service';
 import { WebhooksProcessor } from './../src/modules/webhooks/webhooks.processor';
 import { WEBHOOKS_QUEUE } from './../src/modules/webhooks/webhooks.queue';
+import { resetDatabase } from './utils/reset-db';
+import { createTestApp } from './utils/create-test-app';
+
+const { applyTestEnv } = require('./test-env.cjs');
 
 jest.setTimeout(20000);
 
@@ -26,7 +30,7 @@ describe('Webhooks idempotency (e2e)', () => {
         url:
           process.env['E2E_REDIS_URL'] ??
           process.env['REDIS_URL'] ??
-          'redis://localhost:6379',
+          'redis://localhost:6380',
       },
     },
     add: jest.fn(
@@ -50,18 +54,7 @@ describe('Webhooks idempotency (e2e)', () => {
   let sellerEmail: string | undefined;
 
   beforeAll(async () => {
-    process.env['NODE_ENV'] = 'test';
-    process.env['JWT_SECRET'] = 'test-secret';
-    process.env['TOKEN_TTL'] = '900';
-    process.env['REFRESH_TTL'] = '3600';
-    process.env['DATABASE_URL'] =
-      process.env['E2E_DATABASE_URL'] ??
-      process.env['DATABASE_URL'] ??
-      'postgresql://postgres:123456@localhost:5432/projeto_g2g';
-    process.env['REDIS_URL'] =
-      process.env['E2E_REDIS_URL'] ??
-      process.env['REDIS_URL'] ??
-      'redis://localhost:6379';
+    applyTestEnv();
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -75,8 +68,9 @@ describe('Webhooks idempotency (e2e)', () => {
     prisma = moduleFixture.get(PrismaService);
     processor = moduleFixture.get(WebhooksProcessor);
 
-    app = moduleFixture.createNestApplication();
-    await app.init();
+    await resetDatabase(prisma);
+
+    app = await createTestApp(moduleFixture);
   });
 
   afterAll(async () => {

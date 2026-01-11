@@ -21,7 +21,7 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json --runInBand"
   },
   "dependencies": {
     "@google/genai": "^0.5.0",
@@ -92,8 +92,30 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "modules/auth/**/*.service.ts",
+      "!modules/auth/discord-auth.service.ts",
+      "!modules/auth/discord-oauth.service.ts",
+      "modules/orders/**/*.service.ts",
+      "modules/orders/**/*helpers.ts",
+      "!modules/orders/orders.queue.service.ts",
+      "modules/payments/**/*.service.ts",
+      "modules/payments/efi/efi-client.service.ts",
+      "modules/settlement/**/*.service.ts",
+      "modules/support-chat/**/*.service.ts",
+      "modules/tickets/**/*.service.ts",
+      "modules/webhooks/**/*.service.ts",
+      "modules/webhooks/**/*.processor.ts",
+      "modules/wallet/**/*.service.ts",
+      "modules/wallet/**/*.utils.ts"
     ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 45,
+        "lines": 55,
+        "statements": 55,
+        "functions": 60
+      }
+    },
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
   },

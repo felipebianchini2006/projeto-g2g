@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 
 import { ApiClientError } from '../../lib/api-client';
 import { fetchPublicListing, type PublicListing } from '../../lib/marketplace-public';
+import type { ListingStatus } from '../../lib/marketplace-api';
 import { ordersApi, type CheckoutResponse } from '../../lib/orders-api';
 import { useAuth } from '../auth/auth-provider';
 import { useSite } from '../site-context';
@@ -25,6 +26,13 @@ type PaymentState = {
   status: 'idle' | 'loading' | 'ready';
   data?: CheckoutResponse;
   error?: string;
+};
+
+const statusLabel: Record<ListingStatus, string> = {
+  DRAFT: 'Rascunho',
+  PENDING: 'Em analise',
+  PUBLISHED: 'Publicado',
+  SUSPENDED: 'Suspenso',
 };
 
 const formatCurrency = (value: number, currency = 'BRL') =>

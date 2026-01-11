@@ -3,12 +3,13 @@ import {
   Body,
   Controller,
   Get,
+  HttpException,
   HttpCode,
+  HttpStatus,
   Param,
   Post,
   Req,
   ServiceUnavailableException,
-  TooManyRequestsException,
   UseGuards,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -83,7 +84,10 @@ export class SupportChatController {
     const rateKey = `${user.sub}:${req.ip ?? 'unknown'}`;
     const rate = this.rateLimiter.check(rateKey);
     if (!rate.allowed) {
-      throw new TooManyRequestsException(rate.reason ?? 'Rate limit exceeded.');
+      throw new HttpException(
+        rate.reason ?? 'Rate limit exceeded.',
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
     }
 
     const userMessage = await this.supportChatService.createMessage(

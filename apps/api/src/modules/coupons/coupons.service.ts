@@ -70,7 +70,7 @@ export class CouponsService {
   }
 
   async updateCoupon(id: string, dto: UpdateCouponDto) {
-    const data: Prisma.CouponUpdateInput = {};
+    const data: Prisma.CouponUncheckedUpdateInput = {};
     if (dto.code !== undefined) {
       data.code = this.normalizeCode(dto.code);
     }

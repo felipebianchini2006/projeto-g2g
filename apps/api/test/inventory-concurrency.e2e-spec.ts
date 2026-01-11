@@ -7,6 +7,10 @@ import { AppModule } from './../src/app.module';
 import { InventoryService } from './../src/modules/listings/inventory.service';
 import { PrismaService } from './../src/modules/prisma/prisma.service';
 import { RedisService } from './../src/modules/redis/redis.service';
+import { resetDatabase } from './utils/reset-db';
+import { createTestApp } from './utils/create-test-app';
+
+const { applyTestEnv } = require('./test-env.cjs');
 
 describe('Inventory reservation concurrency (e2e)', () => {
   let app: INestApplication;
@@ -14,18 +18,7 @@ describe('Inventory reservation concurrency (e2e)', () => {
   let inventoryService: InventoryService;
 
   beforeAll(async () => {
-    process.env['NODE_ENV'] = 'test';
-    process.env['JWT_SECRET'] = 'test-secret';
-    process.env['TOKEN_TTL'] = '900';
-    process.env['REFRESH_TTL'] = '3600';
-    process.env['DATABASE_URL'] =
-      process.env['E2E_DATABASE_URL'] ??
-      process.env['DATABASE_URL'] ??
-      'postgresql://postgres:123456@localhost:5432/projeto_g2g';
-    process.env['REDIS_URL'] =
-      process.env['E2E_REDIS_URL'] ??
-      process.env['REDIS_URL'] ??
-      'redis://localhost:6379';
+    applyTestEnv();
 
     const redisMock = { ping: jest.fn().mockResolvedValue('PONG') };
 
@@ -36,11 +29,12 @@ describe('Inventory reservation concurrency (e2e)', () => {
       .useValue(redisMock)
       .compile();
 
-    app = moduleFixture.createNestApplication();
-    await app.init();
+    app = await createTestApp(moduleFixture);
 
     prisma = moduleFixture.get(PrismaService);
     inventoryService = moduleFixture.get(InventoryService);
+
+    await resetDatabase(prisma);
   });
 
   afterAll(async () => {

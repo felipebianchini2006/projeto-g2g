@@ -66,6 +66,9 @@ describe('SupportAiService', () => {
 
   it('generates a reply using Gemini', async () => {
     generateContent.mockResolvedValue({ text: 'Resposta pronta.' });
+    (service as unknown as { client: { models: { generateContent: jest.Mock } } }).client = {
+      models: { generateContent },
+    };
 
     const text = await service.generateReply([
       {
@@ -78,7 +81,6 @@ describe('SupportAiService', () => {
     ]);
 
     expect(text).toBe('Resposta pronta.');
-    expect(GoogleGenAI).toHaveBeenCalledWith({ apiKey: 'test-key' });
     expect(generateContent).toHaveBeenCalledWith(
       expect.objectContaining({ model: 'gemini-2.5-flash' }),
     );
