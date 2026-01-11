@@ -16,7 +16,7 @@ export class DiscordAccountService {
       throw new BadRequestException('Discord profile missing id.');
     }
 
-    const existingAccount = await this.prismaService.oauthAccount.findUnique({
+    const existingAccount = await this.prismaService.oAuthAccount.findUnique({
       where: {
         provider_providerUserId: {
           provider: OAuthProvider.DISCORD,
@@ -27,7 +27,7 @@ export class DiscordAccountService {
     });
 
     if (existingAccount?.user) {
-      await this.prismaService.oauthAccount.update({
+      await this.prismaService.oAuthAccount.update({
         where: { id: existingAccount.id },
         data: {
           accessToken: tokens.accessToken,
@@ -44,7 +44,7 @@ export class DiscordAccountService {
 
     const existingUser = await this.prismaService.user.findUnique({ where: { email } });
     if (existingUser) {
-      await this.prismaService.oauthAccount.create({
+      await this.prismaService.oAuthAccount.create({
         data: {
           provider: OAuthProvider.DISCORD,
           providerUserId: profile.id,
@@ -61,7 +61,7 @@ export class DiscordAccountService {
       const user = await tx.user.create({
         data: { email, passwordHash, role: UserRole.USER },
       });
-      await tx.oauthAccount.create({
+      await tx.oAuthAccount.create({
         data: {
           provider: OAuthProvider.DISCORD,
           providerUserId: profile.id,

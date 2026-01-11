@@ -12,7 +12,7 @@ describe('DiscordAccountService', () => {
 
   beforeEach(async () => {
     const prismaMock = {
-      oauthAccount: {
+      oAuthAccount: {
         findUnique: jest.fn(),
         create: jest.fn(),
         update: jest.fn(),
@@ -49,11 +49,11 @@ describe('DiscordAccountService', () => {
       updatedAt: new Date(),
     };
 
-    (prismaService.oauthAccount.findUnique as jest.Mock).mockResolvedValue({
+    (prismaService.oAuthAccount.findUnique as jest.Mock).mockResolvedValue({
       id: 'oa-1',
       user,
     });
-    (prismaService.oauthAccount.update as jest.Mock).mockResolvedValue({ id: 'oa-1' });
+    (prismaService.oAuthAccount.update as jest.Mock).mockResolvedValue({ id: 'oa-1' });
 
     const result = await accountService.findOrCreateUser(
       { id: 'discord-1', email: 'user@email.com', username: 'user', avatar: null },
@@ -61,7 +61,7 @@ describe('DiscordAccountService', () => {
     );
 
     expect(result).toEqual(user);
-    expect(prismaService.oauthAccount.update).toHaveBeenCalledWith({
+    expect(prismaService.oAuthAccount.update).toHaveBeenCalledWith({
       where: { id: 'oa-1' },
       data: { accessToken: 'token-1', refreshToken: 'token-2' },
     });
@@ -77,9 +77,9 @@ describe('DiscordAccountService', () => {
       updatedAt: new Date(),
     };
 
-    (prismaService.oauthAccount.findUnique as jest.Mock).mockResolvedValue(null);
+    (prismaService.oAuthAccount.findUnique as jest.Mock).mockResolvedValue(null);
     (prismaService.user.findUnique as jest.Mock).mockResolvedValue(user);
-    (prismaService.oauthAccount.create as jest.Mock).mockResolvedValue({ id: 'oa-1' });
+    (prismaService.oAuthAccount.create as jest.Mock).mockResolvedValue({ id: 'oa-1' });
 
     const result = await accountService.findOrCreateUser(
       { id: 'discord-1', email: 'USER@email.com', username: 'user', avatar: null },
@@ -87,7 +87,7 @@ describe('DiscordAccountService', () => {
     );
 
     expect(result).toEqual(user);
-    expect(prismaService.oauthAccount.create).toHaveBeenCalledWith({
+    expect(prismaService.oAuthAccount.create).toHaveBeenCalledWith({
       data: {
         provider: OAuthProvider.DISCORD,
         providerUserId: 'discord-1',
@@ -99,7 +99,7 @@ describe('DiscordAccountService', () => {
   });
 
   it('creates a new user when no email match exists', async () => {
-    (prismaService.oauthAccount.findUnique as jest.Mock).mockResolvedValue(null);
+    (prismaService.oAuthAccount.findUnique as jest.Mock).mockResolvedValue(null);
     (prismaService.user.findUnique as jest.Mock).mockResolvedValue(null);
     (prismaService.user.create as jest.Mock).mockResolvedValue({
       id: 'user-1',
@@ -109,7 +109,7 @@ describe('DiscordAccountService', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     });
-    (prismaService.oauthAccount.create as jest.Mock).mockResolvedValue({ id: 'oa-1' });
+    (prismaService.oAuthAccount.create as jest.Mock).mockResolvedValue({ id: 'oa-1' });
 
     const result = await accountService.findOrCreateUser(
       { id: 'discord-1', email: 'user@email.com', username: 'user', avatar: null },
@@ -118,7 +118,7 @@ describe('DiscordAccountService', () => {
 
     expect(result.email).toBe('user@email.com');
     expect(prismaService.user.create).toHaveBeenCalled();
-    expect(prismaService.oauthAccount.create).toHaveBeenCalledWith({
+    expect(prismaService.oAuthAccount.create).toHaveBeenCalledWith({
       data: {
         provider: OAuthProvider.DISCORD,
         providerUserId: 'discord-1',
@@ -130,7 +130,7 @@ describe('DiscordAccountService', () => {
   });
 
   it('rejects profiles without email for new accounts', async () => {
-    (prismaService.oauthAccount.findUnique as jest.Mock).mockResolvedValue(null);
+    (prismaService.oAuthAccount.findUnique as jest.Mock).mockResolvedValue(null);
     (prismaService.user.findUnique as jest.Mock).mockResolvedValue(null);
 
     await expect(
