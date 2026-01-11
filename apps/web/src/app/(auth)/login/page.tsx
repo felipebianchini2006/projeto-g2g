@@ -7,7 +7,7 @@ import { z } from 'zod';
 
 import { useAuth } from '../../../components/auth/auth-provider';
 import { FormField } from '../../../components/forms/form-field';
-import { Button } from '../../../components/ui/button';
+import { Button, buttonVariants } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import {
   Card,
@@ -17,6 +17,7 @@ import {
   CardTitle,
 } from '../../../components/ui/card';
 import { AuthApiError } from '../../../lib/auth-api';
+import { cn } from '../../../lib/utils';
 import { mapZodErrors } from '../../../lib/zod-errors';
 
 const schema = z.object({
@@ -34,6 +35,7 @@ export default function Page() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const nextPath = '/';
+  const discordStartUrl = `/api/auth/discord/start?next=${encodeURIComponent(nextPath)}`;
 
   const handleChange =
     (field: keyof FormState) => (event: ChangeEvent<HTMLInputElement>) => {
@@ -78,6 +80,17 @@ export default function Page() {
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
+          <Link
+            href={discordStartUrl}
+            className={cn(buttonVariants({ variant: 'secondary' }), 'w-full')}
+          >
+            Continuar com Discord
+          </Link>
+          <div className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-meow-deep/50">
+            <span className="h-px flex-1 bg-meow-red/20" />
+            ou
+            <span className="h-px flex-1 bg-meow-red/20" />
+          </div>
           <form className="grid gap-4" onSubmit={handleSubmit}>
             <FormField label="E-mail" htmlFor="email" error={errors.email}>
               <Input

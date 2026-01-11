@@ -364,6 +364,10 @@ export class AuthService {
     };
   }
 
+  async issueTokensForUser(user: User, meta: AuthRequestMeta): Promise<AuthResponse> {
+    return this.issueTokens(user, meta);
+  }
+
   private async issueTokens(user: User, meta: AuthRequestMeta): Promise<AuthResponse> {
     const refreshTtlSeconds = this.getRefreshTtlSeconds();
     const expiresAt = new Date(Date.now() + refreshTtlSeconds * 1000);

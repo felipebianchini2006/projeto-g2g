@@ -22,4 +22,7 @@ export const envSchema = Joi.object({
   EFI_WEBHOOK_SKIP_MTLS_CHECKING: Joi.string().valid('true', 'false').default('false'),
   SETTLEMENT_MODE: Joi.string().valid('cashout', 'split').default('cashout'),
   SETTLEMENT_RELEASE_DELAY_HOURS: Joi.number().integer().min(0).default(0),
+  DISCORD_CLIENT_ID: Joi.string().required(),
+  DISCORD_CLIENT_SECRET: Joi.string().required(),
+  DISCORD_REDIRECT_URI: Joi.string().required(),
 });

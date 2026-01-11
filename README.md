@@ -39,6 +39,8 @@ Para apontar o frontend para a API local, ajuste o `.env.local`:
 
 - `NEXT_PUBLIC_APP_URL=http://localhost:3000`
 - `NEXT_PUBLIC_API_URL=http://localhost:3001`
+- `DISCORD_CLIENT_ID=...`
+- `DISCORD_REDIRECT_URI=http://localhost:3000/api/auth/discord/callback`
 
 Para acessar o dashboard placeholder, use `/login` e clique em "Entrar como demo",
 ou acesse `/dashboard?dev=1` uma vez para gravar o cookie de bypass local.
@@ -93,6 +95,14 @@ Variaveis esperadas na API:
 - `EFI_WEBHOOK_SKIP_MTLS_CHECKING=false`
 - `SETTLEMENT_MODE=cashout`
 - `SETTLEMENT_RELEASE_DELAY_HOURS=0`
+- `DISCORD_CLIENT_ID=...`
+- `DISCORD_CLIENT_SECRET=...`
+- `DISCORD_REDIRECT_URI=http://localhost:3000/api/auth/discord/callback`
+
+Discord OAuth:
+
+- No Discord Developer Portal, configure o Redirect URL para apontar para
+  `DISCORD_REDIRECT_URI` (ex: `http://localhost:3000/api/auth/discord/callback`).
 
 ## Escrow operacional
 

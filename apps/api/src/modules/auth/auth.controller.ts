@@ -15,8 +15,10 @@ import type { Request } from 'express';
 
 import type { AuthRequestMeta, JwtPayload } from './auth.types';
 import { AuthService } from './auth.service';
+import { DiscordAuthService } from './discord-auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { DiscordExchangeDto } from './dto/discord-exchange.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { LogoutDto } from './dto/logout.dto';
@@ -29,7 +31,10 @@ type AuthenticatedRequest = Request & { user?: JwtPayload };
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly discordAuthService: DiscordAuthService,
+  ) {}
 
   @Post('register')
   @UseGuards(ThrottlerGuard)
@@ -44,6 +49,18 @@ export class AuthController {
   @HttpCode(200)
   login(@Body() dto: LoginDto, @Req() request: Request) {
     return this.authService.login(dto, this.getRequestMeta(request));
+  }
+
+  @Post('discord/exchange')
+  @UseGuards(ThrottlerGuard)
+  @Throttle(AUTH_THROTTLE)
+  @HttpCode(200)
+  exchangeDiscord(@Body() dto: DiscordExchangeDto, @Req() request: Request) {
+    return this.discordAuthService.exchangeCodeForSession(
+      dto.code,
+      dto.redirectUri,
+      this.getRequestMeta(request),
+    );
   }
 
   @Post('refresh')

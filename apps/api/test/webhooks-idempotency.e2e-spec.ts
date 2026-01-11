@@ -23,7 +23,10 @@ describe('Webhooks idempotency (e2e)', () => {
   const queueMock = {
     opts: {
       connection: {
-        url: process.env['E2E_REDIS_URL'] ?? 'redis://localhost:6380',
+        url:
+          process.env['E2E_REDIS_URL'] ??
+          process.env['REDIS_URL'] ??
+          'redis://localhost:6379',
       },
     },
     add: jest.fn(
@@ -53,8 +56,12 @@ describe('Webhooks idempotency (e2e)', () => {
     process.env['REFRESH_TTL'] = '3600';
     process.env['DATABASE_URL'] =
       process.env['E2E_DATABASE_URL'] ??
-      'postgresql://postgres:123456@localhost:5433/projeto_g2g_test';
-    process.env['REDIS_URL'] = process.env['E2E_REDIS_URL'] ?? 'redis://localhost:6380';
+      process.env['DATABASE_URL'] ??
+      'postgresql://postgres:123456@localhost:5432/projeto_g2g';
+    process.env['REDIS_URL'] =
+      process.env['E2E_REDIS_URL'] ??
+      process.env['REDIS_URL'] ??
+      'redis://localhost:6379';
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
