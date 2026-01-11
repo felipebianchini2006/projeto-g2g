@@ -104,8 +104,8 @@ export type DeliveryEvidenceResponse = {
   evidence: DeliveryEvidence[];
 };
 
-const authHeaders = (token: string | null) =>
-  token ? { Authorization: `Bearer ${token}` } : {};
+const authHeaders = (token: string | null): HeadersInit | undefined =>
+  token ? { Authorization: `Bearer ${token}` } : undefined;
 
 export const ordersApi = {
   checkout: (token: string | null, listingId: string, quantity = 1) =>

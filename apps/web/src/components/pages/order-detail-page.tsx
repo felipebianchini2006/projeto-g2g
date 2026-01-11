@@ -414,7 +414,8 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
                       </p>
                     </div>
                     <span className="text-sm font-semibold text-meow-charcoal">
-                      {formatCurrency(item.unitPriceCents, state.order.currency)} x {item.quantity}
+                      {formatCurrency(item.unitPriceCents, state.order?.currency ?? 'BRL')} x{' '}
+                      {item.quantity}
                     </span>
                   </div>
                 ))}
