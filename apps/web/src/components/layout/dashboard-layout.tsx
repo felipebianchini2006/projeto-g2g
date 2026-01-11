@@ -6,6 +6,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import {
   BadgeDollarSign,
   BadgePercent,
+  BanknoteArrowUp,
   Bell,
   ChevronDown,
   Database,
@@ -19,15 +20,18 @@ import {
   LogOut,
   Megaphone,
   Menu,
+  NotebookPen,
   Receipt,
   Settings,
   Settings2,
   ShieldAlert,
   ShieldCheck,
+  ShoppingBasket,
   ShoppingBag,
   Sparkles,
   SlidersHorizontal,
   Store,
+  Ticket,
   UserRound,
   Users,
   Wallet,
@@ -40,6 +44,7 @@ import { useAuth } from '../auth/auth-provider';
 import { SiteHeader } from './site-header';
 import { buttonVariants } from '../ui/button';
 import { Card } from '../ui/card';
+import { SupportChatFab } from '../support/support-chat-fab';
 
 type MenuItem = {
   label: string;
@@ -185,12 +190,12 @@ const adminNav = (logout: () => Promise<void>, goHome: () => void): MenuSection[
 
 const iconMap: Record<string, React.ReactNode> = {
   'Visao geral': <LayoutGrid size={16} aria-hidden />,
-  'Minhas compras': <ShoppingBag size={16} aria-hidden />,
+  'Minhas compras': <ShoppingBasket size={16} aria-hidden />,
   Favoritos: <Heart size={16} aria-hidden />,
   Carteira: <Wallet size={16} aria-hidden />,
-  'Meus tickets': <LifeBuoy size={16} aria-hidden />,
-  'Meus anuncios': <Megaphone size={16} aria-hidden />,
-  'Minhas vendas': <BadgeDollarSign size={16} aria-hidden />,
+  'Meus tickets': <Ticket size={16} aria-hidden />,
+  'Meus anuncios': <NotebookPen size={16} aria-hidden />,
+  'Minhas vendas': <BanknoteArrowUp size={16} aria-hidden />,
   'Painel do vendedor': <Store size={16} aria-hidden />,
   'Minha conta': <UserRound size={16} aria-hidden />,
   'Meus dados': <UserRound size={16} aria-hidden />,
@@ -609,6 +614,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             </div>
           </div>
         ) : null}
+        <SupportChatFab />
       </div>
     </DashboardLayoutContext.Provider>
   );
