@@ -107,6 +107,41 @@ html[data-theme='dark'] .text-meow-muted {
     color: var(--muted) !important;
 }
 
+html[data-theme='dark'] .bg-meow-gradient {
+    background: radial-gradient(circle at top, #1c1217 0%, #141015 55%, #0f0b0e 100%) !important;
+}
+
+html[data-theme='dark'] [class*="text-meow-charcoal/"] {
+    color: var(--charcoal) !important;
+}
+
+html[data-theme='dark'] [class~="bg-slate-50"] {
+    background-color: var(--surface-muted) !important;
+}
+
+html[data-theme='dark'] [class~="bg-slate-100"],
+html[data-theme='dark'] [class~="bg-slate-200"] {
+    background-color: var(--surface-soft) !important;
+}
+
+html[data-theme='dark'] [class~="border-slate-100"],
+html[data-theme='dark'] [class~="border-slate-200"],
+html[data-theme='dark'] [class~="border-slate-300"] {
+    border-color: var(--border-soft) !important;
+}
+
+html[data-theme='dark'] [class~="text-slate-900"],
+html[data-theme='dark'] [class~="text-slate-800"],
+html[data-theme='dark'] [class~="text-slate-700"] {
+    color: var(--charcoal) !important;
+}
+
+html[data-theme='dark'] [class~="text-slate-600"],
+html[data-theme='dark'] [class~="text-slate-500"],
+html[data-theme='dark'] [class~="text-slate-400"] {
+    color: var(--muted) !important;
+}
+
 html[data-theme='dark'] .auth-shell,
 html[data-theme='dark'] .dashboard-shell {
     background: radial-gradient(circle at top, #1c1217 0%, #141015 55%, #0f0b0e 100%);
