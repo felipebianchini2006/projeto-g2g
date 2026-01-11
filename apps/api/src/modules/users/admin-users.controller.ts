@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  Patch,
   Post,
   Query,
   Req,
@@ -17,6 +18,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { UserBlockDto } from './dto/user-block.dto';
+import { UserUpdateDto } from './dto/user-update.dto';
 import { UsersQueryDto } from './dto/users-query.dto';
 import { UsersService } from './users.service';
 
@@ -45,6 +47,17 @@ export class AdminUsersController {
     const adminId = this.getUserId(req);
     const meta = this.getRequestMeta(req);
     return this.usersService.unblockUser(userId, adminId, meta);
+  }
+
+  @Patch(':id')
+  update(
+    @Req() req: AuthenticatedRequest,
+    @Param('id') userId: string,
+    @Body() dto: UserUpdateDto,
+  ) {
+    const adminId = this.getUserId(req);
+    const meta = this.getRequestMeta(req);
+    return this.usersService.updateUser(userId, adminId, dto, meta);
   }
 
   private getUserId(request: AuthenticatedRequest) {

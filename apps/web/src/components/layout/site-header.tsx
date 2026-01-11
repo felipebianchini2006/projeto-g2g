@@ -7,12 +7,9 @@ import {
   Bell,
   ChevronDown,
   Menu,
-  MessageCircle,
   Moon,
   Search,
-  ShoppingBag,
   ShoppingCart,
-  Ticket,
   User,
 } from 'lucide-react';
 
@@ -50,6 +47,7 @@ export const SiteHeader = () => {
   const categoriesRef = useRef<HTMLDivElement | null>(null);
   const notificationsRef = useRef<HTMLDivElement | null>(null);
   const cartRef = useRef<HTMLDivElement | null>(null);
+  const notificationsBusyRef = useRef(false);
 
   const displayName = useMemo(() => {
     if (!user?.email) {
@@ -166,32 +164,32 @@ export const SiteHeader = () => {
   }, [darkMode]);
 
   useEffect(() => {
-    if (!notificationsOpen || notificationsStatus !== 'idle') {
+    if (!notificationsOpen) {
       return;
     }
-    let active = true;
-    const load = async () => {
-      if (!accessToken) {
-        setNotificationsStatus('ready');
-        return;
-      }
-      setNotificationsStatus('loading');
-      const data = await notificationsApi.listNotifications(accessToken, { take: 5 });
-      if (!active) {
-        return;
-      }
-      setNotifications(data);
+    if (!accessToken) {
+      setNotifications([]);
       setNotificationsStatus('ready');
-    };
-    load().catch(() => {
-      if (active) {
+      return;
+    }
+    if (notificationsBusyRef.current) {
+      return;
+    }
+    notificationsBusyRef.current = true;
+    setNotificationsStatus('loading');
+    notificationsApi
+      .listNotifications(accessToken, { take: 4 })
+      .then((data) => {
+        setNotifications(data);
+      })
+      .catch(() => {
+        setNotifications([]);
+      })
+      .finally(() => {
+        notificationsBusyRef.current = false;
         setNotificationsStatus('ready');
-      }
-    });
-    return () => {
-      active = false;
-    };
-  }, [notificationsOpen, notificationsStatus, accessToken]);
+      });
+  }, [notificationsOpen, accessToken]);
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
@@ -281,9 +279,6 @@ export const SiteHeader = () => {
               alt="Meoww Games"
               className="h-10 w-auto"
             />
-            <span className="font-display text-2xl font-black text-meow-charcoal">
-              Meoww Games
-            </span>
           </Link>
 
           <div className="flex w-full items-center gap-3 rounded-full border border-meow-red/20 bg-meow-cream/80 px-4 py-2 shadow-[0_10px_24px_rgba(216,107,149,0.12)] md:max-w-[520px]">
@@ -412,29 +407,47 @@ export const SiteHeader = () => {
               </button>
               {notificationsOpen ? (
                 <div className="absolute right-0 top-full z-50 mt-2 w-[340px] overflow-hidden rounded-2xl border border-meow-red/20 bg-white shadow-[0_18px_45px_rgba(64,37,50,0.16)]">
-                  <div className="flex">
-                    <div className="flex w-12 flex-col items-center gap-4 border-r border-meow-red/20 py-5 text-meow-muted">
-                      <Bell size={16} aria-hidden />
-                      <ShoppingBag size={16} aria-hidden />
-                      <Ticket size={16} aria-hidden />
-                      <MessageCircle size={16} aria-hidden />
-                    </div>
-                    <div className="flex-1">
-                      <div className="p-5 text-sm text-meow-muted">
-                        {notificationsStatus === 'loading'
-                          ? 'Carregando notificacoes...'
-                          : notifications.length
-                            ? notifications[0].title
-                            : 'Nenhuma notificacao.'}
+                  <div className="flex items-center justify-between border-b border-meow-red/20 px-4 py-3">
+                    <span className="text-sm font-semibold text-meow-charcoal">Notificacoes</span>
+                    <Link
+                      href="/central-de-notificacoes"
+                      className="text-[11px] font-semibold uppercase tracking-[0.4px] text-meow-deep"
+                      onClick={closeAll}
+                    >
+                      Ver todas
+                    </Link>
+                  </div>
+                  <div className="max-h-[320px] overflow-y-auto p-4">
+                    {notificationsStatus === 'loading' ? (
+                      <div className="text-sm text-meow-muted">
+                        Carregando notificacoes...
                       </div>
-                      <Link
-                        href="/central-de-notificacoes"
-                        className="block border-t border-meow-red/20 px-4 py-3 text-center text-xs font-semibold text-meow-deep"
-                        onClick={closeAll}
-                      >
-                        Ver central de notificacoes
-                      </Link>
-                    </div>
+                    ) : null}
+                    {notificationsStatus !== 'loading' && notifications.length === 0 ? (
+                      <div className="text-sm text-meow-muted">
+                        Nenhuma notificacao.
+                      </div>
+                    ) : null}
+                    {notifications.length ? (
+                      <ul className="grid gap-3">
+                        {notifications.map((notification) => (
+                          <li
+                            key={notification.id}
+                            className="rounded-xl border border-meow-red/10 bg-meow-cream/40 px-3 py-2"
+                          >
+                            <p className="text-xs font-semibold text-meow-charcoal">
+                              {notification.title}
+                            </p>
+                            <p className="mt-1 text-[11px] text-meow-muted">
+                              {notification.body}
+                            </p>
+                            <span className="mt-1 block text-[10px] text-meow-muted">
+                              {new Date(notification.createdAt).toLocaleString('pt-BR')}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
                   </div>
                 </div>
               ) : null}

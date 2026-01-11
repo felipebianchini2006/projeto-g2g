@@ -29,6 +29,11 @@ export type AdminUsersQuery = {
   take?: number;
 };
 
+export type AdminUserUpdatePayload = {
+  email?: string;
+  role?: AdminUserRole;
+};
+
 const authHeaders = (token: string | null) =>
   token ? { Authorization: `Bearer ${token}` } : {};
 
@@ -73,5 +78,12 @@ export const adminUsersApi = {
     apiFetch<AdminUser>(`/admin/users/${userId}/unblock`, {
       method: 'POST',
       headers: authHeaders(token),
+    }),
+
+  updateUser: (token: string | null, userId: string, payload: AdminUserUpdatePayload) =>
+    apiFetch<AdminUser>(`/admin/users/${userId}`, {
+      method: 'PATCH',
+      headers: authHeaders(token),
+      body: JSON.stringify(payload),
     }),
 };

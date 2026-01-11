@@ -3,6 +3,7 @@ import { AuditAction, Prisma } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { UserBlockDto } from './dto/user-block.dto';
+import { UserUpdateDto } from './dto/user-update.dto';
 import { UsersQueryDto } from './dto/users-query.dto';
 
 type AuditMeta = {
@@ -150,6 +151,76 @@ export class UsersService {
               blockedAt: user.blockedAt,
               blockedReason: user.blockedReason,
               role: user.role,
+            },
+          },
+        },
+      });
+
+      return updated;
+    });
+  }
+
+  async updateUser(userId: string, adminId: string, dto: UserUpdateDto, meta: AuditMeta) {
+    if (!dto.email && !dto.role) {
+      throw new BadRequestException('No fields to update.');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const current = await tx.user.findUnique({
+        where: { id: userId },
+        select: USER_SELECT,
+      });
+
+      if (!current) {
+        throw new NotFoundException('User not found.');
+      }
+
+      const data: Prisma.UserUpdateInput = {};
+      if (dto.email && dto.email !== current.email) {
+        data.email = dto.email;
+      }
+      if (dto.role && dto.role !== current.role) {
+        data.role = dto.role;
+      }
+
+      if (Object.keys(data).length === 0) {
+        return current;
+      }
+
+      let updated: typeof current;
+      try {
+        updated = await tx.user.update({
+          where: { id: userId },
+          data,
+          select: USER_SELECT,
+        });
+      } catch (error) {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === 'P2002'
+        ) {
+          throw new BadRequestException('Email ja cadastrado.');
+        }
+        throw error;
+      }
+
+      await tx.auditLog.create({
+        data: {
+          adminId,
+          action: AuditAction.PERMISSION_CHANGE,
+          entityType: 'user',
+          entityId: userId,
+          ip: meta.ip,
+          userAgent: meta.userAgent,
+          payload: {
+            action: 'update',
+            previous: {
+              email: current.email,
+              role: current.role,
+            },
+            next: {
+              email: updated.email,
+              role: updated.role,
             },
           },
         },

@@ -121,6 +121,7 @@
 | GET /admin/settings | `/admin/parametros` | Parametros |
 | PUT /admin/settings | `/admin/parametros` | Salvar parametros |
 | GET /admin/users | `/admin/usuarios` | Lista de usuarios |
+| PATCH /admin/users/:id | `/admin/usuarios` | Editar usuario |
 | POST /admin/users/:id/block | `/admin/usuarios` | Bloquear usuario |
 | POST /admin/users/:id/unblock | `/admin/usuarios` | Desbloquear usuario |
 

@@ -515,6 +515,7 @@ Response: PlatformSetting
 
 ### Users (ADMIN)
 - GET /admin/users?role=SELLER&blocked=false&search=gmail&skip=0&take=50
+- PATCH /admin/users/:id
 - POST /admin/users/:id/block
 - POST /admin/users/:id/unblock
 

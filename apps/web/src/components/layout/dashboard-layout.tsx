@@ -98,7 +98,6 @@ const accountNav = (
         { label: 'Favoritos', href: '/conta/favoritos' },
         { label: 'Carteira', href: '/conta/carteira' },
         { label: 'Meus tickets', href: '/conta/tickets' },
-        { label: 'Configuracoes', href: '/conta/config' },
       ],
     },
   ];
@@ -117,6 +116,10 @@ const accountNav = (
   sections.push({
     title: 'Conta',
     items: [
+      { label: 'Configuracoes', href: '/conta/config' },
+      { label: 'Meus dados', href: '/conta/meus-dados' },
+      { label: 'Seguranca', href: '/conta/seguranca' },
+      { label: 'Sessoes', href: '/conta/sessoes' },
       {
         label: 'Sair da conta',
         tone: 'danger',
@@ -424,7 +427,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               </span>
               <button
                 type="button"
-                className={buttonVariants({ variant: 'secondary', size: 'icon' })}
+                className={cn(buttonVariants({ variant: 'secondary', size: 'icon' }), 'lg:hidden')}
                 aria-label="Abrir menu"
                 onClick={() => setSidebarOpen(true)}
               >

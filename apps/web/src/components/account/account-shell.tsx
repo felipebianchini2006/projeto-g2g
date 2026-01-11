@@ -76,9 +76,6 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
           { label: 'Favoritos', href: '/conta/favoritos' },
           { label: 'Carteira', href: '/conta/carteira' },
           { label: 'Meus tickets', href: '/conta/tickets' },
-          { label: 'Seguranca', href: '/conta/seguranca' },
-          { label: 'Sessoes', href: '/conta/sessoes' },
-          { label: 'Configuracoes', href: '/conta/config' },
         ],
       },
     ];
@@ -97,6 +94,10 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
     sections.push({
       title: 'Conta',
       items: [
+        { label: 'Configuracoes', href: '/conta/config' },
+        { label: 'Meus dados', href: '/conta/meus-dados' },
+        { label: 'Seguranca', href: '/conta/seguranca' },
+        { label: 'Sessoes', href: '/conta/sessoes' },
         {
           label: 'Sair da conta',
           tone: 'danger',
@@ -241,6 +242,7 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
                         Favoritos: <Heart size={16} aria-hidden />,
                         Carteira: <CreditCard size={16} aria-hidden />,
                         'Meus tickets': <Ticket size={16} aria-hidden />,
+                        'Meus dados': <User size={16} aria-hidden />,
                         Configuracoes: <Settings size={16} aria-hidden />,
                         'Painel do vendedor': <LayoutGrid size={16} aria-hidden />,
                         'Meus anuncios': <ShoppingBag size={16} aria-hidden />,

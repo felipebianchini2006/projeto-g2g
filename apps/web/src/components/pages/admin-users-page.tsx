@@ -8,6 +8,7 @@ import {
   adminUsersApi,
   type AdminUser,
   type AdminUserRole,
+  type AdminUserUpdatePayload,
 } from '../../lib/admin-users-api';
 import { useAuth } from '../auth/auth-provider';
 import { AdminShell } from '../admin/admin-shell';
@@ -30,6 +31,10 @@ export const AdminUsersContent = () => {
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<{ email: string; role: AdminUserRole }>({
+    email: '',
+    role: 'USER',
+  });
 
   const handleError = (error: unknown, fallback: string) => {
     if (error instanceof ApiClientError) {
@@ -87,18 +92,67 @@ export const AdminUsersContent = () => {
         : blockedFilter === 'blocked'
           ? Boolean(updated.blockedAt)
           : !updated.blockedAt;
+    const matchesRoleFilter = roleFilter === 'all' ? true : updated.role === roleFilter;
+    const trimmedSearch = search.trim().toLowerCase();
+    const matchesSearch = trimmedSearch.length === 0
+      ? true
+      : updated.email.toLowerCase().includes(trimmedSearch);
+    const matchesFilters = matchesBlockedFilter && matchesRoleFilter && matchesSearch;
 
     setUsers((prev) => {
-      if (!matchesBlockedFilter) {
+      if (!matchesFilters) {
         return prev.filter((item) => item.id !== updated.id);
       }
       return prev.map((item) => (item.id === updated.id ? updated : item));
     });
 
-    if (!matchesBlockedFilter) {
+    if (!matchesFilters) {
       setSelectedUser(null);
     } else {
       setSelectedUser(updated);
+    }
+  };
+
+  useEffect(() => {
+    if (!selectedUser) {
+      setEditForm({ email: '', role: 'USER' });
+      return;
+    }
+    setEditForm({
+      email: selectedUser.email,
+      role: selectedUser.role,
+    });
+  }, [selectedUser]);
+
+  const handleUpdate = async () => {
+    if (!accessToken || !selectedUser) {
+      return;
+    }
+    const email = editForm.email.trim();
+    const payload: AdminUserUpdatePayload = {};
+    if (email && email !== selectedUser.email) {
+      payload.email = email;
+    }
+    if (editForm.role !== selectedUser.role) {
+      payload.role = editForm.role;
+    }
+    if (Object.keys(payload).length === 0) {
+      setError(null);
+      setNotice('Nenhuma alteracao para salvar.');
+      return;
+    }
+
+    setBusyAction('update');
+    setError(null);
+    setNotice(null);
+    try {
+      const updated = await adminUsersApi.updateUser(accessToken, selectedUser.id, payload);
+      applyUserUpdate(updated);
+      setNotice('Usuario atualizado.');
+    } catch (error) {
+      handleError(error, 'Nao foi possivel atualizar o usuario.');
+    } finally {
+      setBusyAction(null);
     }
   };
 
@@ -298,79 +352,143 @@ export const AdminUsersContent = () => {
 
         <div className="order-card">
           <div className="panel-header">
-            <h2>Detalhes</h2>
+            <div>
+              <h2>Menu do usuario</h2>
+              {selectedUser ? (
+                <p className="text-xs text-meow-muted">{selectedUser.email}</p>
+              ) : null}
+            </div>
           </div>
           {!selectedUser ? (
             <div className="state-card">Selecione um usuario.</div>
           ) : (
             <>
-              <div className="ticket-summary">
-                <div>
-                  <span className="summary-label">Status</span>
-                  <strong>{selectedStatus}</strong>
-                </div>
-                <div>
-                  <span className="summary-label">Role</span>
-                  <strong>{roleLabel[selectedUser.role] ?? selectedUser.role}</strong>
-                </div>
-                <div>
-                  <span className="summary-label">Criado</span>
-                  <strong>
-                    {new Date(selectedUser.createdAt).toLocaleDateString('pt-BR')}
-                  </strong>
-                </div>
-                <div>
-                  <span className="summary-label">Atualizado</span>
-                  <strong>
-                    {new Date(selectedUser.updatedAt).toLocaleDateString('pt-BR')}
-                  </strong>
-                </div>
+              <div className="seller-form">
+                <label className="form-field">
+                  Email
+                  <input
+                    className="form-input"
+                    value={editForm.email}
+                    onChange={(event) =>
+                      setEditForm((prev) => ({ ...prev, email: event.target.value }))
+                    }
+                  />
+                </label>
+                <label className="form-field">
+                  Role
+                  <select
+                    className="form-input"
+                    value={editForm.role}
+                    onChange={(event) =>
+                      setEditForm((prev) => ({
+                        ...prev,
+                        role: event.target.value as AdminUserRole,
+                      }))
+                    }
+                  >
+                    <option value="USER">Buyer</option>
+                    <option value="SELLER">Seller</option>
+                    <option value="ADMIN">Admin</option>
+                  </select>
+                </label>
               </div>
 
-              {selectedUser.blockedReason ? (
-                <div className="state-card info">{selectedUser.blockedReason}</div>
-              ) : null}
+              <div className="form-actions">
+                <button
+                  className="primary-button"
+                  type="button"
+                  onClick={handleUpdate}
+                  disabled={busyAction === 'update'}
+                >
+                  {busyAction === 'update' ? 'Salvando...' : 'Salvar alteracoes'}
+                </button>
+                <button
+                  className="ghost-button"
+                  type="button"
+                  onClick={() =>
+                    setEditForm({
+                      email: selectedUser.email,
+                      role: selectedUser.role,
+                    })
+                  }
+                  disabled={busyAction === 'update'}
+                >
+                  Descartar
+                </button>
+              </div>
 
-              {selectedUser.payoutBlockedAt ? (
-                <div className="state-card info">
-                  Payout bloqueado: {selectedUser.payoutBlockedReason ?? 'Sem motivo.'}
+              <div className="seller-section">
+                <h3 className="text-sm font-bold text-meow-charcoal">Detalhes</h3>
+                <div className="ticket-summary">
+                  <div>
+                    <span className="summary-label">Status</span>
+                    <strong>{selectedStatus}</strong>
+                  </div>
+                  <div>
+                    <span className="summary-label">Role</span>
+                    <strong>{roleLabel[selectedUser.role] ?? selectedUser.role}</strong>
+                  </div>
+                  <div>
+                    <span className="summary-label">Criado</span>
+                    <strong>
+                      {new Date(selectedUser.createdAt).toLocaleDateString('pt-BR')}
+                    </strong>
+                  </div>
+                  <div>
+                    <span className="summary-label">Atualizado</span>
+                    <strong>
+                      {new Date(selectedUser.updatedAt).toLocaleDateString('pt-BR')}
+                    </strong>
+                  </div>
                 </div>
-              ) : null}
 
-              {!selectedUser.blockedAt ? (
-                <>
-                  <label className="form-field">
-                    Motivo do bloqueio
-                    <textarea
-                      className="form-textarea"
-                      rows={3}
-                      value={actionReason}
-                      onChange={(event) => setActionReason(event.target.value)}
-                    />
-                  </label>
+                {selectedUser.blockedReason ? (
+                  <div className="state-card info">{selectedUser.blockedReason}</div>
+                ) : null}
+
+                {selectedUser.payoutBlockedAt ? (
+                  <div className="state-card info">
+                    Payout bloqueado: {selectedUser.payoutBlockedReason ?? 'Sem motivo.'}
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="seller-section">
+                {!selectedUser.blockedAt ? (
+                  <>
+                    <label className="form-field">
+                      Motivo do bloqueio
+                      <textarea
+                        className="form-textarea"
+                        rows={3}
+                        value={actionReason}
+                        onChange={(event) => setActionReason(event.target.value)}
+                      />
+                    </label>
+                    <div className="order-actions">
+                      <button
+                        className="primary-button"
+                        type="button"
+                        onClick={handleBlock}
+                        disabled={!actionReason.trim() || busyAction === 'block'}
+                      >
+                        {busyAction === 'block' ? 'Bloqueando...' : 'Bloquear'}
+                      </button>
+                    </div>
+                  </>
+                ) : (
                   <div className="order-actions">
                     <button
                       className="primary-button"
                       type="button"
-                      onClick={handleBlock}
-                      disabled={!actionReason.trim() || busyAction === 'block'}
+                      onClick={handleUnblock}
+                      disabled={busyAction === 'unblock'}
                     >
-                      {busyAction === 'block' ? 'Bloqueando...' : 'Bloquear'}
+                      {busyAction === 'unblock' ? 'Desbloqueando...' : 'Desbloquear'}
                     </button>
                   </div>
-                </>
-              ) : (
-                <div className="order-actions">
-                  <button
-                    className="primary-button"
-                    type="button"
-                    onClick={handleUnblock}
-                    disabled={busyAction === 'unblock'}
-                  >
-                    {busyAction === 'unblock' ? 'Desbloqueando...' : 'Desbloquear'}
-                  </button>
-                </div>
-              )}
+                )}
+              </div>
             </>
           )}
         </div>
