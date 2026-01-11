@@ -17,6 +17,17 @@ enum OAuthProvider {
   DISCORD
 }
 
+enum SupportChatStatus {
+  OPEN
+  CLOSED
+}
+
+enum SupportChatRole {
+  USER
+  AI
+  SYSTEM
+}
+
 enum ListingStatus {
   DRAFT
   PENDING
@@ -178,6 +189,7 @@ model User {
   orderEvents         OrderEvent[]    @relation("OrderEventUser")
   deliveryEvidenceCreated DeliveryEvidence[] @relation("DeliveryEvidenceCreator")
   oauthAccounts       OAuthAccount[]
+  supportChatSessions SupportChatSession[]
 
   @@map("users")
 }
@@ -197,6 +209,33 @@ model OAuthAccount {
   @@unique([provider, providerUserId])
   @@index([userId])
   @@map("oauth_accounts")
+}
+
+model SupportChatSession {
+  id        String           @id @default(uuid())
+  userId    String?
+  status    SupportChatStatus @default(OPEN)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  user     User?                @relation(fields: [userId], references: [id])
+  messages SupportChatMessage[]
+
+  @@index([userId])
+  @@map("support_chat_sessions")
+}
+
+model SupportChatMessage {
+  id        String          @id @default(uuid())
+  sessionId String
+  role      SupportChatRole
+  content   String
+  createdAt DateTime        @default(now())
+
+  session SupportChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+  @@map("support_chat_messages")
 }
 
 model Session {

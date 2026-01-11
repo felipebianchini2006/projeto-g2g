@@ -12,6 +12,9 @@ const ensureEnv = () => {
     'postgresql://postgres:123456@localhost:5432/projeto_g2g';
   process.env.REDIS_URL =
     process.env.E2E_REDIS_URL ?? process.env.REDIS_URL ?? 'redis://localhost:6379';
+  process.env.GEMINI_API_KEY = process.env.GEMINI_API_KEY ?? 'test-gemini-key';
+  process.env.GEMINI_MODEL = process.env.GEMINI_MODEL ?? 'gemini-2.5-flash';
+  process.env.SUPPORT_AI_ENABLED = process.env.SUPPORT_AI_ENABLED ?? 'true';
 };
 
 module.exports = async () => {

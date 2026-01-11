@@ -21,6 +21,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { UsersModule } from './modules/users/users.module';
 import { CatalogModule } from './modules/catalog/catalog.module';
+import { SupportChatModule } from './modules/support-chat/support-chat.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { CatalogModule } from './modules/catalog/catalog.module';
     UsersModule,
     WalletModule,
     WebhooksModule,
+    SupportChatModule,
   ],
 })
 export class AppModule {}

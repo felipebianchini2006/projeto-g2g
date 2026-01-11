@@ -85,6 +85,22 @@ export const AccountHelpContent = () => {
 
         <div className="rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
           <div className="flex items-center gap-3">
+            <MessageCircle className="text-meow-deep" size={20} />
+            <h2 className="text-base font-bold text-meow-charcoal">Chat com IA</h2>
+          </div>
+          <p className="mt-3 text-sm text-meow-muted">
+            Tire duvidas rapidas com nosso suporte automatizado.
+          </p>
+          <Link
+            href="/conta/ajuda/chat"
+            className="mt-4 inline-flex rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
+          >
+            Iniciar chat
+          </Link>
+        </div>
+
+        <div className="rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+          <div className="flex items-center gap-3">
             <Link2 className="text-meow-deep" size={20} />
             <h2 className="text-base font-bold text-meow-charcoal">Links uteis</h2>
           </div>

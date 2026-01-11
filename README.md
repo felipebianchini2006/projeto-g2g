@@ -98,6 +98,9 @@ Variaveis esperadas na API:
 - `DISCORD_CLIENT_ID=...`
 - `DISCORD_CLIENT_SECRET=...`
 - `DISCORD_REDIRECT_URI=http://localhost:3000/api/auth/discord/callback`
+- `GEMINI_API_KEY=...`
+- `GEMINI_MODEL=gemini-2.5-flash`
+- `SUPPORT_AI_ENABLED=true`
 
 Discord OAuth:
 
