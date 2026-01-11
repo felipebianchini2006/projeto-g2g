@@ -2,6 +2,13 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import {
+  BadgePercent,
+  CreditCard,
+  Package,
+  ShieldCheck,
+  Truck,
+} from 'lucide-react';
 
 import { fetchPublicCategories, type CatalogCategory } from '../../lib/marketplace-public';
 
@@ -37,6 +44,50 @@ export const HomeContent = () => {
               src="/assets/meoow/banner.png"
               alt="Meoww Games"
             />
+          </div>
+        </div>
+      </section>
+
+      <section className="pb-6">
+        <div className="mx-auto w-full max-w-[1280px] px-6">
+          <div className="grid gap-4 rounded-[28px] border border-meow-red/10 bg-white px-6 py-5 shadow-[0_14px_34px_rgba(216,107,149,0.12)] md:grid-cols-5">
+            {[
+              {
+                icon: Truck,
+                title: 'Frete Grátis',
+                description: 'acima de R$349',
+              },
+              {
+                icon: BadgePercent,
+                title: 'Descontos',
+                description: 'em pagamentos à vista',
+              },
+              {
+                icon: Package,
+                title: 'Entrega local',
+                description: 'receba hoje',
+              },
+              {
+                icon: CreditCard,
+                title: 'Pague com cartão',
+                description: 'em até 12x s/ juros',
+              },
+              {
+                icon: ShieldCheck,
+                title: 'Segurança',
+                description: 'loja oficial',
+              },
+            ].map((item) => (
+              <div key={item.title} className="flex items-center gap-3">
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-meow-cream/70 text-meow-deep">
+                  <item.icon size={22} aria-hidden />
+                </span>
+                <div>
+                  <p className="text-sm font-bold text-meow-charcoal">{item.title}</p>
+                  <p className="text-xs text-meow-muted">{item.description}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
