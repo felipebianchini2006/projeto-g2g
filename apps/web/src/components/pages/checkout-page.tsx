@@ -34,6 +34,22 @@ const formatCurrency = (value: number, currency = 'BRL') =>
     maximumFractionDigits: 2,
   }).format(value / 100);
 
+const REFERRAL_COOKIE = 'g2g_ref_partner';
+
+const readCookieValue = (name: string) => {
+  if (typeof document === 'undefined') {
+    return null;
+  }
+  const entry = document.cookie
+    .split(';')
+    .map((item) => item.trim())
+    .find((item) => item.startsWith(`${name}=`));
+  if (!entry) {
+    return null;
+  }
+  return decodeURIComponent(entry.split('=')[1] ?? '').trim() || null;
+};
+
 export const CheckoutContent = ({ listingId }: { listingId: string }) => {
   const { user, accessToken, loading } = useAuth();
   const router = useRouter();
@@ -46,6 +62,9 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
   const [paymentState, setPaymentState] = useState<PaymentState>({ status: 'idle' });
   const [quantity, setQuantity] = useState(1);
   const [manualOrderStatus, setManualOrderStatus] = useState<string | null>(null);
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedDiscount, setAppliedDiscount] = useState(0);
+  const [referralSlug, setReferralSlug] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -118,12 +137,27 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
     };
   }, [listingId, cartItems]);
 
+  useEffect(() => {
+    setReferralSlug(readCookieValue(REFERRAL_COOKIE));
+  }, []);
+
+  useEffect(() => {
+    setAppliedDiscount(0);
+    setManualOrderStatus(null);
+    setPaymentState((prev) => (prev.status === 'ready' ? { status: 'idle' } : prev));
+  }, [couponCode, quantity]);
+
   const totalAmount = useMemo(() => {
     if (!listingState.listing) {
       return 0;
     }
     return listingState.listing.priceCents * quantity;
   }, [listingState.listing, quantity]);
+
+  const finalAmount = useMemo(
+    () => Math.max(totalAmount - appliedDiscount, 0),
+    [totalAmount, appliedDiscount],
+  );
 
   const checkoutBlockedReason = useMemo(() => {
     if (!listingState.listing) {
@@ -147,7 +181,11 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
     }
     setPaymentState({ status: 'loading' });
     try {
-      const data = await ordersApi.checkout(accessToken, listingId, quantity);
+      const data = await ordersApi.checkout(accessToken, listingId, quantity, {
+        couponCode: couponCode.trim() || undefined,
+        referralSlug: referralSlug ?? undefined,
+      });
+      setAppliedDiscount(data.order.attribution?.discountAppliedCents ?? 0);
       setPaymentState({ status: 'ready', data });
       router.push(`/conta/pedidos/${data.order.id}/pagamentos`);
     } catch (error) {
@@ -167,7 +205,11 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
     }
     setManualOrderStatus(null);
     try {
-      const order = await ordersApi.createOrder(accessToken, listingId, quantity);
+      const order = await ordersApi.createOrder(accessToken, listingId, quantity, {
+        couponCode: couponCode.trim() || undefined,
+        referralSlug: referralSlug ?? undefined,
+      });
+      setAppliedDiscount(order.attribution?.discountAppliedCents ?? 0);
       setManualOrderStatus('Pedido criado. Acompanhe na sua conta.');
       router.push(`/conta/pedidos/${order.id}`);
     } catch (error) {
@@ -258,10 +300,33 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                   />
                 </label>
 
+                <label className="grid gap-2 text-xs font-semibold text-meow-muted">
+                  Cupom de desconto
+                  <Input
+                    placeholder="Digite o cupom"
+                    value={couponCode}
+                    onChange={(event) => setCouponCode(event.target.value.toUpperCase())}
+                  />
+                </label>
+
                 <div className="flex items-center justify-between text-sm text-meow-muted">
-                  <span>Total</span>
-                  <strong className="text-lg text-meow-charcoal">
+                  <span>Subtotal</span>
+                  <strong className="text-meow-charcoal">
                     {formatCurrency(totalAmount, listingState.listing.currency)}
+                  </strong>
+                </div>
+
+                <div className="flex items-center justify-between text-sm text-meow-muted">
+                  <span>Desconto aplicado</span>
+                  <strong className="text-meow-charcoal">
+                    {formatCurrency(appliedDiscount, listingState.listing.currency)}
+                  </strong>
+                </div>
+
+                <div className="flex items-center justify-between text-sm text-meow-muted">
+                  <span>Total final</span>
+                  <strong className="text-lg text-meow-charcoal">
+                    {formatCurrency(finalAmount, listingState.listing.currency)}
                   </strong>
                 </div>
 

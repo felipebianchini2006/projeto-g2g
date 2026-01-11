@@ -73,6 +73,16 @@ Notas:
 6) OrdersProcessor agenda auto-complete se entrega AUTO.
 7) SettlementProcessor libera saldo apos COMPLETED (delay nas settings).
 
+## Parceiros, cupons e atribuicao
+- OrderAttribution e criado junto com o pedido e registra o total original, desconto aplicado e fee final.
+- Cupom: descontoBps ou descontoCents; o desconto aplicado e limitado ao platformFeeBaseCents (desconto sai do lucro).
+- platformFeeBaseCents = round(originalTotalCents * platformFeeBps / 10000).
+- platformFeeFinalCents = platformFeeBaseCents - discountAppliedCents (nunca negativo).
+- order.totalAmountCents = originalTotalCents - discountAppliedCents (valor pago pelo comprador).
+- Parceiro por cupom tem prioridade sobre link; sem cupom, usa referral slug se ativo.
+- Comissao do parceiro = round(platformFeeFinalCents * commissionBps / 10000).
+- Comissao e registrada no release (PartnerCommissionEvent EARNED) e revertida em refund (REVERSED).
+
 ## Jobs e filas
 - orders queue: expire-order, auto-complete-order
 - webhooks queue: processEfiWebhook

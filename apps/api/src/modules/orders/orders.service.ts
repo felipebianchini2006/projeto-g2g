@@ -11,6 +11,7 @@ import {
   ListingStatus,
   OrderEventType,
   OrderStatus,
+  OrderAttributionSource,
   NotificationType,
   Prisma,
   UserRole,
@@ -34,6 +35,9 @@ import {
   DeliveryEvidenceInputType,
 } from './dto/create-delivery-evidence.dto';
 import { MarkDeliveredDto } from './dto/mark-delivered.dto';
+import { CouponsService } from '../coupons/coupons.service';
+import { PartnersService } from '../partners/partners.service';
+import { calculateAttributionTotals } from './order-attribution.helpers';
 
 type OrderMeta = AuthRequestMeta & {
   source?: 'user' | 'system';
@@ -49,6 +53,8 @@ type PaymentConfirmationResult = {
   applied: boolean;
 };
 
+type CouponWithPartner = Prisma.CouponGetPayload<{ include: { partner: true } }>;
+
 @Injectable()
 export class OrdersService {
   constructor(
@@ -60,6 +66,8 @@ export class OrdersService {
     private readonly logger: AppLogger,
     private readonly emailQueue: EmailQueueService,
     private readonly settingsService: SettingsService,
+    private readonly couponsService: CouponsService,
+    private readonly partnersService: PartnersService,
   ) {}
 
   async createOrder(buyerId: string, dto: CreateOrderDto, meta: AuthRequestMeta) {
@@ -90,14 +98,58 @@ export class OrdersService {
         }
       }
 
+      const originalTotalCents = listing.priceCents * quantity;
+      const couponCode = dto.couponCode?.trim();
+      const referralSlug = dto.referralSlug?.trim();
+      let coupon: CouponWithPartner | null = null;
+      let partner: { id: string; commissionBps: number; active: boolean } | null = null;
+      let source: OrderAttributionSource = OrderAttributionSource.NONE;
+
+      if (couponCode) {
+        coupon = await this.couponsService.getValidCoupon(couponCode, tx);
+        source = OrderAttributionSource.COUPON;
+        if (coupon.partnerId && coupon.partner) {
+          partner = coupon.partner;
+        }
+        await this.couponsService.consumeCouponUsage(
+          { id: coupon.id, maxUses: coupon.maxUses },
+          tx,
+        );
+      } else if (referralSlug) {
+        partner = await this.partnersService.findActiveBySlug(referralSlug, tx);
+        if (partner) {
+          source = OrderAttributionSource.LINK;
+        }
+      }
+
+      const totals = calculateAttributionTotals({
+        originalTotalCents,
+        platformFeeBps: settings.platformFeeBps,
+        discountBps: coupon?.discountBps ?? null,
+        discountCents: coupon?.discountCents ?? null,
+        partnerCommissionBps: partner?.commissionBps ?? null,
+      });
+
       const order = await tx.order.create({
         data: {
           buyerId,
           sellerId: listing.sellerId,
           status: OrderStatus.CREATED,
-          totalAmountCents: listing.priceCents * quantity,
+          totalAmountCents: totals.finalTotalCents,
           currency: listing.currency,
           expiresAt,
+          attribution: {
+            create: {
+              partnerId: partner?.id ?? null,
+              couponId: coupon?.id ?? null,
+              source,
+              originalTotalCents,
+              discountAppliedCents: totals.discountAppliedCents,
+              platformFeeBaseCents: totals.platformFeeBaseCents,
+              platformFeeFinalCents: totals.platformFeeFinalCents,
+              partnerCommissionCents: totals.partnerCommissionCents,
+            },
+          },
           items: {
             create: [
               {
@@ -112,7 +164,7 @@ export class OrdersService {
             ],
           },
         },
-        include: { items: true },
+        include: { items: true, attribution: true },
       });
 
       await this.createEvent(
@@ -139,6 +191,7 @@ export class OrdersService {
       return {
         ...updated,
         items: order.items,
+        attribution: order.attribution,
       };
     });
 

@@ -82,6 +82,19 @@ Order (list/get):
   ]
 }
 
+OrderAttribution:
+{
+  "source": "COUPON",
+  "partnerId": "partner-uuid",
+  "couponId": "coupon-uuid",
+  "originalTotalCents": 10000,
+  "discountAppliedCents": 500,
+  "platformFeeBaseCents": 500,
+  "platformFeeFinalCents": 0,
+  "partnerCommissionCents": 0,
+  "createdAt": "2026-01-08T12:00:00.000Z"
+}
+
 Payment (Pix):
 {
   "id": "payment-uuid",
@@ -362,7 +375,7 @@ Response:
 
 Exemplo: criar order
 Request:
-{ "listingId": "listing-uuid", "quantity": 1 }
+{ "listingId": "listing-uuid", "quantity": 1, "couponCode": "CUPOM10", "referralSlug": "parceiro-x" }
 Response: Order
 
 Exemplo: cancelar order
@@ -376,7 +389,7 @@ Response: Order
 
 Exemplo: checkout
 Request:
-{ "listingId": "listing-uuid", "quantity": 1 }
+{ "listingId": "listing-uuid", "quantity": 1, "couponCode": "CUPOM10", "referralSlug": "parceiro-x" }
 Response:
 { "order": { ... }, "payment": { ... } }
 
@@ -523,6 +536,34 @@ Exemplo: bloquear usuario
 Request:
 { "reason": "Chargeback abuse" }
 Response: User summary (id/email/role/block fields)
+
+### Partners (ADMIN)
+- POST /admin/partners
+- GET /admin/partners
+- PATCH /admin/partners/:id
+- GET /admin/partners/:id/stats
+
+Exemplo: criar parceiro
+Request:
+{ "name": "Afiliado X", "slug": "afiliado-x", "commissionBps": 6500, "active": true }
+Response: Partner
+
+Exemplo: stats
+Response:
+{ "partnerId": "partner-uuid", "clicks": 12, "orders": 4, "commissionCents": 12345 }
+
+### Coupons (ADMIN)
+- POST /admin/coupons
+- GET /admin/coupons
+- PATCH /admin/coupons/:id
+
+Exemplo: criar cupom
+Request:
+{ "code": "CUPOM10", "discountBps": 500, "partnerId": "partner-uuid", "active": true }
+Response: Coupon
+
+### Partners (publico)
+- POST /partners/:slug/click
 
 ### Wallet (USER, SELLER ou ADMIN)
 - GET /wallet/summary

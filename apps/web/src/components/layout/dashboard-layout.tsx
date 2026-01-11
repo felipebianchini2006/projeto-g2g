@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import {
   BadgeDollarSign,
+  BadgePercent,
   Bell,
   ChevronDown,
   Database,
@@ -14,6 +15,7 @@ import {
   House,
   LayoutGrid,
   LifeBuoy,
+  Link2,
   LogOut,
   Megaphone,
   Menu,
@@ -152,6 +154,8 @@ const adminNav = (logout: () => Promise<void>, goHome: () => void): MenuSection[
       { label: 'Disputas', href: '/admin/disputas' },
       { label: 'Moderacao', href: '/admin/anuncios' },
       { label: 'Usuarios', href: '/admin/usuarios' },
+      { label: 'Parceiros', href: '/admin/parceiros' },
+      { label: 'Cupons', href: '/admin/cupons' },
       { label: 'Pedidos', href: '/admin/pedidos' },
       { label: 'Webhooks', href: '/admin/webhooks' },
       { label: 'Sistema', href: '/admin/sistema' },
@@ -200,6 +204,8 @@ const iconMap: Record<string, React.ReactNode> = {
   Disputas: <Gavel size={16} aria-hidden />,
   Moderacao: <ShieldAlert size={16} aria-hidden />,
   Usuarios: <Users size={16} aria-hidden />,
+  Parceiros: <Link2 size={16} aria-hidden />,
+  Cupons: <BadgePercent size={16} aria-hidden />,
   Pedidos: <Receipt size={16} aria-hidden />,
   Webhooks: <Webhook size={16} aria-hidden />,
   Sistema: <Settings2 size={16} aria-hidden />,

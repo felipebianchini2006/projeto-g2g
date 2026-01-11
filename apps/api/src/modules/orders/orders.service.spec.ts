@@ -15,6 +15,8 @@ import type { AppLogger } from '../logger/logger.service';
 import type { PrismaService } from '../prisma/prisma.service';
 import type { SettlementService } from '../settlement/settlement.service';
 import type { SettingsService } from '../settings/settings.service';
+import type { CouponsService } from '../coupons/coupons.service';
+import type { PartnersService } from '../partners/partners.service';
 import type { CreateDeliveryEvidenceDto } from './dto/create-delivery-evidence.dto';
 import { DeliveryEvidenceInputType } from './dto/create-delivery-evidence.dto';
 import type { MarkDeliveredDto } from './dto/mark-delivered.dto';
@@ -71,6 +73,11 @@ describe('OrdersService (manual delivery)', () => {
       { error: jest.fn() } as unknown as AppLogger,
       { enqueueEmail: jest.fn() } as unknown as EmailQueueService,
       { getSettings: jest.fn() } as unknown as SettingsService,
+      {
+        getValidCoupon: jest.fn(),
+        consumeCouponUsage: jest.fn(),
+      } as unknown as CouponsService,
+      { findActiveBySlug: jest.fn() } as unknown as PartnersService,
     );
 
     prismaService = prismaMock;

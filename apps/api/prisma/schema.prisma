@@ -28,6 +28,17 @@ enum SupportChatRole {
   SYSTEM
 }
 
+enum OrderAttributionSource {
+  LINK
+  COUPON
+  NONE
+}
+
+enum PartnerCommissionEventType {
+  EARNED
+  REVERSED
+}
+
 enum ListingStatus {
   DRAFT
   PENDING
@@ -192,6 +203,100 @@ model User {
   supportChatSessions SupportChatSession[]
 
   @@map("users")
+}
+
+model Partner {
+  id             String   @id @default(uuid())
+  name           String
+  slug           String   @unique
+  commissionBps  Int      @default(6500)
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  coupons             Coupon[]
+  attributions        OrderAttribution[]
+  clicks              PartnerClick[]
+  commissionEvents    PartnerCommissionEvent[]
+
+  @@index([active])
+  @@map("partners")
+}
+
+model Coupon {
+  id            String   @id @default(uuid())
+  code          String   @unique
+  partnerId     String?
+  active        Boolean  @default(true)
+  discountBps   Int?
+  discountCents Int?
+  startsAt      DateTime?
+  endsAt        DateTime?
+  maxUses       Int?
+  usesCount     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  partner      Partner?           @relation(fields: [partnerId], references: [id])
+  attributions OrderAttribution[]
+
+  @@index([partnerId])
+  @@index([active])
+  @@map("coupons")
+}
+
+model OrderAttribution {
+  id                    String                 @id @default(uuid())
+  orderId               String                 @unique
+  partnerId             String?
+  couponId              String?
+  source                OrderAttributionSource @default(NONE)
+  originalTotalCents    Int
+  discountAppliedCents  Int
+  platformFeeBaseCents  Int
+  platformFeeFinalCents Int
+  partnerCommissionCents Int
+  createdAt             DateTime               @default(now())
+
+  order    Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  partner  Partner? @relation(fields: [partnerId], references: [id])
+  coupon   Coupon?  @relation(fields: [couponId], references: [id])
+
+  @@index([partnerId])
+  @@index([couponId])
+  @@index([source])
+  @@map("order_attributions")
+}
+
+model PartnerClick {
+  id         String   @id @default(uuid())
+  partnerId  String
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  partner Partner @relation(fields: [partnerId], references: [id])
+
+  @@index([partnerId])
+  @@index([createdAt])
+  @@map("partner_clicks")
+}
+
+model PartnerCommissionEvent {
+  id         String                     @id @default(uuid())
+  partnerId  String
+  orderId    String
+  amountCents Int
+  type       PartnerCommissionEventType
+  createdAt  DateTime                   @default(now())
+
+  partner Partner @relation(fields: [partnerId], references: [id])
+  order   Order   @relation(fields: [orderId], references: [id])
+
+  @@unique([partnerId, orderId, type])
+  @@index([partnerId])
+  @@index([orderId])
+  @@map("partner_commission_events")
 }
 
 model OAuthAccount {
@@ -479,6 +584,8 @@ model Order {
   events       OrderEvent[]
   payments     Payment[]
   ledgerEntries LedgerEntry[]
+  attribution OrderAttribution?
+  partnerCommissionEvents PartnerCommissionEvent[]
   chatRoom     ChatRoom?
   ticket       Ticket?
   dispute      Dispute?

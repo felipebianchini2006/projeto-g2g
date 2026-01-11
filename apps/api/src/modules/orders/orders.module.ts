@@ -15,6 +15,8 @@ import { OrdersService } from './orders.service';
 import { OrderAccessGuard } from './guards/order-access.guard';
 import { SettlementModule } from '../settlement/settlement.module';
 import { SettingsModule } from '../settings/settings.module';
+import { CouponsModule } from '../coupons/coupons.module';
+import { PartnersModule } from '../partners/partners.module';
 
 @Module({
   imports: [
@@ -26,6 +28,8 @@ import { SettingsModule } from '../settings/settings.module';
     PaymentsModule,
     SettlementModule,
     SettingsModule,
+    CouponsModule,
+    PartnersModule,
   ],
   controllers: [OrdersController, CheckoutController, AdminOrdersController],
   providers: [OrdersService, OrdersQueueService, OrdersProcessor, OrderAccessGuard],

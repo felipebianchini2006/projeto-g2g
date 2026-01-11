@@ -1,7 +1,7 @@
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SupportChatRole, type SupportChatMessage } from '@prisma/client';
-import { GoogleGenAI } from '@google/genai';
+import type { GoogleGenAI } from '@google/genai';
 
 import { AppLogger } from '../logger/logger.service';
 
@@ -29,9 +29,10 @@ type GeminiContent = {
 
 @Injectable()
 export class SupportAiService {
-  private readonly client: GoogleGenAI;
+  private client: GoogleGenAI | null = null;
   private readonly model: string;
   private readonly enabled: boolean;
+  private readonly apiKey: string;
 
   constructor(
     private readonly configService: ConfigService,
@@ -39,9 +40,7 @@ export class SupportAiService {
   ) {
     this.enabled = (this.configService.get<string>('SUPPORT_AI_ENABLED') ?? 'true') === 'true';
     this.model = this.configService.get<string>('GEMINI_MODEL') ?? 'gemini-2.5-flash';
-    this.client = new GoogleGenAI({
-      apiKey: this.configService.getOrThrow<string>('GEMINI_API_KEY'),
-    });
+    this.apiKey = this.configService.getOrThrow<string>('GEMINI_API_KEY');
   }
 
   async generateReply(messages: SupportChatMessage[]) {
@@ -49,8 +48,9 @@ export class SupportAiService {
       throw new ServiceUnavailableException('Support AI is disabled.');
     }
 
+    const client = await this.getClient();
     const contents = this.buildContents(messages);
-    const response = await this.client.models.generateContent({
+    const response = await client.models.generateContent({
       model: this.model,
       contents,
       systemInstruction: `${SYSTEM_PROMPT}\n\n${PRODUCT_CONTEXT}`,
@@ -63,6 +63,22 @@ export class SupportAiService {
     }
 
     return text;
+  }
+
+  private async getClient() {
+    if (this.client) {
+      return this.client;
+    }
+    try {
+      const module = await import('@google/genai');
+      this.client = new module.GoogleGenAI({ apiKey: this.apiKey });
+      return this.client;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to load Gemini SDK';
+      const stack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(message, stack, 'SupportAiService');
+      throw new ServiceUnavailableException('Support AI is unavailable.');
+    }
   }
 
   private buildContents(messages: SupportChatMessage[]): GeminiContent[] {

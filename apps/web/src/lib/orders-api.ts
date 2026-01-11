@@ -60,6 +60,18 @@ export type PaymentSummary = {
   copyPaste?: string | null;
 };
 
+export type OrderAttribution = {
+  source: 'LINK' | 'COUPON' | 'NONE';
+  partnerId?: string | null;
+  couponId?: string | null;
+  originalTotalCents: number;
+  discountAppliedCents: number;
+  platformFeeBaseCents: number;
+  platformFeeFinalCents: number;
+  partnerCommissionCents: number;
+  createdAt: string;
+};
+
 export type Order = {
   id: string;
   status: OrderStatus;
@@ -78,6 +90,7 @@ export type Order = {
   deliveredAt?: string | null;
   completedAt?: string | null;
   dispute?: { id: string; status: string } | null;
+  attribution?: OrderAttribution | null;
 };
 
 export type CheckoutResponse = {
@@ -108,19 +121,45 @@ const authHeaders = (token: string | null): HeadersInit | undefined =>
   token ? { Authorization: `Bearer ${token}` } : undefined;
 
 export const ordersApi = {
-  checkout: (token: string | null, listingId: string, quantity = 1) =>
-    apiFetch<CheckoutResponse>('/checkout', {
+  checkout: (
+    token: string | null,
+    listingId: string,
+    quantity = 1,
+    options?: { couponCode?: string; referralSlug?: string },
+  ) => {
+    const payload: Record<string, unknown> = { listingId, quantity };
+    if (options?.couponCode) {
+      payload.couponCode = options.couponCode;
+    }
+    if (options?.referralSlug) {
+      payload.referralSlug = options.referralSlug;
+    }
+    return apiFetch<CheckoutResponse>('/checkout', {
       method: 'POST',
       headers: authHeaders(token),
-      body: JSON.stringify({ listingId, quantity }),
-    }),
+      body: JSON.stringify(payload),
+    });
+  },
 
-  createOrder: (token: string | null, listingId: string, quantity = 1) =>
-    apiFetch<Order>('/orders', {
+  createOrder: (
+    token: string | null,
+    listingId: string,
+    quantity = 1,
+    options?: { couponCode?: string; referralSlug?: string },
+  ) => {
+    const payload: Record<string, unknown> = { listingId, quantity };
+    if (options?.couponCode) {
+      payload.couponCode = options.couponCode;
+    }
+    if (options?.referralSlug) {
+      payload.referralSlug = options.referralSlug;
+    }
+    return apiFetch<Order>('/orders', {
       method: 'POST',
       headers: authHeaders(token),
-      body: JSON.stringify({ listingId, quantity }),
-    }),
+      body: JSON.stringify(payload),
+    });
+  },
 
   listOrders: (token: string | null, scope: 'buyer' | 'seller') =>
     apiFetch<Order[]>(`/orders?scope=${scope}`, {

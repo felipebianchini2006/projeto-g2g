@@ -12,6 +12,7 @@ import {
   LedgerEntryState,
   LedgerEntryType,
   NotificationType,
+  PartnerCommissionEventType,
   OrderEventType,
   OrderStatus,
   PaymentStatus,
@@ -129,6 +130,7 @@ export class SettlementService {
           payments: { orderBy: { createdAt: 'desc' }, take: 1 },
           seller: true,
           dispute: true,
+          attribution: { include: { partner: true } },
         },
       });
 
@@ -205,8 +207,12 @@ export class SettlementService {
     const settings = await this.settingsService.getSettings();
     const settlementMode = settings.splitEnabled ? 'split' : 'cashout';
     const feeBps = settings.platformFeeBps;
+    const attribution = result.order.attribution;
     const rawFee = Math.round((result.heldBalance * feeBps) / 10000);
-    const feeAmount = Math.min(Math.max(rawFee, 0), result.heldBalance);
+    const fallbackFee = Math.min(Math.max(rawFee, 0), result.heldBalance);
+    const feeBase = attribution?.platformFeeBaseCents ?? fallbackFee;
+    const feeFinal = attribution?.platformFeeFinalCents ?? fallbackFee;
+    const feeAmount = Math.min(Math.max(feeFinal, 0), result.heldBalance);
     const payoutAmount = Math.max(result.heldBalance - feeAmount, 0);
 
     if (settlementMode === 'cashout') {
@@ -285,6 +291,29 @@ export class SettlementService {
         });
       }
 
+      if (attribution?.partnerId && attribution.partnerCommissionCents > 0) {
+        const partnerActive = attribution.partner?.active ?? true;
+        if (partnerActive) {
+          const existingCommission = await tx.partnerCommissionEvent.findFirst({
+            where: {
+              partnerId: attribution.partnerId,
+              orderId: result.order.id,
+              type: PartnerCommissionEventType.EARNED,
+            },
+          });
+          if (!existingCommission) {
+            await tx.partnerCommissionEvent.create({
+              data: {
+                partnerId: attribution.partnerId,
+                orderId: result.order.id,
+                amountCents: attribution.partnerCommissionCents,
+                type: PartnerCommissionEventType.EARNED,
+              },
+            });
+          }
+        }
+      }
+
       if (settlementMode === 'cashout' && payoutAmount > 0) {
         await tx.ledgerEntry.create({
           data: {
@@ -328,6 +357,8 @@ export class SettlementService {
               settlementMode,
               feeBps,
               feeAmount,
+              feeBase,
+              feeFinal,
             },
           },
         });
@@ -382,6 +413,7 @@ export class SettlementService {
         buyer: true,
         seller: true,
         dispute: true,
+        attribution: { include: { partner: true } },
       },
     });
 
@@ -493,6 +525,35 @@ export class SettlementService {
           description: 'Refund processed while funds held.',
         },
       });
+
+      if (order.attribution?.partnerId && order.attribution.partnerCommissionCents > 0) {
+        const earnedEvent = await tx.partnerCommissionEvent.findFirst({
+          where: {
+            partnerId: order.attribution.partnerId,
+            orderId: order.id,
+            type: PartnerCommissionEventType.EARNED,
+          },
+        });
+        if (earnedEvent) {
+          const reversedEvent = await tx.partnerCommissionEvent.findFirst({
+            where: {
+              partnerId: order.attribution.partnerId,
+              orderId: order.id,
+              type: PartnerCommissionEventType.REVERSED,
+            },
+          });
+          if (!reversedEvent) {
+            await tx.partnerCommissionEvent.create({
+              data: {
+                partnerId: order.attribution.partnerId,
+                orderId: order.id,
+                amountCents: -Math.abs(order.attribution.partnerCommissionCents),
+                type: PartnerCommissionEventType.REVERSED,
+              },
+            });
+          }
+        }
+      }
 
       if (order.buyerId) {
         await tx.notification.create({
@@ -636,6 +697,38 @@ export class SettlementService {
           ),
         },
       });
+
+      const attribution = await tx.orderAttribution.findUnique({
+        where: { orderId: order.id },
+      });
+      if (attribution?.partnerId && attribution.partnerCommissionCents > 0) {
+        const earnedEvent = await tx.partnerCommissionEvent.findFirst({
+          where: {
+            partnerId: attribution.partnerId,
+            orderId: order.id,
+            type: PartnerCommissionEventType.EARNED,
+          },
+        });
+        if (earnedEvent) {
+          const reversedEvent = await tx.partnerCommissionEvent.findFirst({
+            where: {
+              partnerId: attribution.partnerId,
+              orderId: order.id,
+              type: PartnerCommissionEventType.REVERSED,
+            },
+          });
+          if (!reversedEvent) {
+            await tx.partnerCommissionEvent.create({
+              data: {
+                partnerId: attribution.partnerId,
+                orderId: order.id,
+                amountCents: -Math.abs(attribution.partnerCommissionCents),
+                type: PartnerCommissionEventType.REVERSED,
+              },
+            });
+          }
+        }
+      }
 
       if (actorId) {
         await tx.auditLog.create({
