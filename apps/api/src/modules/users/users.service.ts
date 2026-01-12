@@ -109,7 +109,7 @@ export class UsersService {
       return digits.length ? digits : null;
     };
 
-    const data: Record<string, unknown> = {};
+    const data: Prisma.UserUpdateInput = {};
     if (dto.fullName !== undefined) {
       data.fullName = normalizeText(dto.fullName);
     }
@@ -151,7 +151,7 @@ export class UsersService {
     try {
       return await this.prisma.user.update({
         where: { id: userId },
-        data: data as Prisma.UserUpdateInput,
+        data,
         select: USER_PROFILE_SELECT,
       });
     } catch (error) {

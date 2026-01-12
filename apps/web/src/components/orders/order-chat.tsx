@@ -37,7 +37,7 @@ type MessageCreatedPayload = {
 const PAGE_SIZE = 20;
 
 const buildChatUrl = () => {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+  const baseUrl = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:3001';
   return `${baseUrl.replace(/\/$/, '')}/chat`;
 };
 
@@ -444,3 +444,4 @@ export const OrderChat = ({ orderId, accessToken, userId }: OrderChatProps) => {
     </div>
   );
 };
+

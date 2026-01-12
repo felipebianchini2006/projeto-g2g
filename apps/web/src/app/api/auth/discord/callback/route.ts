@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     return errorResponse;
   }
 
-  const redirectUri = process.env.DISCORD_REDIRECT_URI;
+  const redirectUri = process.env['DISCORD_REDIRECT_URI'];
   if (!redirectUri) {
     const errorResponse = NextResponse.json(
       { message: 'Discord OAuth not configured.' },

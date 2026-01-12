@@ -10,8 +10,8 @@ const isSafeNext = (value: string | null) =>
   !!value && value.startsWith('/') && !value.startsWith('//') && !value.startsWith('/\\');
 
 export async function GET(request: NextRequest) {
-  const clientId = process.env.DISCORD_CLIENT_ID;
-  const redirectUri = process.env.DISCORD_REDIRECT_URI;
+  const clientId = process.env['DISCORD_CLIENT_ID'];
+  const redirectUri = process.env['DISCORD_REDIRECT_URI'];
 
   if (!clientId || !redirectUri) {
     return NextResponse.json({ message: 'Discord OAuth not configured.' }, { status: 500 });

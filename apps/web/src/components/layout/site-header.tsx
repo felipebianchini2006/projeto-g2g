@@ -267,7 +267,7 @@ export const SiteHeader = () => {
 
   const hasCartItems = cartItems.length > 0;
   const cartHref = '/carrinho';
-  const checkoutHref = hasCartItems ? `/checkout/${cartItems[0].id}` : '/carrinho';
+  const checkoutHref = cartItems[0]?.id ? `/checkout/${cartItems[0].id}` : '/carrinho';
 
   const menuPanelClass = darkMode
     ? 'border-white/10 bg-[#1a1116] text-white shadow-[0_18px_45px_rgba(27,18,22,0.5)]'

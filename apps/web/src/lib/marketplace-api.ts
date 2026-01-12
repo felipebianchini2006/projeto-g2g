@@ -59,7 +59,7 @@ export type InventoryActionResult = {
 };
 
 const resolveBaseUrl = () =>
-  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+  process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:3001';
 
 const buildUrl = (path: string, baseUrl = resolveBaseUrl()) => {
   if (path.startsWith('http://') || path.startsWith('https://')) {
@@ -199,3 +199,4 @@ export const marketplaceApi = {
       headers: authHeaders(token),
     }),
 };
+
