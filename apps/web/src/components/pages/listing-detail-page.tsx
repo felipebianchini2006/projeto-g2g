@@ -109,7 +109,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
   const thumbnailItems = mediaItems.slice(0, 4);
   const remainingCount = Math.max(0, mediaItems.length - thumbnailItems.length);
   const editionDeltaCents = 1000;
-  const editionLabel = selectedEdition === 'deluxe' ? 'Deluxe (+1k V)' : 'Padrão';
+  const editionLabel = selectedEdition === 'deluxe' ? 'Deluxe (+1k V)' : 'Padrao';
   const priceCents =
     selectedEdition === 'deluxe'
       ? listing.priceCents + editionDeltaCents
@@ -228,7 +228,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
               <p className="text-sm font-semibold text-slate-500">Escolha a Edição:</p>
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 {[
-                  { id: 'standard', label: 'Padrão' },
+                  { id: 'standard', label: 'Padrao' },
                   { id: 'deluxe', label: 'Deluxe (+1k V)' },
                 ].map((edition) => {
                   const isActive = selectedEdition === edition.id;
@@ -250,6 +250,14 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
                         {edition.id === 'deluxe'
                           ? 'Itens bonus para colecionar.'
                           : 'Conteudo base incluso.'}
+                      </span>
+                      <span className="mt-3 block text-sm font-bold text-meow-300">
+                        {formatCurrency(
+                          edition.id === 'deluxe'
+                            ? listing.priceCents + editionDeltaCents
+                            : listing.priceCents,
+                          listing.currency,
+                        )}
                       </span>
                     </button>
                   );

@@ -99,7 +99,8 @@ export const HomeListingCard = ({ listing, image, href }: HomeListingCardProps) 
           href={href}
           className={buttonVariants({
             variant: 'primary',
-            className: 'mt-auto h-10 w-full rounded-full text-xs font-bold',
+            className:
+              'mt-auto h-10 w-full rounded-full bg-meow-indigo text-xs font-bold text-white hover:bg-meow-indigoDark',
           })}
         >
           Ver detalhes

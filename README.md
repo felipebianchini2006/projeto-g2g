@@ -41,6 +41,8 @@ Para apontar o frontend para a API local, ajuste o `.env.local`:
 - `NEXT_PUBLIC_API_URL=http://localhost:3001`
 - `DISCORD_CLIENT_ID=...`
 - `DISCORD_REDIRECT_URI=http://localhost:3000/api/auth/discord/callback`
+- `GOOGLE_CLIENT_ID=...`
+- `GOOGLE_REDIRECT_URI=http://localhost:3000/api/auth/google/callback`
 
 Para acessar o dashboard placeholder, use `/login` e clique em "Entrar como demo",
 ou acesse `/dashboard?dev=1` uma vez para gravar o cookie de bypass local.
@@ -98,6 +100,9 @@ Variaveis esperadas na API:
 - `DISCORD_CLIENT_ID=...`
 - `DISCORD_CLIENT_SECRET=...`
 - `DISCORD_REDIRECT_URI=http://localhost:3000/api/auth/discord/callback`
+- `GOOGLE_CLIENT_ID=...`
+- `GOOGLE_CLIENT_SECRET=...`
+- `GOOGLE_REDIRECT_URI=http://localhost:3000/api/auth/google/callback`
 - `GEMINI_API_KEY=...`
 - `GEMINI_MODEL=gemini-2.5-flash`
 - `SUPPORT_AI_ENABLED=true`
@@ -106,6 +111,11 @@ Discord OAuth:
 
 - No Discord Developer Portal, configure o Redirect URL para apontar para
   `DISCORD_REDIRECT_URI` (ex: `http://localhost:3000/api/auth/discord/callback`).
+
+Google OAuth:
+
+- No Google Cloud Console, configure o Redirect URI para apontar para
+  `GOOGLE_REDIRECT_URI` (ex: `http://localhost:3000/api/auth/google/callback`).
 
 ## Escrow operacional
 

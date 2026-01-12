@@ -19,12 +19,14 @@ import { DiscordAuthService } from './discord-auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { DiscordExchangeDto } from './dto/discord-exchange.dto';
+import { GoogleExchangeDto } from './dto/google-exchange.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { LogoutDto } from './dto/logout.dto';
 import { RefreshDto } from './dto/refresh.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { GoogleAuthService } from './google-auth.service';
 
 const AUTH_THROTTLE = { auth: { ttl: 60, limit: 5 } };
 type AuthenticatedRequest = Request & { user?: JwtPayload };
@@ -34,6 +36,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly discordAuthService: DiscordAuthService,
+    private readonly googleAuthService: GoogleAuthService,
   ) {}
 
   @Post('register')
@@ -60,6 +63,19 @@ export class AuthController {
       dto.code,
       dto.redirectUri,
       this.getRequestMeta(request),
+    );
+  }
+
+  @Post('google/exchange')
+  @UseGuards(ThrottlerGuard)
+  @Throttle(AUTH_THROTTLE)
+  @HttpCode(200)
+  exchangeGoogle(@Body() dto: GoogleExchangeDto, @Req() request: Request) {
+    return this.googleAuthService.exchangeCodeForSession(
+      dto.code,
+      dto.redirectUri,
+      this.getRequestMeta(request),
+      dto.role,
     );
   }
 

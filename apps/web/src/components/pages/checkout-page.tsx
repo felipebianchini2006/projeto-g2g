@@ -3,11 +3,13 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import {
+  Barcode,
   CheckCircle2,
   Copy,
   CreditCard,
   Crown,
   Download,
+  Gem,
   Lock,
   Package,
   QrCode,
@@ -238,7 +240,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
 
   const listing = listingState.listing;
   const listingImage = listing?.media?.[0]?.url ?? '/assets/meoow/highlight-01.webp';
-  const sellerLabel = listing?.categoryLabel ? listing.categoryLabel : 'Marketplace';
+  const sellerLabel = 'Marketplace';
   const selectedPriceCents = (listing?.priceCents ?? 0) + selectedPackage.deltaCents;
   const oldPriceCents =
     listing?.oldPriceCents && listing.oldPriceCents > 0
@@ -465,6 +467,13 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                           optionOldPrice && optionOldPrice > optionPrice
                             ? Math.round((1 - optionPrice / optionOldPrice) * 100)
                             : null;
+                        const optionIcon =
+                          option.id === 'premium'
+                            ? Crown
+                            : option.id === 'ultimate'
+                              ? Gem
+                              : Package;
+                        const OptionIcon = optionIcon;
 
                         return (
                           <button
@@ -478,6 +487,11 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                             }`}
                           >
                             <div className="flex items-center justify-between">
+                              <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+                                <OptionIcon size={18} aria-hidden />
+                              </span>
+                            </div>
+                            <div className="mt-3 flex items-center justify-between">
                               <h3 className="text-sm font-bold text-meow-charcoal">
                                 {option.label}
                               </h3>
@@ -521,10 +535,24 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                     </h2>
                     <div className="mt-4 grid gap-3 sm:grid-cols-3">
                       {[
-                        { id: 'pix', label: 'Pix', helper: '-5% OFF', active: true },
-                        { id: 'card', label: 'Cartao', helper: 'Ate 12x', active: false },
-                        { id: 'boleto', label: 'Boleto', helper: '+2 dias', active: false },
-                      ].map((method) => (
+                        { id: 'pix', label: 'Pix', helper: '-5% OFF', active: true, icon: QrCode },
+                        {
+                          id: 'card',
+                          label: 'Cartao',
+                          helper: 'Ate 12x',
+                          active: false,
+                          icon: CreditCard,
+                        },
+                        {
+                          id: 'boleto',
+                          label: 'Boleto',
+                          helper: '+2 dias',
+                          active: false,
+                          icon: Barcode,
+                        },
+                      ].map((method) => {
+                        const Icon = method.icon;
+                        return (
                         <div
                           key={method.id}
                           className={`rounded-2xl border px-4 py-3 text-sm font-semibold ${
@@ -534,7 +562,12 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                           }`}
                         >
                           <div className="flex items-center justify-between">
-                            <span>{method.label}</span>
+                            <span className="flex items-center gap-2">
+                              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-slate-500">
+                                <Icon size={16} aria-hidden />
+                              </span>
+                              {method.label}
+                            </span>
                             {method.active ? (
                               <Badge variant="success" className="text-[9px]">
                                 {method.helper}
@@ -545,7 +578,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                           </div>
                           <p className="mt-2 text-xs text-slate-500">{method.helper}</p>
                         </div>
-                      ))}
+                      )})}
                     </div>
                   </Card>
 
@@ -755,12 +788,13 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                     <button
                       className={buttonVariants({
                         variant: 'primary',
-                        className: 'w-full bg-emerald-500 hover:bg-emerald-600',
+                        className: 'w-full gap-2 bg-emerald-500 hover:bg-emerald-600',
                       })}
                       type="button"
                       onClick={handleCheckout}
                       disabled={Boolean(checkoutBlockedReason) || paymentState.status === 'loading'}
                     >
+                      <CheckCircle2 size={16} aria-hidden />
                       {paymentState.status === 'loading'
                         ? 'Gerando Pix...'
                         : 'Finalizar Compra'}

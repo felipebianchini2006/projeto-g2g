@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Check, Info, Package, Sparkles, Wrench } from 'lucide-react';
 
 import { useAuth } from '../../../components/auth/auth-provider';
 import { Button } from '../../../components/ui/button';
@@ -17,12 +18,21 @@ import {
   type ListingInput,
 } from '../../../lib/marketplace-api';
 import {
+  catalogPublicApi,
+  type CatalogGroup,
+  type CatalogOption,
+} from '../../../lib/catalog-public-api';
+import {
   fetchPublicCategories,
   type CatalogCategory,
 } from '../../../lib/marketplace-public';
 
 const emptyListing: ListingInput = {
   categoryId: '',
+  categoryGroupId: '',
+  salesModelId: '',
+  originId: '',
+  recoveryOptionId: '',
   title: '',
   description: '',
   priceCents: 0,
@@ -64,6 +74,11 @@ export default function Page() {
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [listing, setListing] = useState<Listing | null>(null);
   const [categories, setCategories] = useState<CatalogCategory[]>([]);
+  const [salesModels, setSalesModels] = useState<CatalogOption[]>([]);
+  const [origins, setOrigins] = useState<CatalogOption[]>([]);
+  const [recoveryOptions, setRecoveryOptions] = useState<CatalogOption[]>([]);
+  const [groups, setGroups] = useState<CatalogGroup[]>([]);
+  const [catalogError, setCatalogError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busyAction, setBusyAction] = useState<string | null>(null);
@@ -99,6 +114,45 @@ export default function Page() {
   }, [autoDelivery]);
 
   useEffect(() => {
+    if (step !== 2) {
+      return;
+    }
+    let active = true;
+    const loadCatalogs = async () => {
+      setCatalogError(null);
+      const results = await Promise.allSettled([
+        catalogPublicApi.listSalesModels(),
+        catalogPublicApi.listOrigins(),
+        catalogPublicApi.listRecoveryOptions(),
+        catalogPublicApi.listGroups(formState.categoryId || undefined),
+      ]);
+      if (!active) {
+        return;
+      }
+      const [salesRes, originsRes, recoveryRes, groupsRes] = results;
+      setSalesModels(salesRes.status === 'fulfilled' ? salesRes.value : []);
+      setOrigins(originsRes.status === 'fulfilled' ? originsRes.value : []);
+      setRecoveryOptions(recoveryRes.status === 'fulfilled' ? recoveryRes.value : []);
+      setGroups(groupsRes.status === 'fulfilled' ? groupsRes.value : []);
+      if (results.some((result) => result.status === 'rejected')) {
+        setCatalogError('Nao foi possivel carregar todos os catalogos.');
+      }
+    };
+    loadCatalogs().catch(() => {
+      if (active) {
+        setCatalogError('Nao foi possivel carregar os catalogos.');
+        setSalesModels([]);
+        setOrigins([]);
+        setRecoveryOptions([]);
+        setGroups([]);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [step, formState.categoryId]);
+
+  useEffect(() => {
     if (mediaFiles.length === 0) {
       setMediaPreview(null);
       return undefined;
@@ -109,6 +163,41 @@ export default function Page() {
       URL.revokeObjectURL(url);
     };
   }, [mediaFiles]);
+
+  useEffect(() => {
+    if (salesModels.length === 0 || formState.salesModelId) {
+      return;
+    }
+    const defaultModel =
+      salesModels.find((model) => model.slug === 'normal') ?? salesModels[0];
+    if (defaultModel) {
+      setFormState((prev) => ({ ...prev, salesModelId: defaultModel.id }));
+    }
+  }, [salesModels, formState.salesModelId]);
+
+  useEffect(() => {
+    if (groups.length === 0) {
+      return;
+    }
+    const exists = groups.some((group) => group.id === formState.categoryGroupId);
+    if (!formState.categoryGroupId || !exists) {
+      setFormState((prev) => ({ ...prev, categoryGroupId: groups[0]?.id ?? '' }));
+    }
+  }, [groups, formState.categoryGroupId]);
+
+  useEffect(() => {
+    if (origins.length === 0 || formState.originId) {
+      return;
+    }
+    setFormState((prev) => ({ ...prev, originId: origins[0]?.id ?? '' }));
+  }, [origins, formState.originId]);
+
+  useEffect(() => {
+    if (recoveryOptions.length === 0 || formState.recoveryOptionId) {
+      return;
+    }
+    setFormState((prev) => ({ ...prev, recoveryOptionId: recoveryOptions[0]?.id ?? '' }));
+  }, [recoveryOptions, formState.recoveryOptionId]);
 
   const inventoryItems = useMemo(
     () => parseInventoryItems(inventoryPayload),
@@ -126,6 +215,43 @@ export default function Page() {
 
   const previewImage =
     listing?.media?.[0]?.url ?? mediaPreview ?? '/assets/meoow/highlight-01.webp';
+  const selectedSalesModel = salesModels.find((model) => model.id === formState.salesModelId);
+  const selectedGroup = groups.find((group) => group.id === formState.categoryGroupId);
+  const selectedOrigin = origins.find((origin) => origin.id === formState.originId);
+  const selectedRecovery = recoveryOptions.find(
+    (option) => option.id === formState.recoveryOptionId,
+  );
+
+  const resolveSalesModelDescription = (model?: CatalogOption | null) => {
+    if (!model) {
+      return '1 produto unico por anuncio';
+    }
+    if (model.description?.trim()) {
+      return model.description;
+    }
+    const key = `${model.slug ?? ''} ${model.name ?? ''}`.toLowerCase();
+    if (key.includes('dinam') || key.includes('dynamic')) {
+      return 'Estoques automaticos e manuais';
+    }
+    if (key.includes('serv') || key.includes('service')) {
+      return 'Servicos, Boost e outros';
+    }
+    return '1 produto unico por anuncio';
+  };
+
+  const resolveSalesModelIcon = (model?: CatalogOption | null) => {
+    if (!model) {
+      return Package;
+    }
+    const key = `${model.slug ?? ''} ${model.name ?? ''}`.toLowerCase();
+    if (key.includes('dinam') || key.includes('dynamic')) {
+      return Sparkles;
+    }
+    if (key.includes('serv') || key.includes('service')) {
+      return Wrench;
+    }
+    return Package;
+  };
 
   const goToStep = (nextStep: number) => {
     setStep(nextStep);
@@ -142,6 +268,10 @@ export default function Page() {
       description: formState.description?.trim() || undefined,
       refundPolicy: formState.refundPolicy?.trim() || emptyListing.refundPolicy,
       deliverySlaHours: Number(formState.deliverySlaHours) || 24,
+      categoryGroupId: formState.categoryGroupId?.trim() || undefined,
+      salesModelId: formState.salesModelId?.trim() || undefined,
+      originId: formState.originId?.trim() || undefined,
+      recoveryOptionId: formState.recoveryOptionId?.trim() || undefined,
     };
 
     try {
@@ -437,6 +567,62 @@ export default function Page() {
               </div>
 
               <div className="mb-6">
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase text-slate-500">
+                    Modelo de venda
+                  </span>
+                  <button
+                    type="button"
+                    className="text-slate-400"
+                    title="Define como o anuncio funciona (produto unico, estoque dinamico ou servicos)."
+                  >
+                    <Info size={16} aria-hidden />
+                  </button>
+                </div>
+                <div className="grid gap-3 md:grid-cols-3">
+                  {(salesModels.length > 0 ? salesModels : [
+                    { id: 'normal', name: 'Normal', slug: 'normal' },
+                    { id: 'dinamico', name: 'Dinamico', slug: 'dinamico' },
+                    { id: 'servico', name: 'Servico', slug: 'servico' },
+                  ]).map((model) => {
+                    const isSelected = formState.salesModelId === model.id;
+                    const Icon = resolveSalesModelIcon(model);
+                    const description = resolveSalesModelDescription(model);
+                    return (
+                      <button
+                        key={model.id}
+                        type="button"
+                        className={`rounded-2xl border p-4 text-left transition ${
+                          isSelected
+                            ? 'border-meow-300 bg-meow-50 shadow-cute'
+                            : 'border-slate-200 bg-white hover:border-meow-200 hover:shadow-sm'
+                        }`}
+                        onClick={() =>
+                          setFormState((prev) => ({ ...prev, salesModelId: model.id }))
+                        }
+                      >
+                        <div className="flex items-start justify-between">
+                          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+                            <Icon size={18} aria-hidden />
+                          </span>
+                          {isSelected ? (
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-meow-300 text-white">
+                              <Check size={14} aria-hidden />
+                            </span>
+                          ) : null}
+                        </div>
+                        <h3 className="mt-3 text-sm font-bold text-slate-800">{model.name}</h3>
+                        <p className="mt-1 text-xs text-slate-500">{description}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+                {catalogError ? (
+                  <p className="mt-2 text-xs text-slate-400">{catalogError}</p>
+                ) : null}
+              </div>
+
+              <div className="mb-6">
                 <label className="mb-2 block text-xs font-bold uppercase text-slate-500">
                   Descricao detalhada
                 </label>
@@ -491,6 +677,69 @@ export default function Page() {
                     Estoque e calculado a partir dos itens adicionados na entrega.
                   </p>
                 </div>
+              </div>
+
+              <div className="mt-6 grid gap-4 md:grid-cols-3">
+                <label className="grid gap-2 text-xs font-bold uppercase text-slate-500">
+                  Tipo
+                  <Select
+                    className="rounded-xl border-slate-200 bg-slate-50 text-sm font-bold text-slate-700"
+                    value={formState.categoryGroupId ?? ''}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        categoryGroupId: event.target.value,
+                      }))
+                    }
+                  >
+                    <option value="">Sem opcoes disponiveis</option>
+                    {groups.map((group) => (
+                      <option key={group.id} value={group.id}>
+                        {group.name}
+                      </option>
+                    ))}
+                  </Select>
+                </label>
+                <label className="grid gap-2 text-xs font-bold uppercase text-slate-500">
+                  Procedencia
+                  <Select
+                    className="rounded-xl border-slate-200 bg-slate-50 text-sm font-bold text-slate-700"
+                    value={formState.originId ?? ''}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        originId: event.target.value,
+                      }))
+                    }
+                  >
+                    <option value="">Sem opcoes disponiveis</option>
+                    {origins.map((origin) => (
+                      <option key={origin.id} value={origin.id}>
+                        {origin.name}
+                      </option>
+                    ))}
+                  </Select>
+                </label>
+                <label className="grid gap-2 text-xs font-bold uppercase text-slate-500">
+                  Dados de recuperacao
+                  <Select
+                    className="rounded-xl border-slate-200 bg-slate-50 text-sm font-bold text-slate-700"
+                    value={formState.recoveryOptionId ?? ''}
+                    onChange={(event) =>
+                      setFormState((prev) => ({
+                        ...prev,
+                        recoveryOptionId: event.target.value,
+                      }))
+                    }
+                  >
+                    <option value="">Sem opcoes disponiveis</option>
+                    {recoveryOptions.map((option) => (
+                      <option key={option.id} value={option.id}>
+                        {option.name}
+                      </option>
+                    ))}
+                  </Select>
+                </label>
               </div>
 
               <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
@@ -655,6 +904,18 @@ export default function Page() {
                   <p className="mt-1 font-semibold text-slate-700">Preco: {previewPrice}</p>
                   <p className="mt-1 font-semibold text-slate-700">
                     Entrega: {autoDelivery ? 'Automatica' : 'Manual'}
+                  </p>
+                  <p className="mt-1 font-semibold text-slate-700">
+                    Modelo de venda: {selectedSalesModel?.name ?? 'Nao informado'}
+                  </p>
+                  <p className="mt-1 font-semibold text-slate-700">
+                    Tipo: {selectedGroup?.name ?? 'Nao informado'}
+                  </p>
+                  <p className="mt-1 font-semibold text-slate-700">
+                    Procedencia: {selectedOrigin?.name ?? 'Nao informado'}
+                  </p>
+                  <p className="mt-1 font-semibold text-slate-700">
+                    Recuperacao: {selectedRecovery?.name ?? 'Nao informado'}
                   </p>
                   <p className="mt-1 font-semibold text-slate-700">
                     Estoque: {inventoryCount} item(s)

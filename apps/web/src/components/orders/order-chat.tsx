@@ -407,7 +407,7 @@ export const OrderChat = ({
         </div>
 
         <div
-          className="mt-4 max-h-[420px] space-y-4 overflow-y-auto pb-2"
+          className="mt-4 flex-1 space-y-4 overflow-y-auto pb-2"
           ref={listRef}
         >
           {hasMoreHistory ? (

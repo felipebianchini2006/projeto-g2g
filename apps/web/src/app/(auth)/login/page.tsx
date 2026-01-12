@@ -35,6 +35,7 @@ export default function Page() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const nextPath = '/';
+  const googleStartUrl = `/api/auth/google/start?next=${encodeURIComponent(nextPath)}`;
   const discordStartUrl = `/api/auth/discord/start?next=${encodeURIComponent(nextPath)}`;
 
   const handleChange =
@@ -80,6 +81,12 @@ export default function Page() {
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
+          <Link
+            href={googleStartUrl}
+            className={cn(buttonVariants({ variant: 'secondary' }), 'w-full')}
+          >
+            Continuar com Google
+          </Link>
           <Link
             href={discordStartUrl}
             className={cn(buttonVariants({ variant: 'secondary' }), 'w-full')}
