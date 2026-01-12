@@ -214,6 +214,8 @@ model User {
   deliveryEvidenceCreated DeliveryEvidence[] @relation("DeliveryEvidenceCreator")
   oauthAccounts       OAuthAccount[]
   supportChatSessions SupportChatSession[]
+  sellerReviewsReceived SellerReview[] @relation("SellerReviewSeller")
+  sellerReviewsGiven    SellerReview[] @relation("SellerReviewBuyer")
 
   @@map("users")
 }
@@ -606,6 +608,7 @@ model Order {
   chatRoom     ChatRoom?
   ticket       Ticket?
   dispute      Dispute?
+  sellerReview SellerReview? @relation("SellerReviewOrder")
 
   @@index([buyerId])
   @@index([sellerId])
@@ -633,6 +636,7 @@ model OrderItemSnapshot {
   seller           User?             @relation("OrderItemSeller", fields: [sellerId], references: [id])
   inventoryItems   InventoryItem[]
   deliveryEvidence DeliveryEvidence[]
+  sellerReview     SellerReview?     @relation("SellerReviewOrderItem")
 
   @@index([orderId])
   @@index([listingId])
@@ -674,6 +678,29 @@ model DeliveryEvidence {
   @@index([orderItemId])
   @@index([createdByUserId])
   @@map("delivery_evidence")
+}
+
+model SellerReview {
+  id               String   @id @default(uuid())
+  sellerId         String
+  buyerId          String
+  orderId          String?  @unique
+  orderItemId      String?  @unique
+  rating           Int
+  comment          String
+  verifiedPurchase Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  seller    User              @relation("SellerReviewSeller", fields: [sellerId], references: [id])
+  buyer     User              @relation("SellerReviewBuyer", fields: [buyerId], references: [id])
+  order     Order?             @relation("SellerReviewOrder", fields: [orderId], references: [id], onDelete: SetNull)
+  orderItem OrderItemSnapshot? @relation("SellerReviewOrderItem", fields: [orderItemId], references: [id], onDelete: SetNull)
+
+  @@index([sellerId])
+  @@index([buyerId])
+  @@index([orderId])
+  @@map("seller_reviews")
 }
 
 model Payment {

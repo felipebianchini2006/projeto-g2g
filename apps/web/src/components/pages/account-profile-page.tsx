@@ -56,6 +56,12 @@ export const AccountProfileContent = () => {
               <Link href="/conta" className="text-xs font-semibold text-meow-deep">
                 Ver meu perfil
               </Link>
+              <Link
+                href={`/perfil/${user.id}`}
+                className="text-xs font-semibold text-meow-muted"
+              >
+                Ver perfil publico
+              </Link>
             </div>
           </div>
           <div className="text-xs text-meow-muted">ID: {user.id.slice(0, 8)}</div>

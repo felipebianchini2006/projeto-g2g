@@ -21,6 +21,7 @@ export type PublicCategory = {
 
 export type PublicListing = {
   id: string;
+  sellerId?: string;
   title: string;
   description?: string | null;
   oldPriceCents?: number;
@@ -55,6 +56,7 @@ export type PublicListingDetail = {
 };
 
 export type PublicListingFilters = {
+  seller?: string;
   q?: string;
   category?: string;
   deliveryType?: DeliveryType;
@@ -283,11 +285,15 @@ const filterListings = (
     const matchesCategory = filters.category
       ? listing.categorySlug === filters.category
       : true;
+    const matchesSeller =
+      filters.seller && listing.sellerId ? listing.sellerId === filters.seller : true;
     const matchesDelivery = filters.deliveryType
       ? listing.deliveryType === filters.deliveryType
       : true;
     const matchesPrice = listing.priceCents >= min && listing.priceCents <= max;
-    return matchesSearch && matchesCategory && matchesDelivery && matchesPrice;
+    return (
+      matchesSearch && matchesCategory && matchesSeller && matchesDelivery && matchesPrice
+    );
   });
 
   const sorted = [...filtered].sort((a, b) => {
@@ -317,6 +323,9 @@ const buildListingQuery = (filters?: PublicListingFilters) => {
   const params = new URLSearchParams();
   if (filters.q?.trim()) {
     params.set('q', filters.q.trim());
+  }
+  if (filters.seller) {
+    params.set('seller', filters.seller);
   }
   if (filters.category) {
     params.set('category', filters.category);

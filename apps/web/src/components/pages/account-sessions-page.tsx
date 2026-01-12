@@ -1,12 +1,24 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import {
+  Clock,
+  Globe,
+  Laptop,
+  LogOut,
+  MapPin,
+  Monitor,
+  ShieldCheck,
+  Smartphone,
+} from 'lucide-react';
 
 import { ApiClientError } from '../../lib/api-client';
 import { accountSecurityApi, type SessionInfo } from '../../lib/account-security-api';
 import { useAuth } from '../auth/auth-provider';
 import { AccountShell } from '../account/account-shell';
+import { Button } from '../ui/button';
+import { Card } from '../ui/card';
 import { Skeleton } from '../ui/skeleton';
 
 type SessionsState = {
@@ -17,43 +29,119 @@ type SessionsState = {
   actionSuccess?: string;
 };
 
-const parseUserAgent = (userAgent?: string | null) => {
+type ParsedAgent = {
+  deviceName: string;
+  details: string;
+};
+
+const getBrowserInfo = (ua: string) => {
+  const browserMap = [
+    { label: 'Edge', regex: /edg\/(\d+)/ },
+    { label: 'Opera', regex: /(opr|opera)\/(\d+)/ },
+    { label: 'Chrome', regex: /chrome\/(\d+)/ },
+    { label: 'Firefox', regex: /firefox\/(\d+)/ },
+    { label: 'Safari', regex: /version\/(\d+).*safari/ },
+  ];
+  for (const browser of browserMap) {
+    const match = ua.match(browser.regex);
+    if (match) {
+      const version = match[2] ?? match[1] ?? '';
+      return version ? `${browser.label} ${version}` : browser.label;
+    }
+  }
+  return 'Navegador';
+};
+
+const getOsInfo = (ua: string) => {
+  if (ua.includes('windows')) {
+    const match = ua.match(/windows nt (\d+\.\d+)/);
+    const version = match?.[1] ?? '';
+    if (version === '10.0') {
+      return 'Windows 11';
+    }
+    if (version) {
+      return `Windows ${version}`;
+    }
+    return 'Windows';
+  }
+  if (ua.includes('iphone')) {
+    const match = ua.match(/os (\d+[_\.]\d+)/);
+    const version = match?.[1]?.replace('_', '.') ?? '';
+    return version ? `iOS ${version}` : 'iOS';
+  }
+  if (ua.includes('ipad')) {
+    const match = ua.match(/os (\d+[_\.]\d+)/);
+    const version = match?.[1]?.replace('_', '.') ?? '';
+    return version ? `iPadOS ${version}` : 'iPadOS';
+  }
+  if (ua.includes('android')) {
+    const match = ua.match(/android (\d+\.\d+)/);
+    const version = match?.[1] ?? '';
+    return version ? `Android ${version}` : 'Android';
+  }
+  if (ua.includes('mac os') || ua.includes('macintosh')) {
+    const match = ua.match(/mac os x (\d+[_\.]\d+)/);
+    const version = match?.[1]?.replace('_', '.') ?? '';
+    return version ? `macOS ${version}` : 'macOS';
+  }
+  if (ua.includes('linux')) {
+    return 'Linux';
+  }
+  return 'Sistema';
+};
+
+const parseUserAgent = (userAgent?: string | null): ParsedAgent => {
   if (!userAgent) {
-    return 'Agente nao informado';
+    return { deviceName: 'Dispositivo', details: 'Detalhes não informados' };
   }
   const ua = userAgent.toLowerCase();
-  let device = '';
+  let deviceName = 'Dispositivo';
   if (ua.includes('iphone')) {
-    device = 'iPhone';
+    deviceName = 'iPhone';
   } else if (ua.includes('ipad')) {
-    device = 'iPad';
+    deviceName = 'iPad';
   } else if (ua.includes('android')) {
-    device = 'Android';
+    deviceName = 'Android';
   } else if (ua.includes('windows')) {
-    device = 'Windows';
+    deviceName = 'Windows PC';
   } else if (ua.includes('mac os') || ua.includes('macintosh')) {
-    device = 'Mac';
+    deviceName = 'MacBook';
   } else if (ua.includes('linux')) {
-    device = 'Linux';
+    deviceName = 'Linux';
   }
 
-  let browser = '';
-  if (ua.includes('edg')) {
-    browser = 'Edge';
-  } else if (ua.includes('opr') || ua.includes('opera')) {
-    browser = 'Opera';
-  } else if (ua.includes('chrome')) {
-    browser = 'Chrome';
-  } else if (ua.includes('firefox')) {
-    browser = 'Firefox';
-  } else if (ua.includes('safari')) {
-    browser = 'Safari';
-  }
+  const osInfo = getOsInfo(ua);
+  const browserInfo = getBrowserInfo(ua);
+  const details = osInfo && browserInfo ? `${osInfo} • ${browserInfo}` : osInfo || browserInfo;
+  return { deviceName, details: details || 'Detalhes não informados' };
+};
 
-  if (browser && device) {
-    return `${browser} / ${device}`;
+const formatRelativeTime = (value?: string | null) => {
+  if (!value) {
+    return 'Há pouco';
   }
-  return device || browser || 'Dispositivo desconhecido';
+  const diffMs = Date.now() - new Date(value).getTime();
+  const minutes = Math.floor(diffMs / 60000);
+  if (minutes < 60) {
+    return `Há ${minutes || 1} min`;
+  }
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) {
+    return `Há ${hours} horas`;
+  }
+  const days = Math.floor(hours / 24);
+  return `Há ${days} dias`;
+};
+
+const resolveDeviceIcon = (deviceName: string) => {
+  const lower = deviceName.toLowerCase();
+  if (lower.includes('iphone') || lower.includes('android')) {
+    return <Smartphone size={18} aria-hidden />;
+  }
+  if (lower.includes('mac')) {
+    return <Laptop size={18} aria-hidden />;
+  }
+  return <Monitor size={18} aria-hidden />;
 };
 
 export const AccountSessionsContent = () => {
@@ -159,7 +247,7 @@ export const AccountSessionsContent = () => {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center">
-          <p className="text-sm text-meow-muted">Entre para acessar suas sessoes.</p>
+          <p className="text-sm text-meow-muted">Entre para acessar suas sessões.</p>
           <Link
             href="/login"
             className="mt-4 inline-flex rounded-full bg-meow-linear px-6 py-2 text-sm font-bold text-white"
@@ -176,25 +264,50 @@ export const AccountSessionsContent = () => {
       breadcrumbs={[
         { label: 'Inicio', href: '/' },
         { label: 'Conta', href: '/conta' },
-        { label: 'Sessoes' },
+        { label: 'Sessões' },
       ]}
     >
-      <div className="rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="text-xl font-black text-meow-charcoal">Sessoes ativas</h1>
-            <p className="mt-2 text-sm text-meow-muted">
-              Veja onde sua conta esta conectada e encerre acessos antigos.
+      <Card className="rounded-[26px] border border-slate-200 bg-gradient-to-r from-slate-50 to-rose-50 p-6 shadow-card">
+        <div className="flex flex-wrap items-start gap-4">
+          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white text-rose-500 shadow-card">
+            <ShieldCheck size={20} aria-hidden />
+          </div>
+          <div className="space-y-1">
+            <h1 className="text-lg font-black text-meow-charcoal">Sessões Ativas</h1>
+            <p className="text-sm text-meow-muted">
+              Aqui você pode ver e gerenciar todos os dispositivos onde sua conta Meoww está conectada.
+            </p>
+            <p className="text-sm text-meow-muted">
+              Se não reconhecer algum acesso, recomendamos{' '}
+              <Link
+                href="/conta/seguranca"
+                className="font-semibold text-rose-500 underline hover:text-rose-600"
+              >
+                alterar sua senha
+              </Link>{' '}
+              imediatamente.
             </p>
           </div>
-          <button
+        </div>
+      </Card>
+
+      <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-black text-meow-charcoal">Dispositivos conectados</h2>
+            <p className="mt-2 text-sm text-meow-muted">
+              Veja onde sua conta está conectada e encerre acessos antigos.
+            </p>
+          </div>
+          <Button
+            variant="secondary"
+            size="sm"
             type="button"
-            className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
             onClick={handleLogoutAll}
             disabled={logoutAllBusy || state.sessions.length === 0}
           >
             {logoutAllBusy ? 'Encerrando...' : 'Sair de todas'}
-          </button>
+          </Button>
         </div>
 
         {state.error ? (
@@ -221,77 +334,77 @@ export const AccountSessionsContent = () => {
         ) : null}
 
         {state.status === 'ready' && state.sessions.length === 0 ? (
-          <div className="mt-4 rounded-xl border border-meow-red/20 bg-white px-4 py-3 text-sm text-meow-muted">
-            Nenhuma sessao encontrada.
+          <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm text-meow-muted">
+            Nenhuma sessão encontrada.
           </div>
         ) : null}
 
         <div className="mt-4 grid gap-4">
           {state.sessions.map((session) => {
+            const { deviceName, details } = parseUserAgent(session.userAgent);
+            const isCurrent = session.isCurrent;
             const isRevoked = Boolean(session.revokedAt);
-            const statusLabel = isRevoked ? 'Revogada' : 'Ativa';
-            const statusTone = isRevoked
-              ? 'bg-red-50 text-red-700'
-              : 'bg-emerald-50 text-emerald-700';
-            const deviceLabel = parseUserAgent(session.userAgent);
+            const statusLabel = isCurrent
+              ? 'Online Agora'
+              : formatRelativeTime(session.lastSeenAt ?? session.createdAt);
+            const locationLabel = 'Localização não informada';
 
             return (
               <div
                 key={session.id}
-                className="rounded-2xl border border-meow-red/20 bg-meow-cream/40 p-4 text-sm text-meow-muted"
+                className={`relative flex flex-wrap items-center justify-between gap-4 rounded-2xl border p-4 shadow-card sm:flex-nowrap sm:gap-6 ${
+                  isCurrent ? 'border-rose-200 bg-rose-50/40' : 'border-slate-100 bg-white'
+                }`}
               >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-meow-charcoal">
-                      Sessao #{session.id.slice(0, 8).toUpperCase()}
-                    </p>
-                    <p className="mt-1 text-xs text-meow-muted">
-                      {deviceLabel} | IP: {session.ip ?? '-'}
-                    </p>
-                  </div>
-                  <span
-                    className={`rounded-full px-3 py-1 text-[11px] font-semibold ${statusTone}`}
-                  >
-                    {statusLabel}
+                {isCurrent ? (
+                  <span className="absolute right-4 top-[-12px] rounded-full bg-rose-500 px-3 py-1 text-[10px] font-bold uppercase text-white shadow-card">
+                    DISPOSITIVO ATUAL
                   </span>
+                ) : null}
+                <div className="flex items-center gap-4">
+                  <div
+                    className={`grid h-14 w-14 place-items-center rounded-2xl ${
+                      isCurrent ? 'bg-rose-100 text-rose-500' : 'bg-slate-100 text-slate-500'
+                    }`}
+                  >
+                    {resolveDeviceIcon(deviceName)}
+                  </div>
+                  <div>
+                    <p className="text-base font-bold text-meow-charcoal">{deviceName}</p>
+                    <p className="text-sm text-meow-muted">{details}</p>
+                    <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-meow-muted">
+                      <span className="inline-flex items-center gap-1">
+                        <MapPin size={12} aria-hidden />
+                        {locationLabel}
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <Globe size={12} aria-hidden />
+                        {session.ip ?? '-'}
+                      </span>
+                      <span
+                        className={`inline-flex items-center gap-1 ${
+                          isCurrent ? 'text-emerald-600' : 'text-meow-muted'
+                        }`}
+                      >
+                        <Clock size={12} aria-hidden />
+                        {statusLabel}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div className="mt-3 grid gap-2 text-xs text-meow-muted sm:grid-cols-2">
-                  <div>
-                    <span className="font-semibold text-meow-charcoal">Criada em:</span>{' '}
-                    {new Date(session.createdAt).toLocaleString('pt-BR')}
-                  </div>
-                  <div>
-                    <span className="font-semibold text-meow-charcoal">Ultima atividade:</span>{' '}
-                    {session.lastSeenAt
-                      ? new Date(session.lastSeenAt).toLocaleString('pt-BR')
-                      : 'Nao informado'}
-                  </div>
-                  <div>
-                    <span className="font-semibold text-meow-charcoal">Expira em:</span>{' '}
-                    {new Date(session.expiresAt).toLocaleString('pt-BR')}
-                  </div>
-                  <div>
-                    <span className="font-semibold text-meow-charcoal">Revogada em:</span>{' '}
-                    {session.revokedAt
-                      ? new Date(session.revokedAt).toLocaleString('pt-BR')
-                      : 'Ativa'}
-                  </div>
-                </div>
-                <div className="mt-3 flex flex-wrap gap-3">
-                  <button
+                {!isCurrent && !isRevoked ? (
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     type="button"
-                    className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
-                    disabled={session.isCurrent || isRevoked || actionBusy === session.id}
+                    className="gap-2"
+                    disabled={actionBusy === session.id}
                     onClick={() => handleRevoke(session.id)}
                   >
+                    <LogOut size={14} aria-hidden />
                     {actionBusy === session.id ? 'Encerrando...' : 'Encerrar'}
-                  </button>
-                  {session.isCurrent ? (
-                    <span className="text-xs text-meow-muted">
-                      Sessao atual (use Sair de todas para desconectar).
-                    </span>
-                  ) : null}
-                </div>
+                  </Button>
+                ) : null}
               </div>
             );
           })}

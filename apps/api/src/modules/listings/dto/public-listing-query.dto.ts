@@ -25,6 +25,11 @@ export class PublicListingQueryDto {
   deliveryType?: DeliveryType;
 
   @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  seller?: string;
+
+  @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(0)

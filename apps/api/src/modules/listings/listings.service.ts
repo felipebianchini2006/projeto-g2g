@@ -64,6 +64,10 @@ export class ListingsService {
       andFilters.push({ deliveryType: filters.deliveryType });
     }
 
+    if (filters.seller) {
+      andFilters.push({ sellerId: filters.seller });
+    }
+
     if (filters.q?.trim()) {
       const search = filters.q.trim();
       andFilters.push({

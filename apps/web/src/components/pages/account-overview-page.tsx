@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -9,7 +9,17 @@ import { walletApi, type WalletSummary } from '../../lib/wallet-api';
 import { useAuth } from '../auth/auth-provider';
 import { AccountShell } from '../account/account-shell';
 import { Badge } from '../ui/badge';
+import { buttonVariants } from '../ui/button';
 import { Card } from '../ui/card';
+import {
+  ArrowUpRight,
+  Bot,
+  Calendar,
+  Hash,
+  LifeBuoy,
+  ShoppingCart,
+  Wallet,
+} from 'lucide-react';
 
 type SummaryState = {
   status: 'loading' | 'ready';
@@ -29,6 +39,19 @@ const formatCurrency = (value: number, currency = 'BRL') =>
     currency,
     maximumFractionDigits: 2,
   }).format(value / 100);
+
+const resolveOrderStatus = (status: Order['status']) => {
+  if (status === 'DELIVERED' || status === 'COMPLETED') {
+    return { label: 'Entregue', tone: 'success' as const };
+  }
+  if (status === 'CREATED' || status === 'DISPUTED') {
+    return { label: 'Pedido aberto', tone: 'warning' as const };
+  }
+  if (status === 'CANCELLED' || status === 'REFUNDED') {
+    return { label: 'Cancelado', tone: 'danger' as const };
+  }
+  return { label: 'Processando', tone: 'info' as const };
+};
 
 export const AccountOverviewContent = () => {
   const { user, accessToken, loading } = useAuth();
@@ -128,6 +151,21 @@ export const AccountOverviewContent = () => {
     );
   }
 
+  const totalBought = ordersState.orders
+    .filter((order) => ['PAID', 'DELIVERED', 'COMPLETED'].includes(order.status))
+    .reduce((acc, order) => acc + order.totalAmountCents, 0);
+  const openOrder = ordersState.orders.find((order) =>
+    ['CREATED', 'DISPUTED'].includes(order.status),
+  );
+  const recentOrders = openOrder
+    ? [
+        openOrder,
+        ...ordersState.orders
+          .filter((order) => order.id !== openOrder.id)
+          .slice(0, 2),
+      ]
+    : ordersState.orders.slice(0, 3);
+
   return (
     <AccountShell
       breadcrumbs={[
@@ -135,44 +173,59 @@ export const AccountOverviewContent = () => {
         { label: 'Conta' },
       ]}
     >
-      <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
-        <h1 className="text-2xl font-black text-meow-charcoal">Ola, {user.email}!</h1>
-        <p className="mt-1 text-sm text-meow-muted">
-          Aqui esta o resumo da sua conta hoje.
-        </p>
-      </Card>
+      <div className="rounded-[28px] border border-pink-100 bg-gradient-to-r from-[#ff6aa2] via-[#e57bd0] to-[#b78dff] p-6 text-white shadow-[0_18px_40px_rgba(255,107,154,0.25)]">
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white/20 text-xl">
+            👋
+          </div>
+          <div>
+            <h1 className="text-2xl font-black">Olá, {user.email}!</h1>
+            <p className="mt-1 text-sm text-white/80">
+              Aqui está o resumo da sua conta hoje.
+            </p>
+          </div>
+        </div>
+      </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        {[
-          {
-            label: 'Total comprado',
-            value: formatCurrency(
-              ordersState.orders
-                .filter((order) =>
-                  ['PAID', 'DELIVERED', 'COMPLETED'].includes(order.status),
-                )
-                .reduce((acc, order) => acc + order.totalAmountCents, 0),
-            ),
-            accent: 'bg-rose-50 text-meow-deep',
-          },
-          {
-            label: 'Saldo disponivel',
-            value: formatCurrency(summaryState.summary?.availableCents ?? 0),
-            accent: 'bg-purple-50 text-purple-500',
-          },
-        ].map((card) => (
-          <Card key={card.label} className="rounded-[26px] border border-slate-100 p-5 shadow-card">
-            <div
-              className={`grid h-11 w-11 place-items-center rounded-2xl text-sm font-black ${card.accent}`}
-            >
-              {card.label.split(' ')[0].slice(0, 1)}
+        <Card className="rounded-[26px] border border-slate-100 bg-white p-5 shadow-card">
+          <div className="flex items-start justify-between gap-3">
+            <div className="grid h-11 w-11 place-items-center rounded-2xl bg-rose-50 text-meow-deep">
+              <ShoppingCart size={18} aria-hidden />
             </div>
-            <p className="mt-4 text-xs font-semibold uppercase text-meow-muted">
-              {card.label}
-            </p>
-            <p className="mt-2 text-2xl font-black text-meow-charcoal">{card.value}</p>
-          </Card>
-        ))}
+            <Badge variant="neutral" className="rounded-full px-3 py-1 text-[10px] font-bold">
+              VITALÍCIO
+            </Badge>
+          </div>
+          <p className="mt-4 text-xs font-semibold uppercase text-meow-muted">
+            Total comprado
+          </p>
+          <p className="mt-2 text-2xl font-black text-meow-charcoal">
+            {formatCurrency(totalBought)}
+          </p>
+          <div className="mt-2 flex items-center gap-2 text-xs font-semibold text-emerald-600">
+            <ArrowUpRight size={14} aria-hidden />
+            + R$ 450,00 esta semana
+          </div>
+        </Card>
+
+        <Card className="rounded-[26px] border border-slate-100 bg-white p-5 shadow-card">
+          <div className="flex items-start justify-between gap-3">
+            <div className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-50 text-emerald-600">
+              <Wallet size={18} aria-hidden />
+            </div>
+            <button type="button" className="text-xs font-semibold text-rose-500">
+              + Adicionar
+            </button>
+          </div>
+          <p className="mt-4 text-xs font-semibold uppercase text-meow-muted">
+            Saldo disponivel
+          </p>
+          <p className="mt-2 text-2xl font-black text-meow-charcoal">
+            {formatCurrency(summaryState.summary?.availableCents ?? 0)}
+          </p>
+          <p className="mt-2 text-xs text-meow-muted">Pronto para uso imediato</p>
+        </Card>
       </div>
 
       {summaryState.error ? (
@@ -184,11 +237,8 @@ export const AccountOverviewContent = () => {
       <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-lg font-black text-meow-charcoal">Pedidos recentes</h2>
-          <Link
-            href="/conta/pedidos"
-            className="text-xs font-bold text-meow-deep"
-          >
-            Ver todos
+          <Link href="/conta/pedidos" className="text-xs font-bold text-rose-500">
+            Ver todos os pedidos
           </Link>
         </div>
 
@@ -211,53 +261,50 @@ export const AccountOverviewContent = () => {
         ) : null}
 
         <div className="mt-4 grid gap-3">
-          {ordersState.orders.slice(0, 3).map((order) => {
+          {recentOrders.map((order) => {
             const firstItem = order.items[0];
-            const status =
-              order.status === 'DELIVERED' || order.status === 'COMPLETED'
-                ? 'Entregue'
-                : order.status === 'AWAITING_PAYMENT'
-                  ? 'Processando'
-                  : 'Pedido aberto';
-            const statusTone =
-              order.status === 'DELIVERED' || order.status === 'COMPLETED'
-                ? 'success'
-                : order.status === 'AWAITING_PAYMENT'
-                  ? 'info'
-                  : 'neutral';
+            const statusInfo = resolveOrderStatus(order.status);
+            const isHighlighted = openOrder?.id === order.id;
+            const highlight = isHighlighted
+              ? 'border-pink-200 bg-pink-50/60'
+              : 'border-slate-100';
+            const iconTone = isHighlighted
+              ? 'bg-purple-100 text-purple-600'
+              : 'bg-slate-100 text-slate-500';
 
             return (
               <div
                 key={order.id}
-                className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-100 bg-meow-50/60 px-4 py-3"
+                className={`flex flex-wrap items-center justify-between gap-4 rounded-2xl border px-4 py-4 ${highlight}`}
               >
                 <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 overflow-hidden rounded-xl bg-white">
-                    <img
-                      src={
-                        firstItem?.deliveryEvidence?.[0]?.content ??
-                        '/assets/meoow/highlight-01.webp'
-                      }
-                      alt={firstItem?.title ?? 'Pedido'}
-                      className="h-full w-full object-cover"
-                    />
+                  <div className={`grid h-12 w-12 place-items-center rounded-xl ${iconTone}`}>
+                    <Bot size={18} aria-hidden />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-meow-charcoal">
-                      {firstItem?.title ?? 'Pedido em processamento'}
-                    </p>
-                    <p className="text-xs text-meow-muted">
-                      Pedido #{order.id.slice(0, 6).toUpperCase()} -{' '}
-                      {new Date(order.createdAt).toLocaleDateString('pt-BR')}
-                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-semibold text-meow-charcoal">
+                        {firstItem?.title ?? 'Pedido em processamento'}
+                      </p>
+                      <Badge variant={statusInfo.tone}>{statusInfo.label}</Badge>
+                    </div>
+                    <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-meow-muted">
+                      <span className="inline-flex items-center gap-1">
+                        <Hash size={12} aria-hidden />
+                        {order.id.slice(0, 5).toUpperCase()}
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <Calendar size={12} aria-hidden />
+                        {new Date(order.createdAt).toLocaleDateString('pt-BR')}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 text-sm font-semibold text-meow-charcoal">
                   {formatCurrency(order.totalAmountCents, order.currency)}
-                  <Badge variant={statusTone}>{status}</Badge>
                   <Link
                     href={`/conta/pedidos/${order.id}`}
-                    className="rounded-full border border-slate-200 px-4 py-2 text-xs font-bold text-meow-charcoal"
+                    className="rounded-full border border-slate-200 px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-700"
                   >
                     Detalhes
                   </Link>
@@ -267,6 +314,25 @@ export const AccountOverviewContent = () => {
           })}
         </div>
       </Card>
+
+      {openOrder ? (
+        <Card className="rounded-[26px] border border-slate-100 p-6 shadow-card">
+          <h3 className="text-base font-bold text-meow-charcoal">Precisa de ajuda?</h3>
+          <p className="mt-2 text-sm text-meow-muted">
+            Vimos que você tem um pedido em aberto (#{openOrder.id.slice(0, 5).toUpperCase()}). Está com dificuldades?
+          </p>
+          <Link
+            href="/conta/tickets"
+            className={buttonVariants({
+              variant: 'secondary',
+              className: 'mx-auto mt-4 w-full justify-center gap-2 rounded-2xl md:w-auto md:px-10',
+            })}
+          >
+            <LifeBuoy size={16} aria-hidden />
+            Abrir Chat de Suporte
+          </Link>
+        </Card>
+      ) : null}
     </AccountShell>
   );
 };
