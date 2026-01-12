@@ -186,6 +186,7 @@ model User {
   addressCity  String?
   addressState String?
   addressCountry String?
+  avatarUrl    String?
   payoutPixKey String?
   payoutBlockedAt DateTime?
   payoutBlockedReason String?

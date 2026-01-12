@@ -40,6 +40,7 @@ import {
 } from 'lucide-react';
 
 import { cn } from '../../lib/utils';
+import { ProfileAvatar } from '../account/profile-avatar';
 import { useAuth } from '../auth/auth-provider';
 import { SiteHeader } from './site-header';
 import { buttonVariants } from '../ui/button';
@@ -220,14 +221,6 @@ const iconMap: Record<string, React.ReactNode> = {
   Sair: <LogOut size={16} aria-hidden />,
 };
 
-const sectionIconMap: Record<string, React.ReactNode> = {
-  Admin: <ShieldAlert size={14} aria-hidden />,
-  Cadastros: <Database size={14} aria-hidden />,
-  Conta: <UserRound size={14} aria-hidden />,
-  Menu: <LayoutGrid size={14} aria-hidden />,
-  Vendedor: <Store size={14} aria-hidden />,
-};
-
 const SidebarCard = ({
   title,
   sections,
@@ -235,6 +228,7 @@ const SidebarCard = ({
   onNavigate,
   displayName,
   initials,
+  avatarUrl,
 }: {
   title: string;
   sections: MenuSection[];
@@ -242,6 +236,7 @@ const SidebarCard = ({
   onNavigate?: () => void;
   displayName: string;
   initials: string;
+  avatarUrl?: string | null;
 }) => {
   const initialOpenSections = useMemo(() => {
     const activeSections = sections
@@ -272,14 +267,11 @@ const SidebarCard = ({
   return (
     <Card className="rounded-[28px] border border-meow-red/10 bg-white/95 p-5 shadow-card">
       <div className="flex flex-col items-center text-center">
-        <div className="relative">
-          <div className="grid h-20 w-20 place-items-center rounded-full bg-gradient-to-br from-meow-200 to-meow-300 text-2xl font-black text-white shadow-cute">
-            {initials}
-          </div>
-          <span className="absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-full bg-meow-300 text-xs font-black text-white shadow-cute">
-            <UserRound size={12} aria-hidden />
-          </span>
-        </div>
+        <ProfileAvatar
+          displayName={displayName}
+          initials={initials}
+          avatarUrl={avatarUrl}
+        />
         <h3 className="mt-4 text-lg font-black text-meow-charcoal">{displayName}</h3>
         <p className="text-xs font-semibold text-meow-muted">{title}</p>
       </div>
@@ -292,10 +284,7 @@ const SidebarCard = ({
               className="flex w-full items-center justify-between text-[11px] font-bold uppercase tracking-[0.4px] text-meow-muted"
               onClick={() => toggleSection(section.title)}
             >
-              <span className="flex items-center gap-2">
-                {sectionIconMap[section.title] ?? <LayoutGrid size={14} aria-hidden />}
-                {section.title}
-              </span>
+              <span>{section.title}</span>
               <ChevronDown
                 size={14}
                 className={`transition ${openSections.includes(section.title) ? 'rotate-180' : ''}`}
@@ -357,12 +346,14 @@ const AccountSidebar = ({
   onNavigate,
   displayName,
   initials,
+  avatarUrl,
 }: {
   sections: MenuSection[];
   pathname: string;
   onNavigate?: () => void;
   displayName: string;
   initials: string;
+  avatarUrl?: string | null;
 }) => {
   const initialOpenSections = useMemo(() => {
     const activeSections = sections
@@ -404,14 +395,11 @@ const AccountSidebar = ({
       </Link>
 
       <div className="mt-6 flex flex-col items-center text-center">
-        <div className="relative">
-          <div className="grid h-20 w-20 place-items-center rounded-full bg-gradient-to-br from-meow-200 to-meow-300 text-2xl font-black text-white shadow-cute">
-            {initials}
-          </div>
-          <span className="absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-full bg-meow-300 text-xs font-black text-white shadow-cute">
-            <UserRound size={12} aria-hidden />
-          </span>
-        </div>
+        <ProfileAvatar
+          displayName={displayName}
+          initials={initials}
+          avatarUrl={avatarUrl}
+        />
         <h3 className="mt-4 text-lg font-black text-meow-charcoal">{displayName}</h3>
       </div>
 
@@ -423,10 +411,7 @@ const AccountSidebar = ({
               className="flex w-full items-center justify-between text-[11px] font-bold uppercase tracking-[0.4px] text-meow-muted"
               onClick={() => toggleSection(section.title)}
             >
-              <span className="flex items-center gap-2">
-                {sectionIconMap[section.title] ?? <LayoutGrid size={14} aria-hidden />}
-                {section.title}
-              </span>
+              <span>{section.title}</span>
               <ChevronDown
                 size={14}
                 className={`transition ${openSections.includes(section.title) ? 'rotate-180' : ''}`}
@@ -557,6 +542,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                     pathname={pathname}
                     displayName={displayName}
                     initials={initials}
+                    avatarUrl={user?.avatarUrl ?? null}
                   />
                 ) : (
                   <AccountSidebar
@@ -564,6 +550,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                     pathname={pathname}
                     displayName={displayName}
                     initials={initials}
+                    avatarUrl={user?.avatarUrl ?? null}
                   />
                 )}
               </aside>
@@ -600,6 +587,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                     onNavigate={() => setSidebarOpen(false)}
                     displayName={displayName}
                     initials={initials}
+                    avatarUrl={user?.avatarUrl ?? null}
                   />
                 ) : (
                   <AccountSidebar
@@ -608,6 +596,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                     onNavigate={() => setSidebarOpen(false)}
                     displayName={displayName}
                     initials={initials}
+                    avatarUrl={user?.avatarUrl ?? null}
                   />
                 )}
               </div>

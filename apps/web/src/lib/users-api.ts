@@ -1,4 +1,5 @@
-import { apiFetch } from './api-client';
+import { ApiClientError, apiFetch } from './api-client';
+import { emitGlobalError } from './global-error';
 
 export type UserProfile = {
   id: string;
@@ -14,14 +15,48 @@ export type UserProfile = {
   addressCity: string | null;
   addressState: string | null;
   addressCountry: string | null;
+  avatarUrl: string | null;
 };
 
 export type UserProfileUpdate = Partial<
-  Omit<UserProfile, 'id' | 'email'>
+  Omit<UserProfile, 'id' | 'email' | 'avatarUrl'>
 >;
 
 const authHeaders = (token: string | null) =>
   token ? { Authorization: `Bearer ${token}` } : {};
+
+const resolveBaseUrl = () =>
+  process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:3001';
+
+const buildUrl = (path: string, baseUrl = resolveBaseUrl()) => {
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    return path;
+  }
+  const normalizedBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return `${normalizedBase}${normalizedPath}`;
+};
+
+const parseResponse = async (response: Response) => {
+  const contentType = response.headers.get('content-type') ?? '';
+  if (contentType.includes('application/json')) {
+    return response.json();
+  }
+  if (contentType.includes('text/')) {
+    return response.text();
+  }
+  return null;
+};
+
+const toErrorMessage = (payload: unknown, fallback: string) => {
+  if (payload && typeof payload === 'object' && 'message' in payload) {
+    const message = (payload as { message?: unknown }).message;
+    if (typeof message === 'string' && message.trim().length > 0) {
+      return message;
+    }
+  }
+  return fallback;
+};
 
 export const usersApi = {
   getProfile: (token: string | null) =>
@@ -32,4 +67,34 @@ export const usersApi = {
       headers: authHeaders(token),
       body: JSON.stringify(payload),
     }),
+  uploadAvatar: async (token: string | null, file: File) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch(buildUrl('/users/me/avatar'), {
+        method: 'POST',
+        headers: {
+          ...authHeaders(token),
+        },
+        body: formData,
+      });
+
+      const payload = await parseResponse(response);
+      if (!response.ok) {
+        const message = toErrorMessage(payload, response.statusText);
+        emitGlobalError({ message, status: response.status, source: 'users' });
+        throw new ApiClientError(message, response.status, payload);
+      }
+
+      return payload as UserProfile;
+    } catch (error) {
+      if (error instanceof ApiClientError) {
+        throw error;
+      }
+      const message = error instanceof Error ? error.message : 'Network error';
+      emitGlobalError({ message, source: 'users' });
+      throw new ApiClientError(message, 0);
+    }
+  },
 };

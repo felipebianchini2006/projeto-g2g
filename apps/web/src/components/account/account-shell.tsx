@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 
 import { useAuth } from '../auth/auth-provider';
+import { ProfileAvatar } from './profile-avatar';
 import { useDashboardLayout } from '../layout/dashboard-layout';
 
 type Breadcrumb = {
@@ -242,14 +243,11 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
         <div className="mt-6 grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
           <aside className="rounded-[28px] border border-meow-100 bg-white p-5 shadow-card">
             <div className="flex flex-col items-center text-center">
-              <div className="relative">
-                <div className="grid h-20 w-20 place-items-center rounded-full bg-gradient-to-br from-meow-200 to-meow-300 text-white text-2xl font-black shadow-cute">
-                  {initials}
-                </div>
-                <span className="absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-full bg-meow-300 text-xs font-black text-white shadow-cute">
-                  <UserRound size={12} aria-hidden />
-                </span>
-              </div>
+              <ProfileAvatar
+                displayName={displayName}
+                initials={initials}
+                avatarUrl={user?.avatarUrl ?? null}
+              />
               <h3 className="mt-4 text-lg font-black text-meow-charcoal">{displayName}</h3>
             </div>
 

@@ -2,6 +2,7 @@ export type AuthUser = {
   id: string;
   email: string;
   role: 'USER' | 'SELLER' | 'ADMIN';
+  avatarUrl?: string | null;
   createdAt: string;
   updatedAt: string;
 };

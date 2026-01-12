@@ -38,6 +38,7 @@ const USER_PROFILE_SELECT = {
   addressCity: true,
   addressState: true,
   addressCountry: true,
+  avatarUrl: true,
 };
 
 @Injectable()
@@ -152,6 +153,24 @@ export class UsersService {
       return await this.prisma.user.update({
         where: { id: userId },
         data,
+        select: USER_PROFILE_SELECT,
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new NotFoundException('User not found.');
+      }
+      throw error;
+    }
+  }
+
+  async updateAvatar(userId: string, avatarUrl: string) {
+    try {
+      return await this.prisma.user.update({
+        where: { id: userId },
+        data: { avatarUrl },
         select: USER_PROFILE_SELECT,
       });
     } catch (error) {
