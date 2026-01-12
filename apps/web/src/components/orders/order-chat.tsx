@@ -2,11 +2,10 @@
 
 import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { io, type Socket } from 'socket.io-client';
+import { Paperclip, Send, ShieldCheck } from 'lucide-react';
 
 import { chatApi, type ChatMessage as ApiChatMessage } from '../../lib/chat-api';
-import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
-import { Textarea } from '../ui/textarea';
 
 type ChatMessage = {
   id: string;
@@ -24,6 +23,8 @@ type OrderChatProps = {
   orderId: string;
   accessToken: string;
   userId: string;
+  sellerName?: string;
+  sellerInitials?: string;
 };
 
 type MessageCreatedPayload = {
@@ -53,7 +54,13 @@ const mapApiMessage = (message: ApiChatMessage, orderId: string): ChatMessage =>
   status: 'sent',
 });
 
-export const OrderChat = ({ orderId, accessToken, userId }: OrderChatProps) => {
+export const OrderChat = ({
+  orderId,
+  accessToken,
+  userId,
+  sellerName,
+  sellerInitials,
+}: OrderChatProps) => {
   const [connection, setConnection] = useState<ChatConnectionState>('idle');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState('');
@@ -340,106 +347,153 @@ export const OrderChat = ({ orderId, accessToken, userId }: OrderChatProps) => {
 
   const statusLabel = useMemo(() => {
     if (!online) {
-      return { label: 'Offline', variant: 'danger' } as const;
+      return { label: 'OFFLINE', tone: 'text-slate-400' } as const;
     }
     if (connection === 'connected') {
-      return { label: 'Conectado', variant: 'success' } as const;
+      return { label: 'ONLINE AGORA', tone: 'text-emerald-600' } as const;
     }
     if (connection === 'reconnecting') {
-      return { label: 'Reconectando', variant: 'warning' } as const;
+      return { label: 'RECONECTANDO', tone: 'text-amber-500' } as const;
     }
     if (connection === 'connecting') {
-      return { label: 'Conectando', variant: 'info' } as const;
+      return { label: 'Conectando', tone: 'text-slate-400' } as const;
     }
-    return { label: 'Offline', variant: 'danger' } as const;
+    return { label: 'OFFLINE', tone: 'text-slate-400' } as const;
   }, [connection, online]);
 
   return (
-    <div className="rounded-2xl border border-meow-red/20 bg-white p-4 shadow-card">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h3 className="text-base font-bold text-meow-charcoal">Chat do pedido</h3>
-          <p className="text-xs text-meow-muted">Mensagens entre comprador e vendedor.</p>
+    <div className="flex h-full flex-col overflow-hidden rounded-[26px] border border-slate-100 bg-white shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-meow-100 text-sm font-black text-meow-deep">
+            {(sellerInitials ?? 'VP').slice(0, 2).toUpperCase()}
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-meow-charcoal">
+              {sellerName ?? 'Vendedor'}
+            </p>
+            <p className={`text-[11px] font-bold uppercase ${statusLabel.tone}`}>
+              <span className="mr-1 inline-block h-2 w-2 rounded-full bg-current" />
+              {statusLabel.label}
+            </p>
+          </div>
         </div>
-        <Badge variant={statusLabel.variant}>{statusLabel.label}</Badge>
+        <div className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-semibold text-slate-500">
+          Resposta media: 5 min
+        </div>
       </div>
 
       {error ? (
-        <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+        <div className="mx-6 mt-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
           {error}
         </div>
       ) : null}
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-[11px] text-meow-muted">
-        <span>{messages.length} mensagens</span>
-        <div className="flex flex-wrap gap-2">
+      <div className="flex-1 overflow-hidden px-6 py-4">
+        <div className="flex items-center justify-center">
+          <span className="rounded-full bg-slate-100 px-4 py-1 text-[10px] font-semibold text-slate-500">
+            HOJE
+          </span>
+        </div>
+
+        <div className="mt-4 rounded-2xl border border-blue-100 bg-blue-50/80 px-4 py-3 text-xs text-blue-800">
+          <div className="flex items-start gap-2">
+            <ShieldCheck size={16} className="mt-0.5 text-blue-600" aria-hidden />
+            <p>
+              Compra garantida pela Meoww Store. O dinheiro esta retido ate voce
+              confirmar o recebimento. Nao libere antes de testar.
+            </p>
+          </div>
+        </div>
+
+        <div
+          className="mt-4 max-h-[420px] space-y-4 overflow-y-auto pb-2"
+          ref={listRef}
+        >
           {hasMoreHistory ? (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => loadHistory(historyCursor)}
-              disabled={historyBusy}
-            >
-              {historyBusy ? 'Carregando...' : 'Mostrar anteriores'}
-            </Button>
+            <div className="flex justify-center">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => loadHistory(historyCursor)}
+                disabled={historyBusy}
+              >
+                {historyBusy ? 'Carregando...' : 'Mostrar anteriores'}
+              </Button>
+            </div>
           ) : null}
-          <Button type="button" variant="ghost" size="sm" onClick={() => scrollToBottom('smooth')}>
-            Ir para o fim
-          </Button>
+          {messages.length === 0 ? (
+            <div className="text-xs text-meow-muted">Nenhuma mensagem ainda.</div>
+          ) : (
+            messages.map((message) => {
+              const isOwn = message.userId === userId;
+              return (
+                <div
+                  className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
+                  key={message.id}
+                >
+                  {!isOwn ? (
+                    <div className="mr-2 mt-auto flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-[10px] font-bold text-slate-500">
+                      {(sellerInitials ?? 'VP').slice(0, 2).toUpperCase()}
+                    </div>
+                  ) : null}
+                  <div className={`max-w-[75%]`}>
+                    <div
+                      className={`rounded-2xl px-4 py-2 text-sm shadow-sm ${
+                        isOwn
+                          ? 'bg-gradient-to-r from-[#f78fb3] to-[#f04f7a] text-white'
+                          : 'bg-white text-meow-charcoal'
+                      } ${message.status === 'failed' ? 'border border-red-200' : ''}`}
+                    >
+                      <p>{message.text}</p>
+                    </div>
+                    <div
+                      className={`mt-1 flex items-center justify-between gap-2 text-[10px] ${
+                        isOwn ? 'text-pink-400' : 'text-slate-400'
+                      }`}
+                    >
+                      <span>{formatTime(message.createdAt)}</span>
+                      {message.status === 'pending' ? <span>Enviando...</span> : null}
+                      {message.status === 'failed' ? <span>Falhou</span> : null}
+                    </div>
+                  </div>
+                  {isOwn ? (
+                    <div className="ml-2 mt-auto flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 text-[10px] font-bold text-white">
+                      EU
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
 
-      <div
-        className="mt-3 max-h-[320px] space-y-3 overflow-y-auto rounded-2xl border border-meow-red/10 bg-meow-50/40 p-3"
-        ref={listRef}
+      <form
+        className="border-t border-slate-100 px-6 py-4"
+        onSubmit={handleSend}
       >
-        {messages.length === 0 ? (
-          <div className="text-xs text-meow-muted">Nenhuma mensagem ainda.</div>
-        ) : (
-          messages.map((message) => {
-            const isOwn = message.userId === userId;
-            return (
-              <div
-                className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
-                key={message.id}
-              >
-                <div
-                  className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${
-                    isOwn
-                      ? 'bg-meow-300 text-white'
-                      : 'bg-white text-meow-charcoal shadow-sm'
-                  } ${message.status === 'failed' ? 'border border-red-200' : ''}`}
-                >
-                  <p>{message.text}</p>
-                  <div
-                    className={`mt-1 flex items-center justify-between gap-2 text-[10px] ${
-                      isOwn ? 'text-white/80' : 'text-meow-muted'
-                    }`}
-                  >
-                    <span>{isOwn ? 'Voce' : 'Outro usuario'} - {formatTime(message.createdAt)}</span>
-                    {message.status === 'pending' ? <span>Enviando...</span> : null}
-                    {message.status === 'failed' ? <span>Falhou</span> : null}
-                  </div>
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
-
-      <form className="mt-3 flex flex-col gap-2 sm:flex-row" onSubmit={handleSend}>
-        <Textarea
-          rows={2}
-          className="min-h-[64px] flex-1"
-          placeholder="Escreva sua mensagem..."
-          value={draft}
-          onChange={(event) => setDraft(event.target.value)}
-          disabled={!online}
-        />
-        <Button type="submit" disabled={!canSend}>
-          Enviar
-        </Button>
+        <div className="flex items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-2 shadow-sm">
+          <button type="button" className="text-slate-400" aria-label="Anexar">
+            <Paperclip size={18} aria-hidden />
+          </button>
+          <input
+            className="flex-1 bg-transparent text-sm text-meow-charcoal outline-none placeholder:text-slate-400"
+            placeholder="Escreva sua mensagem..."
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            disabled={!online}
+          />
+          <button
+            type="submit"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-r from-[#f78fb3] to-[#f04f7a] text-white"
+            disabled={!canSend}
+            aria-label="Enviar"
+          >
+            <Send size={16} aria-hidden />
+          </button>
+        </div>
       </form>
     </div>
   );

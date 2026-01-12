@@ -324,6 +324,17 @@ export const SiteHeader = () => {
 
   return (
     <>
+      <div className="bg-gradient-to-r from-[#f2a4c3] via-[#f7b8d1] to-[#f2a4c3] text-white">
+        <div className="mx-auto flex w-full max-w-[1280px] flex-wrap items-center justify-center gap-3 px-6 py-2 text-center text-[11px] font-bold uppercase tracking-[0.6px] sm:justify-between">
+          <span>Frete grátis em regiões selecionadas nas compras acima de R$349</span>
+          <Link
+            href="/produtos"
+            className="rounded-full bg-white px-3 py-1 text-[10px] font-extrabold text-meow-deep shadow-sm"
+          >
+            Saiba mais
+          </Link>
+        </div>
+      </div>
       <header className="site-header relative z-40 border-b border-meow-deep/10 bg-white/95 shadow-[0_12px_30px_rgba(240,98,146,0.08)] backdrop-blur">
         <div className="mx-auto grid w-full max-w-[1280px] items-center gap-6 px-6 py-4 md:grid-cols-[auto_minmax(280px,1fr)_auto]">
           <Link href="/" className="flex items-center gap-3" onClick={closeAll}>

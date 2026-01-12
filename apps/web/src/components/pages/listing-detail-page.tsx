@@ -2,10 +2,11 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { Heart } from 'lucide-react';
+import { Heart, ShoppingBag, ShoppingCart, Star } from 'lucide-react';
 
 import { fetchPublicListing, type PublicListing } from '../../lib/marketplace-public';
 import { useSite } from '../site-context';
+import { Badge } from '../ui/badge';
 import { buttonVariants } from '../ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 
@@ -31,6 +32,9 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
     source: 'api',
   });
   const [activeMedia, setActiveMedia] = useState<string | null>(null);
+  const [selectedEdition, setSelectedEdition] = useState<'standard' | 'deluxe'>(
+    'standard',
+  );
   useEffect(() => {
     let active = true;
     const loadListing = async () => {
@@ -45,8 +49,8 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
         error: response.error,
       });
       const fallbackImage = '/assets/meoow/highlight-01.webp';
-      const nextMedia = response.listing?.media?.[0]?.url ?? null;
-      setActiveMedia(nextMedia ?? fallbackImage);
+      const nextMedia = response.listing?.media?.[0]?.url ?? fallbackImage;
+      setActiveMedia(nextMedia);
     };
     loadListing().catch(() => {
       if (active) {
@@ -90,7 +94,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
   const favoriteActive = isFavorite(listing.id);
   const tabs = [
     { id: 'descricao', label: 'Descricao' },
-    { id: 'avaliacoes', label: 'Avaliacoes' },
+    { id: 'avaliacoes', label: 'Avaliacoes (42)' },
     { id: 'duvidas', label: 'Duvidas' },
   ] as const;
   const fallbackImage = '/assets/meoow/highlight-01.webp';
@@ -102,20 +106,37 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
           type: media.type,
         }))
       : [{ id: 'fallback', url: fallbackImage, type: 'IMAGE' }];
+  const thumbnailItems = mediaItems.slice(0, 4);
+  const remainingCount = Math.max(0, mediaItems.length - thumbnailItems.length);
+  const editionDeltaCents = 1000;
+  const editionLabel = selectedEdition === 'deluxe' ? 'Deluxe (+1k V)' : 'Padrão';
+  const priceCents =
+    selectedEdition === 'deluxe'
+      ? listing.priceCents + editionDeltaCents
+      : listing.priceCents;
+  const oldPriceCents =
+    typeof listing.oldPriceCents === 'number'
+      ? listing.oldPriceCents +
+        (selectedEdition === 'deluxe' ? editionDeltaCents : 0)
+      : null;
+  const discountPercent =
+    oldPriceCents && oldPriceCents > priceCents
+      ? Math.round((1 - priceCents / oldPriceCents) * 100)
+      : null;
 
   return (
     <section className="bg-meow-50/60 pb-16 pt-10">
       <div className="mx-auto w-full max-w-[1200px] px-6">
-        <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-semibold text-meow-muted">
-          <div>
-            <Link href="/" className="text-meow-deep">
+        <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
+          <div className="font-semibold">
+            <Link href="/" className="text-slate-500 hover:text-meow-deep">
               Inicio
             </Link>{' '}
             &gt;{' '}
-            <Link href="/categoria" className="text-meow-deep">
+            <Link href="/categoria" className="text-slate-500 hover:text-meow-deep">
               {categoryLabel}
             </Link>{' '}
-            &gt; {listing.title}
+            &gt; <span className="text-slate-500">{listing.title}</span>
           </div>
           <Link
             href="/produtos"
@@ -134,11 +155,12 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
         <div className="mt-6 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
             <div className="relative rounded-[24px] bg-slate-50 p-6">
-              {state.source === 'fallback' ? (
-                <span className="inline-flex rounded-full bg-meow-300 px-4 py-1 text-[11px] font-bold uppercase text-white shadow-cute">
-                  Exclusivo
-                </span>
-              ) : null}
+              <Badge
+                variant="pink"
+                className="absolute left-6 top-6 bg-[#f7a8c3] text-[10px] font-black uppercase text-white"
+              >
+                Exclusivo
+              </Badge>
               <button
                 type="button"
                 className="absolute right-6 top-6 grid h-10 w-10 place-items-center rounded-full bg-white text-meow-deep shadow-card"
@@ -155,7 +177,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
               >
                 <Heart size={18} fill={favoriteActive ? 'currentColor' : 'none'} />
               </button>
-              <div className="mt-6 flex min-h-[320px] items-center justify-center">
+              <div className="mt-10 flex min-h-[320px] items-center justify-center">
                 <img
                   src={activeMedia ?? fallbackImage}
                   alt={listing.title}
@@ -164,7 +186,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
               </div>
             </div>
             <div className="mt-5 flex flex-wrap gap-3">
-              {mediaItems.map((media) => (
+              {thumbnailItems.map((media) => (
                 <button
                   key={media.id}
                   type="button"
@@ -178,50 +200,113 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
                   <img src={media.url} alt={media.type} className="h-14 w-14 object-cover" />
                 </button>
               ))}
+              {remainingCount > 0 ? (
+                <div className="grid h-20 w-20 place-items-center rounded-2xl border border-slate-100 bg-white text-sm font-bold text-meow-muted">
+                  +{remainingCount}
+                </div>
+              ) : null}
             </div>
           </div>
 
           <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
             <h1 className="text-2xl font-black text-meow-charcoal">{listing.title}</h1>
-            <div className="mt-2 text-sm text-meow-muted">
+            <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-meow-muted">
+              <div className="flex items-center gap-1 text-amber-400">
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <Star key={`star-${index}`} size={16} fill="currentColor" />
+                ))}
+              </div>
+              <span className="text-xs font-semibold text-slate-500">5.0 (42)</span>
               {listing.deliveryType === 'AUTO' ? (
-                <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">
-                  Entrega automatica
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
-                  Entrega manual
-                </span>
-              )}
+                <Badge variant="success" className="bg-emerald-100 text-emerald-700">
+                  Entrega automática
+                </Badge>
+              ) : null}
             </div>
 
             <div className="mt-6">
-              <div className="text-3xl font-black text-meow-300">
-                {formatCurrency(listing.priceCents, listing.currency)}
+              <p className="text-sm font-semibold text-slate-500">Escolha a Edição:</p>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                {[
+                  { id: 'standard', label: 'Padrão' },
+                  { id: 'deluxe', label: 'Deluxe (+1k V)' },
+                ].map((edition) => {
+                  const isActive = selectedEdition === edition.id;
+                  return (
+                    <button
+                      key={edition.id}
+                      type="button"
+                      onClick={() =>
+                        setSelectedEdition(edition.id as 'standard' | 'deluxe')
+                      }
+                      className={`rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition ${
+                        isActive
+                          ? 'border-meow-300 bg-meow-100/70 text-meow-deep'
+                          : 'border-slate-100 bg-white text-meow-charcoal hover:border-meow-200'
+                      }`}
+                    >
+                      <span className="block text-sm font-bold">{edition.label}</span>
+                      <span className="mt-1 block text-xs text-slate-500">
+                        {edition.id === 'deluxe'
+                          ? 'Itens bonus para colecionar.'
+                          : 'Conteudo base incluso.'}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
+            </div>
+
+            <div className="mt-6">
+              <div className="flex flex-wrap items-center gap-2 text-sm text-slate-400">
+                {oldPriceCents ? (
+                  <span className="line-through">
+                    De {formatCurrency(oldPriceCents, listing.currency)}
+                  </span>
+                ) : null}
+                {discountPercent ? (
+                  <Badge variant="success" className="text-[9px]">
+                    -{discountPercent}%
+                  </Badge>
+                ) : null}
+              </div>
+              <div className="mt-2 text-3xl font-black text-meow-300">
+                {formatCurrency(priceCents, listing.currency)}
+              </div>
+              <p className="mt-1 text-xs text-slate-500">{editionLabel}</p>
             </div>
 
             <div className="mt-6 grid gap-3">
               <Link
-                className={buttonVariants({ variant: 'primary', size: 'lg', className: 'w-full' })}
-                href={`/checkout/${listing.id}`}
+                className={buttonVariants({
+                  variant: 'primary',
+                  size: 'lg',
+                  className: 'w-full gap-2 text-xs sm:text-sm',
+                })}
+                href={`/checkout/${listing.id}?variant=${selectedEdition}`}
               >
-                Comprar agora
+                <ShoppingBag size={18} aria-hidden />
+                COMPRAR AGORA
               </Link>
               <button
                 type="button"
-                className={buttonVariants({ variant: 'secondary', size: 'lg', className: 'w-full' })}
+                className={buttonVariants({
+                  variant: 'secondary',
+                  size: 'lg',
+                  className: 'w-full gap-2 text-xs sm:text-sm',
+                })}
                 onClick={() =>
                   addToCart({
                     id: listing.id,
-                    title: listing.title,
-                    priceCents: listing.priceCents,
+                    title: `${listing.title} - ${editionLabel}`,
+                    priceCents,
                     currency: listing.currency,
                     image: listing.media?.[0]?.url ?? null,
                   })
                 }
               >
-                Adicionar ao carrinho
+                <ShoppingCart size={18} aria-hidden />
+                Adicionar ao Carrinho
               </button>
             </div>
           </div>
@@ -229,7 +314,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
 
         <div className="mt-10 rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
           <Tabs defaultValue="descricao">
-            <TabsList>
+            <TabsList className="gap-2">
               {tabs.map((tab) => (
                 <TabsTrigger key={tab.id} value={tab.id}>
                   {tab.label}

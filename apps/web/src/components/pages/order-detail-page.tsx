@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { Copy, Eye, EyeOff, KeyRound, Lock, ShieldAlert } from 'lucide-react';
 
 import { ApiClientError } from '../../lib/api-client';
 import {
@@ -13,6 +14,7 @@ import {
 import { useAuth } from '../auth/auth-provider';
 import { AccountShell } from '../account/account-shell';
 import { OrderChat } from '../orders/order-chat';
+import { Badge } from '../ui/badge';
 import { Skeleton } from '../ui/skeleton';
 
 type OrderDetailContentProps = {
@@ -79,6 +81,9 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
     content: '',
   });
   const [evidenceBusy, setEvidenceBusy] = useState(false);
+  const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
+  const [copyStatus, setCopyStatus] = useState<string | null>(null);
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const listHref = scope === 'seller' ? '/conta/vendas' : '/conta/pedidos';
   const listLabel = scope === 'seller' ? 'Minhas vendas' : 'Minhas compras';
@@ -227,6 +232,77 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
     return state.order.payments[0];
   }, [state.order]);
 
+  const sellerLabel = useMemo(() => {
+    const email = state.order?.seller?.email;
+    if (!email) {
+      return 'Vendedor';
+    }
+    const name = email.split('@')[0] ?? 'Vendedor';
+    return `Loja do ${name.charAt(0).toUpperCase()}${name.slice(1)}`;
+  }, [state.order?.seller?.email]);
+
+  const sellerInitials = useMemo(() => {
+    const parts = sellerLabel.split(' ').filter((item) => item.length > 0);
+    if (parts.length === 1) {
+      return parts[0].slice(0, 2).toUpperCase();
+    }
+    return `${parts[0][0] ?? ''}${parts[1][0] ?? ''}`.toUpperCase();
+  }, [sellerLabel]);
+
+  const accessEntries = useMemo(() => {
+    if (!deliverySection?.autoItems.length) {
+      return [];
+    }
+    return deliverySection.autoItems.flatMap((item) =>
+      (item.inventoryItems ?? []).map((inv, index) => ({
+        id: inv.id ?? `${item.id}-${index}`,
+        code: inv.code ?? '',
+      })),
+    );
+  }, [deliverySection?.autoItems]);
+
+  const parseAccessCode = (code: string) => {
+    const trimmed = code.trim();
+    if (!trimmed) {
+      return { raw: '' };
+    }
+    const emailMatch = trimmed.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+    if (emailMatch && trimmed.includes(':')) {
+      const [maybeEmail, ...rest] = trimmed.split(':');
+      if (maybeEmail.includes('@') && rest.length > 0) {
+        return { email: maybeEmail.trim(), password: rest.join(':').trim() };
+      }
+    }
+    const loginMatch = trimmed.match(/(login|email|usuario)\s*[:=]\s*([^|\n]+)/i);
+    const senhaMatch = trimmed.match(/senha\s*[:=]\s*([^|\n]+)/i);
+    if (loginMatch || senhaMatch) {
+      return {
+        email: loginMatch?.[2]?.trim(),
+        password: senhaMatch?.[1]?.trim(),
+      };
+    }
+    return { raw: trimmed };
+  };
+
+  const handleCopy = async (value: string, label: string) => {
+    if (!value) {
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopyStatus(`${label} copiado.`);
+    } catch {
+      setCopyStatus('Nao foi possivel copiar.');
+    } finally {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+      copyTimeoutRef.current = setTimeout(() => {
+        setCopyStatus(null);
+      }, 3000);
+    }
+  };
+
   const canManageManualDelivery =
     scope === 'seller' &&
     (user?.role === 'SELLER' || user?.role === 'ADMIN') &&
@@ -309,19 +385,249 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
       {state.status === 'loading' ? (
         <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="space-y-4">
-            <Skeleton className="h-32 w-full" />
-            <Skeleton className="h-48 w-full" />
-            <Skeleton className="h-64 w-full" />
+            <Skeleton className="h-72 w-full" />
+            <Skeleton className="h-40 w-full" />
           </div>
           <div className="space-y-4">
-            <Skeleton className="h-64 w-full" />
+            <Skeleton className="h-48 w-full" />
             <Skeleton className="h-40 w-full" />
+            <Skeleton className="h-32 w-full" />
           </div>
         </div>
       ) : null}
 
       {state.order && state.status !== 'loading' ? (
-        <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+        <>
+          <div className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
+            <div className="min-h-[540px]">
+              {accessToken ? (
+                <OrderChat
+                  orderId={orderId}
+                  accessToken={accessToken}
+                  userId={user.id}
+                  sellerName={sellerLabel}
+                  sellerInitials={sellerInitials}
+                />
+              ) : (
+                <div className="rounded-2xl border border-meow-red/20 bg-white px-4 py-3 text-sm text-meow-muted">
+                  Carregando chat...
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-4">
+              <div className="rounded-[26px] border border-slate-100 bg-white p-5 shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600">
+                      <KeyRound size={18} aria-hidden />
+                    </span>
+                    <div>
+                      <h2 className="text-sm font-bold text-meow-charcoal">DADOS DE ACESSO</h2>
+                      <p className="text-xs text-meow-muted">
+                        Acesso liberado apos a entrega.
+                      </p>
+                    </div>
+                  </div>
+                  {deliverySection?.revealAllowed ? (
+                    <Badge variant="success" className="text-[9px]">
+                      ENTREGUE
+                    </Badge>
+                  ) : null}
+                </div>
+
+                {copyStatus ? (
+                  <div className="mt-3 rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
+                    {copyStatus}
+                  </div>
+                ) : null}
+
+                {!deliverySection?.revealAllowed ? (
+                  <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-xs text-slate-500">
+                    Disponivel apos a entrega.
+                  </div>
+                ) : null}
+
+                {deliverySection?.revealAllowed && accessEntries.length === 0 ? (
+                  <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-xs text-slate-500">
+                    Nenhum dado de acesso encontrado.
+                  </div>
+                ) : null}
+
+                {deliverySection?.revealAllowed && accessEntries.length > 0 ? (
+                  <div className="mt-4 grid gap-4">
+                    {accessEntries.map((entry, index) => {
+                      const parsed = parseAccessCode(entry.code);
+                      const isPasswordVisible = visiblePasswords[entry.id] ?? false;
+                      const accountLabel = `CONTA #${String(index + 1).padStart(2, '0')}`;
+
+                      return (
+                        <div key={entry.id} className="rounded-2xl border border-slate-100 bg-white p-4">
+                          <p className="text-[10px] font-semibold uppercase text-slate-400">
+                            {accountLabel}
+                          </p>
+                          {parsed.email || parsed.password ? (
+                            <div className="mt-3 grid gap-3">
+                              {parsed.email ? (
+                                <div>
+                                  <p className="text-[10px] font-semibold text-slate-400">EMAIL</p>
+                                  <div className="mt-1 flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                                    <input
+                                      readOnly
+                                      value={parsed.email}
+                                      className="flex-1 bg-transparent text-xs text-slate-700 outline-none"
+                                    />
+                                    <button
+                                      type="button"
+                                      className="text-slate-400"
+                                      onClick={() => handleCopy(parsed.email ?? '', 'Email')}
+                                    >
+                                      <Copy size={14} aria-hidden />
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : null}
+                              {parsed.password ? (
+                                <div>
+                                  <p className="text-[10px] font-semibold text-slate-400">SENHA</p>
+                                  <div className="mt-1 flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                                    <input
+                                      readOnly
+                                      type={isPasswordVisible ? 'text' : 'password'}
+                                      value={parsed.password}
+                                      className="flex-1 bg-transparent text-xs text-slate-700 outline-none"
+                                    />
+                                    <button
+                                      type="button"
+                                      className="text-slate-400"
+                                      onClick={() =>
+                                        setVisiblePasswords((prev) => ({
+                                          ...prev,
+                                          [entry.id]: !isPasswordVisible,
+                                        }))
+                                      }
+                                    >
+                                      {isPasswordVisible ? (
+                                        <EyeOff size={14} aria-hidden />
+                                      ) : (
+                                        <Eye size={14} aria-hidden />
+                                      )}
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="text-slate-400"
+                                      onClick={() => handleCopy(parsed.password ?? '', 'Senha')}
+                                    >
+                                      <Copy size={14} aria-hidden />
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : null}
+                            </div>
+                          ) : (
+                            <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                              <div className="flex items-center justify-between gap-2">
+                                <code className="break-all font-mono">{parsed.raw}</code>
+                                <button
+                                  type="button"
+                                  className="text-slate-400"
+                                  onClick={() => handleCopy(parsed.raw ?? '', 'Dado')}
+                                >
+                                  <Copy size={14} aria-hidden />
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="rounded-[22px] border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
+                <div className="flex items-start gap-2">
+                  <ShieldAlert size={14} aria-hidden className="mt-0.5" />
+                  <p>
+                    Dica: Grave a tela ao logar pela primeira vez para sua seguranca em
+                    caso de problemas.
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-[26px] border border-slate-100 bg-white p-5 shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
+                <div className="flex items-center gap-3">
+                  <div className="h-12 w-12 overflow-hidden rounded-2xl bg-slate-100">
+                    <img
+                      src={
+                        state.order.items?.[0]?.deliveryEvidence?.[0]?.content ??
+                        '/assets/meoow/highlight-01.webp'
+                      }
+                      alt={state.order.items?.[0]?.title ?? 'Produto'}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-meow-charcoal">
+                      {state.order.items?.[0]?.title ?? 'Produto'}
+                    </p>
+                    <p className="text-xs text-meow-muted">
+                      Qtd: {state.order.items?.[0]?.quantity ?? 1} • PIX
+                    </p>
+                    <p className="text-[11px] text-slate-400">
+                      {new Date(state.order.createdAt).toLocaleString('pt-BR')}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-4 grid gap-3">
+                  <button
+                    type="button"
+                    className="w-full rounded-full bg-meow-linear px-4 py-3 text-xs font-bold text-white"
+                    disabled={!canConfirm}
+                    onClick={() =>
+                      handleAction(
+                        () => ordersApi.confirmReceipt(accessToken, orderId),
+                        'Recebimento confirmado.',
+                      )
+                    }
+                  >
+                    Confirmar e Avaliar
+                  </button>
+                  <button
+                    type="button"
+                    className="w-full rounded-full border border-meow-red/30 px-4 py-3 text-xs font-bold text-meow-deep"
+                    disabled={!canDispute}
+                    onClick={() =>
+                      handleAction(
+                        () =>
+                          ordersApi.openDispute(
+                            accessToken,
+                            orderId,
+                            'Disputa aberta pelo comprador.',
+                          ),
+                        'Disputa aberta.',
+                      )
+                    }
+                  >
+                    Reportar compra/vendedor
+                  </button>
+                </div>
+
+                <div className="mt-4 text-[11px] text-slate-400">
+                  Se voce nao confirmar em 24h, a confirmacao sera automatica. Depois
+                  voce ainda tera 7 dias para abrir uma intervencao caso haja algum
+                  problema.
+                </div>
+                <div className="mt-3 flex items-center gap-2 text-[11px] text-slate-400">
+                  <Lock size={12} aria-hidden />
+                  Ambiente Seguro Meoww Store
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="space-y-4">
             <div className="rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
               <div className="flex flex-wrap items-center gap-6 text-sm text-meow-muted">
@@ -651,15 +957,9 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
               </div>
             </div>
 
-            {accessToken ? (
-              <OrderChat orderId={orderId} accessToken={accessToken} userId={user.id} />
-            ) : (
-              <div className="rounded-2xl border border-meow-red/20 bg-white px-4 py-3 text-sm text-meow-muted">
-                Carregando chat...
-              </div>
-            )}
           </div>
         </div>
+        </>
       ) : null}
     </AccountShell>
   );

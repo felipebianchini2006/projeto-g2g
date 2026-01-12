@@ -7,6 +7,7 @@ import { ApiClientError } from '../../lib/api-client';
 import { ordersApi, type Order, type PaymentStatus } from '../../lib/orders-api';
 import { useAuth } from '../auth/auth-provider';
 import { AccountShell } from '../account/account-shell';
+import { Badge } from '../ui/badge';
 import { Select } from '../ui/select';
 
 type OrdersState = {
@@ -17,7 +18,7 @@ type OrdersState = {
 
 const statusLabel: Record<string, string> = {
   CREATED: 'Criado',
-  AWAITING_PAYMENT: 'Pagamento pendente',
+  AWAITING_PAYMENT: 'Aguardando pagamento',
   PAID: 'Pago',
   IN_DELIVERY: 'Em entrega',
   DELIVERED: 'Entregue',
@@ -28,19 +29,11 @@ const statusLabel: Record<string, string> = {
 };
 
 const paymentLabel: Record<PaymentStatus, string> = {
-  PENDING: 'Pagamento pendente',
-  CONFIRMED: 'Pagamento aprovado',
-  EXPIRED: 'Pagamento expirado',
-  REFUNDED: 'Pagamento reembolsado',
-  FAILED: 'Falha no pagamento',
-};
-
-const paymentTone: Record<PaymentStatus, string> = {
-  PENDING: 'bg-amber-50 text-amber-700',
-  CONFIRMED: 'bg-emerald-50 text-emerald-700',
-  EXPIRED: 'bg-red-50 text-red-700',
-  REFUNDED: 'bg-indigo-50 text-indigo-700',
-  FAILED: 'bg-red-50 text-red-700',
+  PENDING: 'Pendente',
+  CONFIRMED: 'Confirmado',
+  EXPIRED: 'Expirado',
+  REFUNDED: 'Estornado',
+  FAILED: 'Falhou',
 };
 
 const formatCurrency = (value: number, currency = 'BRL') =>
@@ -56,7 +49,10 @@ export const AccountOrdersContent = () => {
     status: 'loading',
     orders: [],
   });
-  const [statusFilter, setStatusFilter] = useState<'all' | keyof typeof statusLabel>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | keyof typeof statusLabel>(
+    'all',
+  );
+  const [paymentFilter, setPaymentFilter] = useState<'all' | PaymentStatus>('all');
 
   const ordersSorted = useMemo(() => {
     return [...state.orders].sort(
@@ -65,11 +61,66 @@ export const AccountOrdersContent = () => {
   }, [state.orders]);
 
   const filteredOrders = useMemo(() => {
-    if (statusFilter === 'all') {
-      return ordersSorted;
+    return ordersSorted.filter((order) => {
+      if (statusFilter !== 'all' && order.status !== statusFilter) {
+        return false;
+      }
+      if (paymentFilter !== 'all') {
+        const paymentStatus = order.payments?.[0]?.status;
+        return paymentStatus === paymentFilter;
+      }
+      return true;
+    });
+  }, [ordersSorted, statusFilter, paymentFilter]);
+
+  const resolveInitials = (value?: string | null) => {
+    if (!value) {
+      return 'MC';
     }
-    return ordersSorted.filter((order) => order.status === statusFilter);
-  }, [ordersSorted, statusFilter]);
+    const parts = value.trim().split(' ').filter(Boolean);
+    if (parts.length === 1) {
+      return parts[0].slice(0, 2).toUpperCase();
+    }
+    return `${parts[0][0] ?? ''}${parts[1][0] ?? ''}`.toUpperCase();
+  };
+
+  const resolveAvatarTone = (value: string) => {
+    const tones = ['bg-sky-100 text-sky-600', 'bg-emerald-100 text-emerald-600', 'bg-violet-100 text-violet-600'];
+    let hash = 0;
+    for (let index = 0; index < value.length; index += 1) {
+      hash = (hash * 31 + value.charCodeAt(index)) % tones.length;
+    }
+    return tones[hash];
+  };
+
+  const resolveStatusBadge = (order: Order) => {
+    const paymentStatus = order.payments?.[0]?.status;
+    if (paymentStatus === 'REFUNDED') {
+      return { label: 'PAGAMENTO ESTORNADO', variant: 'danger' as const };
+    }
+    if (order.status === 'IN_DELIVERY') {
+      return { label: 'ENTREGA PENDENTE', variant: 'warning' as const };
+    }
+    if (order.status === 'DELIVERED' || order.status === 'COMPLETED') {
+      return { label: 'ENTREGA CONCLUIDA', variant: 'success' as const };
+    }
+    if (order.status === 'AWAITING_PAYMENT') {
+      return { label: 'AGUARDANDO PAGAMENTO', variant: 'warning' as const };
+    }
+    if (order.status === 'CANCELLED') {
+      return { label: 'CANCELADO', variant: 'danger' as const };
+    }
+    if (order.status === 'DISPUTED') {
+      return { label: 'EM DISPUTA', variant: 'warning' as const };
+    }
+    if (order.status === 'REFUNDED') {
+      return { label: 'REEMBOLSADO', variant: 'danger' as const };
+    }
+    if (order.status === 'PAID') {
+      return { label: 'PAGAMENTO CONFIRMADO', variant: 'success' as const };
+    }
+    return { label: statusLabel[order.status] ?? order.status, variant: 'neutral' as const };
+  };
 
   useEffect(() => {
     if (!accessToken) {
@@ -134,27 +185,41 @@ export const AccountOrdersContent = () => {
         { label: 'Minhas compras' },
       ]}
     >
-      <div className="space-y-4">
-        <div>
-          <h1 className="text-2xl font-black text-meow-charcoal">Minhas compras</h1>
-          <p className="text-sm text-meow-muted">Acompanhe seus pedidos e entregas.</p>
-        </div>
-
-        <div className="max-w-xs">
-          <Select
-            className="rounded-xl border-meow-red/20 bg-white text-sm font-semibold text-meow-charcoal"
-            value={statusFilter}
-            onChange={(event) =>
-              setStatusFilter(event.target.value as 'all' | keyof typeof statusLabel)
-            }
-          >
-            <option value="all">Todos os status</option>
-            {Object.entries(statusLabel).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </Select>
+      <div className="space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-black text-meow-charcoal">Minhas compras</h1>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Select
+              className="min-w-[180px] rounded-xl border-meow-red/20 bg-white text-sm font-semibold text-meow-charcoal"
+              value={paymentFilter}
+              onChange={(event) =>
+                setPaymentFilter(event.target.value as 'all' | PaymentStatus)
+              }
+            >
+              <option value="all">Pagamento: Todos</option>
+              {Object.entries(paymentLabel).map(([value, label]) => (
+                <option key={value} value={value}>
+                  Pagamento: {label}
+                </option>
+              ))}
+            </Select>
+            <Select
+              className="min-w-[200px] rounded-xl border-meow-red/20 bg-white text-sm font-semibold text-meow-charcoal"
+              value={statusFilter}
+              onChange={(event) =>
+                setStatusFilter(event.target.value as 'all' | keyof typeof statusLabel)
+              }
+            >
+              <option value="all">Pedido: Todos</option>
+              {Object.entries(statusLabel).map(([value, label]) => (
+                <option key={value} value={value}>
+                  Pedido: {label}
+                </option>
+              ))}
+            </Select>
+          </div>
         </div>
 
         {state.error ? (
@@ -164,64 +229,65 @@ export const AccountOrdersContent = () => {
         ) : null}
 
         {state.status === 'loading' ? (
-          <div className="rounded-2xl border border-slate-100 bg-meow-50 px-4 py-3 text-sm text-meow-muted">
-            Carregando pedidos...
+          <div className="grid gap-3">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div
+                key={`loading-${index}`}
+                className="h-20 rounded-2xl border border-slate-100 bg-meow-50/70"
+              />
+            ))}
           </div>
         ) : null}
 
         {state.status === 'ready' && filteredOrders.length === 0 ? (
           <div className="rounded-2xl border border-slate-100 bg-meow-50 px-4 py-3 text-sm text-meow-muted">
-            Nenhuma compra encontrada.
+            Voce ainda nao tem compras.
           </div>
         ) : null}
 
-        <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+        <div className="space-y-3">
           {filteredOrders.map((order) => {
             const firstItem = order.items[0];
-            const payment = order.payments?.[0];
-            const deliveryLabel =
-              order.status === 'DELIVERED' || order.status === 'COMPLETED'
-                ? 'Entregue'
-                : 'Entrega pendente';
-            const deliveryTone =
-              order.status === 'DELIVERED' || order.status === 'COMPLETED'
-                ? 'text-emerald-600'
-                : 'text-meow-muted';
             const orderCode = order.id.slice(0, 7).toUpperCase();
+            const initials = resolveInitials(firstItem?.title);
+            const avatarTone = resolveAvatarTone(order.id);
+            const quantity = order.items.reduce((acc, item) => acc + item.quantity, 0);
+            const badge = resolveStatusBadge(order);
 
             return (
               <div
                 key={order.id}
-                className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-100 bg-meow-50/70 px-4 py-3"
+                className="flex flex-wrap items-center justify-between gap-4 rounded-[26px] border border-slate-100 bg-white px-5 py-4 shadow-[0_10px_22px_rgba(15,23,42,0.04)]"
               >
-                <div className="flex items-center gap-3">
-                  <div className="grid h-10 w-10 place-items-center rounded-xl bg-white text-xs font-black text-meow-charcoal">
-                    #{orderCode.slice(0, 4)}
+                <div className="flex flex-1 items-center gap-4">
+                  <div
+                    className={`grid h-14 w-14 place-items-center rounded-2xl text-sm font-black ${avatarTone}`}
+                  >
+                    {initials}
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-meow-charcoal">
+                  <div className="space-y-1">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.4px] text-slate-400">
+                      COMPRA #{orderCode}
+                    </p>
+                    <p className="text-base font-bold text-meow-charcoal">
                       {firstItem?.title ?? 'Compra'}
                     </p>
                     <p className="text-xs text-meow-muted">
-                      {new Date(order.createdAt).toLocaleDateString('pt-BR')} - {deliveryLabel}
+                      {quantity} unidade{quantity === 1 ? '' : 's'} • Subtotal:{' '}
+                      {formatCurrency(order.totalAmountCents, order.currency)}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 text-sm font-semibold text-meow-charcoal">
-                  {formatCurrency(order.totalAmountCents, order.currency)}
-                  <span className={deliveryTone}>{statusLabel[order.status] ?? order.status}</span>
-                  {payment ? (
-                    <span
-                      className={`rounded-full px-3 py-1 text-[11px] font-semibold ${paymentTone[payment.status]}`}
-                    >
-                      {paymentLabel[payment.status]}
-                    </span>
-                  ) : null}
+                <div className="flex w-full flex-wrap items-center justify-between gap-3 sm:w-auto sm:justify-end">
+                  <div className="text-right text-xs text-slate-400">
+                    {new Date(order.createdAt).toLocaleString('pt-BR')}
+                  </div>
+                  <Badge variant={badge.variant}>{badge.label}</Badge>
                   <Link
                     href={`/conta/pedidos/${order.id}`}
-                    className="rounded-full border border-slate-200 px-3 py-2 text-xs font-bold text-meow-charcoal"
+                    className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
                   >
-                    Detalhes
+                    Ver Detalhes
                   </Link>
                 </div>
               </div>

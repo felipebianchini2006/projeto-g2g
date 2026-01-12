@@ -1,32 +1,122 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import {
   BadgePercent,
+  ChevronLeft,
+  ChevronRight,
   CreditCard,
   Package,
   ShieldCheck,
   Truck,
 } from 'lucide-react';
 
-import { fetchPublicCategories, type CatalogCategory } from '../../lib/marketplace-public';
+import { Badge } from '../ui/badge';
+import { Button } from '../ui/button';
+import {
+  fetchPublicListings,
+  type PublicListing,
+} from '../../lib/marketplace-public';
+import { HomeListingCard } from '../listings/home-listing-card';
+
+const benefits = [
+  {
+    icon: Truck,
+    title: 'Frete grátis acima de R$349',
+    description: 'Em regiões selecionadas',
+  },
+  {
+    icon: BadgePercent,
+    title: 'Descontos em pagamentos à vista',
+    description: 'Economize no PIX',
+  },
+  {
+    icon: Package,
+    title: 'Entrega local receba hoje',
+    description: 'Entrega express',
+  },
+  {
+    icon: CreditCard,
+    title: 'Pague com cartão em até 12x s/ juros',
+    description: 'Parcelamento fácil',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Segurança loja oficial',
+    description: 'Compra protegida',
+  },
+];
+
+const heartCategories = [
+  { label: 'Animal Crossing', image: null },
+  { label: 'The Legend of', image: null },
+  { label: 'Pokémon', image: null },
+  { label: 'Kirby', image: null },
+  { label: 'Metroid', image: null },
+  { label: 'Splatoon', image: null },
+  { label: 'Mario', image: null },
+  { label: 'Zelda', image: null },
+];
+
+const promoBanners = [
+  {
+    title: 'Xbox',
+    href: '/produtos?category=xbox',
+    image: null,
+    tone: 'from-[#0b3d1f] via-[#0f5a2f] to-[#0b3d1f]',
+  },
+  {
+    title: 'PlayStation',
+    href: '/produtos?category=playstation',
+    image: null,
+    tone: 'from-[#0a1f44] via-[#10346b] to-[#0a1f44]',
+  },
+  {
+    title: 'Nintendo',
+    href: '/produtos?category=nintendo',
+    image: null,
+    tone: 'from-[#9b1720] via-[#d32330] to-[#9b1720]',
+  },
+  {
+    title: 'WhatsApp',
+    href: '/conta/ajuda',
+    image: null,
+    tone: 'from-[#0f5a2f] via-[#1f9d55] to-[#0f5a2f]',
+  },
+];
+
+const getListingImage = (listing: PublicListing) =>
+  listing.media?.[0]?.url ?? '/assets/meoow/highlight-01.webp';
 
 export const HomeContent = () => {
-  const [categories, setCategories] = useState<CatalogCategory[]>([]);
+  const [featuredListings, setFeaturedListings] = useState<PublicListing[]>([]);
+  const [mustHaveListings, setMustHaveListings] = useState<PublicListing[]>([]);
+  const [featuredStatus, setFeaturedStatus] = useState<'idle' | 'loading' | 'ready'>(
+    'idle',
+  );
+
+  const heartsRef = useRef<HTMLDivElement | null>(null);
+  const featuredRef = useRef<HTMLDivElement | null>(null);
+  const mustHaveRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     let active = true;
-    const loadCategories = async () => {
-      const response = await fetchPublicCategories();
+    const loadListings = async () => {
+      setFeaturedStatus('loading');
+      const response = await fetchPublicListings({ take: 8, sort: 'recent' });
       if (!active) {
         return;
       }
-      setCategories(response.categories);
+      setFeaturedListings(response.listings);
+      setMustHaveListings(response.listings);
+      setFeaturedStatus('ready');
     };
-    loadCategories().catch(() => {
+    loadListings().catch(() => {
       if (active) {
-        setCategories([]);
+        setFeaturedListings([]);
+        setMustHaveListings([]);
+        setFeaturedStatus('ready');
       }
     });
     return () => {
@@ -34,50 +124,64 @@ export const HomeContent = () => {
     };
   }, []);
 
+  const scrollRow = (ref: RefObject<HTMLDivElement>, amount: number) => {
+    ref.current?.scrollBy({ left: amount, behavior: 'smooth' });
+  };
+
+  const featuredCards = useMemo(
+    () =>
+      featuredListings.map((listing) => (
+        <HomeListingCard
+          key={listing.id}
+          listing={listing}
+          image={getListingImage(listing)}
+          href={`/anuncios/${listing.id}`}
+        />
+      )),
+    [featuredListings],
+  );
+
+  const mustHaveCards = useMemo(
+    () =>
+      mustHaveListings.map((listing) => (
+        <HomeListingCard
+          key={`${listing.id}-must`}
+          listing={listing}
+          image={getListingImage(listing)}
+          href={`/anuncios/${listing.id}`}
+        />
+      )),
+    [mustHaveListings],
+  );
+
   return (
-    <>
-      <section className="hero-banner">
-        <div className="container">
-          <div className="hero-slide">
-            <img
-              className="hero-bg"
-              src="/assets/meoow/banner.png"
-              alt="Meoww Games"
-            />
+    <div className="pb-16">
+      <section className="px-6 pb-10 pt-8">
+        <div className="mx-auto w-full max-w-[1280px]">
+          <div className="relative overflow-hidden rounded-[32px] border border-meow-red/15 bg-[#f5d6e5] shadow-[0_30px_60px_rgba(216,107,149,0.28)]">
+            <div className="flex min-h-[220px] items-center justify-center sm:min-h-[340px] lg:min-h-[420px]">
+              <img
+                src="/assets/meoow/banner.png"
+                alt="Personagens em destaque"
+                className="h-full w-full object-cover"
+              />
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-r from-[#b22b58]/70 via-transparent to-transparent" />
+            <div className="absolute left-1/2 top-1/2 z-10 flex h-28 w-28 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 shadow-[0_18px_40px_rgba(0,0,0,0.2)] sm:h-36 sm:w-36 lg:h-44 lg:w-44">
+              <img
+                src="/assets/meoow/cat-01.png"
+                alt="Mascote Meoww"
+                className="h-20 w-20 object-contain sm:h-28 sm:w-28 lg:h-32 lg:w-32"
+              />
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="pb-6">
-        <div className="mx-auto w-full max-w-[1280px] px-6">
-          <div className="grid gap-4 rounded-[28px] border border-meow-red/10 bg-white px-6 py-5 shadow-[0_14px_34px_rgba(216,107,149,0.12)] md:grid-cols-5">
-            {[
-              {
-                icon: Truck,
-                title: 'Frete Grátis',
-                description: 'acima de R$349',
-              },
-              {
-                icon: BadgePercent,
-                title: 'Descontos',
-                description: 'em pagamentos à vista',
-              },
-              {
-                icon: Package,
-                title: 'Entrega local',
-                description: 'receba hoje',
-              },
-              {
-                icon: CreditCard,
-                title: 'Pague com cartão',
-                description: 'em até 12x s/ juros',
-              },
-              {
-                icon: ShieldCheck,
-                title: 'Segurança',
-                description: 'loja oficial',
-              },
-            ].map((item) => (
+      <section className="px-6 pb-10">
+        <div className="mx-auto w-full max-w-[1280px]">
+          <div className="grid gap-4 rounded-[28px] border border-meow-red/10 bg-white px-5 py-6 shadow-[0_14px_34px_rgba(216,107,149,0.12)] sm:grid-cols-2 lg:grid-cols-5">
+            {benefits.map((item) => (
               <div key={item.title} className="flex items-center gap-3">
                 <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-meow-cream/70 text-meow-deep">
                   <item.icon size={22} aria-hidden />
@@ -92,52 +196,182 @@ export const HomeContent = () => {
         </div>
       </section>
 
-      <section className="bg-white pb-16 pt-8">
-        <div className="mx-auto w-full max-w-[1280px] px-6">
-          <div className="flex items-center justify-between">
+      <section className="px-6 pb-12">
+        <div className="mx-auto w-full max-w-[1280px]">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <h2 className="text-2xl font-black text-meow-charcoal">
-              Categorias populares
+              Qual deles tem o seu coração?
             </h2>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                size="icon"
+                aria-label="Voltar"
+                onClick={() => scrollRow(heartsRef, -280)}
+              >
+                <ChevronLeft size={16} aria-hidden />
+              </Button>
+              <Button
+                variant="secondary"
+                size="icon"
+                aria-label="Avançar"
+                onClick={() => scrollRow(heartsRef, 280)}
+              >
+                <ChevronRight size={16} aria-hidden />
+              </Button>
+            </div>
           </div>
-          {categories.length ? (
-            <>
-              <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {categories.slice(0, 8).map((category) => (
-                  <Link
-                    key={category.slug}
-                    href={`/categoria/${category.slug}`}
-                    className="group overflow-hidden rounded-2xl border border-meow-red/10 bg-white shadow-[0_10px_24px_rgba(216,107,149,0.12)] transition hover:-translate-y-1"
-                  >
-                    <div className="h-36 w-full overflow-hidden bg-meow-cream">
+          <div
+            ref={heartsRef}
+            className="mt-6 flex gap-5 overflow-x-auto pb-3 pt-1 scroll-smooth"
+          >
+            {heartCategories.map((item) => {
+              const initials = item.label
+                .split(' ')
+                .map((part) => part[0])
+                .join('')
+                .slice(0, 2)
+                .toUpperCase();
+              return (
+                <div key={item.label} className="flex min-w-[120px] flex-col items-center gap-3">
+                  <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#cf1e3a] text-lg font-black text-white shadow-[0_12px_24px_rgba(207,30,58,0.35)]">
+                    {item.image ? (
                       <img
-                        src={category.highlight}
-                        alt={category.label}
-                        className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                        src={item.image}
+                        alt={item.label}
+                        className="h-12 w-12 object-contain"
                       />
-                    </div>
-                    <div className="px-4 py-3">
-                      <p className="text-sm font-bold text-meow-charcoal">
-                        {category.label}
-                      </p>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-              <div className="mt-8 flex items-center gap-3 text-xs font-bold text-meow-muted">
-                <span className="h-px flex-1 bg-meow-red/20" />
-                <Link href="/categoria" className="text-meow-deep">
-                  Ver todas categorias
-                </Link>
-                <span className="h-px flex-1 bg-meow-red/20" />
-              </div>
-            </>
-          ) : (
+                    ) : (
+                      initials
+                    )}
+                  </div>
+                  <span className="text-xs font-semibold text-meow-charcoal">
+                    {item.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="px-6 pb-8">
+        <div className="mx-auto w-full max-w-[1280px]">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <h2 className="text-2xl font-black text-meow-charcoal">Destaques</h2>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                size="icon"
+                aria-label="Voltar"
+                onClick={() => scrollRow(featuredRef, -320)}
+              >
+                <ChevronLeft size={16} aria-hidden />
+              </Button>
+              <Button
+                variant="secondary"
+                size="icon"
+                aria-label="Avançar"
+                onClick={() => scrollRow(featuredRef, 320)}
+              >
+                <ChevronRight size={16} aria-hidden />
+              </Button>
+            </div>
+          </div>
+          {featuredStatus === 'ready' && featuredListings.length === 0 ? (
             <div className="mt-6 rounded-2xl border border-meow-red/10 bg-white px-5 py-4 text-sm text-meow-muted">
-              Nenhuma categoria cadastrada ainda.
+              Nenhum destaque disponível no momento.
+            </div>
+          ) : (
+            <div
+              ref={featuredRef}
+              className="mt-6 flex gap-5 overflow-x-auto pb-4 pt-1 scroll-smooth"
+            >
+              {featuredCards}
             </div>
           )}
         </div>
       </section>
-    </>
+
+      <div className="px-6">
+        <div className="mx-auto w-full max-w-[1280px]">
+          <div className="h-3 w-full rounded-full bg-gradient-to-r from-[#f39abc] via-[#f6b6cf] to-[#f39abc]" />
+        </div>
+      </div>
+
+      <section className="px-6 pb-10 pt-8">
+        <div className="mx-auto w-full max-w-[1280px]">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <h2 className="text-2xl font-black text-meow-charcoal">Imperdíveis</h2>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                size="icon"
+                aria-label="Voltar"
+                onClick={() => scrollRow(mustHaveRef, -320)}
+              >
+                <ChevronLeft size={16} aria-hidden />
+              </Button>
+              <Button
+                variant="secondary"
+                size="icon"
+                aria-label="Avançar"
+                onClick={() => scrollRow(mustHaveRef, 320)}
+              >
+                <ChevronRight size={16} aria-hidden />
+              </Button>
+            </div>
+          </div>
+          {featuredStatus === 'ready' && mustHaveListings.length === 0 ? (
+            <div className="mt-6 rounded-2xl border border-meow-red/10 bg-white px-5 py-4 text-sm text-meow-muted">
+              Nenhum item imperdível no momento.
+            </div>
+          ) : (
+            <div
+              ref={mustHaveRef}
+              className="mt-6 flex gap-5 overflow-x-auto pb-4 pt-1 scroll-smooth"
+            >
+              {mustHaveCards}
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="px-6 pb-12">
+        <div className="mx-auto w-full max-w-[1280px]">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {promoBanners.map((item) => (
+              <Link
+                key={item.title}
+                href={item.href}
+                className={`group relative flex min-h-[160px] flex-col justify-between overflow-hidden rounded-[26px] bg-gradient-to-br ${item.tone} p-5 text-white shadow-[0_16px_32px_rgba(0,0,0,0.2)] transition hover:-translate-y-1`}
+              >
+                <div className="absolute inset-0 opacity-25">
+                  {item.image ? (
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : null}
+                </div>
+                <div className="relative z-10">
+                  <span className="text-xs uppercase tracking-[0.6px] text-white/80">
+                    Categoria
+                  </span>
+                  <h3 className="mt-2 text-2xl font-black">{item.title}</h3>
+                </div>
+                <Badge
+                  variant="neutral"
+                  className="relative z-10 w-fit bg-white/90 text-[11px] font-bold uppercase tracking-[0.4px] text-slate-800"
+                >
+                  Ver ofertas
+                </Badge>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+    </div>
   );
 };
