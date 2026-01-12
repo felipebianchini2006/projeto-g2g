@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState, type RefObject } from 'react';
@@ -15,7 +15,9 @@ import {
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import {
+  fetchPublicCategories,
   fetchPublicListings,
+  type CatalogCategory,
   type PublicListing,
 } from '../../lib/marketplace-public';
 import { HomeListingCard } from '../listings/home-listing-card';
@@ -23,12 +25,12 @@ import { HomeListingCard } from '../listings/home-listing-card';
 const benefits = [
   {
     icon: Truck,
-    title: 'Frete grátis acima de R$349',
-    description: 'Em regiões selecionadas',
+    title: 'Frete gratis acima de R$349',
+    description: 'Em regioes selecionadas',
   },
   {
     icon: BadgePercent,
-    title: 'Descontos em pagamentos à vista',
+    title: 'Descontos em pagamentos a vista',
     description: 'Economize no PIX',
   },
   {
@@ -38,26 +40,16 @@ const benefits = [
   },
   {
     icon: CreditCard,
-    title: 'Pague com cartão em até 12x s/ juros',
-    description: 'Parcelamento fácil',
+    title: 'Pague com cartao em ate 12x s/ juros',
+    description: 'Parcelamento facil',
   },
   {
     icon: ShieldCheck,
-    title: 'Segurança loja oficial',
+    title: 'Seguranca loja oficial',
     description: 'Compra protegida',
   },
 ];
 
-const heartCategories = [
-  { label: 'Animal Crossing', image: null },
-  { label: 'The Legend of', image: null },
-  { label: 'Pokémon', image: null },
-  { label: 'Kirby', image: null },
-  { label: 'Metroid', image: null },
-  { label: 'Splatoon', image: null },
-  { label: 'Mario', image: null },
-  { label: 'Zelda', image: null },
-];
 
 const promoBanners = [
   {
@@ -95,6 +87,13 @@ export const HomeContent = () => {
   const [featuredStatus, setFeaturedStatus] = useState<'idle' | 'loading' | 'ready'>(
     'idle',
   );
+  const [mustHaveStatus, setMustHaveStatus] = useState<'idle' | 'loading' | 'ready'>(
+    'idle',
+  );
+  const [heartCategories, setHeartCategories] = useState<CatalogCategory[]>([]);
+  const [heartsStatus, setHeartsStatus] = useState<'idle' | 'loading' | 'ready'>(
+    'idle',
+  );
 
   const heartsRef = useRef<HTMLDivElement | null>(null);
   const featuredRef = useRef<HTMLDivElement | null>(null);
@@ -104,19 +103,39 @@ export const HomeContent = () => {
     let active = true;
     const loadListings = async () => {
       setFeaturedStatus('loading');
-      const response = await fetchPublicListings({ take: 8, sort: 'recent' });
+      setMustHaveStatus('loading');
+      setHeartsStatus('loading');
+
+      const [categoriesResponse, featuredResponse, mustHaveResponse] = await Promise.all([
+        fetchPublicCategories(),
+        fetchPublicListings({ take: 8, featured: true }),
+        fetchPublicListings({ take: 8, mustHave: true }),
+      ]);
+
       if (!active) {
         return;
       }
-      setFeaturedListings(response.listings);
-      setMustHaveListings(response.listings);
+
+      setHeartCategories(categoriesResponse.categories);
+      setHeartsStatus('ready');
+
+      setFeaturedListings(
+        featuredResponse.source === 'api' ? featuredResponse.listings : [],
+      );
+      setMustHaveListings(
+        mustHaveResponse.source === 'api' ? mustHaveResponse.listings : [],
+      );
       setFeaturedStatus('ready');
+      setMustHaveStatus('ready');
     };
     loadListings().catch(() => {
       if (active) {
+        setHeartCategories([]);
+        setHeartsStatus('ready');
         setFeaturedListings([]);
         setMustHaveListings([]);
         setFeaturedStatus('ready');
+        setMustHaveStatus('ready');
       }
     });
     return () => {
@@ -167,13 +186,6 @@ export const HomeContent = () => {
               />
             </div>
             <div className="absolute inset-0 bg-gradient-to-r from-[#b22b58]/70 via-transparent to-transparent" />
-            <div className="absolute left-1/2 top-1/2 z-10 flex h-28 w-28 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 shadow-[0_18px_40px_rgba(0,0,0,0.2)] sm:h-36 sm:w-36 lg:h-44 lg:w-44">
-              <img
-                src="/assets/meoow/cat-01.png"
-                alt="Mascote Meoww"
-                className="h-20 w-20 object-contain sm:h-28 sm:w-28 lg:h-32 lg:w-32"
-              />
-            </div>
           </div>
         </div>
       </section>
@@ -200,7 +212,7 @@ export const HomeContent = () => {
         <div className="mx-auto w-full max-w-[1280px]">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <h2 className="text-2xl font-black text-meow-charcoal">
-              Qual deles tem o seu coração?
+              Qual deles tem o seu coracao?
             </h2>
             <div className="flex items-center gap-2">
               <Button
@@ -214,44 +226,45 @@ export const HomeContent = () => {
               <Button
                 variant="secondary"
                 size="icon"
-                aria-label="Avançar"
+                aria-label="Avancar"
                 onClick={() => scrollRow(heartsRef, 280)}
               >
                 <ChevronRight size={16} aria-hidden />
               </Button>
             </div>
           </div>
-          <div
-            ref={heartsRef}
-            className="mt-6 flex gap-5 overflow-x-auto pb-3 pt-1 scroll-smooth"
-          >
-            {heartCategories.map((item) => {
-              const initials = item.label
-                .split(' ')
-                .map((part) => part[0])
-                .join('')
-                .slice(0, 2)
-                .toUpperCase();
-              return (
-                <div key={item.label} className="flex min-w-[120px] flex-col items-center gap-3">
-                  <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#cf1e3a] text-lg font-black text-white shadow-[0_12px_24px_rgba(207,30,58,0.35)]">
-                    {item.image ? (
-                      <img
-                        src={item.image}
-                        alt={item.label}
-                        className="h-12 w-12 object-contain"
-                      />
-                    ) : (
-                      initials
-                    )}
+          {heartsStatus === 'ready' && heartCategories.length === 0 ? (
+            <div className="mt-6 rounded-2xl border border-meow-red/10 bg-white px-5 py-4 text-sm text-meow-muted">
+              Nenhuma categoria disponivel no momento.
+            </div>
+          ) : (
+            <div
+              ref={heartsRef}
+              className="mt-6 flex gap-5 overflow-x-auto pb-3 pt-1 scroll-smooth"
+            >
+              {heartCategories.map((item) => {
+                const initials = item.label
+                  .split(' ')
+                  .map((part) => part[0])
+                  .join('')
+                  .slice(0, 2)
+                  .toUpperCase();
+                return (
+                  <div
+                    key={item.id ?? item.slug}
+                    className="flex min-w-[120px] flex-col items-center gap-3"
+                  >
+                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#cf1e3a] text-lg font-black text-white shadow-[0_12px_24px_rgba(207,30,58,0.35)]">
+                      {initials}
+                    </div>
+                    <span className="text-xs font-semibold text-meow-charcoal">
+                      {item.label}
+                    </span>
                   </div>
-                  <span className="text-xs font-semibold text-meow-charcoal">
-                    {item.label}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
 
@@ -271,7 +284,7 @@ export const HomeContent = () => {
               <Button
                 variant="secondary"
                 size="icon"
-                aria-label="Avançar"
+                aria-label="Avancar"
                 onClick={() => scrollRow(featuredRef, 320)}
               >
                 <ChevronRight size={16} aria-hidden />
@@ -280,7 +293,7 @@ export const HomeContent = () => {
           </div>
           {featuredStatus === 'ready' && featuredListings.length === 0 ? (
             <div className="mt-6 rounded-2xl border border-meow-red/10 bg-white px-5 py-4 text-sm text-meow-muted">
-              Nenhum destaque disponível no momento.
+              Nenhum destaque disponivel no momento.
             </div>
           ) : (
             <div
@@ -302,7 +315,7 @@ export const HomeContent = () => {
       <section className="px-6 pb-10 pt-8">
         <div className="mx-auto w-full max-w-[1280px]">
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <h2 className="text-2xl font-black text-meow-charcoal">Imperdíveis</h2>
+            <h2 className="text-2xl font-black text-meow-charcoal">Imperdiveis</h2>
             <div className="flex items-center gap-2">
               <Button
                 variant="secondary"
@@ -315,16 +328,16 @@ export const HomeContent = () => {
               <Button
                 variant="secondary"
                 size="icon"
-                aria-label="Avançar"
+                aria-label="Avancar"
                 onClick={() => scrollRow(mustHaveRef, 320)}
               >
                 <ChevronRight size={16} aria-hidden />
               </Button>
             </div>
           </div>
-          {featuredStatus === 'ready' && mustHaveListings.length === 0 ? (
+          {mustHaveStatus === 'ready' && mustHaveListings.length === 0 ? (
             <div className="mt-6 rounded-2xl border border-meow-red/10 bg-white px-5 py-4 text-sm text-meow-muted">
-              Nenhum item imperdível no momento.
+              Nenhum item imperdivel no momento.
             </div>
           ) : (
             <div

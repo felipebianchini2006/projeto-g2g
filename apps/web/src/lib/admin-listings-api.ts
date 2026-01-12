@@ -19,6 +19,8 @@ export type AdminListing = {
   deliveryType: 'AUTO' | 'MANUAL';
   deliverySlaHours: number;
   refundPolicy: string;
+  featuredAt?: string | null;
+  mustHaveAt?: string | null;
   createdAt: string;
   updatedAt: string;
   seller?: {
@@ -59,6 +61,11 @@ export type AdminListing = {
 
 type AdminDecisionInput = {
   reason?: string;
+};
+
+export type AdminHomeFlagsInput = {
+  featured?: boolean;
+  mustHave?: boolean;
 };
 
 export type AdminCreateListingInput = {
@@ -111,6 +118,13 @@ export const adminListingsApi = {
   suspendListing: (token: string | null, listingId: string, input: AdminDecisionInput) =>
     apiFetch<AdminListing>(`/admin/listings/${listingId}/suspend`, {
       method: 'POST',
+      headers: authHeaders(token),
+      body: JSON.stringify(input),
+    }),
+
+  updateHomeFlags: (token: string | null, listingId: string, input: AdminHomeFlagsInput) =>
+    apiFetch<AdminListing>(`/admin/listings/${listingId}/home`, {
+      method: 'PATCH',
       headers: authHeaders(token),
       body: JSON.stringify(input),
     }),

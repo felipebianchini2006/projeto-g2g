@@ -515,6 +515,8 @@ model Listing {
   priceCents   Int
   currency     String        @default("BRL")
   status       ListingStatus @default(DRAFT)
+  featuredAt   DateTime?
+  mustHaveAt   DateTime?
   deliveryType DeliveryType
   deliverySlaHours Int       @default(24)
   refundPolicy String        @default("Refund policy pending.")
@@ -540,6 +542,8 @@ model Listing {
   @@index([originId])
   @@index([recoveryOptionId])
   @@index([status])
+  @@index([featuredAt])
+  @@index([mustHaveAt])
   @@index([title])
   @@map("listings")
 }

@@ -1,6 +1,6 @@
 import { DeliveryType } from '@prisma/client';
-import { Type } from 'class-transformer';
-import { IsEnum, IsInt, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsBoolean, IsEnum, IsInt, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 
 export enum PublicListingSort {
   Recent = 'recent',
@@ -35,6 +35,16 @@ export class PublicListingQueryDto {
   @IsInt()
   @Min(0)
   maxPriceCents?: number;
+
+  @IsOptional()
+  @Transform(({ value }) => value === true || value === 'true')
+  @IsBoolean()
+  featured?: boolean;
+
+  @IsOptional()
+  @Transform(({ value }) => value === true || value === 'true')
+  @IsBoolean()
+  mustHave?: boolean;
 
   @IsOptional()
   @IsEnum(PublicListingSort)

@@ -60,6 +60,8 @@ export type PublicListingFilters = {
   deliveryType?: DeliveryType;
   minPriceCents?: number;
   maxPriceCents?: number;
+  featured?: boolean;
+  mustHave?: boolean;
   sort?: 'recent' | 'price-asc' | 'price-desc' | 'title';
   skip?: number;
   take?: number;
@@ -327,6 +329,12 @@ const buildListingQuery = (filters?: PublicListingFilters) => {
   }
   if (typeof filters.maxPriceCents === 'number') {
     params.set('maxPriceCents', `${filters.maxPriceCents}`);
+  }
+  if (filters.featured) {
+    params.set('featured', 'true');
+  }
+  if (filters.mustHave) {
+    params.set('mustHave', 'true');
   }
   if (filters.sort) {
     params.set('sort', filters.sort);

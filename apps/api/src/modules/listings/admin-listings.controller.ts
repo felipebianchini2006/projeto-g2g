@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  Patch,
   Post,
   Query,
   Req,
@@ -18,6 +19,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import type { JwtPayload } from '../auth/auth.types';
 import { AdminCreateListingDto } from './dto/admin-create-listing.dto';
 import { AdminDecisionDto } from './dto/admin-decision.dto';
+import { AdminHomeFlagsDto } from './dto/admin-home-flags.dto';
 import { ListingQueryDto } from './dto/listing-query.dto';
 import { ListingsService } from './listings.service';
 
@@ -68,6 +70,17 @@ export class AdminListingsController {
     const adminId = this.getUserId(req);
     const meta = this.getRequestMeta(req);
     return this.listingsService.suspendListing(listingId, adminId, dto.reason, meta);
+  }
+
+  @Patch(':id/home')
+  updateHomeFlags(
+    @Req() req: AuthenticatedRequest,
+    @Param('id') listingId: string,
+    @Body() dto: AdminHomeFlagsDto,
+  ) {
+    const adminId = this.getUserId(req);
+    const meta = this.getRequestMeta(req);
+    return this.listingsService.updateListingHomeFlags(listingId, adminId, dto, meta);
   }
 
   private getUserId(request: AuthenticatedRequest) {

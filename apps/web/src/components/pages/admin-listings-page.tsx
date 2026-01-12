@@ -184,6 +184,28 @@ export const AdminListingsContent = () => {
     }
   };
 
+  const handleHomeFlagsUpdate = async (payload: { featured?: boolean; mustHave?: boolean }) => {
+    if (!accessToken || !selectedListing) {
+      return;
+    }
+    setBusyAction('home-flags');
+    setError(null);
+    setNotice(null);
+    try {
+      const updated = await adminListingsApi.updateHomeFlags(
+        accessToken,
+        selectedListing.id,
+        payload,
+      );
+      applyListingUpdate(updated);
+      setNotice('Vitrine da home atualizada.');
+    } catch (error) {
+      handleError(error, 'Nao foi possivel atualizar a vitrine.');
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
   const handleAction = async (action: 'approve' | 'reject' | 'suspend') => {
     if (!accessToken || !selectedListing) {
       return;
@@ -690,6 +712,37 @@ export const AdminListingsContent = () => {
                     {new Date(selectedListing.createdAt).toLocaleDateString('pt-BR')}
                   </strong>
                 </div>
+              </div>
+
+              <div className="state-card">
+                <h3 className="text-sm font-bold text-meow-charcoal">Vitrine da home</h3>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    className="ghost-button"
+                    type="button"
+                    onClick={() =>
+                      handleHomeFlagsUpdate({ featured: !selectedListing.featuredAt })
+                    }
+                    disabled={busyAction === 'home-flags'}
+                  >
+                    {selectedListing.featuredAt ? 'Remover de Destaques' : 'Marcar como Destaque'}
+                  </button>
+                  <button
+                    className="ghost-button"
+                    type="button"
+                    onClick={() =>
+                      handleHomeFlagsUpdate({ mustHave: !selectedListing.mustHaveAt })
+                    }
+                    disabled={busyAction === 'home-flags'}
+                  >
+                    {selectedListing.mustHaveAt
+                      ? 'Remover de Imperdiveis'
+                      : 'Marcar como Imperdivel'}
+                  </button>
+                </div>
+                <p className="mt-2 text-xs text-meow-muted">
+                  Use essas opcoes para controlar as listas da home.
+                </p>
               </div>
 
               {selectedListing.description ? (

@@ -4,6 +4,7 @@ import { AuditAction, DeliveryType, ListingStatus, Prisma, UserRole } from '@pri
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateListingDto } from './dto/create-listing.dto';
 import { ListingQueryDto } from './dto/listing-query.dto';
+import { AdminHomeFlagsDto } from './dto/admin-home-flags.dto';
 import { PublicListingQueryDto, PublicListingSort } from './dto/public-listing-query.dto';
 import { UpdateListingDto } from './dto/update-listing.dto';
 
@@ -82,14 +83,25 @@ export class ListingsService {
       });
     }
 
-    const orderBy =
-      filters.sort === PublicListingSort.PriceAsc
-        ? { priceCents: 'asc' as const }
-        : filters.sort === PublicListingSort.PriceDesc
-          ? { priceCents: 'desc' as const }
-          : filters.sort === PublicListingSort.Title
-            ? { title: 'asc' as const }
-            : { createdAt: 'desc' as const };
+    if (filters.featured) {
+      andFilters.push({ featuredAt: { not: null } });
+    }
+
+    if (filters.mustHave) {
+      andFilters.push({ mustHaveAt: { not: null } });
+    }
+
+    const orderBy = filters.featured
+      ? [{ featuredAt: 'desc' as const }, { createdAt: 'desc' as const }]
+      : filters.mustHave
+        ? [{ mustHaveAt: 'desc' as const }, { createdAt: 'desc' as const }]
+        : filters.sort === PublicListingSort.PriceAsc
+          ? { priceCents: 'asc' as const }
+          : filters.sort === PublicListingSort.PriceDesc
+            ? { priceCents: 'desc' as const }
+            : filters.sort === PublicListingSort.Title
+              ? { title: 'asc' as const }
+              : { createdAt: 'desc' as const };
 
     const listings = await this.prisma.listing.findMany({
       where: {
@@ -550,6 +562,53 @@ export class ListingsService {
           reason,
           from: listing.status,
           to: updated.status,
+        },
+        meta,
+      );
+
+      this.invalidatePublicCaches();
+      return updated;
+    });
+  }
+
+  async updateListingHomeFlags(
+    listingId: string,
+    adminId: string,
+    dto: AdminHomeFlagsDto,
+    meta: AuditMeta,
+  ) {
+    if (dto.featured === undefined && dto.mustHave === undefined) {
+      throw new BadRequestException('No changes requested.');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const listing = await tx.listing.findUnique({ where: { id: listingId } });
+      if (!listing) {
+        throw new NotFoundException('Listing not found.');
+      }
+
+      const data: Prisma.ListingUpdateInput = {};
+      if (dto.featured !== undefined) {
+        data.featuredAt = dto.featured ? new Date() : null;
+      }
+      if (dto.mustHave !== undefined) {
+        data.mustHaveAt = dto.mustHave ? new Date() : null;
+      }
+
+      const updated = await tx.listing.update({
+        where: { id: listing.id },
+        data,
+      });
+
+      await this.createAuditLog(
+        tx,
+        adminId,
+        listing.id,
+        {
+          action: AuditAction.UPDATE,
+          reason: 'home flags',
+          from: listing.status,
+          to: listing.status,
         },
         meta,
       );
