@@ -175,6 +175,17 @@ model User {
   email        String   @unique
   passwordHash String
   role         UserRole @default(USER)
+  fullName     String?
+  cpf          String?
+  birthDate    String?
+  addressZip   String?
+  addressStreet String?
+  addressNumber String?
+  addressComplement String?
+  addressDistrict String?
+  addressCity  String?
+  addressState String?
+  addressCountry String?
   payoutPixKey String?
   payoutBlockedAt DateTime?
   payoutBlockedReason String?

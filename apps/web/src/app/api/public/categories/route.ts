@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
-const RAW_API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+const RAW_API_URL =
+  process.env.API_PROXY_TARGET ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 const API_URL = RAW_API_URL.endsWith('/') ? RAW_API_URL.slice(0, -1) : RAW_API_URL;
 
 const parsePayload = async (response: Response) => {
@@ -19,3 +20,4 @@ export async function GET() {
   const payload = await parsePayload(response);
   return NextResponse.json(payload, { status: response.status });
 }
+

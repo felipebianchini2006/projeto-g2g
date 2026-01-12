@@ -3,6 +3,7 @@ import { AuditAction, Prisma } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { UserBlockDto } from './dto/user-block.dto';
+import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { UserUpdateDto } from './dto/user-update.dto';
 import { UsersQueryDto } from './dto/users-query.dto';
 
@@ -21,6 +22,22 @@ const USER_SELECT = {
   payoutBlockedReason: true,
   createdAt: true,
   updatedAt: true,
+};
+
+const USER_PROFILE_SELECT = {
+  id: true,
+  email: true,
+  fullName: true,
+  cpf: true,
+  birthDate: true,
+  addressZip: true,
+  addressStreet: true,
+  addressNumber: true,
+  addressComplement: true,
+  addressDistrict: true,
+  addressCity: true,
+  addressState: true,
+  addressCountry: true,
 };
 
 @Injectable()
@@ -62,6 +79,90 @@ export class UsersService {
       skip,
       take,
     };
+  }
+
+  async getProfile(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: USER_PROFILE_SELECT,
+    });
+    if (!user) {
+      throw new NotFoundException('User not found.');
+    }
+    return user;
+  }
+
+  async updateProfile(userId: string, dto: UpdateUserProfileDto) {
+    const normalizeText = (value?: string) => {
+      if (typeof value !== 'string') {
+        return null;
+      }
+      const trimmed = value.trim();
+      return trimmed.length ? trimmed : null;
+    };
+
+    const normalizeDigits = (value?: string) => {
+      if (typeof value !== 'string') {
+        return null;
+      }
+      const digits = value.replace(/\D/g, '');
+      return digits.length ? digits : null;
+    };
+
+    const data: Record<string, unknown> = {};
+    if (dto.fullName !== undefined) {
+      data.fullName = normalizeText(dto.fullName);
+    }
+    if (dto.cpf !== undefined) {
+      data.cpf = normalizeDigits(dto.cpf);
+    }
+    if (dto.birthDate !== undefined) {
+      data.birthDate = normalizeText(dto.birthDate);
+    }
+    if (dto.addressZip !== undefined) {
+      data.addressZip = normalizeDigits(dto.addressZip);
+    }
+    if (dto.addressStreet !== undefined) {
+      data.addressStreet = normalizeText(dto.addressStreet);
+    }
+    if (dto.addressNumber !== undefined) {
+      data.addressNumber = normalizeText(dto.addressNumber);
+    }
+    if (dto.addressComplement !== undefined) {
+      data.addressComplement = normalizeText(dto.addressComplement);
+    }
+    if (dto.addressDistrict !== undefined) {
+      data.addressDistrict = normalizeText(dto.addressDistrict);
+    }
+    if (dto.addressCity !== undefined) {
+      data.addressCity = normalizeText(dto.addressCity);
+    }
+    if (dto.addressState !== undefined) {
+      data.addressState = normalizeText(dto.addressState);
+    }
+    if (dto.addressCountry !== undefined) {
+      data.addressCountry = normalizeText(dto.addressCountry);
+    }
+
+    if (Object.keys(data).length === 0) {
+      throw new BadRequestException('No fields to update.');
+    }
+
+    try {
+      return await this.prisma.user.update({
+        where: { id: userId },
+        data: data as Prisma.UserUpdateInput,
+        select: USER_PROFILE_SELECT,
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new NotFoundException('User not found.');
+      }
+      throw error;
+    }
   }
 
   async blockUser(userId: string, adminId: string, dto: UserBlockDto, meta: AuditMeta) {

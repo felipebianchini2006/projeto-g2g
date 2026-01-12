@@ -2,12 +2,61 @@
 
 import Link from 'next/link';
 import { CheckCircle } from 'lucide-react';
+import type { ChangeEvent, FormEvent } from 'react';
+import { useEffect, useState } from 'react';
 
+import { usersApi, type UserProfile } from '../../lib/users-api';
 import { useAuth } from '../auth/auth-provider';
 import { AccountShell } from '../account/account-shell';
 
+type ProfileForm = {
+  fullName: string;
+  cpf: string;
+  birthDate: string;
+  addressZip: string;
+  addressStreet: string;
+  addressNumber: string;
+  addressComplement: string;
+  addressDistrict: string;
+  addressCity: string;
+  addressState: string;
+  addressCountry: string;
+};
+
+const emptyForm: ProfileForm = {
+  fullName: '',
+  cpf: '',
+  birthDate: '',
+  addressZip: '',
+  addressStreet: '',
+  addressNumber: '',
+  addressComplement: '',
+  addressDistrict: '',
+  addressCity: '',
+  addressState: '',
+  addressCountry: '',
+};
+
+const mapProfileToForm = (profile: UserProfile): ProfileForm => ({
+  fullName: profile.fullName ?? '',
+  cpf: profile.cpf ?? '',
+  birthDate: profile.birthDate ?? '',
+  addressZip: profile.addressZip ?? '',
+  addressStreet: profile.addressStreet ?? '',
+  addressNumber: profile.addressNumber ?? '',
+  addressComplement: profile.addressComplement ?? '',
+  addressDistrict: profile.addressDistrict ?? '',
+  addressCity: profile.addressCity ?? '',
+  addressState: profile.addressState ?? '',
+  addressCountry: profile.addressCountry ?? '',
+});
+
 export const AccountDataContent = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, accessToken } = useAuth();
+  const [form, setForm] = useState<ProfileForm>(emptyForm);
+  const [status, setStatus] = useState<'idle' | 'loading' | 'saving'>('idle');
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const isVerified = user?.role === 'SELLER' || user?.role === 'ADMIN';
 
@@ -37,6 +86,74 @@ export const AccountDataContent = () => {
     );
   }
 
+  useEffect(() => {
+    if (!user || !accessToken) {
+      return;
+    }
+    let active = true;
+    setStatus('loading');
+    setError(null);
+    usersApi
+      .getProfile(accessToken)
+      .then((profile) => {
+        if (!active) {
+          return;
+        }
+        setForm(mapProfileToForm(profile));
+      })
+      .catch((err) => {
+        if (!active) {
+          return;
+        }
+        setError(err instanceof Error ? err.message : 'Nao foi possivel carregar seus dados.');
+      })
+      .finally(() => {
+        if (active) {
+          setStatus('idle');
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [accessToken, user]);
+
+  const handleChange =
+    (field: keyof ProfileForm) => (event: ChangeEvent<HTMLInputElement>) => {
+      setForm((prev) => ({ ...prev, [field]: event.target.value }));
+    };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!accessToken) {
+      setError('Sessao expirada. Entre novamente.');
+      return;
+    }
+    setStatus('saving');
+    setError(null);
+    setSuccess(null);
+    try {
+      const updated = await usersApi.updateProfile(accessToken, {
+        fullName: form.fullName,
+        cpf: form.cpf,
+        birthDate: form.birthDate,
+        addressZip: form.addressZip,
+        addressStreet: form.addressStreet,
+        addressNumber: form.addressNumber,
+        addressComplement: form.addressComplement,
+        addressDistrict: form.addressDistrict,
+        addressCity: form.addressCity,
+        addressState: form.addressState,
+        addressCountry: form.addressCountry,
+      });
+      setForm(mapProfileToForm(updated));
+      setSuccess('Dados atualizados com sucesso.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Nao foi possivel salvar.');
+    } finally {
+      setStatus('idle');
+    }
+  };
+
   return (
     <AccountShell
       breadcrumbs={[
@@ -45,7 +162,10 @@ export const AccountDataContent = () => {
         { label: 'Meus dados' },
       ]}
     >
-      <div className="rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+      <form
+        className="rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]"
+        onSubmit={handleSubmit}
+      >
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-xl font-black text-meow-charcoal">Dados pessoais</h1>
@@ -65,13 +185,26 @@ export const AccountDataContent = () => {
           </div>
         </div>
 
+        {error ? (
+          <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
+          </div>
+        ) : null}
+        {success ? (
+          <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            {success}
+          </div>
+        ) : null}
+
         <div className="mt-6 grid gap-4 md:grid-cols-[2fr_1fr_1fr]">
           <label className="grid gap-1 text-xs font-semibold text-meow-muted">
             Nome completo
             <input
               className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
               placeholder="Digite seu nome completo"
-              disabled
+              value={form.fullName}
+              onChange={handleChange('fullName')}
+              disabled={status === 'saving'}
             />
           </label>
           <label className="grid gap-1 text-xs font-semibold text-meow-muted">
@@ -79,7 +212,9 @@ export const AccountDataContent = () => {
             <input
               className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
               placeholder="000.000.000-00"
-              disabled
+              value={form.cpf}
+              onChange={handleChange('cpf')}
+              disabled={status === 'saving'}
             />
           </label>
           <label className="grid gap-1 text-xs font-semibold text-meow-muted">
@@ -87,7 +222,9 @@ export const AccountDataContent = () => {
             <input
               className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
               placeholder="00/00/0000"
-              disabled
+              value={form.birthDate}
+              onChange={handleChange('birthDate')}
+              disabled={status === 'saving'}
             />
           </label>
         </div>
@@ -100,7 +237,9 @@ export const AccountDataContent = () => {
               <input
                 className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
                 placeholder="00000-000"
-                disabled
+                value={form.addressZip}
+                onChange={handleChange('addressZip')}
+                disabled={status === 'saving'}
               />
             </label>
             <label className="grid gap-1 text-xs font-semibold text-meow-muted md:col-span-2">
@@ -108,7 +247,9 @@ export const AccountDataContent = () => {
               <input
                 className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
                 placeholder="Rua, avenida, etc"
-                disabled
+                value={form.addressStreet}
+                onChange={handleChange('addressStreet')}
+                disabled={status === 'saving'}
               />
             </label>
             <label className="grid gap-1 text-xs font-semibold text-meow-muted">
@@ -116,7 +257,9 @@ export const AccountDataContent = () => {
               <input
                 className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
                 placeholder="Sem numero"
-                disabled
+                value={form.addressNumber}
+                onChange={handleChange('addressNumber')}
+                disabled={status === 'saving'}
               />
             </label>
             <label className="grid gap-1 text-xs font-semibold text-meow-muted">
@@ -124,7 +267,9 @@ export const AccountDataContent = () => {
               <input
                 className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
                 placeholder="Opcional"
-                disabled
+                value={form.addressComplement}
+                onChange={handleChange('addressComplement')}
+                disabled={status === 'saving'}
               />
             </label>
             <label className="grid gap-1 text-xs font-semibold text-meow-muted">
@@ -132,7 +277,9 @@ export const AccountDataContent = () => {
               <input
                 className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
                 placeholder="Seu bairro"
-                disabled
+                value={form.addressDistrict}
+                onChange={handleChange('addressDistrict')}
+                disabled={status === 'saving'}
               />
             </label>
             <label className="grid gap-1 text-xs font-semibold text-meow-muted">
@@ -140,7 +287,9 @@ export const AccountDataContent = () => {
               <input
                 className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
                 placeholder="Sua cidade"
-                disabled
+                value={form.addressCity}
+                onChange={handleChange('addressCity')}
+                disabled={status === 'saving'}
               />
             </label>
             <label className="grid gap-1 text-xs font-semibold text-meow-muted">
@@ -148,7 +297,9 @@ export const AccountDataContent = () => {
               <input
                 className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
                 placeholder="UF"
-                disabled
+                value={form.addressState}
+                onChange={handleChange('addressState')}
+                disabled={status === 'saving'}
               />
             </label>
             <label className="grid gap-1 text-xs font-semibold text-meow-muted">
@@ -156,7 +307,9 @@ export const AccountDataContent = () => {
               <input
                 className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
                 placeholder="Brasil"
-                disabled
+                value={form.addressCountry}
+                onChange={handleChange('addressCountry')}
+                disabled={status === 'saving'}
               />
             </label>
           </div>
@@ -165,13 +318,13 @@ export const AccountDataContent = () => {
         <div className="mt-6 flex justify-end">
           <button
             className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
-            type="button"
-            disabled
+            type="submit"
+            disabled={status === 'saving' || status === 'loading'}
           >
-            Salvar
+            {status === 'saving' ? 'Salvando...' : 'Salvar'}
           </button>
         </div>
-      </div>
+      </form>
     </AccountShell>
   );
 };

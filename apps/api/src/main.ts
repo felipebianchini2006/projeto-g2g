@@ -62,20 +62,31 @@ async function bootstrap() {
   const corsOriginsRaw = configService.get<string>('CORS_ORIGINS') ?? '';
   const defaultOrigins = isProduction
     ? []
-    : ['*', 'http://localhost:3000', 'http://127.0.0.1:3000'];
+    : ['*', 'http://localhost:3000', 'http://127.0.0.1:3000', 'https://*.devtunnels.ms'];
   const corsOrigins = corsOriginsRaw
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean);
   const allowedOrigins = corsOrigins.length ? corsOrigins : defaultOrigins;
-  const allowAnyOrigin = allowedOrigins.includes('*');
+
+  const matchesOrigin = (origin: string, allowed: string) => {
+    if (allowed === '*') {
+      return true;
+    }
+    if (!allowed.includes('*')) {
+      return origin === allowed;
+    }
+    const escaped = allowed.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*');
+    const pattern = new RegExp(`^${escaped}$`);
+    return pattern.test(origin);
+  };
 
   app.enableCors({
     origin: (origin, callback) => {
       if (!origin) {
         return callback(null, true);
       }
-      if (allowAnyOrigin || allowedOrigins.includes(origin)) {
+      if (allowedOrigins.some((allowed) => matchesOrigin(origin, allowed))) {
         return callback(null, true);
       }
       return callback(new Error('Not allowed by CORS'));

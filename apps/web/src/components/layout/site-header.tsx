@@ -353,7 +353,7 @@ export const SiteHeader = () => {
             </span>
           </div>
 
-          <div className="ml-auto flex items-center gap-4">
+          <div className="ml-auto flex w-full flex-wrap items-center justify-between gap-3 md:w-auto md:justify-end md:gap-4">
             <div className="relative" ref={categoriesRef}>
               <button
                 className="inline-flex items-center gap-1 text-sm font-semibold text-meow-charcoal"
@@ -364,15 +364,15 @@ export const SiteHeader = () => {
                 <ChevronDown size={16} aria-hidden />
               </button>
               {categoriesOpen ? (
-                <div className="absolute left-1/2 top-full z-50 mt-3 w-[1100px] max-w-[94vw] -translate-x-1/2 rounded-[28px] border border-meow-red/20 bg-white p-6 shadow-[0_18px_45px_rgba(64,37,50,0.16)]">
-                  <div className="flex flex-wrap items-center gap-4">
+                <div className="absolute right-0 top-full z-50 mt-3 w-[min(92vw,360px)] rounded-[28px] border border-meow-red/20 bg-white p-5 shadow-[0_18px_45px_rgba(64,37,50,0.16)] sm:left-1/2 sm:right-auto sm:w-[min(1100px,94vw)] sm:-translate-x-1/2 sm:p-6">
+                  <div className="flex flex-wrap items-center gap-3 sm:gap-4">
                     <span className="text-sm font-semibold text-meow-muted">
                       Filtrar categoria:
                     </span>
-                    <div className="flex items-center gap-3 rounded-2xl border border-meow-red/20 bg-meow-cream/70 px-4 py-2">
+                    <div className="flex w-full items-center gap-3 rounded-2xl border border-meow-red/20 bg-meow-cream/70 px-4 py-2 sm:w-auto">
                       <Search size={14} className="text-meow-deep" aria-hidden />
                       <input
-                        className="w-56 bg-transparent text-sm text-meow-charcoal outline-none placeholder:text-meow-muted"
+                        className="w-full bg-transparent text-sm text-meow-charcoal outline-none placeholder:text-meow-muted sm:w-56"
                         placeholder="Digite aqui..."
                         value={categoriesQuery}
                         onChange={(event) => setCategoriesQuery(event.target.value)}
@@ -459,7 +459,7 @@ export const SiteHeader = () => {
                 <Bell size={18} aria-hidden />
               </button>
               {notificationsOpen ? (
-                <div className="absolute right-0 top-full z-50 mt-2 w-[340px] overflow-hidden rounded-2xl border border-meow-red/20 bg-white shadow-[0_18px_45px_rgba(64,37,50,0.16)]">
+                <div className="fixed left-1/2 top-20 z-50 w-[min(92vw,340px)] -translate-x-1/2 overflow-hidden rounded-2xl border border-meow-red/20 bg-white shadow-[0_18px_45px_rgba(64,37,50,0.16)] sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:w-[340px] sm:translate-x-0">
                   <div className="flex items-center justify-between border-b border-meow-red/20 px-4 py-3">
                     <span className="text-sm font-semibold text-meow-charcoal">Notificacoes</span>
                     <Link
@@ -599,7 +599,7 @@ export const SiteHeader = () => {
               </button>
               {menuOpen ? (
                 <div
-                  className={`absolute right-0 top-full z-50 mt-2 w-[320px] overflow-hidden rounded-[28px] border ${menuPanelClass}`}
+                  className={`fixed left-1/2 top-20 z-50 w-[min(92vw,320px)] -translate-x-1/2 overflow-hidden rounded-[28px] border sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:w-[320px] sm:translate-x-0 ${menuPanelClass}`}
                 >
                   <div className={`px-5 py-4 ${menuGradientClass}`}>
                     <div className="flex items-center gap-3">
