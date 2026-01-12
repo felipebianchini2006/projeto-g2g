@@ -7,6 +7,7 @@ import request from 'supertest';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { DiscordAuthService } from './discord-auth.service';
+import { GoogleAuthService } from './google-auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 describe('AuthController (discord exchange)', () => {
@@ -15,6 +16,7 @@ describe('AuthController (discord exchange)', () => {
   const discordAuthService = {
     exchangeCodeForSession: jest.fn(),
   };
+  const googleAuthService = {};
 
   beforeAll(async () => {
     const allowGuard = { canActivate: () => true };
@@ -24,6 +26,7 @@ describe('AuthController (discord exchange)', () => {
       providers: [
         { provide: AuthService, useValue: authService },
         { provide: DiscordAuthService, useValue: discordAuthService },
+        { provide: GoogleAuthService, useValue: googleAuthService },
       ],
     })
       .overrideGuard(ThrottlerGuard)
@@ -44,7 +47,9 @@ describe('AuthController (discord exchange)', () => {
   });
 
   afterAll(async () => {
-    await app.close();
+    if (app) {
+      await app.close();
+    }
   });
 
   beforeEach(() => {
