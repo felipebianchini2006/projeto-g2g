@@ -24,6 +24,7 @@ import { CatalogModule } from './modules/catalog/catalog.module';
 import { SupportChatModule } from './modules/support-chat/support-chat.module';
 import { PartnersModule } from './modules/partners/partners.module';
 import { CouponsModule } from './modules/coupons/coupons.module';
+import { CommunityModule } from './modules/community/community.module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { CouponsModule } from './modules/coupons/coupons.module';
     SupportChatModule,
     PartnersModule,
     CouponsModule,
+    CommunityModule,
   ],
 })
 export class AppModule {}

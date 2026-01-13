@@ -19,8 +19,15 @@ import {
   UserPlus,
   Zap,
   BadgeCheck,
+  X,
 } from 'lucide-react';
 
+import { communityApi } from '../../lib/community-api';
+import {
+  publicCommunityApi,
+  type CommunityCommentPublic,
+  type CommunityPostPublic,
+} from '../../lib/public-community-api';
 import { publicProfilesApi, type PublicProfile } from '../../lib/public-profiles-api';
 import {
   publicReviewsApi,
@@ -28,6 +35,7 @@ import {
   type ReviewDistribution,
 } from '../../lib/public-reviews-api';
 import { fetchPublicListings, type PublicListing } from '../../lib/marketplace-public';
+import { useAuth } from '../auth/auth-provider';
 import { StoreListingCard } from '../profile/store-listing-card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
@@ -72,17 +80,18 @@ type ReviewsState = {
   error?: string;
 };
 
-type CommunityPost = {
-  id: string;
-  author: string;
-  time: string;
-  title?: string;
-  content: string;
-  coupon?: string;
-  pinned?: boolean;
-  likes: number;
-  comments: number;
-  reposts: number;
+type PostsState = {
+  status: 'idle' | 'loading' | 'ready' | 'error';
+  items: CommunityPostPublic[];
+  total: number;
+  error?: string;
+};
+
+type CommentsState = {
+  status: 'idle' | 'loading' | 'ready' | 'error';
+  items: CommunityCommentPublic[];
+  total: number;
+  error?: string;
 };
 
 const formatRelativeTime = (value: string) => {
@@ -94,22 +103,6 @@ const formatRelativeTime = (value: string) => {
   const days = Math.floor(hours / 24);
   return `Ha ${days} dias`;
 };
-
-const initialPosts: CommunityPost[] = [
-  {
-    id: 'post-1',
-    author: 'Vexy Store',
-    time: 'Ha 2 horas',
-    title: 'PROMOCAO RELAMPAGO!',
-    content:
-      'Acabamos de repor o estoque de contas Unranked de LoL. Quem comprar nas proximas 2 horas ganha um brinde surpresa na entrega!',
-    coupon: 'VEXY10OFF',
-    pinned: true,
-    likes: 124,
-    comments: 12,
-    reposts: 5,
-  },
-];
 
 const categoryPills = [
   { label: 'Todos', value: 'todos' },
@@ -332,6 +325,7 @@ const SkeletonProfile = ({ sidebarOnly }: SkeletonProfileProps) => (
   </div>
 );
 export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
+  const { user, accessToken } = useAuth();
   const [profileState, setProfileState] = useState<{
     status: 'loading' | 'ready' | 'error';
     profile: PublicProfile | null;
@@ -342,7 +336,22 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
   const [listings, setListings] = useState<PublicListing[]>([]);
   const [listingsStatus, setListingsStatus] = useState<'loading' | 'ready'>('loading');
   const [composerText, setComposerText] = useState('');
-  const [posts, setPosts] = useState<CommunityPost[]>(initialPosts);
+  const [composerLoading, setComposerLoading] = useState(false);
+  const [postsState, setPostsState] = useState<PostsState>({
+    status: 'idle',
+    items: [],
+    total: 0,
+  });
+  const [copiedPostId, setCopiedPostId] = useState<string | null>(null);
+  const [likeLoading, setLikeLoading] = useState<Record<string, boolean>>({});
+  const [activePostId, setActivePostId] = useState<string | null>(null);
+  const [commentsState, setCommentsState] = useState<CommentsState>({
+    status: 'idle',
+    items: [],
+    total: 0,
+  });
+  const [commentText, setCommentText] = useState('');
+  const [commentLoading, setCommentLoading] = useState(false);
   const [reviewsState, setReviewsState] = useState<ReviewsState>({
     status: 'loading',
     items: [],
@@ -445,6 +454,65 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
     };
   }, [activeTab, profileState.profile?.id, profileState.profile?.role]);
 
+  useEffect(() => {
+    if (activeTab !== 'comunidade' || !profileState.profile?.id) {
+      return;
+    }
+    let active = true;
+    setPostsState({ status: 'loading', items: [], total: 0 });
+    publicCommunityApi
+      .listUserPosts(profileState.profile.id, { take: 10 })
+      .then((response) => {
+        if (!active) return;
+        setPostsState({ status: 'ready', items: response.items, total: response.total });
+      })
+      .catch((error: Error) => {
+        if (!active) return;
+        setPostsState({
+          status: 'error',
+          items: [],
+          total: 0,
+          error: error.message || 'Nao foi possivel carregar os posts.',
+        });
+      });
+    return () => {
+      active = false;
+    };
+  }, [activeTab, profileState.profile?.id]);
+
+  useEffect(() => {
+    if (activeTab !== 'comunidade') {
+      setActivePostId(null);
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (!activePostId) {
+      setCommentsState({ status: 'idle', items: [], total: 0 });
+      return;
+    }
+    let active = true;
+    setCommentsState((prev) => ({ ...prev, status: 'loading', error: undefined }));
+    publicCommunityApi
+      .listPostComments(activePostId, { take: 20 })
+      .then((response) => {
+        if (!active) return;
+        setCommentsState({ status: 'ready', items: response.items, total: response.total });
+      })
+      .catch((error: Error) => {
+        if (!active) return;
+        setCommentsState({
+          status: 'error',
+          items: [],
+          total: 0,
+          error: error.message || 'Nao foi possivel carregar os comentarios.',
+        });
+      });
+    return () => {
+      active = false;
+    };
+  }, [activePostId]);
+
   const showTabs = profileState.profile?.role !== 'USER';
 
   const handleLabel = useMemo(() => {
@@ -494,6 +562,15 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
     : profile.role === 'USER'
       ? 'Perfil publico do cliente na Meoww.'
       : 'Especialista em contas de jogos, entregas rapidas e suporte dedicado.';
+  const isOwner = user?.id === profileId;
+  const canCompose =
+    Boolean(user && accessToken) &&
+    (isOwner || user?.role === 'ADMIN') &&
+    (user?.role === 'SELLER' || user?.role === 'ADMIN');
+  const canInteract = Boolean(accessToken);
+  const activePost =
+    activePostId ? postsState.items.find((post) => post.id === activePostId) ?? null : null;
+  const communityCount = postsState.status === 'ready' ? postsState.total : 0;
 
   return (
     <section className="bg-gradient-to-b from-rose-100/60 via-white to-white px-6 py-12">
@@ -512,7 +589,11 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
         </div>
 
         {showTabs ? (
-          <ProfileTabs activeTab={activeTab} onChange={setActiveTab} communityCount={2} />
+          <ProfileTabs
+            activeTab={activeTab}
+            onChange={setActiveTab}
+            communityCount={communityCount}
+          />
         ) : null}
 
         <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
@@ -610,136 +691,352 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
             ) : null}
             {showTabs && activeTab === 'comunidade' ? (
               <div className="space-y-4">
-                <Card className="rounded-[24px] border border-slate-100 p-4 shadow-card">
-                  <div className="flex items-start gap-3">
-                    <div className="h-10 w-10 overflow-hidden rounded-full bg-meow-100">
-                      {profile.avatarUrl ? (
-                        <img
-                          src={profile.avatarUrl}
-                          alt={profile.displayName}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <div className="grid h-full w-full place-items-center text-sm font-bold text-slate-400">
-                          {profile.displayName.slice(0, 2).toUpperCase()}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1 space-y-2">
-                      <textarea
-                        className="h-16 w-full rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm text-meow-charcoal outline-none"
-                        placeholder="Postar atualizacao para os seguidores..."
-                        value={composerText}
-                        onChange={(event) => setComposerText(event.target.value)}
-                      />
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-meow-muted">
-                          <button type="button" className="rounded-full bg-slate-100 p-2">
-                            <ImageIcon size={16} aria-hidden />
-                          </button>
-                          <button type="button" className="rounded-full bg-slate-100 p-2">
-                            <Smile size={16} aria-hidden />
-                          </button>
-                        </div>
-                        <Button
-                          size="sm"
-                          className="rounded-full"
-                          type="button"
-                          onClick={() => {
-                            const content = composerText.trim();
-                            if (!content) return;
-                            setPosts((prev) => [
-                              {
-                                id: `post-${Date.now()}`,
-                                author: profile.displayName,
-                                time: 'Agora',
-                                content,
-                                likes: 0,
-                                comments: 0,
-                                reposts: 0,
-                              },
-                              ...prev,
-                            ]);
-                            setComposerText('');
-                          }}
-                        >
-                          Postar
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-
-                {posts.map((post) => (
-                  <Card
-                    key={post.id}
-                    className="relative overflow-hidden rounded-[24px] border border-slate-100 p-5 shadow-card"
-                  >
-                    <span className="absolute left-0 top-0 h-full w-1 bg-rose-500" />
-                    <div className="flex items-center gap-3">
+                {canCompose ? (
+                  <Card className="rounded-[24px] border border-slate-100 p-4 shadow-card">
+                    <div className="flex items-start gap-3">
                       <div className="h-10 w-10 overflow-hidden rounded-full bg-meow-100">
                         {profile.avatarUrl ? (
                           <img
                             src={profile.avatarUrl}
-                            alt={post.author}
+                            alt={profile.displayName}
                             className="h-full w-full object-cover"
                           />
                         ) : (
                           <div className="grid h-full w-full place-items-center text-sm font-bold text-slate-400">
-                            {post.author.slice(0, 2).toUpperCase()}
+                            {profile.displayName.slice(0, 2).toUpperCase()}
                           </div>
                         )}
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2 text-sm font-semibold text-meow-charcoal">
-                          {post.author}
-                          {post.pinned ? (
-                            <span className="rounded-full bg-pink-100 px-2 py-0.5 text-[10px] font-bold text-pink-600">
-                              FIXADO
-                            </span>
-                          ) : null}
+                      <div className="flex-1 space-y-2">
+                        <textarea
+                          className="h-16 w-full rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm text-meow-charcoal outline-none"
+                          placeholder="Postar atualizacao para os seguidores..."
+                          value={composerText}
+                          onChange={(event) => setComposerText(event.target.value)}
+                        />
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-meow-muted">
+                            <button type="button" className="rounded-full bg-slate-100 p-2">
+                              <ImageIcon size={16} aria-hidden />
+                            </button>
+                            <button type="button" className="rounded-full bg-slate-100 p-2">
+                              <Smile size={16} aria-hidden />
+                            </button>
+                          </div>
+                          <Button
+                            size="sm"
+                            className="rounded-full"
+                            type="button"
+                            disabled={composerLoading || !composerText.trim()}
+                            onClick={async () => {
+                              if (!accessToken) return;
+                              const content = composerText.trim();
+                              if (!content) return;
+                              try {
+                                setComposerLoading(true);
+                                await communityApi.createPost(accessToken, { content });
+                                setComposerText('');
+                                const response = await publicCommunityApi.listUserPosts(profileId, {
+                                  take: 10,
+                                });
+                                setPostsState({
+                                  status: 'ready',
+                                  items: response.items,
+                                  total: response.total,
+                                });
+                              } catch (error) {
+                                const message =
+                                  error instanceof Error
+                                    ? error.message
+                                    : 'Nao foi possivel publicar.';
+                                setPostsState((prev) => ({
+                                  ...prev,
+                                  status: 'error',
+                                  error: message,
+                                }));
+                              } finally {
+                                setComposerLoading(false);
+                              }
+                            }}
+                          >
+                            {composerLoading ? 'Publicando...' : 'Postar'}
+                          </Button>
                         </div>
-                        <p className="text-xs text-meow-muted">{post.time}</p>
                       </div>
                     </div>
-                    {post.title ? (
-                      <h3 className="mt-4 text-sm font-bold text-pink-600">{post.title}</h3>
-                    ) : null}
-                    <p className="mt-2 text-sm text-meow-muted">{post.content}</p>
-                    {post.coupon ? (
-                      <Card className="mt-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 shadow-none">
-                        <div className="flex items-center justify-between text-sm">
-                          <div>
-                            <p className="text-xs text-meow-muted">CUPOM ATIVO</p>
-                            <p className="text-base font-bold text-meow-charcoal">{post.coupon}</p>
+                  </Card>
+                ) : null}
+
+                {postsState.status === 'loading' ? (
+                  <div className="space-y-4">
+                    {Array.from({ length: 3 }).map((_, index) => (
+                      <div
+                        key={index}
+                        className="h-40 rounded-[24px] border border-slate-100 bg-slate-50"
+                      />
+                    ))}
+                  </div>
+                ) : null}
+
+                {postsState.status === 'error' ? (
+                  <Card className="rounded-[24px] border border-rose-200 bg-rose-50 p-6 text-sm text-rose-600 shadow-card">
+                    {postsState.error || 'Nao foi possivel carregar os posts.'}
+                  </Card>
+                ) : null}
+
+                {postsState.status === 'ready' && postsState.items.length === 0 ? (
+                  <Card className="rounded-[24px] border border-slate-100 p-6 text-sm text-meow-muted shadow-card">
+                    Nenhuma atualizacao publicada ainda.
+                  </Card>
+                ) : null}
+
+                {postsState.status === 'ready'
+                  ? postsState.items.map((post) => (
+                      <Card
+                        key={post.id}
+                        className="relative overflow-hidden rounded-[24px] border border-slate-100 p-5 shadow-card"
+                      >
+                        <span className="absolute left-0 top-0 h-full w-1 bg-rose-500" />
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 overflow-hidden rounded-full bg-meow-100">
+                            {post.author.avatarUrl ? (
+                              <img
+                                src={post.author.avatarUrl}
+                                alt={post.author.displayName}
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <div className="grid h-full w-full place-items-center text-sm font-bold text-slate-400">
+                                {post.author.displayName.slice(0, 2).toUpperCase()}
+                              </div>
+                            )}
                           </div>
+                          <div>
+                            <div className="flex items-center gap-2 text-sm font-semibold text-meow-charcoal">
+                              {post.author.displayName}
+                              {post.pinned ? (
+                                <span className="rounded-full bg-pink-100 px-2 py-0.5 text-[10px] font-bold text-pink-600">
+                                  FIXADO
+                                </span>
+                              ) : null}
+                            </div>
+                            <p className="text-xs text-meow-muted">
+                              {formatRelativeTime(post.createdAt)}
+                            </p>
+                          </div>
+                        </div>
+                        {post.title ? (
+                          <h3 className="mt-4 text-sm font-bold text-pink-600">{post.title}</h3>
+                        ) : null}
+                        <p className="mt-2 text-sm text-meow-muted">{post.content}</p>
+                        {post.couponCode ? (
+                          <Card className="mt-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 shadow-none">
+                            <div className="flex items-center justify-between text-sm">
+                              <div>
+                                <p className="text-xs text-meow-muted">CUPOM ATIVO</p>
+                                <p className="text-base font-bold text-meow-charcoal">
+                                  {post.couponCode}
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                className="inline-flex items-center gap-2 text-xs font-bold text-pink-500"
+                                onClick={() => {
+                                  navigator.clipboard?.writeText(post.couponCode ?? '');
+                                  setCopiedPostId(post.id);
+                                  setTimeout(() => setCopiedPostId(null), 2000);
+                                }}
+                              >
+                                <Copy size={14} aria-hidden />
+                                {copiedPostId === post.id ? 'Copiado' : 'Copiar'}
+                              </button>
+                            </div>
+                          </Card>
+                        ) : null}
+                        <div className="mt-4 flex flex-wrap items-center gap-6 text-xs text-meow-muted">
                           <button
                             type="button"
-                            className="inline-flex items-center gap-2 text-xs font-bold text-pink-500"
-                            onClick={() => navigator.clipboard?.writeText(post.coupon ?? '')}
+                            className="inline-flex items-center gap-1"
+                            disabled={!canInteract || likeLoading[post.id]}
+                            onClick={async () => {
+                              if (!accessToken) return;
+                              if (likeLoading[post.id]) return;
+                              setLikeLoading((prev) => ({ ...prev, [post.id]: true }));
+                              try {
+                                const response = await communityApi.toggleLike(accessToken, post.id);
+                                setPostsState((prev) => ({
+                                  ...prev,
+                                  items: prev.items.map((item) =>
+                                    item.id === post.id
+                                      ? {
+                                          ...item,
+                                          stats: { ...item.stats, likes: response.likes },
+                                        }
+                                      : item,
+                                  ),
+                                }));
+                              } finally {
+                                setLikeLoading((prev) => ({ ...prev, [post.id]: false }));
+                              }
+                            }}
                           >
-                            <Copy size={14} aria-hidden />
-                            Copiar
+                            <Heart size={12} aria-hidden />
+                            {post.stats.likes}
                           </button>
+                          <button
+                            type="button"
+                            className="inline-flex items-center gap-1"
+                            onClick={() => setActivePostId(post.id)}
+                          >
+                            <MessageSquare size={12} aria-hidden />
+                            {post.stats.comments}
+                          </button>
+                          <span className="inline-flex items-center gap-1">
+                            <Zap size={12} aria-hidden />
+                            0
+                          </span>
                         </div>
                       </Card>
-                    ) : null}
-                    <div className="mt-4 flex items-center gap-6 text-xs text-meow-muted">
-                      <span className="inline-flex items-center gap-1">
-                        <Heart size={12} aria-hidden />
-                        {post.likes}
-                      </span>
-                      <span className="inline-flex items-center gap-1">
-                        <MessageSquare size={12} aria-hidden />
-                        {post.comments}
-                      </span>
-                      <span className="inline-flex items-center gap-1">
-                        <Zap size={12} aria-hidden />
-                        {post.reposts}
-                      </span>
-                    </div>
-                  </Card>
-                ))}
+                    ))
+                  : null}
+
+                {activePost ? (
+                  <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
+                    <button
+                      type="button"
+                      className="absolute inset-0 bg-slate-900/40"
+                      onClick={() => setActivePostId(null)}
+                      aria-label="Fechar comentarios"
+                    />
+                    <Card className="relative w-full max-w-xl rounded-[24px] border border-slate-100 bg-white p-5 shadow-card">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-base font-bold text-meow-charcoal">Comentarios</h3>
+                          <p className="text-xs text-meow-muted">{activePost.author.displayName}</p>
+                        </div>
+                        <button
+                          type="button"
+                          className="rounded-full bg-slate-100 p-2 text-meow-muted"
+                          onClick={() => setActivePostId(null)}
+                          aria-label="Fechar"
+                        >
+                          <X size={14} aria-hidden />
+                        </button>
+                      </div>
+
+                      <div className="mt-4 space-y-3">
+                        {commentsState.status === 'loading' ? (
+                          <div className="space-y-3">
+                            {Array.from({ length: 3 }).map((_, index) => (
+                              <div
+                                key={index}
+                                className="h-16 rounded-2xl border border-slate-100 bg-slate-50"
+                              />
+                            ))}
+                          </div>
+                        ) : null}
+
+                        {commentsState.status === 'error' ? (
+                          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
+                            {commentsState.error || 'Nao foi possivel carregar os comentarios.'}
+                          </div>
+                        ) : null}
+
+                        {commentsState.status === 'ready' && commentsState.items.length === 0 ? (
+                          <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm text-meow-muted">
+                            Nenhum comentario por enquanto.
+                          </div>
+                        ) : null}
+
+                        {commentsState.status === 'ready'
+                          ? commentsState.items.map((comment) => (
+                              <div
+                                key={comment.id}
+                                className="flex items-start gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-3 py-3"
+                              >
+                                <div className="h-8 w-8 overflow-hidden rounded-full bg-white">
+                                  {comment.user.avatarUrl ? (
+                                    <img
+                                      src={comment.user.avatarUrl}
+                                      alt={comment.user.displayName}
+                                      className="h-full w-full object-cover"
+                                    />
+                                  ) : (
+                                    <div className="grid h-full w-full place-items-center text-[10px] font-bold text-slate-400">
+                                      {comment.user.displayName.slice(0, 2).toUpperCase()}
+                                    </div>
+                                  )}
+                                </div>
+                                <div>
+                                  <p className="text-xs font-semibold text-meow-charcoal">
+                                    {comment.user.displayName}
+                                  </p>
+                                  <p className="text-xs text-meow-muted">{comment.content}</p>
+                                </div>
+                              </div>
+                            ))
+                          : null}
+                      </div>
+
+                      <div className="mt-4">
+                        {canInteract ? (
+                          <div className="flex items-center gap-2">
+                            <input
+                              className="h-10 flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-3 text-xs text-meow-charcoal outline-none"
+                              placeholder="Escreva um comentario..."
+                              value={commentText}
+                              onChange={(event) => setCommentText(event.target.value)}
+                            />
+                            <Button
+                              size="sm"
+                              className="rounded-full"
+                              disabled={commentLoading || !commentText.trim()}
+                              onClick={async () => {
+                                if (!accessToken || !activePostId) return;
+                                const content = commentText.trim();
+                                if (!content) return;
+                                try {
+                                  setCommentLoading(true);
+                                  const response = await communityApi.createComment(
+                                    accessToken,
+                                    activePostId,
+                                    content,
+                                  );
+                                  setCommentsState((prev) => ({
+                                    ...prev,
+                                    status: 'ready',
+                                    items: [...prev.items, response.comment],
+                                    total: response.comments,
+                                  }));
+                                  setPostsState((prev) => ({
+                                    ...prev,
+                                    items: prev.items.map((item) =>
+                                      item.id === activePostId
+                                        ? {
+                                            ...item,
+                                            stats: { ...item.stats, comments: response.comments },
+                                          }
+                                        : item,
+                                    ),
+                                  }));
+                                  setCommentText('');
+                                } finally {
+                                  setCommentLoading(false);
+                                }
+                              }}
+                            >
+                              {commentLoading ? 'Enviando...' : 'Enviar'}
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-xs text-meow-muted">
+                            Faca login para comentar.
+                          </div>
+                        )}
+                      </div>
+                    </Card>
+                  </div>
+                ) : null}
               </div>
             ) : null}
 

@@ -216,6 +216,9 @@ model User {
   supportChatSessions SupportChatSession[]
   sellerReviewsReceived SellerReview[] @relation("SellerReviewSeller")
   sellerReviewsGiven    SellerReview[] @relation("SellerReviewBuyer")
+  communityPosts        CommunityPost[] @relation("CommunityPostAuthor")
+  communityPostLikes    CommunityPostLike[] @relation("CommunityPostLikeUser")
+  communityPostComments CommunityPostComment[] @relation("CommunityPostCommentUser")
 
   @@map("users")
 }
@@ -701,6 +704,59 @@ model SellerReview {
   @@index([buyerId])
   @@index([orderId])
   @@map("seller_reviews")
+}
+
+model CommunityPost {
+  id         String   @id @default(uuid())
+  authorId   String
+  title      String?
+  content    String
+  couponCode String?
+  pinned     Boolean  @default(false)
+  pinnedAt   DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  author   User                   @relation("CommunityPostAuthor", fields: [authorId], references: [id])
+  likes    CommunityPostLike[]
+  comments CommunityPostComment[]
+
+  @@index([authorId])
+  @@index([pinned])
+  @@index([createdAt])
+  @@map("community_posts")
+}
+
+model CommunityPostLike {
+  id        String   @id @default(uuid())
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  post CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User          @relation("CommunityPostLikeUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
+  @@map("community_post_likes")
+}
+
+model CommunityPostComment {
+  id        String   @id @default(uuid())
+  postId    String
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  post CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User          @relation("CommunityPostCommentUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("community_post_comments")
 }
 
 model Payment {
