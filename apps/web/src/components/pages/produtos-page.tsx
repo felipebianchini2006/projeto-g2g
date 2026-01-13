@@ -117,7 +117,7 @@ export const ProdutosContent = () => {
         setState((prev) => ({
           ...prev,
           status: 'ready',
-          error: 'Nao foi possivel carregar o catalogo.',
+          error: 'Não foi possível carregar o catalogo.',
         }));
       }
     });
@@ -173,7 +173,7 @@ export const ProdutosContent = () => {
           <div>
             <h1 className="text-3xl font-black text-meow-charcoal">Catalogo completo</h1>
             <p className="mt-2 text-sm text-meow-muted">
-              Descubra anuncios com entrega imediata, kits premium e vantagens exclusivas.
+              Descubra anúncios com entrega imediata, kits premium e vantagens exclusivas.
             </p>
           </div>
           <Link
@@ -192,7 +192,7 @@ export const ProdutosContent = () => {
                 className="flex-1 bg-transparent text-sm text-meow-charcoal outline-none placeholder:text-meow-muted"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Anuncio, usuario ou categoria"
+                placeholder="Anúncio, usuário ou categoria"
               />
             </div>
             <Select
@@ -201,9 +201,9 @@ export const ProdutosContent = () => {
               onChange={(event) => setSort(event.target.value)}
             >
               <option value="recent">Mais recentes</option>
-              <option value="price-asc">Menor preco</option>
-              <option value="price-desc">Maior preco</option>
-              <option value="title">Titulo A-Z</option>
+              <option value="price-asc">Menor preço</option>
+              <option value="price-desc">Maior preço</option>
+              <option value="title">Título A-Z</option>
             </Select>
             <Button variant="primary" onClick={applySearch}>
               Aplicar filtros
@@ -244,7 +244,7 @@ export const ProdutosContent = () => {
             </div>
             <div>
               <span className="text-[11px] font-bold uppercase tracking-[0.4px] text-meow-muted">
-                Preco minimo (centavos)
+                Preço minimo (centavos)
               </span>
               <Input
                 className="mt-2 rounded-xl border-slate-200 bg-slate-50"
@@ -257,7 +257,7 @@ export const ProdutosContent = () => {
             </div>
             <div>
               <span className="text-[11px] font-bold uppercase tracking-[0.4px] text-meow-muted">
-                Preco maximo (centavos)
+                Preço maximo (centavos)
               </span>
               <Input
                 className="mt-2 rounded-xl border-slate-200 bg-slate-50"
@@ -275,7 +275,7 @@ export const ProdutosContent = () => {
           <div>
             <h2 className="text-xl font-black text-meow-charcoal">Resultados</h2>
             <p className="text-sm text-meow-muted">
-              {state.listings.length} anuncios nesta pagina.
+              {state.listings.length} anúncios nesta pagina.
             </p>
           </div>
           {state.error ? (
@@ -299,7 +299,7 @@ export const ProdutosContent = () => {
 
         {state.listings.length === 0 && state.status === 'ready' ? (
           <div className="mt-4 rounded-2xl border border-meow-red/20 bg-white px-4 py-3 text-sm text-meow-muted shadow-card">
-            Nenhum anuncio com esses filtros.
+            Nenhum anúncio com esses filtros.
           </div>
         ) : null}
 

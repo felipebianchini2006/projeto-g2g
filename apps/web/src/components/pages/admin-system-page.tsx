@@ -31,7 +31,7 @@ export const AdminSystemContent = () => {
         const message =
           error instanceof ApiClientError
             ? error.message
-            : 'Nao foi possivel carregar o status.';
+            : 'Não foi possível carregar o status.';
         setError(message);
       }
     };
@@ -42,7 +42,7 @@ export const AdminSystemContent = () => {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
-          Carregando sessao...
+          Carregando sessão...
         </div>
       </section>
     );
@@ -77,7 +77,7 @@ export const AdminSystemContent = () => {
           <div>
             <h1 className="text-xl font-black text-meow-charcoal">Status do sistema</h1>
             <p className="mt-2 text-sm text-meow-muted">
-              Monitoramento rapido dos endpoints internos.
+              Monitoramento rápido dos endpoints internos.
             </p>
           </div>
           <div className="flex items-center gap-2">

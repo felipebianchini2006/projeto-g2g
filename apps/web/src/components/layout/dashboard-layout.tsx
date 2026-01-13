@@ -111,7 +111,7 @@ const accountNav = (
     {
       title: 'Menu',
       items: [
-        { label: 'Visao geral', href: '/conta' },
+        { label: 'Visão geral', href: '/conta' },
         { label: 'Minhas compras', href: '/conta/pedidos' },
         { label: 'Favoritos', href: '/conta/favoritos' },
         { label: 'Carteira', href: '/conta/carteira' },
@@ -125,7 +125,7 @@ const accountNav = (
       title: 'Vendedor',
       items: [
         { label: 'Painel do vendedor', href: '/conta/vendedor' },
-        { label: 'Meus anuncios', href: '/conta/anuncios' },
+        { label: 'Meus anúncios', href: '/conta/anuncios' },
         { label: 'Minhas vendas', href: '/conta/vendas' },
       ],
     });
@@ -137,7 +137,7 @@ const accountNav = (
       { label: 'Configuracoes', href: '/conta/config' },
       { label: 'Meus dados', href: '/conta/meus-dados' },
       { label: 'Seguranca', href: '/conta/seguranca' },
-      { label: 'Sessoes', href: '/conta/sessoes' },
+      { label: 'Sessões', href: '/conta/sessoes' },
       {
         label: 'Sair da conta',
         tone: 'danger',
@@ -158,7 +158,7 @@ const adminNav = (logout: () => Promise<void>, goHome: () => void): MenuSection[
     items: [
       { label: 'Atendimento', href: '/admin/atendimento' },
       { label: 'Disputas', href: '/admin/disputas' },
-      { label: 'Moderacao', href: '/admin/anuncios' },
+      { label: 'Moderação', href: '/admin/anuncios' },
       { label: 'Usuarios', href: '/admin/usuarios' },
       { label: 'Parceiros', href: '/admin/parceiros' },
       { label: 'Cupons', href: '/admin/cupons' },
@@ -190,25 +190,25 @@ const adminNav = (logout: () => Promise<void>, goHome: () => void): MenuSection[
 ];
 
 const iconMap: Record<string, React.ReactNode> = {
-  'Visao geral': <LayoutGrid size={16} aria-hidden />,
+  'Visão geral': <LayoutGrid size={16} aria-hidden />,
   'Minhas compras': <ShoppingBasket size={16} aria-hidden />,
   Favoritos: <Heart size={16} aria-hidden />,
   Carteira: <Wallet size={16} aria-hidden />,
   'Meus tickets': <Ticket size={16} aria-hidden />,
-  'Meus anuncios': <NotebookPen size={16} aria-hidden />,
+  'Meus anúncios': <NotebookPen size={16} aria-hidden />,
   'Minhas vendas': <BanknoteArrowUp size={16} aria-hidden />,
   'Painel do vendedor': <Store size={16} aria-hidden />,
   'Minha conta': <UserRound size={16} aria-hidden />,
   'Meus dados': <UserRound size={16} aria-hidden />,
   Seguranca: <ShieldCheck size={16} aria-hidden />,
-  Sessoes: <Settings size={16} aria-hidden />,
+  Sessões: <Settings size={16} aria-hidden />,
   'Central de ajuda': <LifeBuoy size={16} aria-hidden />,
   Notificacoes: <Bell size={16} aria-hidden />,
   Configuracoes: <Settings size={16} aria-hidden />,
   'Sair da conta': <LogOut size={16} aria-hidden />,
   Atendimento: <Headset size={16} aria-hidden />,
   Disputas: <Gavel size={16} aria-hidden />,
-  Moderacao: <ShieldAlert size={16} aria-hidden />,
+  Moderação: <ShieldAlert size={16} aria-hidden />,
   Usuarios: <Users size={16} aria-hidden />,
   Parceiros: <Link2 size={16} aria-hidden />,
   Cupons: <BadgePercent size={16} aria-hidden />,

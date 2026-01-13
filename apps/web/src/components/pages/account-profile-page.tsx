@@ -15,7 +15,7 @@ export const AccountProfileContent = () => {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
-          Carregando sessao...
+          Carregando sessão...
         </div>
       </section>
     );
@@ -60,7 +60,7 @@ export const AccountProfileContent = () => {
                 href={`/perfil/${user.id}`}
                 className="text-xs font-semibold text-meow-muted"
               >
-                Ver perfil publico
+                Ver perfil público
               </Link>
             </div>
           </div>

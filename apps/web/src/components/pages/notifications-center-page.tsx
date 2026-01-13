@@ -12,7 +12,7 @@ import {
 
 const tabs = [
   { id: 'all', label: 'Todos', icon: Bell },
-  { id: 'anuncios', label: 'Anuncios', icon: ShoppingBag },
+  { id: 'anúncios', label: 'Anúncios', icon: ShoppingBag },
   { id: 'tickets', label: 'Tickets', icon: Ticket },
   { id: 'vendas', label: 'Vendas', icon: ShoppingBag },
   { id: 'chats', label: 'Chats', icon: MessageCircle },

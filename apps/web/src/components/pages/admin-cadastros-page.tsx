@@ -103,7 +103,7 @@ export const AdminCadastrosContent = () => {
     try {
       await fetchAll(accessToken);
     } catch (error) {
-      handleError(error, 'Nao foi possivel carregar cadastros.');
+      handleError(error, 'Não foi possível carregar cadastros.');
     } finally {
       setBusyAction(null);
     }
@@ -169,7 +169,7 @@ export const AdminCadastrosContent = () => {
       await fetchAll(accessToken);
       setNotice('Cadastro atualizado.');
     } catch (error) {
-      handleError(error, 'Nao foi possivel salvar.');
+      handleError(error, 'Não foi possível salvar.');
     } finally {
       setBusyAction(null);
     }
@@ -179,7 +179,7 @@ export const AdminCadastrosContent = () => {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
-          Carregando sessao...
+          Carregando sessão...
         </div>
       </section>
     );
@@ -214,7 +214,7 @@ export const AdminCadastrosContent = () => {
           <div>
             <h1 className="text-xl font-black text-meow-charcoal">Cadastros do sistema</h1>
             <p className="mt-2 text-sm text-meow-muted">
-              Gerencie categorias, opcoes e configuracoes do anuncio.
+              Gerencie categorias, opções e configurações do anúncio.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -260,7 +260,7 @@ export const AdminCadastrosContent = () => {
               <textarea
                 className="form-textarea"
                 rows={2}
-                placeholder="Descricao (opcional)"
+                placeholder="Descrição (opcional)"
                 value={categoryForm.description}
                 onChange={(event) =>
                   setCategoryForm((prev) => ({ ...prev, description: event.target.value }))
@@ -389,7 +389,7 @@ export const AdminCadastrosContent = () => {
               <textarea
                 className="form-textarea"
                 rows={2}
-                placeholder="Descricao (opcional)"
+                placeholder="Descrição (opcional)"
                 value={groupForm.description}
                 onChange={(event) =>
                   setGroupForm((prev) => ({ ...prev, description: event.target.value }))
@@ -539,7 +539,7 @@ export const AdminCadastrosContent = () => {
               <textarea
                 className="form-textarea"
                 rows={2}
-                placeholder="Descricao (opcional)"
+                placeholder="Descrição (opcional)"
                 value={sectionForm.description}
                 onChange={(event) =>
                   setSectionForm((prev) => ({ ...prev, description: event.target.value }))
@@ -675,7 +675,7 @@ export const AdminCadastrosContent = () => {
               <textarea
                 className="form-textarea"
                 rows={2}
-                placeholder="Descricao (opcional)"
+                placeholder="Descrição (opcional)"
                 value={salesModelForm.description}
                 onChange={(event) =>
                   setSalesModelForm((prev) => ({ ...prev, description: event.target.value }))
@@ -771,7 +771,7 @@ export const AdminCadastrosContent = () => {
             <div className="grid gap-2">
               <input
                 className="form-input"
-                placeholder="Nome da procedencia"
+                placeholder="Nome da procedência"
                 value={originForm.name}
                 onChange={(event) =>
                   setOriginForm((prev) => ({ ...prev, name: event.target.value }))
@@ -788,7 +788,7 @@ export const AdminCadastrosContent = () => {
               <textarea
                 className="form-textarea"
                 rows={2}
-                placeholder="Descricao (opcional)"
+                placeholder="Descrição (opcional)"
                 value={originForm.description}
                 onChange={(event) =>
                   setOriginForm((prev) => ({ ...prev, description: event.target.value }))
@@ -831,7 +831,7 @@ export const AdminCadastrosContent = () => {
             </div>
             <div className="mt-4 grid gap-3">
               {origins.length === 0 ? (
-                <div className="state-card">Nenhuma procedencia cadastrada.</div>
+                <div className="state-card">Nenhuma procedência cadastrada.</div>
               ) : (
                 origins.map((item) => (
                   <div key={item.id} className="support-row">
@@ -859,7 +859,7 @@ export const AdminCadastrosContent = () => {
                         type="button"
                         onClick={() =>
                           runAction('origin-delete', async () => {
-                            if (!confirm('Remover procedencia?')) {
+                            if (!confirm('Remover procedência?')) {
                               return;
                             }
                             await adminCatalogApi.deleteOrigin(accessToken, item.id);
@@ -879,7 +879,7 @@ export const AdminCadastrosContent = () => {
 
           <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
             <div className="panel-header">
-              <h2>Dados de recuperacao</h2>
+              <h2>Dados de recuperação</h2>
             </div>
             <div className="grid gap-2">
               <input
@@ -901,7 +901,7 @@ export const AdminCadastrosContent = () => {
               <textarea
                 className="form-textarea"
                 rows={2}
-                placeholder="Descricao (opcional)"
+                placeholder="Descrição (opcional)"
                 value={recoveryForm.description}
                 onChange={(event) =>
                   setRecoveryForm((prev) => ({ ...prev, description: event.target.value }))

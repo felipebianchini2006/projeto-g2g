@@ -81,7 +81,7 @@ export const DashboardContent = () => {
   const pendingQuestions = listings.length ? 3 : 0;
   const openTickets = listings.length ? 1 : 0;
 
-  const handleError = (error: unknown, fallback = 'Nao foi possivel concluir a operacao.') => {
+  const handleError = (error: unknown, fallback = 'Não foi possível concluir a operacao.') => {
     if (error instanceof ApiClientError) {
       setError(error.message);
       return;
@@ -99,7 +99,7 @@ export const DashboardContent = () => {
       const data = await marketplaceApi.listSellerListings(accessToken);
       setListings(data);
     } catch (error) {
-      handleError(error, 'Nao foi possivel carregar anuncios.');
+      handleError(error, 'Não foi possível carregar anúncios.');
     } finally {
       setBusyAction(null);
     }
@@ -115,7 +115,7 @@ export const DashboardContent = () => {
       const data = await marketplaceApi.getSellerListing(accessToken, listingId);
       setSelectedListing(data);
     } catch (error) {
-      handleError(error, 'Nao foi possivel carregar detalhes do anuncio.');
+      handleError(error, 'Não foi possível carregar detalhes do anúncio.');
     } finally {
       setBusyAction(null);
     }
@@ -164,7 +164,7 @@ export const DashboardContent = () => {
   const handleCreateOrUpdate = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!accessToken) {
-      setError('Sessao expirada. Entre novamente.');
+      setError('Sessão expirada. Entre novamente.');
       return;
     }
     setBusyAction(formMode);
@@ -191,9 +191,9 @@ export const DashboardContent = () => {
       setSelectedId(result.id);
       setSelectedListing(result);
       setFormMode('edit');
-      setNotice(formMode === 'edit' ? 'Anuncio atualizado.' : 'Anuncio criado.');
+      setNotice(formMode === 'edit' ? 'Anúncio atualizado.' : 'Anúncio criado.');
     } catch (error) {
-      handleError(error, 'Nao foi possivel salvar o anuncio.');
+      handleError(error, 'Não foi possível salvar o anúncio.');
     } finally {
       setBusyAction(null);
     }
@@ -210,9 +210,9 @@ export const DashboardContent = () => {
       const updated = await marketplaceApi.submitListing(accessToken, selectedId);
       setListings((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
       setSelectedListing(updated);
-      setNotice('Anuncio enviado para aprovacao.');
+      setNotice('Anúncio enviado para aprovação.');
     } catch (error) {
-      handleError(error, 'Nao foi possivel enviar para aprovacao.');
+      handleError(error, 'Não foi possível enviar para aprovação.');
     } finally {
       setBusyAction(null);
     }
@@ -229,9 +229,9 @@ export const DashboardContent = () => {
       const updated = await marketplaceApi.archiveListing(accessToken, selectedId);
       setListings((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
       setSelectedListing(updated);
-      setNotice('Anuncio suspenso.');
+      setNotice('Anúncio suspenso.');
     } catch (error) {
-      handleError(error, 'Nao foi possivel suspender o anuncio.');
+      handleError(error, 'Não foi possível suspender o anúncio.');
     } finally {
       setBusyAction(null);
     }
@@ -246,7 +246,7 @@ export const DashboardContent = () => {
       .map((code) => code.trim())
       .filter(Boolean);
     if (codes.length === 0) {
-      setError('Informe pelo menos um codigo.');
+      setError('Informe pelo menos um código.');
       return;
     }
     setBusyAction('inventory-add');
@@ -254,10 +254,10 @@ export const DashboardContent = () => {
     setNotice(null);
     try {
       const result = await marketplaceApi.addInventoryItems(accessToken, selectedId, codes);
-      setNotice(`Inventario atualizado: ${result.created ?? 0} novos.`);
+      setNotice(`Inventário atualizado: ${result.created ?? 0} novos.`);
       setInventoryCodes('');
     } catch (error) {
-      handleError(error, 'Nao foi possivel adicionar inventario.');
+      handleError(error, 'Não foi possível adicionar inventário.');
     } finally {
       setBusyAction(null);
     }
@@ -279,7 +279,7 @@ export const DashboardContent = () => {
       setNotice(`Importacao concluida: ${result.created ?? 0} novos.`);
       setInventoryPayload('');
     } catch (error) {
-      handleError(error, 'Nao foi possivel importar inventario.');
+      handleError(error, 'Não foi possível importar inventário.');
     } finally {
       setBusyAction(null);
     }
@@ -298,10 +298,10 @@ export const DashboardContent = () => {
     setNotice(null);
     try {
       await marketplaceApi.removeInventoryItem(accessToken, selectedId, inventoryRemoveId.trim());
-      setNotice('Item removido do inventario.');
+      setNotice('Item removido do inventário.');
       setInventoryRemoveId('');
     } catch (error) {
-      handleError(error, 'Nao foi possivel remover o item.');
+      handleError(error, 'Não foi possível remover o item.');
     } finally {
       setBusyAction(null);
     }
@@ -318,10 +318,10 @@ export const DashboardContent = () => {
     try {
       await marketplaceApi.uploadMedia(accessToken, selectedId, mediaFile, Number(mediaPosition));
       await loadListingDetail(selectedId);
-      setNotice('Midia enviada com sucesso.');
+      setNotice('Mídia enviada com sucesso.');
       setMediaFile(null);
     } catch (error) {
-      handleError(error, 'Nao foi possivel enviar a midia.');
+      handleError(error, 'Não foi possível enviar a mídia.');
     } finally {
       setBusyAction(null);
     }
@@ -337,9 +337,9 @@ export const DashboardContent = () => {
     try {
       await marketplaceApi.removeMedia(accessToken, selectedId, mediaId);
       await loadListingDetail(selectedId);
-      setNotice('Midia removida.');
+      setNotice('Mídia removida.');
     } catch (error) {
-      handleError(error, 'Nao foi possivel remover a midia.');
+      handleError(error, 'Não foi possível remover a mídia.');
     } finally {
       setBusyAction(null);
     }
@@ -356,7 +356,7 @@ export const DashboardContent = () => {
       <div className="dashboard-shell">
         <div className="dashboard-card">
           <h1>Dashboard</h1>
-          <p className="auth-helper">Carregando sessao...</p>
+          <p className="auth-helper">Carregando sessão...</p>
         </div>
       </div>
     );
@@ -381,7 +381,7 @@ export const DashboardContent = () => {
       <div className="dashboard-shell">
         <div className="dashboard-card">
           <h1>Dashboard</h1>
-          <p className="auth-helper">Seu usuario nao possui acesso ao painel do seller.</p>
+          <p className="auth-helper">Seu usuário não possui acesso ao painel do seller.</p>
           <Link className="ghost-button" href="/">
             Voltar para home
           </Link>
@@ -404,7 +404,7 @@ export const DashboardContent = () => {
               className="mt-4 inline-flex w-full items-center justify-center rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-meow-charcoal"
               href="/produtos"
             >
-              Visualizar loja publica
+              Visualizar loja pública
             </Link>
           </div>
 
@@ -414,7 +414,7 @@ export const DashboardContent = () => {
             </p>
             <div className="mt-3 grid gap-1 text-sm">
               <button className="rounded-xl bg-meow-50 px-3 py-2 text-left text-sm font-semibold text-meow-deep">
-                Visao geral
+                Visão geral
               </button>
               <Link
                 className="rounded-xl px-3 py-2 text-sm font-semibold text-meow-charcoal/80 hover:bg-meow-50"
@@ -459,7 +459,7 @@ export const DashboardContent = () => {
           <div className="rounded-[26px] border border-slate-100 bg-white p-6 shadow-card">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <h1 className="text-2xl font-black text-meow-charcoal">Visao geral</h1>
+                <h1 className="text-2xl font-black text-meow-charcoal">Visão geral</h1>
                 <p className="mt-1 text-sm text-meow-muted">
                   Acompanhe o desempenho da sua loja.
                 </p>
@@ -469,7 +469,7 @@ export const DashboardContent = () => {
                   Carteira
                 </Link>
                 <button className="rounded-full border border-slate-200 px-4 py-2 text-xs font-bold text-meow-charcoal" type="button" onClick={resetForm}>
-                  Novo anuncio
+                  Novo anúncio
                 </button>
                 <button className="rounded-full bg-meow-300 px-4 py-2 text-xs font-bold text-white shadow-cute" type="button" onClick={handleLogout} disabled={busyAction === 'logout'}>
                   {busyAction === 'logout' ? 'Saindo...' : 'Sair'}
@@ -532,7 +532,7 @@ export const DashboardContent = () => {
           <div className="seller-grid">
             <section className="seller-panel">
               <div className="panel-header">
-                <h2>Seus anuncios</h2>
+                <h2>Seus anúncios</h2>
                 <button
                   className="ghost-button"
                   type="button"
@@ -544,11 +544,11 @@ export const DashboardContent = () => {
               </div>
 
               {busyAction === 'load' ? (
-                <div className="state-card">Carregando anuncios...</div>
+                <div className="state-card">Carregando anúncios...</div>
               ) : null}
 
               {listings.length === 0 && busyAction !== 'load' ? (
-                <div className="state-card">Nenhum anuncio criado ainda.</div>
+                <div className="state-card">Nenhum anúncio criado ainda.</div>
               ) : null}
 
               <div className="listing-stack">
@@ -576,12 +576,12 @@ export const DashboardContent = () => {
 
             <section className="seller-panel">
               <div className="panel-header">
-                <h2>{formMode === 'edit' ? 'Editar anuncio' : 'Novo anuncio'}</h2>
+                <h2>{formMode === 'edit' ? 'Editar anúncio' : 'Novo anúncio'}</h2>
                 {selectedListing ? (
                   <div className="seller-listing-summary">
                     <span>{listingSummary?.status}</span>
                     <span>{listingSummary?.delivery}</span>
-                    <span>{listingSummary?.mediaCount ?? 0} midias</span>
+                    <span>{listingSummary?.mediaCount ?? 0} mídias</span>
                   </div>
                 ) : null}
               </div>
@@ -600,19 +600,19 @@ export const DashboardContent = () => {
                   />
                 </label>
                 <label className="form-field">
-                  Titulo
+                  Título
                   <input
                     className="form-input"
                     value={formState.title}
                     onChange={(event) =>
                       setFormState((prev) => ({ ...prev, title: event.target.value }))
                     }
-                    placeholder="Nome do anuncio"
+                    placeholder="Nome do anúncio"
                     required
                   />
                 </label>
                 <label className="form-field">
-                  Descricao
+                  Descrição
                   <textarea
                     className="form-textarea"
                     value={formState.description}
@@ -624,7 +624,7 @@ export const DashboardContent = () => {
                 </label>
                 <div className="form-grid">
                   <label className="form-field">
-                    Preco (centavos)
+                    Preço (centavos)
                     <input
                       className="form-input"
                       type="number"
@@ -701,7 +701,7 @@ export const DashboardContent = () => {
                       ? 'Salvando...'
                       : formMode === 'edit'
                         ? 'Salvar alteracoes'
-                        : 'Criar anuncio'}
+                        : 'Criar anúncio'}
                   </button>
                   {formMode === 'edit' ? (
                     <>
@@ -711,7 +711,7 @@ export const DashboardContent = () => {
                         onClick={handleSubmitListing}
                         disabled={!canSubmit || busyAction === 'submit'}
                       >
-                        {busyAction === 'submit' ? 'Enviando...' : 'Enviar para aprovacao'}
+                        {busyAction === 'submit' ? 'Enviando...' : 'Enviar para aprovação'}
                       </button>
                       <button
                         className="ghost-button"
@@ -719,7 +719,7 @@ export const DashboardContent = () => {
                         onClick={handleArchiveListing}
                         disabled={!canArchive || busyAction === 'archive'}
                       >
-                        {busyAction === 'archive' ? 'Suspenso...' : 'Suspender anuncio'}
+                        {busyAction === 'archive' ? 'Suspenso...' : 'Suspender anúncio'}
                       </button>
                     </>
                   ) : null}
@@ -728,7 +728,7 @@ export const DashboardContent = () => {
 
               {selectedListing ? (
                 <div className="seller-section">
-                  <h3>Midias</h3>
+                  <h3>Mídias</h3>
                   <div className="media-grid">
                     {(selectedListing.media ?? []).map((media) => (
                       <div className="media-card" key={media.id}>
@@ -744,7 +744,7 @@ export const DashboardContent = () => {
                       </div>
                     ))}
                     {selectedListing.media && selectedListing.media.length === 0 ? (
-                      <div className="state-card">Nenhuma midia enviada ainda.</div>
+                      <div className="state-card">Nenhuma mídia enviada ainda.</div>
                     ) : null}
                   </div>
                   <div className="media-upload">
@@ -766,7 +766,7 @@ export const DashboardContent = () => {
                       onClick={handleUploadMedia}
                       disabled={busyAction === 'media-upload'}
                     >
-                      {busyAction === 'media-upload' ? 'Enviando...' : 'Enviar midia'}
+                      {busyAction === 'media-upload' ? 'Enviando...' : 'Enviar mídia'}
                     </button>
                   </div>
                 </div>
@@ -774,13 +774,13 @@ export const DashboardContent = () => {
 
               {selectedListing && selectedListing.deliveryType === 'AUTO' ? (
                 <div className="seller-section">
-                  <h3>Inventario (auto)</h3>
+                  <h3>Inventário (auto)</h3>
                   <p className="auth-helper">
-                    O painel suporta add/import/remove. Para listar itens completos sera preciso
+                    O painel suporta add/import/remove. Para listar itens completos será preciso
                     endpoint dedicado.
                   </p>
                   <label className="form-field">
-                    Adicionar codigos
+                    Adicionar códigos
                     <textarea
                       className="form-textarea"
                       value={inventoryCodes}
@@ -797,7 +797,7 @@ export const DashboardContent = () => {
                   >
                     {busyAction === 'inventory-add'
                       ? 'Adicionando...'
-                      : 'Adicionar inventario'}
+                      : 'Adicionar inventário'}
                   </button>
                   <label className="form-field">
                     Importar CSV/texto

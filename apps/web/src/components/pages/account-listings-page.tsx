@@ -29,7 +29,7 @@ type ListingsState = {
 
 const statusLabel: Record<ListingStatus, string> = {
   DRAFT: 'Rascunho',
-  PENDING: 'Em analise',
+  PENDING: 'Em análise',
   PUBLISHED: 'Publicado',
   SUSPENDED: 'Suspenso',
 };
@@ -87,7 +87,7 @@ export const AccountListingsContent = () => {
         const message =
           error instanceof ApiClientError
             ? error.message
-            : 'Nao foi possivel carregar seus anuncios.';
+            : 'Não foi possível carregar seus anúncios.';
         setState({ status: 'ready', listings: [], error: message });
       }
     };
@@ -165,12 +165,12 @@ export const AccountListingsContent = () => {
         },
       );
       setListingInState(updated);
-      setNotice('Anuncio atualizado.');
+      setNotice('Anúncio atualizado.');
     } catch (error) {
       const message =
         error instanceof ApiClientError
           ? error.message
-          : 'Nao foi possivel atualizar o anuncio.';
+          : 'Não foi possível atualizar o anúncio.';
       setNotice(message);
     } finally {
       setActionBusy(null);
@@ -186,12 +186,12 @@ export const AccountListingsContent = () => {
     try {
       const updated = await marketplaceApi.submitListing(accessToken, listingId);
       setListingInState(updated);
-      setNotice('Anuncio enviado para analise.');
+      setNotice('Anúncio enviado para análise.');
     } catch (error) {
       const message =
         error instanceof ApiClientError
           ? error.message
-          : 'Nao foi possivel enviar o anuncio.';
+          : 'Não foi possível enviar o anúncio.';
       setNotice(message);
     } finally {
       setActionBusy(null);
@@ -214,12 +214,12 @@ export const AccountListingsContent = () => {
         setSelectedListingId(null);
         setEditForm(null);
       }
-      setNotice('Anuncio arquivado.');
+      setNotice('Anúncio arquivado.');
     } catch (error) {
       const message =
         error instanceof ApiClientError
           ? error.message
-          : 'Nao foi possivel arquivar o anuncio.';
+          : 'Não foi possível arquivar o anúncio.';
       setNotice(message);
     } finally {
       setActionBusy(null);
@@ -248,10 +248,10 @@ export const AccountListingsContent = () => {
       setMediaFiles([]);
       const refreshed = await marketplaceApi.getSellerListing(accessToken, selectedListing.id);
       setListingInState(refreshed);
-      setNotice(`${uploaded.length} midia(s) enviada(s).`);
+      setNotice(`${uploaded.length} mídia(s) enviada(s).`);
     } catch (error) {
       const message =
-        error instanceof ApiClientError ? error.message : 'Falha ao enviar midia.';
+        error instanceof ApiClientError ? error.message : 'Falha ao enviar mídia.';
       setNotice(message);
     } finally {
       setActionBusy(null);
@@ -268,10 +268,10 @@ export const AccountListingsContent = () => {
       await marketplaceApi.removeMedia(accessToken, selectedListing.id, mediaId);
       const refreshed = await marketplaceApi.getSellerListing(accessToken, selectedListing.id);
       setListingInState(refreshed);
-      setNotice('Midia removida.');
+      setNotice('Mídia removida.');
     } catch (error) {
       const message =
-        error instanceof ApiClientError ? error.message : 'Falha ao remover midia.';
+        error instanceof ApiClientError ? error.message : 'Falha ao remover mídia.';
       setNotice(message);
     } finally {
       setActionBusy(null);
@@ -298,7 +298,7 @@ export const AccountListingsContent = () => {
       setNotice(`Itens adicionados: ${result.created ?? 0}.`);
     } catch (error) {
       const message =
-        error instanceof ApiClientError ? error.message : 'Falha ao adicionar inventario.';
+        error instanceof ApiClientError ? error.message : 'Falha ao adicionar inventário.';
       setNotice(message);
     } finally {
       setActionBusy(null);
@@ -321,7 +321,7 @@ export const AccountListingsContent = () => {
       setNotice(`Importados: ${result.created ?? 0}. Ignorados: ${result.skipped ?? 0}.`);
     } catch (error) {
       const message =
-        error instanceof ApiClientError ? error.message : 'Falha ao importar inventario.';
+        error instanceof ApiClientError ? error.message : 'Falha ao importar inventário.';
       setNotice(message);
     } finally {
       setActionBusy(null);
@@ -355,7 +355,7 @@ export const AccountListingsContent = () => {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
-          Carregando sessao...
+          Carregando sessão...
         </div>
       </section>
     );
@@ -365,7 +365,7 @@ export const AccountListingsContent = () => {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center">
-          <p className="text-sm text-meow-muted">Entre para acessar seus anuncios.</p>
+          <p className="text-sm text-meow-muted">Entre para acessar seus anúncios.</p>
           <Link
             href="/login"
             className="mt-4 inline-flex rounded-full bg-meow-linear px-6 py-2 text-sm font-bold text-white"
@@ -382,7 +382,7 @@ export const AccountListingsContent = () => {
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center">
           <p className="text-sm text-meow-muted">
-            Seu perfil nao possui acesso ao painel de anuncios.
+            Seu perfil não possui acesso ao painel de anúncios.
           </p>
           <Link
             href="/conta"
@@ -399,7 +399,7 @@ export const AccountListingsContent = () => {
     { label: 'Todos', value: 'ALL' },
     { label: 'Ativos', value: 'PUBLISHED' },
     { label: 'Pausados', value: 'SUSPENDED' },
-    { label: 'Em analise', value: 'PENDING' },
+    { label: 'Em análise', value: 'PENDING' },
     { label: 'Vendidos', value: 'SOLD' },
   ];
 
@@ -408,21 +408,21 @@ export const AccountListingsContent = () => {
       breadcrumbs={[
         { label: 'Inicio', href: '/' },
         { label: 'Conta', href: '/conta' },
-        { label: 'Meus anuncios' },
+        { label: 'Meus anúncios' },
       ]}
     >
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-meow-charcoal">Meus anuncios</h1>
+          <h1 className="text-2xl font-black text-meow-charcoal">Meus anúncios</h1>
           <p className="text-sm text-meow-muted">
-            Gerencie anuncios ativos, pendentes ou pausados.
+            Gerencie anúncios ativos, pendentes ou pausados.
           </p>
         </div>
         <Link
           href="/anunciar"
           className="rounded-full bg-meow-300 px-5 py-2 text-sm font-black text-white shadow-cute"
         >
-          + Novo anuncio
+          + Novo anúncio
         </Link>
       </div>
 
@@ -450,19 +450,19 @@ export const AccountListingsContent = () => {
 
       {state.status === 'loading' ? (
         <div className="rounded-xl border border-meow-red/20 bg-white px-4 py-3 text-sm text-meow-muted">
-          Carregando anuncios...
+          Carregando anúncios...
         </div>
       ) : null}
 
       {statusFilter === 'SOLD' ? (
         <div className="rounded-xl border border-meow-red/20 bg-white px-4 py-3 text-sm text-meow-muted">
-          Em breve: anuncios vendidos.
+          Em breve: anúncios vendidos.
         </div>
       ) : null}
 
       {state.status === 'ready' && filteredListings.length === 0 && statusFilter !== 'SOLD' ? (
         <div className="rounded-xl border border-meow-red/20 bg-white px-4 py-3 text-sm text-meow-muted">
-          Nenhum anuncio encontrado com esses filtros.
+          Nenhum anúncio encontrado com esses filtros.
         </div>
       ) : null}
 
@@ -544,7 +544,7 @@ export const AccountListingsContent = () => {
           <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-lg font-black text-meow-charcoal">Editar anuncio</h2>
+                <h2 className="text-lg font-black text-meow-charcoal">Editar anúncio</h2>
                 <p className="text-sm text-meow-muted">
                   ID: {selectedListing.id.slice(0, 8)} | Status:{' '}
                   {statusLabel[selectedListing.status]}
@@ -557,7 +557,7 @@ export const AccountListingsContent = () => {
 
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               <label className="grid gap-2 text-xs font-semibold text-meow-muted">
-                Titulo
+                Título
                 <Input
                   value={editForm.title ?? ''}
                   onChange={(event) =>
@@ -566,7 +566,7 @@ export const AccountListingsContent = () => {
                 />
               </label>
               <label className="grid gap-2 text-xs font-semibold text-meow-muted">
-                Preco (centavos)
+                Preço (centavos)
                 <Input
                   type="number"
                   min={0}
@@ -592,7 +592,7 @@ export const AccountListingsContent = () => {
                     )
                   }
                 >
-                  <option value="AUTO">Entrega automatica</option>
+                  <option value="AUTO">Entrega automática</option>
                   <option value="MANUAL">Entrega manual</option>
                 </Select>
               </label>
@@ -614,7 +614,7 @@ export const AccountListingsContent = () => {
             </div>
 
             <label className="mt-4 grid gap-2 text-xs font-semibold text-meow-muted">
-              Descricao
+              Descrição
               <Textarea
                 rows={4}
                 value={editForm.description ?? ''}
@@ -649,13 +649,13 @@ export const AccountListingsContent = () => {
                 onClick={() => handleSubmitListing(selectedListing.id)}
                 disabled={actionBusy === 'submit'}
               >
-                Enviar para analise
+                Enviar para análise
               </Button>
             </div>
           </Card>
 
           <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
-            <h3 className="text-base font-bold text-meow-charcoal">Midia do anuncio</h3>
+            <h3 className="text-base font-bold text-meow-charcoal">Mídia do anúncio</h3>
             <p className="mt-1 text-xs text-meow-muted">
               Arraste ou selecione arquivos para enviar.
             </p>
@@ -681,7 +681,7 @@ export const AccountListingsContent = () => {
               ))}
             </div>
             <label className="mt-4 flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-sm font-semibold text-meow-muted">
-              Clique para adicionar midias
+              Clique para adicionar mídias
               <input
                 type="file"
                 multiple
@@ -703,13 +703,13 @@ export const AccountListingsContent = () => {
                 onClick={handleUploadMedia}
                 disabled={actionBusy === 'media' || mediaFiles.length === 0}
               >
-                {actionBusy === 'media' ? 'Enviando...' : 'Enviar midias'}
+                {actionBusy === 'media' ? 'Enviando...' : 'Enviar mídias'}
               </Button>
             </div>
           </Card>
 
           <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
-            <h3 className="text-base font-bold text-meow-charcoal">Inventario</h3>
+            <h3 className="text-base font-bold text-meow-charcoal">Inventário</h3>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.4px] text-meow-muted">
@@ -719,7 +719,7 @@ export const AccountListingsContent = () => {
                   rows={6}
                   value={inventoryCodes}
                   onChange={(event) => setInventoryCodes(event.target.value)}
-                  placeholder="Cole os codigos, um por linha."
+                  placeholder="Cole os códigos, um por linha."
                 />
                 <Button
                   className="mt-2"

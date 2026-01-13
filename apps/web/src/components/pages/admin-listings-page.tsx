@@ -104,7 +104,7 @@ export const AdminListingsContent = () => {
         categoryId: prev.categoryId || cats[0]?.id || '',
       }));
     } catch (error) {
-      handleError(error, 'Nao foi possivel carregar cadastros.');
+      handleError(error, 'Não foi possível carregar cadastros.');
     } finally {
       setBusyAction(null);
     }
@@ -126,7 +126,7 @@ export const AdminListingsContent = () => {
       setSelectedListing(data[0] ?? null);
       setActionReason('');
     } catch (error) {
-      handleError(error, 'Nao foi possivel carregar anuncios.');
+      handleError(error, 'Não foi possível carregar anúncios.');
     } finally {
       setBusyAction(null);
     }
@@ -200,7 +200,7 @@ export const AdminListingsContent = () => {
       applyListingUpdate(updated);
       setNotice('Vitrine da home atualizada.');
     } catch (error) {
-      handleError(error, 'Nao foi possivel atualizar a vitrine.');
+      handleError(error, 'Não foi possível atualizar a vitrine.');
     } finally {
       setBusyAction(null);
     }
@@ -211,7 +211,7 @@ export const AdminListingsContent = () => {
       return;
     }
     if ((action === 'reject' || action === 'suspend') && !actionReason.trim()) {
-      setError('Informe o motivo da decisao.');
+      setError('Informe o motivo da decisão.');
       return;
     }
     setBusyAction(action);
@@ -229,10 +229,10 @@ export const AdminListingsContent = () => {
                 reason: actionReason.trim(),
               });
       applyListingUpdate(updated);
-      setNotice('Anuncio atualizado com sucesso.');
+      setNotice('Anúncio atualizado com sucesso.');
       setActionReason('');
     } catch (error) {
-      handleError(error, 'Nao foi possivel atualizar o anuncio.');
+      handleError(error, 'Não foi possível atualizar o anúncio.');
     } finally {
       setBusyAction(null);
     }
@@ -247,9 +247,9 @@ export const AdminListingsContent = () => {
     setNotice(null);
     try {
       await marketplaceApi.reserveInventory(accessToken, selectedListing.id, reserveQty);
-      setNotice('Reserva de inventario enviada.');
+      setNotice('Reserva de inventário enviada.');
     } catch (error) {
-      handleError(error, 'Nao foi possivel reservar inventario.');
+      handleError(error, 'Não foi possível reservar inventário.');
     } finally {
       setBusyAction(null);
     }
@@ -268,11 +268,11 @@ export const AdminListingsContent = () => {
       return;
     }
     if (!createForm.title.trim()) {
-      setError('Informe o titulo.');
+      setError('Informe o título.');
       return;
     }
     if (createForm.priceCents <= 0) {
-      setError('Informe o preco.');
+      setError('Informe o preço.');
       return;
     }
     setBusyAction('create');
@@ -292,7 +292,7 @@ export const AdminListingsContent = () => {
         currency: createForm.currency || undefined,
       };
       await adminListingsApi.createListing(accessToken, payload);
-      setNotice('Anuncio criado com sucesso.');
+      setNotice('Anúncio criado com sucesso.');
       setCreateForm({
         sellerId: '',
         categoryId: createForm.categoryId,
@@ -306,7 +306,7 @@ export const AdminListingsContent = () => {
       });
       loadListings();
     } catch (error) {
-      handleError(error, 'Nao foi possivel criar o anuncio.');
+      handleError(error, 'Não foi possível criar o anúncio.');
     } finally {
       setBusyAction(null);
     }
@@ -316,7 +316,7 @@ export const AdminListingsContent = () => {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
-          Carregando sessao...
+          Carregando sessão...
         </div>
       </section>
     );
@@ -343,15 +343,15 @@ export const AdminListingsContent = () => {
       breadcrumbs={[
         { label: 'Inicio', href: '/' },
         { label: 'Admin', href: '/admin/atendimento' },
-        { label: 'Moderacao' },
+        { label: 'Moderação' },
       ]}
     >
       <div className="rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-xl font-black text-meow-charcoal">Moderacao de anuncios</h1>
+            <h1 className="text-xl font-black text-meow-charcoal">Moderação de anúncios</h1>
             <p className="mt-2 text-sm text-meow-muted">
-              Avalie anuncios pendentes e aplique ajustes.
+              Avalie anúncios pendentes e aplique ajustes.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -371,11 +371,11 @@ export const AdminListingsContent = () => {
 
       <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
         <div className="panel-header">
-          <h2>Criar anuncio (admin)</h2>
+          <h2>Criar anúncio (admin)</h2>
         </div>
         {categories.length === 0 ? (
           <div className="state-card info">
-            Cadastre categorias antes de criar anuncios.
+            Cadastre categorias antes de criar anúncios.
           </div>
         ) : null}
         <div className="grid gap-4 lg:grid-cols-2">
@@ -455,7 +455,7 @@ export const AdminListingsContent = () => {
               </select>
             </label>
             <label className="form-field">
-              Titulo
+              Título
               <input
                 className="form-input"
                 value={createForm.title}
@@ -465,7 +465,7 @@ export const AdminListingsContent = () => {
               />
             </label>
             <label className="form-field">
-              Descricao
+              Descrição
               <textarea
                 className="form-textarea"
                 rows={3}
@@ -478,7 +478,7 @@ export const AdminListingsContent = () => {
           </div>
           <div className="grid gap-3">
             <label className="form-field">
-              Preco (centavos)
+              Preço (centavos)
               <input
                 className="form-input"
                 type="number"
@@ -555,7 +555,7 @@ export const AdminListingsContent = () => {
               </select>
             </label>
             <label className="form-field">
-              Procedencia
+              Procedência
               <select
                 className="form-input"
                 value={createForm.originId ?? ''}
@@ -575,7 +575,7 @@ export const AdminListingsContent = () => {
               </select>
             </label>
             <label className="form-field">
-              Dados de recuperacao
+              Dados de recuperação
               <select
                 className="form-input"
                 value={createForm.recoveryOptionId ?? ''}
@@ -614,7 +614,7 @@ export const AdminListingsContent = () => {
             onClick={handleCreateListing}
             disabled={busyAction === 'create'}
           >
-            {busyAction === 'create' ? 'Criando...' : 'Criar anuncio'}
+            {busyAction === 'create' ? 'Criando...' : 'Criar anúncio'}
           </button>
         </div>
       </div>
@@ -622,7 +622,7 @@ export const AdminListingsContent = () => {
       <div className="admin-listings-grid">
         <div className="order-card">
           <div className="panel-header">
-            <h2>Anuncios</h2>
+            <h2>Anúncios</h2>
             <div className="form-field">
               <span className="summary-label">Status</span>
               <select
@@ -642,11 +642,11 @@ export const AdminListingsContent = () => {
           </div>
 
           {busyAction === 'load' ? (
-            <div className="state-card">Carregando anuncios...</div>
+            <div className="state-card">Carregando anúncios...</div>
           ) : null}
 
           {listings.length === 0 && busyAction !== 'load' ? (
-            <div className="state-card">Nenhum anuncio encontrado.</div>
+            <div className="state-card">Nenhum anúncio encontrado.</div>
           ) : null}
 
           <div className="support-list">
@@ -682,7 +682,7 @@ export const AdminListingsContent = () => {
             <h2>Detalhes</h2>
           </div>
           {!selectedListing ? (
-            <div className="state-card">Selecione um anuncio para moderar.</div>
+            <div className="state-card">Selecione um anúncio para moderar.</div>
           ) : (
             <>
               <div className="ticket-summary">
@@ -691,7 +691,7 @@ export const AdminListingsContent = () => {
                   <strong>{detailSummary?.status}</strong>
                 </div>
                 <div>
-                  <span className="summary-label">Preco</span>
+                  <span className="summary-label">Preço</span>
                   <strong>{detailSummary?.price}</strong>
                 </div>
                 <div>
@@ -741,7 +741,7 @@ export const AdminListingsContent = () => {
                   </button>
                 </div>
                 <p className="mt-2 text-xs text-meow-muted">
-                  Use essas opcoes para controlar as listas da home.
+                  Use essas opções para controlar as listas da home.
                 </p>
               </div>
 
@@ -750,7 +750,7 @@ export const AdminListingsContent = () => {
               ) : null}
 
               <label className="form-field">
-                Motivo (reprovacao/suspensao)
+                Motivo (reprovação/suspensão)
                 <textarea
                   className="form-textarea"
                   rows={3}
@@ -788,7 +788,7 @@ export const AdminListingsContent = () => {
               </div>
 
               <div className="seller-section">
-                <h3>Inventario (admin)</h3>
+                <h3>Inventário (admin)</h3>
                 <label className="form-field">
                   Reservar quantidade
                   <input
@@ -805,7 +805,7 @@ export const AdminListingsContent = () => {
                   onClick={handleReserveInventory}
                   disabled={busyAction === 'reserve'}
                 >
-                  {busyAction === 'reserve' ? 'Reservando...' : 'Reservar inventario'}
+                  {busyAction === 'reserve' ? 'Reservando...' : 'Reservar inventário'}
                 </button>
               </div>
             </>

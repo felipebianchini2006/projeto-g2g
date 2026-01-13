@@ -180,7 +180,7 @@ export const catalogCategories: CatalogCategory[] = ggmaxCategoryLabels.map(
     id: slugify(label),
     slug: slugify(label),
     label,
-    description: 'Explore anuncios selecionados.',
+    description: 'Explore anúncios selecionados.',
     highlight: fallbackHighlights[index % fallbackHighlights.length],
     listingsCount: popularLabels.has(label) ? 120 : undefined,
   }),
@@ -197,7 +197,7 @@ const buildCatalogCategory = (category: PublicCategory): CatalogCategory => {
     slug: category.slug,
     label: category.name,
     description:
-      category.description ?? fallback?.description ?? 'Explore anuncios selecionados.',
+      category.description ?? fallback?.description ?? 'Explore anúncios selecionados.',
     highlight: fallback?.highlight ?? '/assets/meoow/highlight-01.webp',
     listingsCount: category.listingsCount,
   };

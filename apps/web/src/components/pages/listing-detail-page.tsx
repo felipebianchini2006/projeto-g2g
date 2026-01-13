@@ -57,7 +57,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
         setState((prev) => ({
           ...prev,
           status: 'ready',
-          error: 'Nao foi possivel carregar o anuncio.',
+          error: 'Não foi possível carregar o anúncio.',
         }));
       }
     });
@@ -70,7 +70,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
     return (
       <section className="listing-detail">
         <div className="container">
-          <div className="state-card">Carregando anuncio...</div>
+          <div className="state-card">Carregando anúncio...</div>
         </div>
       </section>
     );
@@ -80,7 +80,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
     return (
       <section className="listing-detail">
         <div className="container">
-          <div className="state-card">Anuncio nao encontrado.</div>
+          <div className="state-card">Anúncio não encontrado.</div>
           <Link className="ghost-button" href="/produtos">
             Voltar ao catalogo
           </Link>
@@ -93,8 +93,8 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
   const categoryLabel = listing.categoryLabel ?? listing.categorySlug ?? 'Marketplace';
   const favoriteActive = isFavorite(listing.id);
   const tabs = [
-    { id: 'descricao', label: 'Descricao' },
-    { id: 'avaliacoes', label: 'Avaliacoes (42)' },
+    { id: 'descricao', label: 'Descrição' },
+    { id: 'avaliacoes', label: 'Avaliações (42)' },
     { id: 'duvidas', label: 'Duvidas' },
   ] as const;
   const fallbackImage = '/assets/meoow/highlight-01.webp';
@@ -249,7 +249,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
                       <span className="mt-1 block text-xs text-slate-500">
                         {edition.id === 'deluxe'
                           ? 'Itens bonus para colecionar.'
-                          : 'Conteudo base incluso.'}
+                          : 'Conteúdo base incluso.'}
                       </span>
                       <span className="mt-3 block text-sm font-bold text-meow-300">
                         {formatCurrency(
@@ -331,7 +331,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
             </TabsList>
 
             <TabsContent value="descricao">
-              <p>{listing.description ?? 'Descricao nao informada.'}</p>
+              <p>{listing.description ?? 'Descrição não informada.'}</p>
             </TabsContent>
             <TabsContent value="avaliacoes">
               <p>Em breve.</p>

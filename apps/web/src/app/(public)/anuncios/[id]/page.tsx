@@ -7,8 +7,8 @@ type ListingDetailPageProps = {
 };
 
 export const metadata: Metadata = {
-  title: 'Meoww Games - Anuncio',
-  description: 'Detalhes do anuncio e compra segura.',
+  title: 'Meoww Games - Anúncio',
+  description: 'Detalhes do anúncio e compra segura.',
 };
 
 export default async function Page({ params }: ListingDetailPageProps) {

@@ -16,7 +16,7 @@ export default function Page() {
           e vendedores, e politicas da plataforma.
         </p>
         <p className="mt-4 text-sm text-meow-muted">
-          Placeholder: o usuario concorda em fornecer informacoes corretas e seguir
+          Placeholder: o usuário concorda em fornecer informações corretas e seguir
           as politicas de seguranca da Meoww Games.
         </p>
       </div>

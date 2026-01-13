@@ -29,7 +29,7 @@ const ticketStatusLabel: Record<TicketStatus, string> = {
 
 const disputeStatusLabel: Record<DisputeStatus, string> = {
   OPEN: 'Aberto',
-  REVIEW: 'Em revisao',
+  REVIEW: 'Em revisão',
   RESOLVED: 'Resolvido',
   REJECTED: 'Rejeitado',
 };
@@ -110,7 +110,7 @@ export const AdminSupportContent = () => {
             ? error.message
             : error instanceof Error
               ? error.message
-              : 'Nao foi possivel carregar tickets.';
+              : 'Não foi possível carregar tickets.';
         setTicketState({ status: 'ready', items: [], error: message });
       }
     };
@@ -145,7 +145,7 @@ export const AdminSupportContent = () => {
             ? error.message
             : error instanceof Error
               ? error.message
-              : 'Nao foi possivel carregar disputas.';
+              : 'Não foi possível carregar disputas.';
         setDisputeState({ status: 'ready', items: [], error: message });
       }
     };
@@ -169,7 +169,7 @@ export const AdminSupportContent = () => {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
-          Carregando sessao...
+          Carregando sessão...
         </div>
       </section>
     );
@@ -204,7 +204,7 @@ export const AdminSupportContent = () => {
           <div>
             <h1 className="text-xl font-black text-meow-charcoal">Fila de suporte</h1>
             <p className="mt-2 text-sm text-meow-muted">
-              Tickets e disputas pendentes de avaliacao.
+              Tickets e disputas pendentes de avaliação.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -249,7 +249,7 @@ export const AdminSupportContent = () => {
             >
               <option value="all">Todas</option>
               <option value="OPEN">Abertas</option>
-              <option value="REVIEW">Em revisao</option>
+              <option value="REVIEW">Em revisão</option>
               <option value="RESOLVED">Resolvidas</option>
               <option value="REJECTED">Rejeitadas</option>
             </Select>

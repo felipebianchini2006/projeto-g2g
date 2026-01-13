@@ -143,7 +143,7 @@ export const WalletSummaryContent = () => {
           ? error.message
           : error instanceof Error
             ? error.message
-            : 'Nao foi possivel carregar a carteira.';
+            : 'Não foi possível carregar a carteira.';
       setState({ status: 'ready', summary: null, error: message });
     }
   };
@@ -175,7 +175,7 @@ export const WalletSummaryContent = () => {
       const hasData = data.some((item) => item.value > 0);
       setChartState({ status: 'ready', data: hasData ? data : fallbackChart });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Nao foi possivel carregar o grafico.';
+      const message = error instanceof Error ? error.message : 'Não foi possível carregar o grafico.';
       setChartState({ status: 'ready', data: fallbackChart, error: message });
     }
   };
@@ -203,7 +203,7 @@ export const WalletSummaryContent = () => {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
-          Carregando sessao...
+          Carregando sessão...
         </div>
       </section>
     );

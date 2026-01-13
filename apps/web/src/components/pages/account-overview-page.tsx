@@ -83,7 +83,7 @@ export const AccountOverviewContent = () => {
         const message =
           error instanceof ApiClientError
             ? error.message
-            : 'Nao foi possivel carregar sua carteira.';
+            : 'Não foi possível carregar sua carteira.';
         setSummaryState({ status: 'ready', summary: null, error: message });
       }
     };
@@ -115,7 +115,7 @@ export const AccountOverviewContent = () => {
         const message =
           error instanceof ApiClientError
             ? error.message
-            : 'Nao foi possivel carregar pedidos recentes.';
+            : 'Não foi possível carregar pedidos recentes.';
         setOrdersState({ status: 'ready', orders: [], error: message });
       }
     };
@@ -129,7 +129,7 @@ export const AccountOverviewContent = () => {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
-          Carregando sessao...
+          Carregando sessão...
         </div>
       </section>
     );

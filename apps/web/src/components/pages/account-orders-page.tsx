@@ -22,7 +22,7 @@ const statusLabel: Record<string, string> = {
   PAID: 'Pago',
   IN_DELIVERY: 'Em entrega',
   DELIVERED: 'Entregue',
-  COMPLETED: 'Concluido',
+  COMPLETED: 'Concluído',
   CANCELLED: 'Cancelado',
   DISPUTED: 'Em disputa',
   REFUNDED: 'Reembolsado',
@@ -141,7 +141,7 @@ export const AccountOrdersContent = () => {
         const message =
           error instanceof ApiClientError
             ? error.message
-            : 'Nao foi possivel carregar os pedidos.';
+            : 'Não foi possível carregar os pedidos.';
         setState({ status: 'ready', orders: [], error: message });
       }
     };
@@ -155,7 +155,7 @@ export const AccountOrdersContent = () => {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
-          Carregando sessao...
+          Carregando sessão...
         </div>
       </section>
     );
@@ -241,7 +241,7 @@ export const AccountOrdersContent = () => {
 
         {state.status === 'ready' && filteredOrders.length === 0 ? (
           <div className="rounded-2xl border border-slate-100 bg-meow-50 px-4 py-3 text-sm text-meow-muted">
-            Voce ainda nao tem compras.
+            Você ainda não tem compras.
           </div>
         ) : null}
 

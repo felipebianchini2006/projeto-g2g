@@ -66,7 +66,7 @@ export const AdminUsersContent = () => {
       setSelectedUser(response.items[0] ?? null);
       setActionReason('');
     } catch (error) {
-      handleError(error, 'Nao foi possivel carregar usuarios.');
+      handleError(error, 'Não foi possível carregar usuarios.');
     } finally {
       setBusyAction(null);
     }
@@ -150,7 +150,7 @@ export const AdminUsersContent = () => {
       applyUserUpdate(updated);
       setNotice('Usuario atualizado.');
     } catch (error) {
-      handleError(error, 'Nao foi possivel atualizar o usuario.');
+      handleError(error, 'Não foi possível atualizar o usuário.');
     } finally {
       setBusyAction(null);
     }
@@ -177,7 +177,7 @@ export const AdminUsersContent = () => {
       setNotice('Usuario bloqueado.');
       setActionReason('');
     } catch (error) {
-      handleError(error, 'Nao foi possivel bloquear o usuario.');
+      handleError(error, 'Não foi possível bloquear o usuário.');
     } finally {
       setBusyAction(null);
     }
@@ -196,7 +196,7 @@ export const AdminUsersContent = () => {
       setNotice('Usuario desbloqueado.');
       setActionReason('');
     } catch (error) {
-      handleError(error, 'Nao foi possivel desbloquear o usuario.');
+      handleError(error, 'Não foi possível desbloquear o usuário.');
     } finally {
       setBusyAction(null);
     }
@@ -206,7 +206,7 @@ export const AdminUsersContent = () => {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
-          Carregando sessao...
+          Carregando sessão...
         </div>
       </section>
     );
@@ -319,7 +319,7 @@ export const AdminUsersContent = () => {
           ) : null}
 
           {users.length === 0 && busyAction !== 'load' ? (
-            <div className="state-card">Nenhum usuario encontrado.</div>
+            <div className="state-card">Nenhum usuário encontrado.</div>
           ) : null}
 
           <div className="support-list">
@@ -353,14 +353,14 @@ export const AdminUsersContent = () => {
         <div className="order-card">
           <div className="panel-header">
             <div>
-              <h2>Menu do usuario</h2>
+              <h2>Menu do usuário</h2>
               {selectedUser ? (
                 <p className="text-xs text-meow-muted">{selectedUser.email}</p>
               ) : null}
             </div>
           </div>
           {!selectedUser ? (
-            <div className="state-card">Selecione um usuario.</div>
+            <div className="state-card">Selecione um usuário.</div>
           ) : (
             <>
               <div className="seller-form">

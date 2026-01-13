@@ -70,7 +70,7 @@ export default function Page() {
       if (error instanceof AuthApiError) {
         setErrors({ form: error.message });
       } else {
-        setErrors({ form: 'Nao foi possivel criar a conta. Tente novamente.' });
+        setErrors({ form: 'Não foi possível criar a conta. Tente novamente.' });
       }
     } finally {
       setIsSubmitting(false);

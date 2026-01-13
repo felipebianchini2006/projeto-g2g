@@ -107,7 +107,7 @@ const packageOptions: PackageOption[] = [
 const stepConfig = [
   { id: 'produto', label: 'PRODUTO', icon: Package },
   { id: 'pagamento', label: 'PAGAMENTO', icon: CreditCard },
-  { id: 'confirmacao', label: 'CONFIRMACAO', icon: CheckCircle2 },
+  { id: 'confirmacao', label: 'CONFIRMAÇÃO', icon: CheckCircle2 },
 ] as const;
 
 export const CheckoutContent = ({ listingId }: { listingId: string }) => {
@@ -195,7 +195,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
       setListingState((prev) => ({
         ...prev,
         status: 'ready',
-        error: 'Nao foi possivel carregar o anuncio.',
+        error: 'Não foi possível carregar o anúncio.',
       }));
     });
     return () => {
@@ -258,13 +258,13 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
 
   const checkoutBlockedReason = useMemo(() => {
     if (!listing) {
-      return 'Anuncio indisponivel.';
+      return 'Anúncio indisponivel.';
     }
     if (listingState.source === 'fallback') {
       return 'Checkout indisponivel no modo offline.';
     }
     if (listing.status !== 'PUBLISHED') {
-      return 'Anuncio nao esta publicado.';
+      return 'Anúncio não esta publicado.';
     }
     return null;
   }, [listing, listingState.source]);
@@ -301,7 +301,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
           ? error.message
           : error instanceof Error
             ? error.message
-            : 'Nao foi possivel iniciar o pagamento.';
+            : 'Não foi possível iniciar o pagamento.';
       try {
         const createdOrder = await ordersApi.createOrder(accessToken, listingId, quantity, {
           couponCode: appliedCoupon ?? undefined,
@@ -332,7 +332,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
       await navigator.clipboard.writeText(activePayment.copyPaste);
       setCopyStatus('Copiado!');
     } catch {
-      setCopyStatus('Nao foi possivel copiar.');
+      setCopyStatus('Não foi possível copiar.');
     }
   };
 
@@ -349,7 +349,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
           ? error.message
           : error instanceof Error
             ? error.message
-            : 'Nao foi possivel gerar o Pix.';
+            : 'Não foi possível gerar o Pix.';
       setPaymentState({ status: 'ready', error: message });
     }
   };
@@ -370,7 +370,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
             className={buttonVariants({ variant: 'secondary', size: 'sm' })}
             href={`/anuncios/${listingId}`}
           >
-            Voltar ao anuncio
+            Voltar ao anúncio
           </Link>
         </div>
 
@@ -402,7 +402,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
 
         {listingState.status === 'loading' ? (
           <div className="mt-6 rounded-2xl border border-meow-red/20 bg-white px-4 py-3 text-sm text-meow-muted">
-            Carregando anuncio...
+            Carregando anúncio...
           </div>
         ) : null}
 
@@ -414,7 +414,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
 
         {!listing && listingState.status === 'ready' ? (
           <div className="mt-6 rounded-2xl border border-meow-red/20 bg-white px-4 py-3 text-sm text-meow-muted">
-            Anuncio nao encontrado.
+            Anúncio não encontrado.
           </div>
         ) : null}
 
@@ -433,8 +433,8 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                           Produto Digital
                         </h2>
                         <p className="mt-1 text-sm text-meow-muted">
-                          Voce recebera os dados de acesso (Email/Senha) imediatamente
-                          apos a confirmacao do pagamento. Entrega automatica 24/7.
+                          Você recebera os dados de acesso (Email/Senha) imediatamente
+                          após a confirmação do pagamento. Entrega automática 24/7.
                         </p>
                       </div>
                     </div>
@@ -450,7 +450,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                           Escolha seu Pacote
                         </h2>
                         <p className="text-sm text-meow-muted">
-                          Selecione a edicao ideal para voce.
+                          Selecione a edição ideal para você.
                         </p>
                       </div>
                     </div>
@@ -531,7 +531,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                 <>
                   <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
                     <h2 className="text-base font-bold text-meow-charcoal">
-                      Metodo de pagamento
+                      Método de pagamento
                     </h2>
                     <div className="mt-4 grid gap-3 sm:grid-cols-3">
                       {[
@@ -589,7 +589,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                       </span>
                       <div>
                         <h2 className="text-base font-bold text-meow-charcoal">
-                          Pix - Pagamento rapido
+                          Pix - Pagamento rápido
                         </h2>
                         <p className="text-sm text-meow-muted">
                           5% de desconto aplicado no Pix.
@@ -672,7 +672,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                     Pagamento confirmado!
                   </h2>
                   <p className="mt-2 text-sm text-meow-muted">
-                    Voce pode acompanhar a entrega em Minhas Compras.
+                    Você pode acompanhar a entrega em Minhas Compras.
                   </p>
                   <div className="mt-6 flex flex-wrap justify-center gap-3">
                     {order ? (

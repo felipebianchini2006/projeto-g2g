@@ -5,7 +5,7 @@ import Link from 'next/link';
 const ADMIN_LINKS = [
   { href: '/admin/atendimento', label: 'Atendimento' },
   { href: '/admin/disputas', label: 'Disputas' },
-  { href: '/admin/anuncios', label: 'Moderacao' },
+  { href: '/admin/anuncios', label: 'Moderação' },
   { href: '/admin/usuarios', label: 'Usuarios' },
   { href: '/admin/parceiros', label: 'Parceiros' },
   { href: '/admin/cupons', label: 'Cupons' },

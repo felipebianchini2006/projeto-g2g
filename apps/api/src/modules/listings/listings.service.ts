@@ -674,10 +674,10 @@ export class ListingsService {
         where: { id: resolvedGroupId },
       });
       if (!group) {
-        throw new NotFoundException('Subcategoria nao encontrada.');
+        throw new NotFoundException('Subcategoria não encontrada.');
       }
       if (group.categoryId !== categoryId) {
-        throw new BadRequestException('Subcategoria nao pertence a categoria.');
+        throw new BadRequestException('Subcategoria não pertence à categoria.');
       }
     }
 
@@ -686,20 +686,20 @@ export class ListingsService {
         where: { id: sectionId },
       });
       if (!section) {
-        throw new NotFoundException('Secao nao encontrada.');
+        throw new NotFoundException('Seção não encontrada.');
       }
       if (resolvedGroupId && section.groupId !== resolvedGroupId) {
-        throw new BadRequestException('Secao nao pertence a subcategoria.');
+        throw new BadRequestException('Seção não pertence à subcategoria.');
       }
       if (!resolvedGroupId) {
         const group = await this.prisma.categoryGroup.findUnique({
           where: { id: section.groupId },
         });
         if (!group) {
-          throw new NotFoundException('Subcategoria nao encontrada.');
+          throw new NotFoundException('Subcategoria não encontrada.');
         }
         if (group.categoryId !== categoryId) {
-          throw new BadRequestException('Secao nao pertence a categoria.');
+          throw new BadRequestException('Seção não pertence à categoria.');
         }
         resolvedGroupId = section.groupId;
       }
@@ -726,9 +726,9 @@ export class ListingsService {
         option === 'salesModel'
           ? 'Tipo de venda'
           : option === 'origin'
-            ? 'Procedencia'
-            : 'Dados de recuperacao';
-      throw new NotFoundException(`${label} nao encontrado.`);
+            ? 'Procedência'
+            : 'Dados de recuperação';
+      throw new NotFoundException(`${label} não encontrado.`);
     }
   }
 }

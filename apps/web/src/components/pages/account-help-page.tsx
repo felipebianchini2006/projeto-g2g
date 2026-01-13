@@ -13,7 +13,7 @@ export const AccountHelpContent = () => {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
-          Carregando sessao...
+          Carregando sessão...
         </div>
       </section>
     );
@@ -46,7 +46,7 @@ export const AccountHelpContent = () => {
       <div className="rounded-2xl border border-meow-red/20 bg-white p-6 text-center shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
         <h1 className="text-2xl font-black text-meow-charcoal">Central de ajuda</h1>
         <p className="mt-3 text-sm text-meow-muted">
-          Encontre respostas rapidas para compras, vendas e pagamentos.
+          Encontre respostas rápidas para compras, vendas e pagamentos.
         </p>
       </div>
 
@@ -57,7 +57,7 @@ export const AccountHelpContent = () => {
             <h2 className="text-base font-bold text-meow-charcoal">Perguntas frequentes</h2>
           </div>
           <p className="mt-3 text-sm text-meow-muted">
-            Respostas rapidas para duvidas comuns sobre compras e vendas.
+            Respostas rápidas para duvidas comuns sobre compras e vendas.
           </p>
           <Link
             href="/ajuda/como-comprar"
@@ -89,7 +89,7 @@ export const AccountHelpContent = () => {
             <h2 className="text-base font-bold text-meow-charcoal">Chat com IA</h2>
           </div>
           <p className="mt-3 text-sm text-meow-muted">
-            Tire duvidas rapidas com nosso suporte automatizado.
+            Tire duvidas rápidas com nosso suporte automatizado.
           </p>
           <Link
             href="/conta/ajuda/chat"

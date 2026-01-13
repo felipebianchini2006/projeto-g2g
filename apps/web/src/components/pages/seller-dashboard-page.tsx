@@ -78,7 +78,7 @@ export const SellerDashboardContent = () => {
         const message =
           error instanceof ApiClientError
             ? error.message
-            : 'Nao foi possivel carregar vendas.';
+            : 'Não foi possível carregar vendas.';
         setOrdersState({ status: 'ready', orders: [], error: message });
       }
     };
@@ -122,7 +122,7 @@ export const SellerDashboardContent = () => {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
-          Carregando sessao...
+          Carregando sessão...
         </div>
       </section>
     );
@@ -148,7 +148,7 @@ export const SellerDashboardContent = () => {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center">
-          <p className="text-sm text-meow-muted">Seu perfil nao possui acesso ao painel.</p>
+          <p className="text-sm text-meow-muted">Seu perfil não possui acesso ao painel.</p>
           <Link
             href="/conta"
             className="mt-4 inline-flex rounded-full border border-meow-red/30 px-6 py-2 text-sm font-bold text-meow-deep"
@@ -218,7 +218,7 @@ export const SellerDashboardContent = () => {
           </p>
           <p className="mt-3 text-lg font-black text-meow-charcoal">Em breve</p>
           <p className="mt-1 text-xs text-meow-muted">
-            Esta funcionalidade sera adicionada.
+            Esta funcionalidade será adicionada.
           </p>
         </Card>
         <Card className="rounded-2xl border border-meow-red/20 p-5 shadow-card">

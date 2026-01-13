@@ -40,7 +40,7 @@ const benefits = [
   },
   {
     icon: CreditCard,
-    title: 'Pague com cartao em ate 12x s/ juros',
+    title: 'Pague com cartao em até 12x s/ juros',
     description: 'Parcelamento facil',
   },
   {

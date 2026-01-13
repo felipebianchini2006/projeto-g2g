@@ -54,7 +54,7 @@ export const NotificationsBell = () => {
           ? error.message
           : error instanceof Error
             ? error.message
-            : 'Nao foi possivel carregar notificacoes.';
+            : 'Não foi possível carregar notificacoes.';
       setError(message);
     } finally {
       setBusy(false);

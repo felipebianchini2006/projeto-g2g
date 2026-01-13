@@ -67,7 +67,7 @@ export const AdminShell = ({ breadcrumbs, children }: AdminShellProps) => {
         items: [
           { label: 'Atendimento', href: '/admin/atendimento' },
           { label: 'Disputas', href: '/admin/disputas' },
-          { label: 'Moderacao', href: '/admin/anuncios' },
+          { label: 'Moderação', href: '/admin/anuncios' },
           { label: 'Usuarios', href: '/admin/usuarios' },
           { label: 'Parceiros', href: '/admin/parceiros' },
           { label: 'Cupons', href: '/admin/cupons' },
@@ -221,7 +221,7 @@ export const AdminShell = ({ breadcrumbs, children }: AdminShellProps) => {
                       const iconMap: Record<string, React.ReactNode> = {
                         Atendimento: <Headset size={16} aria-hidden />,
                         Disputas: <Gavel size={16} aria-hidden />,
-                        Moderacao: <ShieldAlert size={16} aria-hidden />,
+                        Moderação: <ShieldAlert size={16} aria-hidden />,
                         Usuarios: <Users size={16} aria-hidden />,
                         Parceiros: <Link2 size={16} aria-hidden />,
                         Cupons: <BadgePercent size={16} aria-hidden />,

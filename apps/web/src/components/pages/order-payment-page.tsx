@@ -54,7 +54,7 @@ export const OrderPaymentContent = ({ orderId }: { orderId: string }) => {
           setError(
             error instanceof ApiClientError
               ? error.message
-              : 'Nao foi possivel carregar o pedido.',
+              : 'Não foi possível carregar o pedido.',
           );
         }
       }
@@ -81,7 +81,7 @@ export const OrderPaymentContent = ({ orderId }: { orderId: string }) => {
       PAID: 'Pago',
       IN_DELIVERY: 'Em entrega',
       DELIVERED: 'Entregue',
-      COMPLETED: 'Concluido',
+      COMPLETED: 'Concluído',
       CANCELLED: 'Cancelado',
       DISPUTED: 'Em disputa',
       REFUNDED: 'Reembolsado',
@@ -97,7 +97,7 @@ export const OrderPaymentContent = ({ orderId }: { orderId: string }) => {
       await navigator.clipboard.writeText(activePayment.copyPaste);
       setCopyStatus('Codigo copiado.');
     } catch {
-      setCopyStatus('Nao foi possivel copiar o codigo.');
+      setCopyStatus('Não foi possível copiar o código.');
     }
   };
 
@@ -116,7 +116,7 @@ export const OrderPaymentContent = ({ orderId }: { orderId: string }) => {
           ? error.message
           : error instanceof Error
             ? error.message
-            : 'Nao foi possivel gerar o Pix.';
+            : 'Não foi possível gerar o Pix.';
       setPixError(message);
     } finally {
       setPixBusy(false);
@@ -268,7 +268,7 @@ export const OrderPaymentContent = ({ orderId }: { orderId: string }) => {
                   className={buttonVariants({ variant: 'primary', size: 'sm' })}
                   onClick={handleCopy}
                 >
-                  Copiar codigo
+                  Copiar código
                 </button>
               ) : null}
               <button

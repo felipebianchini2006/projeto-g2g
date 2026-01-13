@@ -61,7 +61,7 @@ export default function Page() {
       if (error instanceof AuthApiError) {
         setErrors({ form: error.message });
       } else {
-        setErrors({ form: 'Nao foi possivel autenticar. Tente novamente.' });
+        setErrors({ form: 'Não foi possível autenticar. Tente novamente.' });
       }
     } finally {
       setIsSubmitting(false);

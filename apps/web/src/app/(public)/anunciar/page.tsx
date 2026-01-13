@@ -44,10 +44,10 @@ const emptyListing: ListingInput = {
 
 const steps = [
   { id: 1, title: 'Categoria', subtitle: 'O que vamos vender?' },
-  { id: 2, title: 'Detalhes', subtitle: 'Titulo, descricao e preco' },
-  { id: 3, title: 'Entrega', subtitle: 'Entrega automatica e dados' },
-  { id: 4, title: 'Imagens', subtitle: 'Upload do anuncio' },
-  { id: 5, title: 'Revisao', subtitle: 'Confirme e publique' },
+  { id: 2, title: 'Detalhes', subtitle: 'Título, descrição e preço' },
+  { id: 3, title: 'Entrega', subtitle: 'Entrega automática e dados' },
+  { id: 4, title: 'Imagens', subtitle: 'Upload do anúncio' },
+  { id: 5, title: 'Revisão', subtitle: 'Confirme e publique' },
 ];
 
 const parsePriceToCents = (value: string) => {
@@ -135,12 +135,12 @@ export default function Page() {
       setRecoveryOptions(recoveryRes.status === 'fulfilled' ? recoveryRes.value : []);
       setGroups(groupsRes.status === 'fulfilled' ? groupsRes.value : []);
       if (results.some((result) => result.status === 'rejected')) {
-        setCatalogError('Nao foi possivel carregar todos os catalogos.');
+        setCatalogError('Não foi possível carregar todos os catalogos.');
       }
     };
     loadCatalogs().catch(() => {
       if (active) {
-        setCatalogError('Nao foi possivel carregar os catalogos.');
+        setCatalogError('Não foi possível carregar os catalogos.');
         setSalesModels([]);
         setOrigins([]);
         setRecoveryOptions([]);
@@ -205,7 +205,7 @@ export default function Page() {
   );
 
   const inventoryCount = inventoryItems.length;
-  const previewTitle = formState.title || 'Seu titulo aparece aqui...';
+  const previewTitle = formState.title || 'Seu título aparece aqui...';
   const previewPrice = formatCurrency(formState.priceCents, formState.currency ?? 'BRL');
   const previewCategory =
     categories.find(
@@ -224,19 +224,19 @@ export default function Page() {
 
   const resolveSalesModelDescription = (model?: CatalogOption | null) => {
     if (!model) {
-      return '1 produto unico por anuncio';
+      return '1 produto unico por anúncio';
     }
     if (model.description?.trim()) {
       return model.description;
     }
     const key = `${model.slug ?? ''} ${model.name ?? ''}`.toLowerCase();
     if (key.includes('dinam') || key.includes('dynamic')) {
-      return 'Estoques automaticos e manuais';
+      return 'Estoques automáticos e manuais';
     }
     if (key.includes('serv') || key.includes('service')) {
       return 'Servicos, Boost e outros';
     }
-    return '1 produto unico por anuncio';
+    return '1 produto unico por anúncio';
   };
 
   const resolveSalesModelIcon = (model?: CatalogOption | null) => {
@@ -260,7 +260,7 @@ export default function Page() {
 
   const ensureListing = async () => {
     if (!accessToken) {
-      setError('Sessao expirada. Entre novamente.');
+      setError('Sessão expirada. Entre novamente.');
       return null;
     }
     const payload: ListingInput = {
@@ -284,7 +284,7 @@ export default function Page() {
       const message =
         err instanceof ApiClientError
           ? err.message
-          : 'Nao foi possivel salvar o anuncio.';
+          : 'Não foi possível salvar o anúncio.';
       setError(message);
       return null;
     }
@@ -305,7 +305,7 @@ export default function Page() {
       return;
     }
     if (!formState.title.trim()) {
-      setError('Informe um titulo para o anuncio.');
+      setError('Informe um título para o anúncio.');
       return;
     }
     if (formState.priceCents <= 0) {
@@ -359,13 +359,13 @@ export default function Page() {
       const refreshed = await marketplaceApi.getSellerListing(accessToken, saved.id);
       setListing(refreshed);
       setMediaFiles([]);
-      setNotice('Midias enviadas com sucesso.');
+      setNotice('Mídias enviadas com sucesso.');
       return true;
     } catch (err) {
       const message =
         err instanceof ApiClientError
           ? err.message
-          : 'Nao foi possivel enviar as midias.';
+          : 'Não foi possível enviar as mídias.';
       setError(message);
       return false;
     } finally {
@@ -389,7 +389,7 @@ export default function Page() {
       return;
     }
     if (autoDelivery && inventoryCount === 0) {
-      setError('Adicione os dados de entrega ou desative a entrega automatica.');
+      setError('Adicione os dados de entrega ou desative a entrega automática.');
       return;
     }
 
@@ -417,13 +417,13 @@ export default function Page() {
       }
 
       await marketplaceApi.submitListing(accessToken, saved.id);
-      setNotice('Anuncio enviado para aprovacao.');
+      setNotice('Anúncio enviado para aprovação.');
       router.push('/conta/anuncios');
     } catch (err) {
       const message =
         err instanceof ApiClientError
           ? err.message
-          : 'Nao foi possivel publicar o anuncio.';
+          : 'Não foi possível publicar o anúncio.';
       setError(message);
     } finally {
       setBusyAction(null);
@@ -434,7 +434,7 @@ export default function Page() {
     return (
       <section className="flex min-h-screen items-center justify-center bg-meow-50 px-6 py-16">
         <div className="w-full max-w-xl rounded-[32px] border border-meow-100 bg-white p-8 text-center shadow-card">
-          <h1 className="text-2xl font-black text-meow-charcoal">Criar anuncio</h1>
+          <h1 className="text-2xl font-black text-meow-charcoal">Criar anúncio</h1>
           <p className="mt-2 text-sm text-meow-muted">
             Entre com sua conta para anunciar.
           </p>
@@ -454,8 +454,8 @@ export default function Page() {
       <div className="mx-auto flex max-w-[1200px] flex-col gap-8 px-4 py-8 lg:flex-row">
         <main className="flex-1 space-y-6">
           <div>
-            <h1 className="text-3xl font-black text-slate-800">Anuncio</h1>
-            <p className="text-sm font-bold text-meow-300">Criar novo anuncio</p>
+            <h1 className="text-3xl font-black text-slate-800">Anúncio</h1>
+            <p className="text-sm font-bold text-meow-300">Criar novo anúncio</p>
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -547,7 +547,7 @@ export default function Page() {
 
               <div className="mb-6">
                 <label className="mb-1 block text-xs font-bold uppercase text-slate-500">
-                  Titulo do anuncio <span className="text-red-400">*</span>
+                  Título do anúncio <span className="text-red-400">*</span>
                 </label>
                 <div className="relative">
                   <Input
@@ -574,7 +574,7 @@ export default function Page() {
                   <button
                     type="button"
                     className="text-slate-400"
-                    title="Define como o anuncio funciona (produto unico, estoque dinamico ou servicos)."
+                    title="Define como o anúncio funciona (produto unico, estoque dinamico ou servicos)."
                   >
                     <Info size={16} aria-hidden />
                   </button>
@@ -624,7 +624,7 @@ export default function Page() {
 
               <div className="mb-6">
                 <label className="mb-2 block text-xs font-bold uppercase text-slate-500">
-                  Descricao detalhada
+                  Descrição detalhada
                 </label>
                 <Textarea
                   className="h-40 rounded-xl border-slate-200 bg-slate-50 text-sm text-slate-700"
@@ -637,8 +637,8 @@ export default function Page() {
                 <div className="mt-2 flex gap-3 rounded-lg border border-red-100 bg-red-50 p-3 text-xs text-red-700">
                   <i className="fas fa-exclamation-triangle mt-0.5 text-red-500" aria-hidden />
                   <p>
-                    E proibido informar contatos pessoais na descricao ou chat. O sistema detecta
-                    automaticamente e seu anuncio sera reprovado.
+                    E proibido informar contatos pessoais na descrição ou chat. O sistema detecta
+                    automaticamente e seu anúncio será reprovado.
                   </p>
                 </div>
               </div>
@@ -692,7 +692,7 @@ export default function Page() {
                       }))
                     }
                   >
-                    <option value="">Sem opcoes disponiveis</option>
+                    <option value="">Sem opções disponiveis</option>
                     {groups.map((group) => (
                       <option key={group.id} value={group.id}>
                         {group.name}
@@ -701,7 +701,7 @@ export default function Page() {
                   </Select>
                 </label>
                 <label className="grid gap-2 text-xs font-bold uppercase text-slate-500">
-                  Procedencia
+                  Procedência
                   <Select
                     className="rounded-xl border-slate-200 bg-slate-50 text-sm font-bold text-slate-700"
                     value={formState.originId ?? ''}
@@ -712,7 +712,7 @@ export default function Page() {
                       }))
                     }
                   >
-                    <option value="">Sem opcoes disponiveis</option>
+                    <option value="">Sem opções disponiveis</option>
                     {origins.map((origin) => (
                       <option key={origin.id} value={origin.id}>
                         {origin.name}
@@ -721,7 +721,7 @@ export default function Page() {
                   </Select>
                 </label>
                 <label className="grid gap-2 text-xs font-bold uppercase text-slate-500">
-                  Dados de recuperacao
+                  Dados de recuperação
                   <Select
                     className="rounded-xl border-slate-200 bg-slate-50 text-sm font-bold text-slate-700"
                     value={formState.recoveryOptionId ?? ''}
@@ -732,7 +732,7 @@ export default function Page() {
                       }))
                     }
                   >
-                    <option value="">Sem opcoes disponiveis</option>
+                    <option value="">Sem opções disponiveis</option>
                     {recoveryOptions.map((option) => (
                       <option key={option.id} value={option.id}>
                         {option.name}
@@ -761,7 +761,7 @@ export default function Page() {
                     <i className="fas fa-bolt" aria-hidden />
                   </div>
                   <div>
-                    <h2 className="text-lg font-black text-slate-800">Entrega automatica</h2>
+                    <h2 className="text-lg font-black text-slate-800">Entrega automática</h2>
                     <p className="text-xs font-bold text-slate-500">
                       O sistema entrega o produto assim que o pagamento for aprovado.
                     </p>
@@ -773,7 +773,7 @@ export default function Page() {
               {autoDelivery ? (
                 <div className="mt-4 border-t border-emerald-200 pt-4">
                   <label className="block text-xs font-bold uppercase text-emerald-700">
-                    Dados para entrega (oculto ate a venda)
+                    Dados para entrega (oculto até a venda)
                   </label>
                   <Textarea
                     className="mt-2 h-28 resize-none rounded-xl border-emerald-200 bg-white text-sm text-slate-600 focus:border-emerald-400 focus:ring-0"
@@ -787,7 +787,7 @@ export default function Page() {
                 </div>
               ) : (
                 <div className="mt-4 rounded-xl border border-emerald-200 bg-white p-3 text-xs text-emerald-700">
-                  Entrega manual selecionada. Voce pode ativar a entrega automatica a qualquer momento.
+                  Entrega manual selecionada. Você pode ativar a entrega automática a qualquer momento.
                 </div>
               )}
 
@@ -837,7 +837,7 @@ export default function Page() {
                 <span className="grid h-6 w-6 place-items-center rounded-full bg-meow-100 text-xs text-meow-500">
                   4
                 </span>
-                Imagens do anuncio
+                Imagens do anúncio
               </h2>
 
               <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 p-8 text-center transition hover:border-meow-300 hover:bg-slate-50">
@@ -848,7 +848,7 @@ export default function Page() {
                   Arraste e solte ou clique para enviar
                 </h4>
                 <p className="mt-1 text-xs text-slate-400">
-                  JPG, PNG ou JPEG. Nao mostre nicks ou dados sensiveis.
+                  JPG, PNG ou JPEG. Não mostre nicks ou dados sensiveis.
                 </p>
                 <input
                   type="file"
@@ -893,29 +893,29 @@ export default function Page() {
                 <span className="grid h-6 w-6 place-items-center rounded-full bg-meow-100 text-xs text-meow-500">
                   5
                 </span>
-                Revisao final
+                Revisão final
               </h2>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4 text-sm">
                   <p className="text-xs font-bold uppercase text-slate-400">Resumo</p>
                   <p className="mt-2 font-semibold text-slate-700">Categoria: {previewCategory}</p>
-                  <p className="mt-1 font-semibold text-slate-700">Titulo: {previewTitle}</p>
-                  <p className="mt-1 font-semibold text-slate-700">Preco: {previewPrice}</p>
+                  <p className="mt-1 font-semibold text-slate-700">Título: {previewTitle}</p>
+                  <p className="mt-1 font-semibold text-slate-700">Preço: {previewPrice}</p>
                   <p className="mt-1 font-semibold text-slate-700">
                     Entrega: {autoDelivery ? 'Automatica' : 'Manual'}
                   </p>
                   <p className="mt-1 font-semibold text-slate-700">
-                    Modelo de venda: {selectedSalesModel?.name ?? 'Nao informado'}
+                    Modelo de venda: {selectedSalesModel?.name ?? 'Não informado'}
                   </p>
                   <p className="mt-1 font-semibold text-slate-700">
-                    Tipo: {selectedGroup?.name ?? 'Nao informado'}
+                    Tipo: {selectedGroup?.name ?? 'Não informado'}
                   </p>
                   <p className="mt-1 font-semibold text-slate-700">
-                    Procedencia: {selectedOrigin?.name ?? 'Nao informado'}
+                    Procedência: {selectedOrigin?.name ?? 'Não informado'}
                   </p>
                   <p className="mt-1 font-semibold text-slate-700">
-                    Recuperacao: {selectedRecovery?.name ?? 'Nao informado'}
+                    Recuperação: {selectedRecovery?.name ?? 'Não informado'}
                   </p>
                   <p className="mt-1 font-semibold text-slate-700">
                     Estoque: {inventoryCount} item(s)
@@ -926,7 +926,7 @@ export default function Page() {
                     <i className="fas fa-shield-alt text-meow-300" aria-hidden /> Seguranca garantida
                   </h4>
                   <p className="mb-2">
-                    A Meoww atua como intermediadora. O valor pago pelo comprador fica retido conosco ate voce entregar o produto.
+                    A Meoww atua como intermediadora. O valor pago pelo comprador fica retido conosco até você entregar o produto.
                   </p>
                   <p>Isso garante protecao total para ambas as partes.</p>
                 </div>
@@ -949,7 +949,7 @@ export default function Page() {
                     <Link href="/institucional/termos" className="font-bold text-meow-400 underline">
                       Contrato do vendedor
                     </Link>
-                    . Entendo que qualquer alteracao no anuncio passara por nova analise.
+                    . Entendo que qualquer alteracao no anúncio passará por nova análise.
                   </span>
                 </label>
               </div>
@@ -959,7 +959,7 @@ export default function Page() {
                   Voltar
                 </Button>
                 <Button type="button" onClick={handlePublish} disabled={busyAction === 'publish'}>
-                  {busyAction === 'publish' ? 'Publicando...' : 'Publicar anuncio agora'}
+                  {busyAction === 'publish' ? 'Publicando...' : 'Publicar anúncio agora'}
                 </Button>
               </div>
             </section>
@@ -993,9 +993,9 @@ export default function Page() {
                   <i className="fas fa-lightbulb" aria-hidden />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-slate-700">Titulo chamativo</h4>
+                  <h4 className="text-xs font-bold text-slate-700">Título chamativo</h4>
                   <p className="text-[10px] text-slate-400">
-                    Use palavras-chave como Diamante e Entrega rapida.
+                    Use palavras-chave como Diamante e Entrega rápida.
                   </p>
                 </div>
               </div>
@@ -1006,7 +1006,7 @@ export default function Page() {
                 <div>
                   <h4 className="text-xs font-bold text-slate-700">Boas imagens</h4>
                   <p className="text-[10px] text-slate-400">
-                    Mostre inventario e niveis. Oculte nicks.
+                    Mostre inventário e niveis. Oculte nicks.
                   </p>
                 </div>
               </div>

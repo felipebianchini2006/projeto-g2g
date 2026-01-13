@@ -167,7 +167,7 @@ export const AccountSessionsContent = () => {
           ? error.message
           : error instanceof Error
             ? error.message
-            : 'Nao foi possivel carregar as sessoes.';
+            : 'Não foi possível carregar as sessões.';
       setState((prev) => ({ ...prev, status: 'ready', sessions: [], error: message }));
     }
   };
@@ -187,7 +187,7 @@ export const AccountSessionsContent = () => {
       await accountSecurityApi.revokeSession(accessToken, sessionId);
       setState((prev) => ({
         ...prev,
-        actionSuccess: 'Sessao encerrada.',
+        actionSuccess: 'Sessão encerrada.',
         actionError: undefined,
       }));
       await loadSessions();
@@ -197,7 +197,7 @@ export const AccountSessionsContent = () => {
           ? error.message
           : error instanceof Error
             ? error.message
-            : 'Nao foi possivel encerrar a sessao.';
+            : 'Não foi possível encerrar a sessão.';
       setState((prev) => ({ ...prev, actionError: message, actionSuccess: undefined }));
     } finally {
       setActionBusy(null);
@@ -208,7 +208,7 @@ export const AccountSessionsContent = () => {
     if (!accessToken || logoutAllBusy) {
       return;
     }
-    if (!window.confirm('Deseja sair de todas as sessoes?')) {
+    if (!window.confirm('Deseja sair de todas as sessões?')) {
       return;
     }
     setLogoutAllBusy(true);
@@ -216,7 +216,7 @@ export const AccountSessionsContent = () => {
       const result = await accountSecurityApi.logoutAll(accessToken);
       setState((prev) => ({
         ...prev,
-        actionSuccess: `Sessoes encerradas: ${result.revokedSessions}.`,
+        actionSuccess: `Sessões encerradas: ${result.revokedSessions}.`,
         actionError: undefined,
       }));
       await loadSessions();
@@ -226,7 +226,7 @@ export const AccountSessionsContent = () => {
           ? error.message
           : error instanceof Error
             ? error.message
-            : 'Nao foi possivel encerrar as sessoes.';
+            : 'Não foi possível encerrar as sessões.';
       setState((prev) => ({ ...prev, actionError: message, actionSuccess: undefined }));
     } finally {
       setLogoutAllBusy(false);

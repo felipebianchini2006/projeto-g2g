@@ -191,7 +191,7 @@ const ProfileTabs = ({ activeTab, onChange, communityCount = 2 }: ProfileTabsPro
       {[
         { key: 'produtos', label: 'Produtos' },
         { key: 'comunidade', label: 'Comunidade', badge: communityCount },
-        { key: 'avaliacoes', label: 'Avaliacoes' },
+        { key: 'avaliacoes', label: 'Avaliações' },
       ].map((tab) => (
         <button
           key={tab.key}
@@ -374,7 +374,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
         setProfileState({
           status: 'error',
           profile: null,
-          error: error.message || 'Nao foi possivel carregar o perfil.',
+          error: error.message || 'Não foi possível carregar o perfil.',
         });
       });
     return () => {
@@ -446,7 +446,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
           total: 0,
           ratingAverage: 0,
           distribution: null,
-          error: error.message || 'Nao foi possivel carregar as avaliacoes.',
+          error: error.message || 'Não foi possível carregar as avaliações.',
         });
       });
     return () => {
@@ -472,7 +472,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
           status: 'error',
           items: [],
           total: 0,
-          error: error.message || 'Nao foi possivel carregar os posts.',
+          error: error.message || 'Não foi possível carregar os posts.',
         });
       });
     return () => {
@@ -505,7 +505,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
           status: 'error',
           items: [],
           total: 0,
-          error: error.message || 'Nao foi possivel carregar os comentarios.',
+          error: error.message || 'Não foi possível carregar os comentários.',
         });
       });
     return () => {
@@ -536,7 +536,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-rose-200 bg-rose-50 px-6 py-6 text-sm text-rose-600">
-          {profileState.error || 'Nao foi possivel carregar o perfil.'}
+          {profileState.error || 'Não foi possível carregar o perfil.'}
         </div>
       </section>
     );
@@ -560,8 +560,8 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
   const aboutText = profile.bio
     ? profile.bio
     : profile.role === 'USER'
-      ? 'Perfil publico do cliente na Meoww.'
-      : 'Especialista em contas de jogos, entregas rapidas e suporte dedicado.';
+      ? 'Perfil público do cliente na Meoww.'
+      : 'Especialista em contas de jogos, entregas rápidas e suporte dedicado.';
   const isOwner = user?.id === profileId;
   const canCompose =
     Boolean(user && accessToken) &&
@@ -628,9 +628,9 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
           <div className="space-y-4">
             {!showTabs ? (
               <Card className="rounded-[24px] border border-slate-100 p-6 shadow-card">
-                <h3 className="text-base font-bold text-meow-charcoal">Avaliacoes recebidas</h3>
+                <h3 className="text-base font-bold text-meow-charcoal">Avaliações recebidas</h3>
                 <p className="mt-2 text-sm text-meow-muted">
-                  Este perfil ainda nao possui avaliacoes publicas.
+                  Este perfil ainda não possui avaliações públicas.
                 </p>
               </Card>
             ) : null}
@@ -748,7 +748,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
                                 const message =
                                   error instanceof Error
                                     ? error.message
-                                    : 'Nao foi possivel publicar.';
+                                    : 'Não foi possível publicar.';
                                 setPostsState((prev) => ({
                                   ...prev,
                                   status: 'error',
@@ -780,7 +780,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
 
                 {postsState.status === 'error' ? (
                   <Card className="rounded-[24px] border border-rose-200 bg-rose-50 p-6 text-sm text-rose-600 shadow-card">
-                    {postsState.error || 'Nao foi possivel carregar os posts.'}
+                    {postsState.error || 'Não foi possível carregar os posts.'}
                   </Card>
                 ) : null}
 
@@ -906,12 +906,12 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
                       type="button"
                       className="absolute inset-0 bg-slate-900/40"
                       onClick={() => setActivePostId(null)}
-                      aria-label="Fechar comentarios"
+                      aria-label="Fechar comentários"
                     />
                     <Card className="relative w-full max-w-xl rounded-[24px] border border-slate-100 bg-white p-5 shadow-card">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="text-base font-bold text-meow-charcoal">Comentarios</h3>
+                          <h3 className="text-base font-bold text-meow-charcoal">Comentários</h3>
                           <p className="text-xs text-meow-muted">{activePost.author.displayName}</p>
                         </div>
                         <button
@@ -938,13 +938,13 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
 
                         {commentsState.status === 'error' ? (
                           <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
-                            {commentsState.error || 'Nao foi possivel carregar os comentarios.'}
+                            {commentsState.error || 'Não foi possível carregar os comentários.'}
                           </div>
                         ) : null}
 
                         {commentsState.status === 'ready' && commentsState.items.length === 0 ? (
                           <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm text-meow-muted">
-                            Nenhum comentario por enquanto.
+                            Nenhum comentário por enquanto.
                           </div>
                         ) : null}
 
@@ -983,7 +983,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
                           <div className="flex items-center gap-2">
                             <input
                               className="h-10 flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-3 text-xs text-meow-charcoal outline-none"
-                              placeholder="Escreva um comentario..."
+                              placeholder="Escreva um comentário..."
                               value={commentText}
                               onChange={(event) => setCommentText(event.target.value)}
                             />
@@ -1056,13 +1056,13 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
 
                 {reviewsState.status === 'error' ? (
                   <Card className="rounded-[24px] border border-rose-200 bg-rose-50 p-6 text-sm text-rose-600 shadow-card">
-                    {reviewsState.error || 'Nao foi possivel carregar as avaliacoes.'}
+                    {reviewsState.error || 'Não foi possível carregar as avaliações.'}
                   </Card>
                 ) : null}
 
                 {reviewsState.status === 'ready' && reviewsState.total === 0 ? (
                   <Card className="rounded-[24px] border border-slate-100 p-6 text-sm text-meow-muted shadow-card">
-                    Nenhuma avaliacao encontrada.
+                    Nenhuma avaliação encontrada.
                   </Card>
                 ) : null}
 
@@ -1080,7 +1080,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
                             ))}
                           </div>
                           <p className="mt-2 text-xs text-white/80">
-                            Baseado em {reviewsState.total} avaliacoes
+                            Baseado em {reviewsState.total} avaliações
                           </p>
                         </div>
                         <div className="space-y-2">

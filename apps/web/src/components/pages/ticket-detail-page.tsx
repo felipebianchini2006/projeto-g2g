@@ -53,7 +53,7 @@ export const TicketDetailContent = ({ ticketId }: TicketDetailContentProps) => {
           ? error.message
           : error instanceof Error
             ? error.message
-            : 'Nao foi possivel carregar o ticket.';
+            : 'Não foi possível carregar o ticket.';
       setError(message);
     }
   };
@@ -99,7 +99,7 @@ export const TicketDetailContent = ({ ticketId }: TicketDetailContentProps) => {
           ? error.message
           : error instanceof Error
             ? error.message
-            : 'Nao foi possivel enviar a mensagem.';
+            : 'Não foi possível enviar a mensagem.';
       setNotice(message);
     } finally {
       setBusy(false);
@@ -110,7 +110,7 @@ export const TicketDetailContent = ({ ticketId }: TicketDetailContentProps) => {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
-          Carregando sessao...
+          Carregando sessão...
         </div>
       </section>
     );
@@ -201,7 +201,7 @@ export const TicketDetailContent = ({ ticketId }: TicketDetailContentProps) => {
                   >
                     <p className="text-meow-charcoal">{message.message}</p>
                     <span className="mt-2 block text-xs text-meow-muted">
-                      {message.senderId === user.id ? 'Voce' : 'Outro usuario'} -{' '}
+                      {message.senderId === user.id ? 'Você' : 'Outro usuário'} -{' '}
                       {new Date(message.createdAt).toLocaleString('pt-BR')}
                     </span>
                   </div>
@@ -212,7 +212,7 @@ export const TicketDetailContent = ({ ticketId }: TicketDetailContentProps) => {
 
           <Card className="rounded-2xl border border-meow-red/20 p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
             <h3 className="text-base font-bold text-meow-charcoal">Nova mensagem</h3>
-            <p className="mt-2 text-xs text-meow-muted">Anexos sao opcionais (MVP).</p>
+            <p className="mt-2 text-xs text-meow-muted">Anexos são opcionais (MVP).</p>
             <form className="mt-4 grid gap-3" onSubmit={handleSendMessage}>
               <label className="grid gap-1 text-xs font-semibold text-meow-muted">
                 Mensagem

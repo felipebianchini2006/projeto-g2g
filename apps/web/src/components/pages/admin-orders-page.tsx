@@ -35,7 +35,7 @@ export const AdminOrdersContent = () => {
       const message =
         error instanceof ApiClientError
           ? error.message
-          : 'Nao foi possivel carregar o pedido.';
+          : 'Não foi possível carregar o pedido.';
       setError(message);
     } finally {
       setBusyAction(null);
@@ -57,7 +57,7 @@ export const AdminOrdersContent = () => {
       const message =
         error instanceof ApiClientError
           ? error.message
-          : 'Nao foi possivel liberar o pedido.';
+          : 'Não foi possível liberar o pedido.';
       setError(message);
     } finally {
       setBusyAction(null);
@@ -79,7 +79,7 @@ export const AdminOrdersContent = () => {
       const message =
         error instanceof ApiClientError
           ? error.message
-          : 'Nao foi possivel reembolsar o pedido.';
+          : 'Não foi possível reembolsar o pedido.';
       setError(message);
     } finally {
       setBusyAction(null);
@@ -90,7 +90,7 @@ export const AdminOrdersContent = () => {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
-          Carregando sessao...
+          Carregando sessão...
         </div>
       </section>
     );
@@ -257,7 +257,7 @@ export const AdminOrdersContent = () => {
             rows={3}
             value={reason}
             onChange={(event) => setReason(event.target.value)}
-            placeholder="Explique a decisao"
+            placeholder="Explique a decisão"
           />
         </label>
         <div className="mt-4 flex flex-wrap gap-3">

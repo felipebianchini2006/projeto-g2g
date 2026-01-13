@@ -30,7 +30,7 @@ export const AdminWebhooksContent = () => {
       const message =
         error instanceof ApiClientError
           ? error.message
-          : 'Nao foi possivel carregar as metricas.';
+          : 'Não foi possível carregar as metricas.';
       setError(message);
     } finally {
       setBusyAction(null);
@@ -58,7 +58,7 @@ export const AdminWebhooksContent = () => {
       const message =
         error instanceof ApiClientError
           ? error.message
-          : 'Nao foi possivel registrar o webhook.';
+          : 'Não foi possível registrar o webhook.';
       setError(message);
     } finally {
       setBusyAction(null);
@@ -69,7 +69,7 @@ export const AdminWebhooksContent = () => {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
-          Carregando sessao...
+          Carregando sessão...
         </div>
       </section>
     );
@@ -132,7 +132,7 @@ export const AdminWebhooksContent = () => {
 
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
-          <h2 className="text-base font-bold text-meow-charcoal">Endpoint publico</h2>
+          <h2 className="text-base font-bold text-meow-charcoal">Endpoint público</h2>
           <p className="mt-2 text-sm text-meow-muted">
             Configure o provedor para enviar eventos para:
           </p>

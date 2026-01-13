@@ -72,7 +72,7 @@ export const CategoryContent = ({ slug }: CategoryContentProps) => {
         setState((prev) => ({
           ...prev,
           status: 'ready',
-          error: 'Nao foi possivel carregar a categoria.',
+          error: 'Não foi possível carregar a categoria.',
         }));
       }
     });
@@ -97,7 +97,7 @@ export const CategoryContent = ({ slug }: CategoryContentProps) => {
                 {category?.label ?? 'Categoria'}
               </h1>
               <p className="mt-2 text-sm text-meow-muted">
-                {category?.description ?? 'Explore anuncios selecionados.'}
+                {category?.description ?? 'Explore anúncios selecionados.'}
               </p>
             </div>
             <img
@@ -124,7 +124,7 @@ export const CategoryContent = ({ slug }: CategoryContentProps) => {
 
         {state.status === 'loading' ? (
           <div className="mt-4 rounded-2xl border border-meow-red/20 bg-white px-4 py-3 text-sm text-meow-muted shadow-card">
-            Carregando anuncios...
+            Carregando anúncios...
           </div>
         ) : null}
         {state.error ? (
@@ -154,7 +154,7 @@ export const CategoryContent = ({ slug }: CategoryContentProps) => {
 
         {state.listings.length === 0 && state.status === 'ready' ? (
           <div className="mt-4 rounded-2xl border border-meow-red/20 bg-white px-4 py-3 text-sm text-meow-muted shadow-card">
-            Nenhum anuncio nessa categoria.
+            Nenhum anúncio nessa categoria.
           </div>
         ) : null}
 

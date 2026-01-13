@@ -24,7 +24,7 @@ const eventLabel: Record<string, string> = {
   PAID: 'Pagamento confirmado',
   IN_DELIVERY: 'Entrega iniciada',
   DELIVERED: 'Pedido entregue',
-  COMPLETED: 'Pedido concluido',
+  COMPLETED: 'Pedido concluído',
   CANCELLED: 'Pedido cancelado',
   DISPUTED: 'Disputa aberta',
   REFUNDED: 'Pedido reembolsado',
@@ -63,7 +63,7 @@ export const AdminDisputeDetailContent = ({ disputeId }: AdminDisputeDetailConte
           ? error.message
           : error instanceof Error
             ? error.message
-            : 'Nao foi possivel carregar a disputa.';
+            : 'Não foi possível carregar a disputa.';
       setError(message);
     }
   };
@@ -81,7 +81,7 @@ export const AdminDisputeDetailContent = ({ disputeId }: AdminDisputeDetailConte
           ? error.message
           : error instanceof Error
             ? error.message
-            : 'Nao foi possivel carregar o pedido.';
+            : 'Não foi possível carregar o pedido.';
       setError(message);
     }
   };
@@ -106,7 +106,7 @@ export const AdminDisputeDetailContent = ({ disputeId }: AdminDisputeDetailConte
           ? error.message
           : error instanceof Error
             ? error.message
-            : 'Nao foi possivel carregar o chat.';
+            : 'Não foi possível carregar o chat.';
       setNotice(message);
     } finally {
       setChatBusy(false);
@@ -147,7 +147,7 @@ export const AdminDisputeDetailContent = ({ disputeId }: AdminDisputeDetailConte
           ? error.message
           : error instanceof Error
             ? error.message
-            : 'Nao foi possivel resolver a disputa.';
+            : 'Não foi possível resolver a disputa.';
       setNotice(message);
     } finally {
       setActionBusy(false);
@@ -158,7 +158,7 @@ export const AdminDisputeDetailContent = ({ disputeId }: AdminDisputeDetailConte
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
-          Carregando sessao...
+          Carregando sessão...
         </div>
       </section>
     );
@@ -192,9 +192,9 @@ export const AdminDisputeDetailContent = ({ disputeId }: AdminDisputeDetailConte
       <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-xl font-black text-meow-charcoal">Decisao de disputa</h1>
+            <h1 className="text-xl font-black text-meow-charcoal">Decisão de disputa</h1>
             <p className="mt-2 text-sm text-meow-muted">
-              Analise dados do pedido antes da decisao.
+              Analise dados do pedido antes da decisão.
             </p>
           </div>
           <div className="flex items-center gap-2">

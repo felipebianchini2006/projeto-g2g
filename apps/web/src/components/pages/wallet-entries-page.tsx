@@ -104,7 +104,7 @@ export const WalletEntriesContent = () => {
           ? error.message
           : error instanceof Error
             ? error.message
-            : 'Nao foi possivel carregar o extrato.';
+            : 'Não foi possível carregar o extrato.';
       setState({ status: 'ready', entries: [], total: 0, error: message });
     }
   };
@@ -142,7 +142,7 @@ export const WalletEntriesContent = () => {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
-          Carregando sessao...
+          Carregando sessão...
         </div>
       </section>
     );

@@ -77,7 +77,7 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
       {
         title: 'Menu',
         items: [
-          { label: 'Visao geral', href: '/conta' },
+          { label: 'Visão geral', href: '/conta' },
           { label: 'Minhas compras', href: '/conta/pedidos' },
           { label: 'Favoritos', href: '/conta/favoritos' },
           { label: 'Carteira', href: '/conta/carteira' },
@@ -91,7 +91,7 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
         title: 'Vendedor',
         items: [
           { label: 'Painel do vendedor', href: '/conta/vendedor' },
-          { label: 'Meus anuncios', href: '/conta/anuncios' },
+          { label: 'Meus anúncios', href: '/conta/anuncios' },
           { label: 'Minhas vendas', href: '/conta/vendas' },
         ],
       });
@@ -103,7 +103,7 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
         { label: 'Configuracoes', href: '/conta/config' },
         { label: 'Meus dados', href: '/conta/meus-dados' },
         { label: 'Seguranca', href: '/conta/seguranca' },
-        { label: 'Sessoes', href: '/conta/sessoes' },
+        { label: 'Sessões', href: '/conta/sessoes' },
         {
           label: 'Sair da conta',
           tone: 'danger',
@@ -283,7 +283,7 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
                             : '';
 
                         const iconMap: Record<string, React.ReactNode> = {
-                          'Visao geral': <LayoutGrid size={16} aria-hidden />,
+                          'Visão geral': <LayoutGrid size={16} aria-hidden />,
                           'Minhas compras': <ShoppingBag size={16} aria-hidden />,
                           Favoritos: <Heart size={16} aria-hidden />,
                           Carteira: <Wallet size={16} aria-hidden />,
@@ -291,10 +291,10 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
                           'Meus dados': <UserRound size={16} aria-hidden />,
                           Configuracoes: <Settings size={16} aria-hidden />,
                           'Painel do vendedor': <Store size={16} aria-hidden />,
-                          'Meus anuncios': <Megaphone size={16} aria-hidden />,
+                          'Meus anúncios': <Megaphone size={16} aria-hidden />,
                           'Minhas vendas': <BadgeDollarSign size={16} aria-hidden />,
                           Seguranca: <ShieldCheck size={16} aria-hidden />,
-                          Sessoes: <Monitor size={16} aria-hidden />,
+                          Sessões: <Monitor size={16} aria-hidden />,
                           'Sair da conta': <LogOut size={16} aria-hidden />,
                           'Menu admin': <Crown size={16} aria-hidden />,
                         };

@@ -320,7 +320,7 @@ export const OrderChat = ({
         }
 
         if (!response?.id) {
-          markMessageFailed(localId, 'Nao foi possivel enviar a mensagem.');
+          markMessageFailed(localId, 'Não foi possível enviar a mensagem.');
           return;
         }
 
@@ -400,8 +400,8 @@ export const OrderChat = ({
           <div className="flex items-start gap-2">
             <ShieldCheck size={16} className="mt-0.5 text-blue-600" aria-hidden />
             <p>
-              Compra garantida pela Meoww Store. O dinheiro esta retido ate voce
-              confirmar o recebimento. Nao libere antes de testar.
+              Compra garantida pela Meoww Store. O dinheiro esta retido até você
+              confirmar o recebimento. Não libere antes de testar.
             </p>
           </div>
         </div>

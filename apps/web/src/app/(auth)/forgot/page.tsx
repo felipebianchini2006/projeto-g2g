@@ -60,7 +60,7 @@ export default function Page() {
       if (error instanceof AuthApiError) {
         setErrors({ form: error.message });
       } else {
-        setErrors({ form: 'Nao foi possivel enviar o reset. Tente novamente.' });
+        setErrors({ form: 'Não foi possível enviar o reset. Tente novamente.' });
       }
     } finally {
       setIsSubmitting(false);
@@ -72,7 +72,7 @@ export default function Page() {
       <Card className="w-full max-w-md">
         <CardHeader className="items-start">
           <span className="text-xs font-black uppercase tracking-[0.6px] text-meow-deep">
-            Recuperacao
+            Recuperação
           </span>
           <CardTitle className="text-2xl">Esqueci minha senha</CardTitle>
           <CardDescription>

@@ -69,7 +69,7 @@ export const products: Product[] = [
   },
   {
     name: 'Mouse Pulse',
-    description: 'Sensor de alta precisao com 8 botoes programaveis.',
+    description: 'Sensor de alta precisão com 8 botões programaveis.',
     oldPrice: 'R$ 189,00',
     discount: '-18%',
     currentPrice: 'R$ 155,00',

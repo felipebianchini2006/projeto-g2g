@@ -36,7 +36,7 @@ const statusLabel: Record<string, string> = {
   PAID: 'Pago',
   IN_DELIVERY: 'Em entrega',
   DELIVERED: 'Entregue',
-  COMPLETED: 'Concluido',
+  COMPLETED: 'Concluído',
   CANCELLED: 'Cancelado',
   DISPUTED: 'Em disputa',
   REFUNDED: 'Reembolsado',
@@ -48,7 +48,7 @@ const eventLabel: Record<string, string> = {
   PAID: 'Pagamento confirmado',
   IN_DELIVERY: 'Entrega iniciada',
   DELIVERED: 'Pedido entregue',
-  COMPLETED: 'Pedido concluido',
+  COMPLETED: 'Pedido concluído',
   CANCELLED: 'Pedido cancelado',
   DISPUTED: 'Disputa aberta',
   REFUNDED: 'Pedido reembolsado',
@@ -110,7 +110,7 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
           ? error.message
           : error instanceof Error
             ? error.message
-            : 'Nao foi possivel carregar o pedido.';
+            : 'Não foi possível carregar o pedido.';
       setState({ status: 'ready', order: null, error: message });
     }
   };
@@ -152,7 +152,7 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
           ? error.message
           : error instanceof Error
             ? error.message
-            : 'Nao foi possivel concluir a acao.';
+            : 'Não foi possível concluir a acao.';
       setState((prev) => ({ ...prev, actionError: message, actionSuccess: undefined }));
     }
   };
@@ -166,7 +166,7 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
     if (!trimmed) {
       setState((prev) => ({
         ...prev,
-        actionError: 'Informe o conteudo da evidencia.',
+        actionError: 'Informe o conteúdo da evidencia.',
         actionSuccess: undefined,
       }));
       return;
@@ -190,7 +190,7 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
           ? error.message
           : error instanceof Error
             ? error.message
-            : 'Nao foi possivel adicionar a evidencia.';
+            : 'Não foi possível adicionar a evidencia.';
       setState((prev) => ({ ...prev, actionError: message, actionSuccess: undefined }));
     } finally {
       setEvidenceBusy(false);
@@ -292,7 +292,7 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
       await navigator.clipboard.writeText(value);
       setCopyStatus(`${label} copiado.`);
     } catch {
-      setCopyStatus('Nao foi possivel copiar.');
+      setCopyStatus('Não foi possível copiar.');
     } finally {
       if (copyTimeoutRef.current) {
         clearTimeout(copyTimeoutRef.current);
@@ -340,7 +340,7 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center">
-          <p className="text-sm text-meow-muted">Pedido nao encontrado.</p>
+          <p className="text-sm text-meow-muted">Pedido não encontrado.</p>
           <Link
             href={listHref}
             className="mt-4 inline-flex rounded-full border border-meow-red/30 px-6 py-2 text-sm font-bold text-meow-deep"
@@ -425,7 +425,7 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
                     <div>
                       <h2 className="text-sm font-bold text-meow-charcoal">DADOS DE ACESSO</h2>
                       <p className="text-xs text-meow-muted">
-                        Acesso liberado apos a entrega.
+                        Acesso liberado após a entrega.
                       </p>
                     </div>
                   </div>
@@ -444,7 +444,7 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
 
                 {!deliverySection?.revealAllowed ? (
                   <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-xs text-slate-500">
-                    Disponivel apos a entrega.
+                    Disponivel após a entrega.
                   </div>
                 ) : null}
 
@@ -615,8 +615,8 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
                 </div>
 
                 <div className="mt-4 text-[11px] text-slate-400">
-                  Se voce nao confirmar em 24h, a confirmacao sera automatica. Depois
-                  voce ainda tera 7 dias para abrir uma intervencao caso haja algum
+                  Se você não confirmar em 24h, a confirmação será automática. Depois
+                  você ainda terá 7 dias para abrir uma intervenção caso haja algum
                   problema.
                 </div>
                 <div className="mt-3 flex items-center gap-2 text-[11px] text-slate-400">
@@ -745,7 +745,7 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
                       )}
                     </ul>
                   ) : (
-                    <p className="mt-2 text-xs">Disponivel apos a entrega.</p>
+                    <p className="mt-2 text-xs">Disponivel após a entrega.</p>
                   )}
                 </div>
               ) : null}
@@ -828,7 +828,7 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
                           </select>
                         </label>
                         <label className="grid gap-1 text-xs font-semibold text-meow-muted">
-                          Conteudo
+                          Conteúdo
                           {evidenceForm.type === 'URL' ? (
                             <input
                               className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
@@ -923,7 +923,7 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
                     <span className="text-xs text-meow-charcoal">
                       {paymentSummary.expiresAt
                         ? new Date(paymentSummary.expiresAt).toLocaleString('pt-BR')
-                        : 'Nao informado'}
+                        : 'Não informado'}
                     </span>
                   </div>
                 </div>

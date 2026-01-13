@@ -114,7 +114,7 @@ export class SupportChatController {
         'SupportChatController',
       );
       throw new ServiceUnavailableException(
-        'Nao foi possivel responder agora. Tente novamente em instantes.',
+        'Não foi possível responder agora. Tente novamente em instantes.',
       );
     }
   }

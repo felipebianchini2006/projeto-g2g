@@ -8,7 +8,7 @@ type CategoryPageProps = {
 
 export const metadata: Metadata = {
   title: 'Meoww Games - Categoria',
-  description: 'Explore anuncios por categoria.',
+  description: 'Explore anúncios por categoria.',
 };
 
 export default async function Page({ params }: CategoryPageProps) {

@@ -18,9 +18,9 @@ export default function Page() {
           entrega, use o chat do pedido e, se necessario, abra disputa.
         </p>
         <ul className="mt-4 grid gap-2 text-sm text-meow-muted">
-          <li>Pedidos com entrega automatica sao liberados apos pagamento.</li>
+          <li>Pedidos com entrega automática são liberados após pagamento.</li>
           <li>Para entrega manual, aguarde o prazo combinado com o vendedor.</li>
-          <li>Em caso de divergencia, abra disputa em ate 7 dias.</li>
+          <li>Em caso de divergencia, abra disputa em até 7 dias.</li>
         </ul>
       </div>
     </section>

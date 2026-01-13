@@ -350,7 +350,7 @@ export const SiteHeader = () => {
             <input
               className="flex-1 bg-transparent text-sm text-meow-charcoal outline-none placeholder:text-meow-muted"
               type="text"
-              placeholder="Anuncio, usuario ou categoria"
+              placeholder="Anúncio, usuário ou categoria"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               onKeyDown={(event) => {
@@ -457,7 +457,7 @@ export const SiteHeader = () => {
               className="rounded-full bg-meow-linear px-5 py-2 text-sm font-bold text-white shadow-[0_14px_28px_rgba(216,107,149,0.35)]"
               onClick={closeAll}
             >
-              Criar anuncio
+              Criar anúncio
             </Link>
 
             <div className="relative" ref={notificationsRef}>
@@ -603,7 +603,7 @@ export const SiteHeader = () => {
               <button
                 className="flex h-10 w-10 items-center justify-center rounded-full border border-meow-red/20 bg-white text-meow-deep"
                 type="button"
-                aria-label="Menu do usuario"
+                aria-label="Menu do usuário"
                 onClick={toggleMenu}
               >
                 <Menu size={18} aria-hidden />

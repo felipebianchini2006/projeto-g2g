@@ -59,7 +59,7 @@ export const AdminSettingsContent = () => {
       setSettings(data);
       setFormState(buildFormState(data));
     } catch (error) {
-      handleError(error, 'Nao foi possivel carregar parametros.');
+      handleError(error, 'Não foi possível carregar parametros.');
     } finally {
       setBusyAction(null);
     }
@@ -91,7 +91,7 @@ export const AdminSettingsContent = () => {
       setFormState(buildFormState(updated));
       setNotice('Parametros atualizados.');
     } catch (error) {
-      handleError(error, 'Nao foi possivel atualizar parametros.');
+      handleError(error, 'Não foi possível atualizar parametros.');
     } finally {
       setBusyAction(null);
     }
@@ -101,7 +101,7 @@ export const AdminSettingsContent = () => {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
-          Carregando sessao...
+          Carregando sessão...
         </div>
       </section>
     );

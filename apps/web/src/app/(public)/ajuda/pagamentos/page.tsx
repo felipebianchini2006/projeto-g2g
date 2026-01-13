@@ -14,12 +14,12 @@ export default function Page() {
           Formas de pagamento
         </h1>
         <p className="mt-3 text-sm text-meow-muted">
-          Atualmente aceitamos pagamentos via Pix. Ao gerar o pagamento, voce pode
-          copiar o codigo ou usar o QR Code no aplicativo do seu banco.
+          Atualmente aceitamos pagamentos via Pix. Ao gerar o pagamento, você pode
+          copiar o código ou usar o QR Code no aplicativo do seu banco.
         </p>
         <ul className="mt-4 grid gap-2 text-sm text-meow-muted">
-          <li>O Pix expira automaticamente se nao for pago.</li>
-          <li>Se o pagamento falhar, gere um novo codigo.</li>
+          <li>O Pix expira automaticamente se não for pago.</li>
+          <li>Se o pagamento falhar, gere um novo código.</li>
           <li>Pedidos confirmados liberam a entrega automaticamente.</li>
         </ul>
       </div>

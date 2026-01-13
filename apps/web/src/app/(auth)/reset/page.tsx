@@ -62,7 +62,7 @@ export default function Page() {
       if (error instanceof AuthApiError) {
         setErrors({ form: error.message });
       } else {
-        setErrors({ form: 'Nao foi possivel atualizar a senha. Tente novamente.' });
+        setErrors({ form: 'Não foi possível atualizar a senha. Tente novamente.' });
       }
     } finally {
       setIsSubmitting(false);

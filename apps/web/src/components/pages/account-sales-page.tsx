@@ -22,7 +22,7 @@ const statusLabel: Record<string, string> = {
   PAID: 'Pago',
   IN_DELIVERY: 'Em entrega',
   DELIVERED: 'Entregue',
-  COMPLETED: 'Concluido',
+  COMPLETED: 'Concluído',
   CANCELLED: 'Cancelado',
   DISPUTED: 'Em disputa',
   REFUNDED: 'Reembolsado',
@@ -85,7 +85,7 @@ export const AccountSalesContent = () => {
         const message =
           error instanceof ApiClientError
             ? error.message
-            : 'Nao foi possivel carregar as vendas.';
+            : 'Não foi possível carregar as vendas.';
         setState({ status: 'ready', orders: [], error: message });
       }
     };
@@ -99,7 +99,7 @@ export const AccountSalesContent = () => {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
-          Carregando sessao...
+          Carregando sessão...
         </div>
       </section>
     );
@@ -125,7 +125,7 @@ export const AccountSalesContent = () => {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center">
-          <p className="text-sm text-meow-muted">Seu perfil nao possui acesso as vendas.</p>
+          <p className="text-sm text-meow-muted">Seu perfil não possui acesso as vendas.</p>
           <Link
             href="/conta"
             className="mt-4 inline-flex rounded-full border border-meow-red/30 px-6 py-2 text-sm font-bold text-meow-deep"
@@ -183,7 +183,7 @@ export const AccountSalesContent = () => {
             order.status === 'PAID' || order.status === 'COMPLETED'
               ? { label: 'Aprovado', tone: 'success' }
               : order.status === 'AWAITING_PAYMENT'
-                ? { label: 'Em analise', tone: 'warning' }
+                ? { label: 'Em análise', tone: 'warning' }
                 : { label: 'Entregue', tone: 'info' };
 
           return (

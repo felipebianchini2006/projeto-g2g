@@ -22,7 +22,7 @@ const statusLabel: Record<string, string> = {
   PAID: 'Pago',
   IN_DELIVERY: 'Em entrega',
   DELIVERED: 'Entregue',
-  COMPLETED: 'Concluido',
+  COMPLETED: 'Concluído',
   CANCELLED: 'Cancelado',
   DISPUTED: 'Em disputa',
   REFUNDED: 'Reembolsado',
@@ -58,7 +58,7 @@ export const AccountOrderDetailContent = ({ orderId }: { orderId: string }) => {
       setState({ status: 'ready', order });
     } catch (error) {
       const message =
-        error instanceof ApiClientError ? error.message : 'Nao foi possivel carregar o pedido.';
+        error instanceof ApiClientError ? error.message : 'Não foi possível carregar o pedido.';
       setState({ status: 'ready', order: null, error: message });
     }
   }, [accessToken, orderId]);
@@ -100,7 +100,7 @@ export const AccountOrderDetailContent = ({ orderId }: { orderId: string }) => {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
-          Carregando sessao...
+          Carregando sessão...
         </div>
       </section>
     );
@@ -205,7 +205,7 @@ export const AccountOrderDetailContent = ({ orderId }: { orderId: string }) => {
                             firstItem.unitPriceCents,
                             state.order.currency,
                           )}`
-                        : 'Detalhes do item nao encontrados.'}
+                        : 'Detalhes do item não encontrados.'}
                     </p>
                     {firstItem ? (
                       <div className="mt-2 flex items-center gap-2 text-xs text-meow-muted">
@@ -220,17 +220,17 @@ export const AccountOrderDetailContent = ({ orderId }: { orderId: string }) => {
                     href={firstItem ? `/anuncios/${firstItem.id}` : '/produtos'}
                     className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
                   >
-                    Ver anuncio
+                    Ver anúncio
                   </Link>
                 </div>
               </div>
 
               <details className="rounded-2xl border border-meow-red/20 bg-white px-4 py-3 text-sm text-meow-muted shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
                 <summary className="cursor-pointer text-sm font-semibold text-meow-charcoal">
-                  Descricao do Produto
+                  Descrição do Produto
                 </summary>
                 <div className="mt-3 text-sm text-meow-muted">
-                  {firstItem?.deliveryEvidence?.[0]?.content ?? 'Descricao nao informada.'}
+                  {firstItem?.deliveryEvidence?.[0]?.content ?? 'Descrição não informada.'}
                 </div>
               </details>
             </div>
@@ -253,7 +253,7 @@ export const AccountOrderDetailContent = ({ orderId }: { orderId: string }) => {
             <div className="rounded-2xl border border-meow-red/20 bg-white p-6 text-center shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
               <h2 className="text-lg font-bold text-meow-charcoal">Avaliar vendedor</h2>
               <p className="mt-2 text-sm text-meow-muted">
-                Conte como foi sua experiencia para ajudar outros compradores.
+                Conte como foi sua experiência para ajudar outros compradores.
               </p>
               <button
                 type="button"
@@ -278,7 +278,7 @@ export const AccountOrderDetailContent = ({ orderId }: { orderId: string }) => {
               </div>
             ) : (
               <div className="mt-4 rounded-xl border border-meow-red/20 bg-white px-4 py-3 text-center text-sm text-meow-muted">
-                O chat sera liberado apos a confirmacao do pagamento.
+                O chat será liberado após a confirmação do pagamento.
               </div>
             )}
           </div>
@@ -291,11 +291,11 @@ export const AccountOrderDetailContent = ({ orderId }: { orderId: string }) => {
             type="button"
             className="absolute inset-0 bg-slate-900/40"
             onClick={() => setReviewOpen(false)}
-            aria-label="Fechar avaliacao"
+            aria-label="Fechar avaliação"
           />
           <div className="relative w-full max-w-lg rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_16px_40px_rgba(216,107,149,0.2)]">
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-meow-charcoal">Enviar avaliacao</h3>
+              <h3 className="text-base font-bold text-meow-charcoal">Enviar avaliação</h3>
               <button
                 type="button"
                 className="rounded-full bg-slate-100 p-2 text-meow-muted"
@@ -326,7 +326,7 @@ export const AccountOrderDetailContent = ({ orderId }: { orderId: string }) => {
 
             <textarea
               className="mt-4 h-32 w-full rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm text-meow-charcoal outline-none"
-              placeholder="Conte sobre sua experiencia..."
+              placeholder="Conte sobre sua experiência..."
               value={reviewComment}
               onChange={(event) => setReviewComment(event.target.value)}
             />
@@ -349,7 +349,7 @@ export const AccountOrderDetailContent = ({ orderId }: { orderId: string }) => {
                     return;
                   }
                   if (reviewComment.trim().length < 5) {
-                    setReviewError('Escreva um comentario com pelo menos 5 caracteres.');
+                    setReviewError('Escreva um comentário com pelo menos 5 caracteres.');
                     return;
                   }
                   try {
@@ -367,14 +367,14 @@ export const AccountOrderDetailContent = ({ orderId }: { orderId: string }) => {
                     const message =
                       error instanceof ApiClientError
                         ? error.message
-                        : 'Nao foi possivel enviar sua avaliacao.';
+                        : 'Não foi possível enviar sua avaliação.';
                     setReviewError(message);
                   } finally {
                     setReviewSubmitting(false);
                   }
                 }}
               >
-                {reviewSubmitting ? 'Enviando...' : 'Enviar avaliacao'}
+                {reviewSubmitting ? 'Enviando...' : 'Enviar avaliação'}
               </button>
             </div>
           </div>

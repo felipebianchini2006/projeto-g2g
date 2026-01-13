@@ -63,7 +63,7 @@ export const AdminPartnersContent = () => {
       const data = await adminPartnersApi.listPartners(accessToken);
       setPartners(data);
     } catch (err) {
-      handleError(err, 'Nao foi possivel carregar parceiros.');
+      handleError(err, 'Não foi possível carregar parceiros.');
     } finally {
       setBusyAction(null);
     }
@@ -87,7 +87,7 @@ export const AdminPartnersContent = () => {
       await loadPartners();
       setNotice('Dados atualizados.');
     } catch (err) {
-      handleError(err, 'Nao foi possivel salvar.');
+      handleError(err, 'Não foi possível salvar.');
     } finally {
       setBusyAction(null);
     }
@@ -116,7 +116,7 @@ export const AdminPartnersContent = () => {
       const data = await adminPartnersApi.getStats(accessToken, partnerId);
       setStats((prev) => ({ ...prev, [partnerId]: data }));
     } catch (err) {
-      handleError(err, 'Nao foi possivel carregar estatisticas.');
+      handleError(err, 'Não foi possível carregar estatisticas.');
     } finally {
       setBusyAction(null);
     }
@@ -126,7 +126,7 @@ export const AdminPartnersContent = () => {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
-          Carregando sessao...
+          Carregando sessão...
         </div>
       </section>
     );
@@ -203,7 +203,7 @@ export const AdminPartnersContent = () => {
             />
             <input
               className="form-input"
-              placeholder="Comissao (%)"
+              placeholder="Comissão (%)"
               type="number"
               min={0}
               max={100}
@@ -271,7 +271,7 @@ export const AdminPartnersContent = () => {
                     <strong>{partner.name}</strong>
                     <span className="auth-helper">Slug: {partner.slug}</span>
                     <span className="auth-helper">
-                      Comissao: {(partner.commissionBps / 100).toFixed(2)}%
+                      Comissão: {(partner.commissionBps / 100).toFixed(2)}%
                     </span>
                     <span className="auth-helper">
                       Link: <span className="font-mono text-xs">{referralLink}</span>
@@ -307,7 +307,7 @@ export const AdminPartnersContent = () => {
                   <div className="rounded-xl border border-meow-red/20 bg-meow-50 px-3 py-2 text-xs text-meow-muted">
                     <div>Cliques: {statsInfo.clicks}</div>
                     <div>Pedidos atribuídos: {statsInfo.orders}</div>
-                    <div>Comissao acumulada: {formatCurrency(statsInfo.commissionCents)}</div>
+                    <div>Comissão acumulada: {formatCurrency(statsInfo.commissionCents)}</div>
                   </div>
                 ) : null}
               </div>

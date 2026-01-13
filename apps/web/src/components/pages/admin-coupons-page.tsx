@@ -66,7 +66,7 @@ export const AdminCouponsContent = () => {
       setCoupons(couponsData);
       setPartners(partnersData);
     } catch (err) {
-      handleError(err, 'Nao foi possivel carregar cupons.');
+      handleError(err, 'Não foi possível carregar cupons.');
     } finally {
       setBusyAction(null);
     }
@@ -90,7 +90,7 @@ export const AdminCouponsContent = () => {
       await loadData();
       setNotice('Cupons atualizados.');
     } catch (err) {
-      handleError(err, 'Nao foi possivel salvar.');
+      handleError(err, 'Não foi possível salvar.');
     } finally {
       setBusyAction(null);
     }
@@ -115,7 +115,7 @@ export const AdminCouponsContent = () => {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
-          Carregando sessao...
+          Carregando sessão...
         </div>
       </section>
     );

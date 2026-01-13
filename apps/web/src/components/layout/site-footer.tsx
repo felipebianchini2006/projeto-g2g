@@ -23,7 +23,7 @@ export const SiteFooter = () => (
           </div>
           <p className="mt-4 text-sm leading-relaxed text-[#d6c1c8]">
             A loja gamer com curadoria felina. Consoles, jogos e colecionaveis com
-            entrega rapida e segura.
+            entrega rápida e segura.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
             <a

@@ -90,7 +90,7 @@ export const SupportChatPage = () => {
           ? err.message
           : err instanceof Error
             ? err.message
-            : 'Nao foi possivel carregar o chat.';
+            : 'Não foi possível carregar o chat.';
       setError(message);
     } finally {
       setInitialLoading(false);
@@ -114,7 +114,7 @@ export const SupportChatPage = () => {
             ? err.message
             : err instanceof Error
               ? err.message
-              : 'Nao foi possivel iniciar o chat.';
+              : 'Não foi possível iniciar o chat.';
         setError(message);
       });
   }, [accessToken, user, sessionKey]);
@@ -168,7 +168,7 @@ export const SupportChatPage = () => {
           ? err.message
           : err instanceof Error
             ? err.message
-            : 'Nao foi possivel enviar a mensagem.';
+            : 'Não foi possível enviar a mensagem.';
       setError(message);
       setMessages((prev) =>
         prev.map((entry) =>
@@ -184,7 +184,7 @@ export const SupportChatPage = () => {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
-          Carregando sessao...
+          Carregando sessão...
         </div>
       </section>
     );
@@ -220,7 +220,7 @@ export const SupportChatPage = () => {
           <div>
             <h1 className="text-xl font-black text-meow-charcoal">Chat de suporte com IA</h1>
             <p className="mt-2 text-sm text-meow-muted">
-              Respostas rapidas sobre pedidos, Pix e tickets. Para casos urgentes, abra um ticket.
+              Respostas rápidas sobre pedidos, Pix e tickets. Para casos urgentes, abra um ticket.
             </p>
           </div>
           <Link
@@ -270,7 +270,7 @@ export const SupportChatPage = () => {
                     }`}
                   >
                     <span>
-                      {isUser ? 'Voce' : 'Suporte IA'} - {formatTime(message.createdAt)}
+                      {isUser ? 'Você' : 'Suporte IA'} - {formatTime(message.createdAt)}
                     </span>
                     {message.status === 'pending' ? <span>Enviando...</span> : null}
                     {message.status === 'failed' ? <span>Falhou</span> : null}

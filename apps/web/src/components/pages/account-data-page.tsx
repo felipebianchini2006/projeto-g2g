@@ -106,7 +106,7 @@ export const AccountDataContent = () => {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
-          Carregando sessao...
+          Carregando sessão...
         </div>
       </section>
     );
@@ -149,7 +149,7 @@ export const AccountDataContent = () => {
         if (!active) {
           return;
         }
-        setError(err instanceof Error ? err.message : 'Nao foi possivel carregar seus dados.');
+        setError(err instanceof Error ? err.message : 'Não foi possível carregar seus dados.');
       })
       .finally(() => {
         if (active) {
@@ -169,7 +169,7 @@ export const AccountDataContent = () => {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!accessToken) {
-      setError('Sessao expirada. Entre novamente.');
+      setError('Sessão expirada. Entre novamente.');
       return;
     }
     setStatus('saving');
@@ -192,7 +192,7 @@ export const AccountDataContent = () => {
       setForm(mapProfileToForm(updated));
       setSuccess('Dados atualizados com sucesso.');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Nao foi possivel salvar.');
+      setError(err instanceof Error ? err.message : 'Não foi possível salvar.');
     } finally {
       setStatus('idle');
     }
@@ -218,7 +218,7 @@ export const AccountDataContent = () => {
       const response = await fetch(`https://viacep.com.br/ws/${zip}/json/`);
       const payload = await response.json();
       if (!response.ok || payload?.erro) {
-        setCepError('Nao foi possivel localizar esse CEP.');
+        setCepError('Não foi possível localizar esse CEP.');
         return;
       }
       setForm((prev) => ({
@@ -229,7 +229,7 @@ export const AccountDataContent = () => {
         addressState: payload.uf ?? prev.addressState,
       }));
     } catch {
-      setCepError('Nao foi possivel buscar o CEP agora.');
+      setCepError('Não foi possível buscar o CEP agora.');
     } finally {
       setCepBusy(false);
     }

@@ -55,7 +55,7 @@ export const AccountSecurityContent = () => {
       return;
     }
     if (form.newPassword !== form.confirmPassword) {
-      setState({ busy: false, error: 'As senhas nao coincidem.' });
+      setState({ busy: false, error: 'As senhas não coincidem.' });
       return;
     }
 
@@ -68,7 +68,7 @@ export const AccountSecurityContent = () => {
       setForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
       setState({
         busy: false,
-        success: 'Senha atualizada. Voce sera redirecionado para o login.',
+        success: 'Senha atualizada. Você será redirecionado para o login.',
       });
       timeoutRef.current = setTimeout(async () => {
         await logout();
@@ -80,7 +80,7 @@ export const AccountSecurityContent = () => {
           ? error.message
           : error instanceof Error
             ? error.message
-            : 'Nao foi possivel atualizar a senha.';
+            : 'Não foi possível atualizar a senha.';
       setState({ busy: false, error: message });
     }
   };

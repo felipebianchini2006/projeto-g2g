@@ -12,8 +12,8 @@ export default function Page() {
         </div>
         <h1 className="mt-6 text-2xl font-black text-meow-charcoal">Como comprar</h1>
         <ol className="mt-4 grid gap-3 text-sm text-meow-muted">
-          <li>1. Busque por anuncios na pagina inicial ou em Categorias.</li>
-          <li>2. Abra o anuncio e confira detalhes do produto.</li>
+          <li>1. Busque por anúncios na pagina inicial ou em Categorias.</li>
+          <li>2. Abra o anúncio e confira detalhes do produto.</li>
           <li>3. Clique em Comprar para iniciar o checkout.</li>
           <li>4. Gere o Pix e finalize o pagamento dentro do prazo.</li>
           <li>5. Acompanhe o status em Minhas compras e use o chat se precisar.</li>

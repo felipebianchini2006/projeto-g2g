@@ -570,7 +570,7 @@ export class SettlementService {
         const outbox = await tx.emailOutbox.create({
           data: {
             to: order.buyer.email,
-            subject: 'Reembolso concluido',
+            subject: 'Reembolso concluído',
             body: `Seu pedido ${order.id} foi reembolsado.`,
           },
         });

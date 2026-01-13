@@ -12,7 +12,7 @@ export default function Page() {
         </div>
         <h1 className="mt-6 text-2xl font-black text-meow-charcoal">Central de ajuda</h1>
         <p className="mt-3 text-sm text-meow-muted">
-          Encontre respostas rapidas sobre compras, vendas e pagamentos.
+          Encontre respostas rápidas sobre compras, vendas e pagamentos.
         </p>
 
         <div className="mt-6 grid gap-4">
@@ -20,14 +20,14 @@ export default function Page() {
             <h2 className="text-sm font-bold text-meow-charcoal">Conta e seguranca</h2>
             <ul className="mt-3 grid gap-2 text-sm text-meow-muted">
               <li>Atualize email e senha sempre que necessario.</li>
-              <li>Use senha forte e nao compartilhe dados de acesso.</li>
+              <li>Use senha forte e não compartilhe dados de acesso.</li>
               <li>Ative notificacoes para acompanhar pedidos.</li>
             </ul>
           </div>
           <div className="rounded-2xl border border-meow-red/20 bg-meow-cream/60 px-5 py-4">
             <h2 className="text-sm font-bold text-meow-charcoal">Compras e entregas</h2>
             <ul className="mt-3 grid gap-2 text-sm text-meow-muted">
-              <li>Verifique a descricao do anuncio antes de comprar.</li>
+              <li>Verifique a descrição do anúncio antes de comprar.</li>
               <li>Acompanhe o status em Minhas compras.</li>
               <li>Se houver atraso, entre em contato pelo chat do pedido.</li>
             </ul>
@@ -35,9 +35,9 @@ export default function Page() {
           <div className="rounded-2xl border border-meow-red/20 bg-meow-cream/60 px-5 py-4">
             <h2 className="text-sm font-bold text-meow-charcoal">Pagamentos</h2>
             <ul className="mt-3 grid gap-2 text-sm text-meow-muted">
-              <li>Pagamentos sao processados via Pix.</li>
-              <li>Use o codigo copia e cola para concluir o pagamento.</li>
-              <li>Pedidos nao pagos expiram automaticamente.</li>
+              <li>Pagamentos são processados via Pix.</li>
+              <li>Use o código copia e cola para concluir o pagamento.</li>
+              <li>Pedidos não pagos expiram automaticamente.</li>
             </ul>
           </div>
         </div>

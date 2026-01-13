@@ -227,14 +227,14 @@ export class CatalogService {
   private async ensureCategory(categoryId: string) {
     const exists = await this.prisma.category.findUnique({ where: { id: categoryId } });
     if (!exists) {
-      throw new NotFoundException('Categoria nao encontrada.');
+      throw new NotFoundException('Categoria não encontrada.');
     }
   }
 
   private async ensureGroup(groupId: string) {
     const exists = await this.prisma.categoryGroup.findUnique({ where: { id: groupId } });
     if (!exists) {
-      throw new NotFoundException('Subcategoria nao encontrada.');
+      throw new NotFoundException('Subcategoria não encontrada.');
     }
   }
 
@@ -251,11 +251,11 @@ export class CatalogService {
   private ensureSlug(value?: string, fallback?: string) {
     const source = value?.trim() || fallback?.trim();
     if (!source) {
-      throw new BadRequestException('Slug invalido.');
+      throw new BadRequestException('Slug inválido.');
     }
     const slug = this.normalizeSlug(source);
     if (!slug) {
-      throw new BadRequestException('Slug invalido.');
+      throw new BadRequestException('Slug inválido.');
     }
     return slug;
   }

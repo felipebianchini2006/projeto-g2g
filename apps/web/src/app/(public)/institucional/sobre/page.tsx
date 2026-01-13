@@ -13,10 +13,10 @@ export default function Page() {
         <h1 className="mt-6 text-2xl font-black text-meow-charcoal">Sobre nos</h1>
         <p className="mt-3 text-sm text-meow-muted">
           Texto institucional em construcao. Aqui vamos contar a historia da Meoww
-          Games, a missao da plataforma e o compromisso com compradores e vendedores.
+          Games, a missão da plataforma e o compromisso com compradores e vendedores.
         </p>
         <p className="mt-4 text-sm text-meow-muted">
-          Este conteudo sera atualizado com a versao final aprovada pelo time.
+          Este conteúdo será atualizado com a versão final aprovada pelo time.
         </p>
       </div>
     </section>
