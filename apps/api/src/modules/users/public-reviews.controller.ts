@@ -23,6 +23,7 @@ export class PublicReviewsController {
         include: {
           buyer: { select: { fullName: true, email: true, avatarUrl: true } },
           orderItem: { select: { title: true } },
+          order: { select: { items: { select: { title: true } } } },
         },
       }),
       this.prisma.sellerReview.count({ where: { sellerId } }),
@@ -62,7 +63,7 @@ export class PublicReviewsController {
             displayName: buyerName,
             avatarUrl: review.buyer.avatarUrl,
           },
-          productTitle: review.orderItem?.title ?? 'Produto',
+          productTitle: review.orderItem?.title ?? review.order?.items?.[0]?.title ?? null,
         };
       }),
       total,

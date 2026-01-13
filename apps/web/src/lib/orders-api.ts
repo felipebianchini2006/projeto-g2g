@@ -91,6 +91,7 @@ export type Order = {
   completedAt?: string | null;
   dispute?: { id: string; status: string } | null;
   attribution?: OrderAttribution | null;
+  review?: { id: string; rating: number; comment: string; createdAt?: string | null } | null;
 };
 
 export type CheckoutResponse = {
@@ -216,5 +217,16 @@ export const ordersApi = {
       method: 'POST',
       headers: authHeaders(token),
       body: JSON.stringify({ note }),
+    }),
+
+  createReview: (
+    token: string | null,
+    orderId: string,
+    payload: { rating: number; comment: string },
+  ) =>
+    apiFetch(`/orders/${orderId}/review`, {
+      method: 'POST',
+      headers: authHeaders(token),
+      body: JSON.stringify(payload),
     }),
 };

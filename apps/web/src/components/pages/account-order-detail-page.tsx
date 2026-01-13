@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Star, X } from 'lucide-react';
 
 import { ApiClientError } from '../../lib/api-client';
 import { ordersApi, type Order } from '../../lib/orders-api';
@@ -40,40 +41,44 @@ export const AccountOrderDetailContent = ({ orderId }: { orderId: string }) => {
     status: 'loading',
     order: null,
   });
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState('');
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
 
   const orderCode = orderId.slice(0, 7).toUpperCase();
+
+  const loadOrder = useCallback(async () => {
+    if (!accessToken) {
+      return;
+    }
+    try {
+      const order = await ordersApi.getOrder(accessToken, orderId);
+      setState({ status: 'ready', order });
+    } catch (error) {
+      const message =
+        error instanceof ApiClientError ? error.message : 'Nao foi possivel carregar o pedido.';
+      setState({ status: 'ready', order: null, error: message });
+    }
+  }, [accessToken, orderId]);
 
   useEffect(() => {
     if (!accessToken) {
       return;
     }
-    let active = true;
     const load = async () => {
-      try {
-        const order = await ordersApi.getOrder(accessToken, orderId);
-        if (!active) {
-          return;
-        }
-        setState({ status: 'ready', order });
-      } catch (error) {
-        if (!active) {
-          return;
-        }
-        const message =
-          error instanceof ApiClientError
-            ? error.message
-            : 'Nao foi possivel carregar o pedido.';
-        setState({ status: 'ready', order: null, error: message });
-      }
+      await loadOrder();
     };
     load();
-    return () => {
-      active = false;
-    };
-  }, [accessToken, orderId]);
+  }, [accessToken, loadOrder]);
 
   const firstItem = state.order?.items?.[0];
   const payment = state.order?.payments?.[0];
+  const canReview =
+    state.order?.status === 'COMPLETED' &&
+    Boolean(state.order?.sellerId) &&
+    !state.order?.review;
 
   const showChat =
     state.order?.status === 'PAID' ||
@@ -244,6 +249,25 @@ export const AccountOrderDetailContent = ({ orderId }: { orderId: string }) => {
             </Link>
           </div>
 
+          {canReview ? (
+            <div className="rounded-2xl border border-meow-red/20 bg-white p-6 text-center shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+              <h2 className="text-lg font-bold text-meow-charcoal">Avaliar vendedor</h2>
+              <p className="mt-2 text-sm text-meow-muted">
+                Conte como foi sua experiencia para ajudar outros compradores.
+              </p>
+              <button
+                type="button"
+                className="mt-4 inline-flex rounded-full bg-meow-linear px-6 py-2 text-sm font-bold text-white"
+                onClick={() => {
+                  setReviewError(null);
+                  setReviewOpen(true);
+                }}
+              >
+                Avaliar agora
+              </button>
+            </div>
+          ) : null}
+
           <div>
             <h2 className="text-center text-xl font-black text-meow-charcoal">
               Chat com o vendedor
@@ -259,6 +283,102 @@ export const AccountOrderDetailContent = ({ orderId }: { orderId: string }) => {
             )}
           </div>
         </>
+      ) : null}
+
+      {reviewOpen ? (
+        <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
+          <button
+            type="button"
+            className="absolute inset-0 bg-slate-900/40"
+            onClick={() => setReviewOpen(false)}
+            aria-label="Fechar avaliacao"
+          />
+          <div className="relative w-full max-w-lg rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_16px_40px_rgba(216,107,149,0.2)]">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-meow-charcoal">Enviar avaliacao</h3>
+              <button
+                type="button"
+                className="rounded-full bg-slate-100 p-2 text-meow-muted"
+                onClick={() => setReviewOpen(false)}
+                aria-label="Fechar"
+              >
+                <X size={14} aria-hidden />
+              </button>
+            </div>
+
+            <div className="mt-4 flex items-center justify-center gap-2">
+              {Array.from({ length: 5 }).map((_, index) => {
+                const value = index + 1;
+                const active = reviewRating >= value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    className={`rounded-full p-2 ${active ? 'text-amber-400' : 'text-slate-300'}`}
+                    onClick={() => setReviewRating(value)}
+                    aria-label={`Nota ${value}`}
+                  >
+                    <Star size={22} fill={active ? 'currentColor' : 'none'} />
+                  </button>
+                );
+              })}
+            </div>
+
+            <textarea
+              className="mt-4 h-32 w-full rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm text-meow-charcoal outline-none"
+              placeholder="Conte sobre sua experiencia..."
+              value={reviewComment}
+              onChange={(event) => setReviewComment(event.target.value)}
+            />
+
+            {reviewError ? (
+              <div className="mt-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-2 text-xs text-red-700">
+                {reviewError}
+              </div>
+            ) : null}
+
+            <div className="mt-4 flex justify-end">
+              <button
+                type="button"
+                className="rounded-full bg-meow-linear px-6 py-2 text-sm font-bold text-white"
+                disabled={reviewSubmitting}
+                onClick={async () => {
+                  if (!accessToken) return;
+                  if (reviewRating < 1) {
+                    setReviewError('Selecione uma nota entre 1 e 5.');
+                    return;
+                  }
+                  if (reviewComment.trim().length < 5) {
+                    setReviewError('Escreva um comentario com pelo menos 5 caracteres.');
+                    return;
+                  }
+                  try {
+                    setReviewSubmitting(true);
+                    setReviewError(null);
+                    await ordersApi.createReview(accessToken, orderId, {
+                      rating: reviewRating,
+                      comment: reviewComment.trim(),
+                    });
+                    setReviewOpen(false);
+                    setReviewRating(0);
+                    setReviewComment('');
+                    await loadOrder();
+                  } catch (error) {
+                    const message =
+                      error instanceof ApiClientError
+                        ? error.message
+                        : 'Nao foi possivel enviar sua avaliacao.';
+                    setReviewError(message);
+                  } finally {
+                    setReviewSubmitting(false);
+                  }
+                }}
+              >
+                {reviewSubmitting ? 'Enviando...' : 'Enviar avaliacao'}
+              </button>
+            </div>
+          </div>
+        </div>
       ) : null}
     </AccountShell>
   );

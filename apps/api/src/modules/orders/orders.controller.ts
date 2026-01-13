@@ -23,6 +23,7 @@ import { CreateDeliveryEvidenceDto } from './dto/create-delivery-evidence.dto';
 import { MarkDeliveredDto } from './dto/mark-delivered.dto';
 import { OpenDisputeDto } from './dto/open-dispute.dto';
 import { OrderQueryDto } from './dto/order-query.dto';
+import { CreateSellerReviewDto } from './dto/create-seller-review.dto';
 import { OrderAccessGuard } from './guards/order-access.guard';
 import { OrdersService } from './orders.service';
 
@@ -132,6 +133,17 @@ export class OrdersController {
       dto,
       this.getRequestMeta(req),
     );
+  }
+
+  @Post(':id/review')
+  @UseGuards(OrderAccessGuard)
+  createReview(
+    @Req() req: AuthenticatedRequest,
+    @Param('id') orderId: string,
+    @Body() dto: CreateSellerReviewDto,
+  ) {
+    const userId = this.getUserId(req);
+    return this.ordersService.createSellerReview(orderId, userId, dto);
   }
 
   private getUserId(request: AuthenticatedRequest) {

@@ -1113,27 +1113,27 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
                     <div className="space-y-4">
                       {reviewsState.items.map((review) => (
                         <Card
-                          key={`${review.buyerDisplayName}-${review.createdAt}`}
+                          key={`${review.buyer.displayName}-${review.createdAt}`}
                           className="rounded-[24px] border border-slate-100 p-5 shadow-card"
                         >
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-3">
                               <div className="h-10 w-10 overflow-hidden rounded-full bg-meow-100">
-                                {review.buyerAvatarUrl ? (
+                                {review.buyer.avatarUrl ? (
                                   <img
-                                    src={review.buyerAvatarUrl}
-                                    alt={review.buyerDisplayName}
+                                    src={review.buyer.avatarUrl}
+                                    alt={review.buyer.displayName}
                                     className="h-full w-full object-cover"
                                   />
                                 ) : (
                                   <div className="grid h-full w-full place-items-center text-sm font-bold text-slate-400">
-                                    {review.buyerDisplayName.slice(0, 2).toUpperCase()}
+                                    {review.buyer.displayName.slice(0, 2).toUpperCase()}
                                   </div>
                                 )}
                               </div>
                               <div>
                                 <p className="text-sm font-semibold text-meow-charcoal">
-                                  {review.buyerDisplayName}
+                                  {review.buyer.displayName}
                                 </p>
                                 <div className="flex items-center gap-1 text-xs text-amber-400">
                                   {Array.from({ length: review.rating }).map((_, index) => (
@@ -1157,7 +1157,9 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
                             ) : null}
                             <span className="text-meow-muted">
                               PRODUTO:{' '}
-                              <strong className="text-meow-charcoal">{review.productTitle}</strong>
+                              <strong className="text-meow-charcoal">
+                                {review.productTitle ?? 'Produto'}
+                              </strong>
                             </span>
                           </div>
                         </Card>

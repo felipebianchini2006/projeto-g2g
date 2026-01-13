@@ -1,13 +1,16 @@
 ﻿import { apiFetch } from './api-client';
 
 export type PublicReview = {
+  id: string;
   rating: number;
   comment: string;
   createdAt: string;
-  buyerDisplayName: string;
-  buyerAvatarUrl?: string | null;
   verifiedPurchase: boolean;
-  productTitle: string;
+  productTitle: string | null;
+  buyer: {
+    displayName: string;
+    avatarUrl?: string | null;
+  };
 };
 
 export type ReviewDistribution = {

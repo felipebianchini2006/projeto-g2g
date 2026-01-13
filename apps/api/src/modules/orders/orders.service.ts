@@ -34,6 +34,7 @@ import {
   CreateDeliveryEvidenceDto,
   DeliveryEvidenceInputType,
 } from './dto/create-delivery-evidence.dto';
+import { CreateSellerReviewDto } from './dto/create-seller-review.dto';
 import { MarkDeliveredDto } from './dto/mark-delivered.dto';
 import { CouponsService } from '../coupons/coupons.service';
 import { PartnersService } from '../partners/partners.service';
@@ -242,6 +243,14 @@ export class OrdersService {
         events: { orderBy: { createdAt: 'asc' } },
         dispute: true,
         ticket: true,
+        sellerReview: {
+          select: {
+            id: true,
+            rating: true,
+            comment: true,
+            createdAt: true,
+          },
+        },
       },
     });
 
@@ -249,7 +258,53 @@ export class OrdersService {
       throw new NotFoundException('Order not found.');
     }
 
-    return order;
+    return {
+      ...order,
+      review: order.sellerReview,
+    };
+  }
+
+  async createSellerReview(orderId: string, userId: string, dto: CreateSellerReviewDto) {
+    return this.prisma.$transaction(async (tx) => {
+      const order = await tx.order.findUnique({
+        where: { id: orderId },
+        include: { items: { select: { id: true } } },
+      });
+      if (!order) {
+        throw new NotFoundException('Order not found.');
+      }
+      if (order.buyerId !== userId) {
+        throw new ForbiddenException('Only the buyer can review.');
+      }
+      if (order.status !== OrderStatus.COMPLETED) {
+        throw new BadRequestException('Order is not completed.');
+      }
+      if (!order.sellerId) {
+        throw new BadRequestException('Order does not have a seller.');
+      }
+
+      const existing = await tx.sellerReview.findUnique({
+        where: { orderId: order.id },
+        select: { id: true },
+      });
+      if (existing) {
+        throw new BadRequestException('Review already exists for this order.');
+      }
+
+      const firstItemId = order.items[0]?.id ?? null;
+
+      return tx.sellerReview.create({
+        data: {
+          orderId: order.id,
+          orderItemId: firstItemId,
+          sellerId: order.sellerId,
+          buyerId: order.buyerId,
+          rating: dto.rating,
+          comment: dto.comment,
+          verifiedPurchase: true,
+        },
+      });
+    });
   }
 
   async cancelOrder(orderId: string, buyerId: string, dto: CancelOrderDto, meta: AuthRequestMeta) {
