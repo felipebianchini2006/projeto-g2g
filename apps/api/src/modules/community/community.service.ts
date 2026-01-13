@@ -101,7 +101,7 @@ export class CommunityService {
   }
 
   async createPost(authorId: string, role: UserRole, dto: CreateCommunityPostDto) {
-    if (![UserRole.SELLER, UserRole.ADMIN].includes(role)) {
+    if (role !== UserRole.SELLER && role !== UserRole.ADMIN) {
       throw new ForbiddenException('Insufficient role.');
     }
 
