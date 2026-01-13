@@ -22,6 +22,7 @@ import { ChatModule } from './modules/chat/chat.module';
 import { UsersModule } from './modules/users/users.module';
 import { CatalogModule } from './modules/catalog/catalog.module';
 import { SupportChatModule } from './modules/support-chat/support-chat.module';
+import { DirectChatModule } from './modules/direct-chat/direct-chat.module';
 import { PartnersModule } from './modules/partners/partners.module';
 import { CouponsModule } from './modules/coupons/coupons.module';
 import { CommunityModule } from './modules/community/community.module';
@@ -60,6 +61,7 @@ import { CommunityModule } from './modules/community/community.module';
     WalletModule,
     WebhooksModule,
     SupportChatModule,
+    DirectChatModule,
     PartnersModule,
     CouponsModule,
     CommunityModule,

@@ -219,6 +219,11 @@ model User {
   communityPosts        CommunityPost[] @relation("CommunityPostAuthor")
   communityPostLikes    CommunityPostLike[] @relation("CommunityPostLikeUser")
   communityPostComments CommunityPostComment[] @relation("CommunityPostCommentUser")
+  followers            UserFollow[] @relation("UserFollowers")
+  following            UserFollow[] @relation("UserFollowing")
+  directChatThreadsAsUserA DirectChatThread[] @relation("DirectChatUserA")
+  directChatThreadsAsUserB DirectChatThread[] @relation("DirectChatUserB")
+  directChatMessages       DirectChatMessage[] @relation("DirectChatSender")
 
   @@map("users")
 }
@@ -757,6 +762,54 @@ model CommunityPostComment {
   @@index([userId])
   @@index([createdAt])
   @@map("community_post_comments")
+}
+
+model UserFollow {
+  id          String   @id @default(uuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower  User @relation("UserFollowers", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("UserFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@map("user_follows")
+}
+
+model DirectChatThread {
+  id        String   @id @default(uuid())
+  userAId   String
+  userBId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userA    User               @relation("DirectChatUserA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB    User               @relation("DirectChatUserB", fields: [userBId], references: [id], onDelete: Cascade)
+  messages DirectChatMessage[]
+
+  @@unique([userAId, userBId])
+  @@index([userAId])
+  @@index([userBId])
+  @@map("direct_chat_threads")
+}
+
+model DirectChatMessage {
+  id        String   @id @default(uuid())
+  threadId  String
+  senderId  String
+  content   String
+  createdAt DateTime @default(now())
+
+  thread DirectChatThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  sender User             @relation("DirectChatSender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([threadId])
+  @@index([senderId])
+  @@index([createdAt])
+  @@map("direct_chat_messages")
 }
 
 model Payment {

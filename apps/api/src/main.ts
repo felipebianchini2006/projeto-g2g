@@ -60,9 +60,12 @@ async function bootstrap() {
   );
 
   const corsOriginsRaw = configService.get<string>('CORS_ORIGINS') ?? '';
-  const defaultOrigins = isProduction
-    ? []
-    : ['*', 'http://localhost:3000', 'http://127.0.0.1:3000', 'https://*.devtunnels.ms'];
+  const defaultOrigins = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'https://*.devtunnels.ms',
+    'https://rh3tknmc-3000.brs.devtunnels.ms',
+  ];
   const corsOrigins = corsOriginsRaw
     .split(',')
     .map((origin) => origin.trim())
@@ -70,9 +73,6 @@ async function bootstrap() {
   const allowedOrigins = corsOrigins.length ? corsOrigins : defaultOrigins;
 
   const matchesOrigin = (origin: string, allowed: string) => {
-    if (allowed === '*') {
-      return true;
-    }
     if (!allowed.includes('*')) {
       return origin === allowed;
     }
@@ -83,7 +83,7 @@ async function bootstrap() {
 
   app.enableCors({
     origin: (origin, callback) => {
-      if (!origin) {
+      if (!origin || !isProduction) {
         return callback(null, true);
       }
       if (allowedOrigins.some((allowed) => matchesOrigin(origin, allowed))) {
@@ -92,6 +92,8 @@ async function bootstrap() {
       return callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'x-request-id'],
   });
 
   app.useGlobalPipes(

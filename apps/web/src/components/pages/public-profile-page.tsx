@@ -2,6 +2,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import {
   Copy,
@@ -23,6 +24,7 @@ import {
 } from 'lucide-react';
 
 import { communityApi } from '../../lib/community-api';
+import { directChatApi } from '../../lib/direct-chat-api';
 import {
   publicCommunityApi,
   type CommunityCommentPublic,
@@ -35,6 +37,7 @@ import {
   type ReviewDistribution,
 } from '../../lib/public-reviews-api';
 import { fetchPublicListings, type PublicListing } from '../../lib/marketplace-public';
+import { usersApi } from '../../lib/users-api';
 import { useAuth } from '../auth/auth-provider';
 import { StoreListingCard } from '../profile/store-listing-card';
 import { Badge } from '../ui/badge';
@@ -47,6 +50,14 @@ type ProfileHeaderCardProps = {
   ratingLabel: string;
   salesLabel: string | null;
   viewsLabel: string | null;
+  canFollow: boolean;
+  isOwner: boolean;
+  followLoading: boolean;
+  isFollowing: boolean;
+  onToggleFollow: () => void;
+  canChat: boolean;
+  chatLoading: boolean;
+  onChat: () => void;
 };
 
 type ProfileTabsProps = {
@@ -59,13 +70,9 @@ type TrustSealsCardProps = {
   trustSeals: PublicProfile['trustSeals'];
 };
 
-type PerformanceCardProps = {
-  levelLabel: string;
-};
+type PerformanceCardProps = {};
 
-type MedalsCardProps = {
-  levelLabel: string;
-};
+type MedalsCardProps = {};
 
 type SkeletonProfileProps = {
   sidebarOnly?: boolean;
@@ -116,6 +123,14 @@ const ProfileHeaderCard = ({
   ratingLabel,
   salesLabel,
   viewsLabel,
+  canFollow,
+  isOwner,
+  followLoading,
+  isFollowing,
+  onToggleFollow,
+  canChat,
+  chatLoading,
+  onChat,
 }: ProfileHeaderCardProps) => (
   <Card className="-mt-16 rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
     <div className="flex flex-wrap items-center justify-between gap-4">
@@ -169,14 +184,43 @@ const ProfileHeaderCard = ({
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <Button size="sm" className="rounded-full gap-2">
-          <UserPlus size={14} aria-hidden />
-          Seguir
-        </Button>
-        <Button variant="secondary" size="sm" className="rounded-full gap-2">
-          <MessageCircle size={14} aria-hidden />
-          Chat
-        </Button>
+        {canFollow ? (
+          <Button
+            size="sm"
+            className="rounded-full gap-2"
+            disabled={followLoading}
+            onClick={onToggleFollow}
+          >
+            <UserPlus size={14} aria-hidden />
+            {isFollowing ? 'Seguindo' : 'Seguir'}
+          </Button>
+        ) : !isOwner ? (
+          <Link
+            href="/login"
+            className="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-meow-charcoal"
+          >
+            Entrar para seguir
+          </Link>
+        ) : null}
+        {canChat ? (
+          <Button
+            variant="secondary"
+            size="sm"
+            className="rounded-full gap-2"
+            disabled={chatLoading}
+            onClick={onChat}
+          >
+            <MessageCircle size={14} aria-hidden />
+            {chatLoading ? 'Abrindo...' : 'Chat'}
+          </Button>
+        ) : !isOwner ? (
+          <Link
+            href="/login"
+            className="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-meow-charcoal"
+          >
+            Entrar para conversar
+          </Link>
+        ) : null}
         <Button variant="secondary" size="icon" className="rounded-full">
           <MoreHorizontal size={16} aria-hidden />
         </Button>
@@ -248,7 +292,7 @@ const TrustSealsCard = ({ trustSeals }: TrustSealsCardProps) => (
   </Card>
 );
 
-const PerformanceCard = ({ levelLabel }: PerformanceCardProps) => (
+const PerformanceCard = ({}: PerformanceCardProps) => (
   <Card className="rounded-[24px] border border-slate-100 p-5 shadow-card">
     <div className="flex items-center justify-between">
       <h2 className="text-sm font-bold uppercase text-meow-muted">Performance</h2>
@@ -273,20 +317,11 @@ const PerformanceCard = ({ levelLabel }: PerformanceCardProps) => (
           <div className="h-2 w-[95%] rounded-full bg-pink-400" />
         </div>
       </div>
-      <div>
-        <div className="flex items-center justify-between">
-          <span>Nivel de vendedor</span>
-          <span className="font-semibold text-purple-500">{levelLabel}</span>
-        </div>
-        <div className="mt-2 h-2 w-full rounded-full bg-slate-100">
-          <div className="h-2 w-[70%] rounded-full bg-purple-400" />
-        </div>
-      </div>
     </div>
   </Card>
 );
 
-const MedalsCard = ({ levelLabel }: MedalsCardProps) => (
+const MedalsCard = ({}: MedalsCardProps) => (
   <Card className="rounded-[24px] border border-slate-100 p-5 shadow-card">
     <h2 className="text-sm font-bold uppercase text-meow-muted">Medalhas</h2>
     <div className="mt-4 grid grid-cols-4 gap-3">
@@ -300,7 +335,6 @@ const MedalsCard = ({ levelLabel }: MedalsCardProps) => (
         <div
           key={`${badge.tone}-${index}`}
           className={`grid h-12 w-12 place-items-center rounded-2xl ${badge.tone}`}
-          aria-label={levelLabel}
         >
           {badge.icon}
         </div>
@@ -326,6 +360,7 @@ const SkeletonProfile = ({ sidebarOnly }: SkeletonProfileProps) => (
 );
 export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
   const { user, accessToken } = useAuth();
+  const router = useRouter();
   const [profileState, setProfileState] = useState<{
     status: 'loading' | 'ready' | 'error';
     profile: PublicProfile | null;
@@ -359,6 +394,11 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
     ratingAverage: 0,
     distribution: null,
   });
+  const [followState, setFollowState] = useState<{
+    status: 'idle' | 'loading' | 'ready';
+    following: boolean;
+  }>({ status: 'idle', following: false });
+  const [chatLoading, setChatLoading] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -396,6 +436,11 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
     })
       .then((response) => {
         if (!active) return;
+        if (response.source !== 'api') {
+          setListings([]);
+          setListingsStatus('ready');
+          return;
+        }
         const normalized = categoryFilter
           ? response.listings.filter((listing) => {
               const slug = listing.categorySlug ?? '';
@@ -513,6 +558,28 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
     };
   }, [activePostId]);
 
+  useEffect(() => {
+    if (!accessToken || !user || user.id === profileId) {
+      setFollowState({ status: 'idle', following: false });
+      return;
+    }
+    let active = true;
+    setFollowState((prev) => ({ ...prev, status: 'loading' }));
+    usersApi
+      .getFollowStatus(accessToken, profileId)
+      .then((response) => {
+        if (!active) return;
+        setFollowState({ status: 'ready', following: response.following });
+      })
+      .catch(() => {
+        if (!active) return;
+        setFollowState({ status: 'ready', following: false });
+      });
+    return () => {
+      active = false;
+    };
+  }, [accessToken, profileId, user]);
+
   const showTabs = profileState.profile?.role !== 'USER';
 
   const handleLabel = useMemo(() => {
@@ -563,6 +630,8 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
       ? 'Perfil público do cliente na Meoww.'
       : 'Especialista em contas de jogos, entregas rápidas e suporte dedicado.';
   const isOwner = user?.id === profileId;
+  const canFollow = Boolean(accessToken && user && !isOwner);
+  const canChat = Boolean(accessToken && user && !isOwner);
   const canCompose =
     Boolean(user && accessToken) &&
     (isOwner || user?.role === 'ADMIN') &&
@@ -585,6 +654,39 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
             ratingLabel={ratingLabel}
             salesLabel={salesLabel}
             viewsLabel={viewsLabel}
+            canFollow={canFollow}
+            isOwner={Boolean(isOwner)}
+            followLoading={followState.status === 'loading'}
+            isFollowing={followState.following}
+            onToggleFollow={async () => {
+              if (!accessToken || !canFollow) {
+                return;
+              }
+              setFollowState((prev) => ({ ...prev, status: 'loading' }));
+              try {
+                const response = await usersApi.toggleFollow(accessToken, profileId);
+                setFollowState({ status: 'ready', following: response.following });
+              } catch {
+                setFollowState((prev) => ({ ...prev, status: 'ready' }));
+              }
+            }}
+            canChat={canChat}
+            chatLoading={chatLoading}
+            onChat={async () => {
+              if (!accessToken || !canChat) {
+                return;
+              }
+              if (chatLoading) {
+                return;
+              }
+              setChatLoading(true);
+              try {
+                const response = await directChatApi.createThread(accessToken, profileId);
+                router.push(`/conta/mensagens/${response.id}`);
+              } finally {
+                setChatLoading(false);
+              }
+            }}
           />
         </div>
 
@@ -617,8 +719,8 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
 
             {profile.role !== 'USER' ? (
               <>
-                <PerformanceCard levelLabel="Lvl. 42" />
-                <MedalsCard levelLabel="Lvl. 42" />
+                <PerformanceCard />
+                <MedalsCard />
               </>
             ) : null}
 

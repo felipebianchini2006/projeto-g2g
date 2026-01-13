@@ -184,6 +184,44 @@ export class UsersService {
     }
   }
 
+  async getFollowStatus(userId: string, targetId: string) {
+    if (userId === targetId) {
+      return { following: false };
+    }
+    const follow = await this.prisma.userFollow.findUnique({
+      where: { followerId_followingId: { followerId: userId, followingId: targetId } },
+      select: { id: true },
+    });
+    return { following: Boolean(follow) };
+  }
+
+  async toggleFollow(userId: string, targetId: string) {
+    if (userId === targetId) {
+      throw new BadRequestException('Cannot follow yourself.');
+    }
+    const target = await this.prisma.user.findUnique({
+      where: { id: targetId },
+      select: { id: true },
+    });
+    if (!target) {
+      throw new NotFoundException('User not found.');
+    }
+    const existing = await this.prisma.userFollow.findUnique({
+      where: { followerId_followingId: { followerId: userId, followingId: targetId } },
+      select: { id: true },
+    });
+    if (existing) {
+      await this.prisma.userFollow.delete({
+        where: { followerId_followingId: { followerId: userId, followingId: targetId } },
+      });
+      return { following: false };
+    }
+    await this.prisma.userFollow.create({
+      data: { followerId: userId, followingId: targetId },
+    });
+    return { following: true };
+  }
+
   async blockUser(userId: string, adminId: string, dto: UserBlockDto, meta: AuditMeta) {
     if (!dto.reason) {
       throw new BadRequestException('Block reason is required.');

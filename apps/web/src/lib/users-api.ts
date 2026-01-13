@@ -97,4 +97,13 @@ export const usersApi = {
       throw new ApiClientError(message, 0);
     }
   },
+  getFollowStatus: (token: string | null, targetId: string) =>
+    apiFetch<{ following: boolean }>(`/users/${targetId}/follow`, {
+      headers: authHeaders(token),
+    }),
+  toggleFollow: (token: string | null, targetId: string) =>
+    apiFetch<{ following: boolean }>(`/users/${targetId}/follow`, {
+      method: 'POST',
+      headers: authHeaders(token),
+    }),
 };

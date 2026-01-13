@@ -115,7 +115,7 @@ export const AccountOverviewContent = () => {
         const message =
           error instanceof ApiClientError
             ? error.message
-            : 'Não foi possível carregar pedidos recentes.';
+            : 'N�o foi poss�vel carregar pedidos recentes.';
         setOrdersState({ status: 'ready', orders: [], error: message });
       }
     };
@@ -129,7 +129,7 @@ export const AccountOverviewContent = () => {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
-          Carregando sessão...
+          Carregando sess�o...
         </div>
       </section>
     );
@@ -176,13 +176,19 @@ export const AccountOverviewContent = () => {
       <div className="rounded-[28px] border border-pink-100 bg-gradient-to-r from-[#ff6aa2] via-[#e57bd0] to-[#b78dff] p-6 text-white shadow-[0_18px_40px_rgba(255,107,154,0.25)]">
         <div className="flex flex-wrap items-center gap-4">
           <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white/20 text-xl">
-            👋
+            ??
           </div>
           <div>
-            <h1 className="text-2xl font-black">Olá, {user.email}!</h1>
+            <h1 className="text-2xl font-black">Ol�, {user.email}!</h1>
             <p className="mt-1 text-sm text-white/80">
-              Aqui está o resumo da sua conta hoje.
+              Aqui est� o resumo da sua conta hoje.
             </p>
+            <Link
+              href={`/perfil/${user.id}`}
+              className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/50 px-4 py-1 text-xs font-semibold text-white transition hover:border-white hover:bg-white/10"
+            >
+              Ver perfil p�blico
+            </Link>
           </div>
         </div>
       </div>
@@ -194,7 +200,7 @@ export const AccountOverviewContent = () => {
               <ShoppingCart size={18} aria-hidden />
             </div>
             <Badge variant="neutral" className="rounded-full px-3 py-1 text-[10px] font-bold">
-              VITALÍCIO
+              VITAL�CIO
             </Badge>
           </div>
           <p className="mt-4 text-xs font-semibold uppercase text-meow-muted">
@@ -219,7 +225,7 @@ export const AccountOverviewContent = () => {
             </button>
           </div>
           <p className="mt-4 text-xs font-semibold uppercase text-meow-muted">
-            Saldo disponivel
+            Saldo dispon�vel
           </p>
           <p className="mt-2 text-2xl font-black text-meow-charcoal">
             {formatCurrency(summaryState.summary?.availableCents ?? 0)}
@@ -319,7 +325,7 @@ export const AccountOverviewContent = () => {
         <Card className="rounded-[26px] border border-slate-100 p-6 shadow-card">
           <h3 className="text-base font-bold text-meow-charcoal">Precisa de ajuda?</h3>
           <p className="mt-2 text-sm text-meow-muted">
-            Vimos que você tem um pedido em aberto (#{openOrder.id.slice(0, 5).toUpperCase()}). Está com dificuldades?
+            Vimos que voc� tem um pedido em aberto (#{openOrder.id.slice(0, 5).toUpperCase()}). Est� com dificuldades?
           </p>
           <Link
             href="/conta/tickets"

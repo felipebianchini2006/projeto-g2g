@@ -18,8 +18,17 @@ export class ApiClientError extends Error implements ApiError {
   }
 }
 
-const resolveBaseUrl = () =>
-  process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:3001';
+const resolveBaseUrl = () => {
+  if (typeof window === 'undefined') {
+    return (
+      process.env['API_INTERNAL_URL'] ??
+      process.env['API_PROXY_TARGET'] ??
+      process.env['NEXT_PUBLIC_API_URL'] ??
+      'http://localhost:3001'
+    );
+  }
+  return process.env['NEXT_PUBLIC_API_URL'] ?? '/api/proxy';
+};
 
 const buildUrl = (path: string, baseUrl: string) => {
   if (path.startsWith('http://') || path.startsWith('https://')) {

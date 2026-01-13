@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Patch,
   Post,
   Req,
@@ -88,6 +89,18 @@ export class UsersController {
     }
     const userId = this.getUserId(req);
     return this.usersService.updateAvatar(userId, `/uploads/avatars/${file.filename}`);
+  }
+
+  @Get(':id/follow')
+  getFollowStatus(@Req() req: AuthenticatedRequest, @Param('id') targetId: string) {
+    const userId = this.getUserId(req);
+    return this.usersService.getFollowStatus(userId, targetId);
+  }
+
+  @Post(':id/follow')
+  toggleFollow(@Req() req: AuthenticatedRequest, @Param('id') targetId: string) {
+    const userId = this.getUserId(req);
+    return this.usersService.toggleFollow(userId, targetId);
   }
 
   private getUserId(request: AuthenticatedRequest) {

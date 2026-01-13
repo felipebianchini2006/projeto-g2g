@@ -32,5 +32,5 @@ export type PublicProfile = {
 
 export const publicProfilesApi = {
   getProfile: (profileId: string) =>
-    apiFetch<PublicProfile>(`/public/profiles/${profileId}`),
+    apiFetch<PublicProfile>(`/public/users/${profileId}`),
 };
