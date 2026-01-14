@@ -31,8 +31,8 @@ const config = {
         },
       },
       fontFamily: {
-        sans: ["Nunito", "sans-serif"], // --font-body
-        display: ["Nunito", "sans-serif"], // --font-display
+        sans: ["var(--font-body)", "sans-serif"], // --font-body
+        display: ["var(--font-display)", "sans-serif"], // --font-display
       },
       borderRadius: {
         "xl": "12px", // --radius-md

@@ -1,12 +1,18 @@
 import type { Metadata } from 'next';
-import { Nunito } from 'next/font/google';
+import { Poppins } from 'next/font/google';
 
 import { Providers } from '../components/providers';
 import './globals.css';
 
-const nunito = Nunito({
+const poppinsBody = Poppins({
   subsets: ['latin'],
   weight: ['300', '400', '500', '600', '700', '800', '900'],
+  variable: '--font-body',
+});
+const poppinsDisplay = Poppins({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700', '800', '900'],
+  variable: '--font-display',
 });
 
 export const metadata: Metadata = {
@@ -28,7 +34,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${nunito.className} min-h-screen bg-white text-meow-charcoal`}
+        className={`${poppinsBody.variable} ${poppinsDisplay.variable} min-h-screen bg-white text-meow-charcoal`}
       >
         <Providers>{children}</Providers>
       </body>

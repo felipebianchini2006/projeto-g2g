@@ -1,17 +1,31 @@
-'use client';
+﻿'use client';
 
 import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { io, type Socket } from 'socket.io-client';
-import { Paperclip, Send, ShieldCheck } from 'lucide-react';
+import {
+  MoreHorizontal,
+  Paperclip,
+  Pencil,
+  Send,
+  ShieldCheck,
+  Trash2,
+} from 'lucide-react';
 
-import { chatApi, type ChatMessage as ApiChatMessage } from '../../lib/chat-api';
+import {
+  chatApi,
+  type ChatMessage as ApiChatMessage,
+  type ChatReadReceipt,
+} from '../../lib/chat-api';
 import { Button } from '../ui/button';
+import { Textarea } from '../ui/textarea';
 
 type ChatMessage = {
   id: string;
   orderId: string;
   userId: string;
   text: string;
+  editedAt?: string | null;
+  deletedAt?: string | null;
   createdAt: string;
   status?: 'pending' | 'failed' | 'sent';
   localId?: string;
@@ -35,6 +49,27 @@ type MessageCreatedPayload = {
   createdAt: string | Date;
 };
 
+type MessageUpdatedPayload = {
+  id: string;
+  orderId: string;
+  userId: string;
+  text: string;
+  editedAt?: string | null;
+  updatedAt: string | Date;
+};
+
+type MessageDeletedPayload = {
+  id: string;
+  orderId: string;
+  deletedAt: string | Date;
+};
+
+type ReadReceiptPayload = {
+  orderId: string;
+  userId: string;
+  lastReadAt: string | Date;
+};
+
 const PAGE_SIZE = 20;
 
 const buildChatUrl = () => {
@@ -50,6 +85,8 @@ const mapApiMessage = (message: ApiChatMessage, orderId: string): ChatMessage =>
   orderId,
   userId: message.senderId,
   text: message.content,
+  editedAt: message.editedAt ?? null,
+  deletedAt: message.deletedAt ?? null,
   createdAt: message.createdAt,
   status: 'sent',
 });
@@ -63,6 +100,7 @@ export const OrderChat = ({
 }: OrderChatProps) => {
   const [connection, setConnection] = useState<ChatConnectionState>('idle');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [readReceipts, setReadReceipts] = useState<ChatReadReceipt[]>([]);
   const [draft, setDraft] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [online, setOnline] = useState(true);
@@ -70,6 +108,9 @@ export const OrderChat = ({
   const [historyBusy, setHistoryBusy] = useState(false);
   const [hasMoreHistory, setHasMoreHistory] = useState(true);
   const [initialLoaded, setInitialLoaded] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState('');
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const timeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const listRef = useRef<HTMLDivElement | null>(null);
@@ -118,14 +159,16 @@ export const OrderChat = ({
         cursor ?? undefined,
         PAGE_SIZE,
       );
-      if (data.length === 0) {
+      if (data.messages.length === 0) {
         setHasMoreHistory(false);
         return;
       }
-      const nextCursor = data[data.length - 1]?.createdAt ?? null;
-      const mapped = data.map((message) => mapApiMessage(message, orderId)).reverse();
+      const nextCursor = data.messages[data.messages.length - 1]?.createdAt ?? null;
+      const mapped = data.messages
+        .map((message) => mapApiMessage(message, orderId))
+        .reverse();
       setHistoryCursor(nextCursor);
-      if (data.length < PAGE_SIZE) {
+      if (data.messages.length < PAGE_SIZE) {
         setHasMoreHistory(false);
       }
       setMessages((prev) => {
@@ -133,6 +176,7 @@ export const OrderChat = ({
         const unique = mapped.filter((entry) => !ids.has(entry.id));
         return [...unique, ...prev];
       });
+      setReadReceipts(data.readReceipts ?? []);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Falha ao carregar mensagens.';
       setError(message);
@@ -143,9 +187,13 @@ export const OrderChat = ({
 
   useEffect(() => {
     setMessages([]);
+    setReadReceipts([]);
     setHistoryCursor(null);
     setHasMoreHistory(true);
     setInitialLoaded(false);
+    setEditingId(null);
+    setEditDraft('');
+    setOpenMenuId(null);
     if (accessToken && orderId) {
       loadHistory(null);
     }
@@ -157,6 +205,13 @@ export const OrderChat = ({
       setInitialLoaded(true);
     }
   }, [initialLoaded, messages.length]);
+
+  useEffect(() => {
+    const socket = socketRef.current;
+    if (initialLoaded && socket?.connected) {
+      socket.emit('markRead', { orderId });
+    }
+  }, [initialLoaded, orderId]);
 
   useEffect(() => {
     if (!accessToken || !orderId) {
@@ -178,6 +233,7 @@ export const OrderChat = ({
       setConnection('connected');
       setError(null);
       socket.emit('joinRoom', orderId);
+      socket.emit('markRead', { orderId });
     };
 
     const handleDisconnect = () => {
@@ -232,7 +288,51 @@ export const OrderChat = ({
           },
         ];
       });
+      if (payload.userId !== userId) {
+        socket.emit('markRead', { orderId });
+      }
       scrollToBottom('smooth');
+    };
+
+    const handleMessageUpdated = (payload: MessageUpdatedPayload) => {
+      const editedAt = payload.editedAt ? new Date(payload.editedAt).toISOString() : null;
+      setMessages((prev) =>
+        prev.map((entry) =>
+          entry.id === payload.id
+            ? { ...entry, text: payload.text, editedAt, status: 'sent' }
+            : entry,
+        ),
+      );
+    };
+
+    const handleMessageDeleted = (payload: MessageDeletedPayload) => {
+      const deletedAt =
+        payload.deletedAt instanceof Date
+          ? payload.deletedAt.toISOString()
+          : new Date(payload.deletedAt).toISOString();
+      setMessages((prev) =>
+        prev.map((entry) =>
+          entry.id === payload.id
+            ? { ...entry, text: '', deletedAt, status: 'sent' }
+            : entry,
+        ),
+      );
+    };
+
+    const handleReadReceipt = (payload: ReadReceiptPayload) => {
+      const lastReadAt =
+        payload.lastReadAt instanceof Date
+          ? payload.lastReadAt.toISOString()
+          : new Date(payload.lastReadAt).toISOString();
+      setReadReceipts((prev) => {
+        const exists = prev.find((entry) => entry.userId === payload.userId);
+        if (!exists) {
+          return [...prev, { userId: payload.userId, lastReadAt }];
+        }
+        return prev.map((entry) =>
+          entry.userId === payload.userId ? { ...entry, lastReadAt } : entry,
+        );
+      });
     };
 
     const handleException = (payload: { message?: string }) => {
@@ -245,6 +345,9 @@ export const OrderChat = ({
     socket.on('disconnect', handleDisconnect);
     socket.on('connect_error', handleConnectError);
     socket.on('messageCreated', handleMessageCreated);
+    socket.on('messageUpdated', handleMessageUpdated);
+    socket.on('messageDeleted', handleMessageDeleted);
+    socket.on('readReceipt', handleReadReceipt);
     socket.on('exception', handleException);
     socket.io.on('reconnect_attempt', () => setConnection('reconnecting'));
     socket.io.on('reconnect_failed', () => setConnection('offline'));
@@ -254,6 +357,9 @@ export const OrderChat = ({
       socket.off('disconnect', handleDisconnect);
       socket.off('connect_error', handleConnectError);
       socket.off('messageCreated', handleMessageCreated);
+      socket.off('messageUpdated', handleMessageUpdated);
+      socket.off('messageDeleted', handleMessageDeleted);
+      socket.off('readReceipt', handleReadReceipt);
       socket.off('exception', handleException);
       socket.io.off('reconnect_attempt');
       socket.io.off('reconnect_failed');
@@ -273,6 +379,57 @@ export const OrderChat = ({
       ),
     );
     setError(reason);
+  };
+
+  const handleStartEdit = (message: ChatMessage) => {
+    setEditingId(message.id);
+    setEditDraft(message.text);
+    setOpenMenuId(null);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditDraft('');
+  };
+
+  const handleSaveEdit = (messageId: string) => {
+    const text = editDraft.trim();
+    if (!text) {
+      setError('A mensagem não pode ficar vazia.');
+      return;
+    }
+    const socket = socketRef.current;
+    if (!socket || !socket.connected) {
+      setError('Chat offline. Tente novamente.');
+      return;
+    }
+    setMessages((prev) =>
+      prev.map((entry) =>
+        entry.id === messageId
+          ? { ...entry, text, editedAt: new Date().toISOString() }
+          : entry,
+      ),
+    );
+    socket.emit('editMessage', { messageId, content: text });
+    setEditingId(null);
+    setEditDraft('');
+  };
+
+  const handleDeleteMessage = (messageId: string) => {
+    const socket = socketRef.current;
+    if (!socket || !socket.connected) {
+      setError('Chat offline. Tente novamente.');
+      return;
+    }
+    setMessages((prev) =>
+      prev.map((entry) =>
+        entry.id === messageId
+          ? { ...entry, text: '', deletedAt: new Date().toISOString() }
+          : entry,
+      ),
+    );
+    socket.emit('deleteMessage', { messageId });
+    setOpenMenuId(null);
   };
 
   const handleSend = (event: FormEvent<HTMLFormElement>) => {
@@ -320,7 +477,7 @@ export const OrderChat = ({
         }
 
         if (!response?.id) {
-          markMessageFailed(localId, 'Não foi possível enviar a mensagem.');
+          markMessageFailed(localId, 'NÃ£o foi possÃ­vel enviar a mensagem.');
           return;
         }
 
@@ -361,6 +518,19 @@ export const OrderChat = ({
     return { label: 'OFFLINE', tone: 'text-slate-400' } as const;
   }, [connection, online]);
 
+  const lastReadAtOther = useMemo(() => {
+    const otherReads = readReceipts.filter((receipt) => receipt.userId !== userId);
+    if (otherReads.length === 0) {
+      return null;
+    }
+    const mostRecent = otherReads.reduce((acc, current) =>
+      new Date(current.lastReadAt).getTime() > new Date(acc.lastReadAt).getTime()
+        ? current
+        : acc,
+    );
+    return mostRecent.lastReadAt;
+  }, [readReceipts, userId]);
+
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-[26px] border border-slate-100 bg-white shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-4">
@@ -379,7 +549,7 @@ export const OrderChat = ({
           </div>
         </div>
         <div className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-semibold text-slate-500">
-          Resposta media: 5 min
+          Resposta média: 5 min
         </div>
       </div>
 
@@ -400,9 +570,7 @@ export const OrderChat = ({
           <div className="flex items-start gap-2">
             <ShieldCheck size={16} className="mt-0.5 text-blue-600" aria-hidden />
             <p>
-              Compra garantida pela Meoww Store. O dinheiro esta retido até você
-              confirmar o recebimento. Não libere antes de testar.
-            </p>
+              Compra garantida pela Meoww Store. O pagamento fica retido em segurança até você confirmar o recebimento. Só libere após testar o produto.</p>
           </div>
         </div>
 
@@ -419,7 +587,7 @@ export const OrderChat = ({
                 onClick={() => loadHistory(historyCursor)}
                 disabled={historyBusy}
               >
-                {historyBusy ? 'Carregando...' : 'Mostrar anteriores'}
+                {historyBusy ? 'Carregando...' : 'Ver mensagens anteriores'}
               </Button>
             </div>
           ) : null}
@@ -428,6 +596,23 @@ export const OrderChat = ({
           ) : (
             messages.map((message) => {
               const isOwn = message.userId === userId;
+              const isDeleted = Boolean(message.deletedAt);
+              const isEditing = editingId === message.id;
+              const lastRead = lastReadAtOther ? new Date(lastReadAtOther) : null;
+              const isSeen =
+                isOwn && lastRead
+                  ? lastRead.getTime() >= new Date(message.createdAt).getTime()
+                  : false;
+              const statusText = isOwn
+                ? message.status === 'pending'
+                  ? 'Enviando...'
+                  : message.status === 'failed'
+                    ? 'Falhou'
+                    : isSeen
+                      ? 'âœ“âœ“ Visto'
+                      : 'âœ“ Enviado'
+                : null;
+
               return (
                 <div
                   className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
@@ -438,24 +623,83 @@ export const OrderChat = ({
                       {(sellerInitials ?? 'VP').slice(0, 2).toUpperCase()}
                     </div>
                   ) : null}
-                  <div className={`max-w-[75%]`}>
-                    <div
-                      className={`rounded-2xl px-4 py-2 text-sm shadow-sm ${
-                        isOwn
-                          ? 'bg-gradient-to-r from-[#f78fb3] to-[#f04f7a] text-white'
-                          : 'bg-white text-meow-charcoal'
-                      } ${message.status === 'failed' ? 'border border-red-200' : ''}`}
-                    >
-                      <p>{message.text}</p>
+                  <div className="max-w-[75%]">
+                    <div className="flex items-start justify-between gap-2">
+                      <div
+                        className={`rounded-2xl px-4 py-2 text-sm shadow-sm ${
+                          isDeleted
+                            ? 'bg-slate-100 text-slate-400'
+                            : isOwn
+                              ? 'bg-meow-linear text-white'
+                              : 'bg-white text-meow-charcoal'
+                        } ${message.status === 'failed' ? 'border border-red-200' : ''}`}
+                      >
+                        {isEditing ? (
+                          <div className="space-y-2 text-meow-charcoal">
+                            <Textarea
+                              rows={3}
+                              value={editDraft}
+                              onChange={(event) => setEditDraft(event.target.value)}
+                              className="bg-white"
+                            />
+                            <div className="flex items-center justify-end gap-2">
+                              <Button type="button" size="sm" variant="ghost" onClick={handleCancelEdit}>
+                                Cancelar
+                              </Button>
+                              <Button type="button" size="sm" onClick={() => handleSaveEdit(message.id)}>
+                                Salvar
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <p>{isDeleted ? 'Mensagem apagada' : message.text}</p>
+                        )}
+                      </div>
+                      {isOwn && !isDeleted && !isEditing ? (
+                        <div className="relative">
+                          <button
+                            type="button"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-500 hover:border-meow-red/30 hover:text-meow-deep"
+                            onClick={() =>
+                              setOpenMenuId((prev) => (prev === message.id ? null : message.id))
+                            }
+                            aria-label="Mais acoes"
+                          >
+                            <MoreHorizontal size={14} />
+                          </button>
+                          {openMenuId === message.id ? (
+                            <div className="absolute right-0 top-9 z-10 w-36 rounded-xl border border-slate-200 bg-white p-2 text-xs shadow-card">
+                              <button
+                                type="button"
+                                className="flex w-full items-center gap-2 rounded-lg px-2 py-1 text-slate-600 hover:bg-slate-50"
+                                onClick={() => handleStartEdit(message)}
+                              >
+                                <Pencil size={12} />
+                                Editar
+                              </button>
+                              <button
+                                type="button"
+                                className="mt-1 flex w-full items-center gap-2 rounded-lg px-2 py-1 text-red-500 hover:bg-red-50"
+                                onClick={() => handleDeleteMessage(message.id)}
+                              >
+                                <Trash2 size={12} />
+                                Apagar
+                              </button>
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : null}
                     </div>
                     <div
                       className={`mt-1 flex items-center justify-between gap-2 text-[10px] ${
                         isOwn ? 'text-pink-400' : 'text-slate-400'
                       }`}
                     >
-                      <span>{formatTime(message.createdAt)}</span>
-                      {message.status === 'pending' ? <span>Enviando...</span> : null}
-                      {message.status === 'failed' ? <span>Falhou</span> : null}
+                      <span>
+                        {formatTime(message.createdAt)}
+                        {message.editedAt && !isDeleted ? ' (editado)' : ''}
+                      </span>
+                      {statusText ? <span>{statusText}</span> : null}
                     </div>
                   </div>
                   {isOwn ? (
@@ -487,7 +731,7 @@ export const OrderChat = ({
           />
           <button
             type="submit"
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-r from-[#f78fb3] to-[#f04f7a] text-white"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-meow-linear text-white"
             disabled={!canSend}
             aria-label="Enviar"
           >
@@ -498,4 +742,7 @@ export const OrderChat = ({
     </div>
   );
 };
+
+
+
 

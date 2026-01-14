@@ -6,8 +6,21 @@ export type ChatMessage = {
   senderId: string;
   type: string;
   content: string;
+  editedAt?: string | null;
+  deletedAt?: string | null;
   createdAt: string;
   updatedAt: string;
+};
+
+export type ChatReadReceipt = {
+  userId: string;
+  lastReadAt: string;
+};
+
+export type ChatMessagesResponse = {
+  roomId: string;
+  messages: ChatMessage[];
+  readReceipts: ChatReadReceipt[];
 };
 
 const authHeaders = (token: string | null) =>
@@ -31,6 +44,6 @@ export const chatApi = {
     const path = query
       ? `/chat/orders/${orderId}/messages?${query}`
       : `/chat/orders/${orderId}/messages`;
-    return apiFetch<ChatMessage[]>(path, { headers: authHeaders(token) });
+    return apiFetch<ChatMessagesResponse>(path, { headers: authHeaders(token) });
   },
 };

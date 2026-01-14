@@ -341,11 +341,11 @@ export const SiteHeader = () => {
             <img
               src="/assets/meoow/logo.png"
               alt="Meoww Games"
-              className="h-10 w-auto"
+              className="h-12 w-auto"
             />
           </Link>
 
-          <div className="flex w-full items-center gap-3 rounded-full border border-meow-red/20 bg-meow-cream/80 px-4 py-2 shadow-[0_10px_24px_rgba(216,107,149,0.12)] md:max-w-[520px]">
+          <div className="flex w-full items-center gap-3 rounded-full border border-meow-red/20 bg-meow-cream/80 px-4 py-2 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
             <Search size={16} className="text-meow-deep" aria-hidden />
             <input
               className="flex-1 bg-transparent text-sm text-meow-charcoal outline-none placeholder:text-meow-muted"

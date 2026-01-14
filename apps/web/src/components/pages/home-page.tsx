@@ -25,27 +25,27 @@ import { HomeListingCard } from '../listings/home-listing-card';
 const benefits = [
   {
     icon: Truck,
-    title: 'Frete gratis acima de R$349',
-    description: 'Em regioes selecionadas',
+    title: 'Frete grátis acima de R$349',
+    description: 'Em regiões selecionadas',
   },
   {
     icon: BadgePercent,
-    title: 'Descontos em pagamentos a vista',
-    description: 'Economize no PIX',
+    title: 'Descontos em pagamentos à vista',
+    description: 'Economize no Pix',
   },
   {
     icon: Package,
-    title: 'Entrega local receba hoje',
-    description: 'Entrega express',
+    title: 'Entrega local, receba hoje',
+    description: 'Entrega expressaa',
   },
   {
     icon: CreditCard,
-    title: 'Pague com cartao em até 12x s/ juros',
-    description: 'Parcelamento facil',
+    title: 'Pague com cartão em até 12x sem juros',
+    description: 'Parcelamento fácil',
   },
   {
     icon: ShieldCheck,
-    title: 'Seguranca loja oficial',
+    title: 'Segurança de loja oficial',
     description: 'Compra protegida',
   },
 ];
@@ -192,15 +192,15 @@ export const HomeContent = () => {
 
       <section className="px-6 pb-10">
         <div className="mx-auto w-full max-w-[1280px]">
-          <div className="grid gap-4 rounded-2xl border border-meow-red/10 bg-white px-5 py-6 shadow-[0_14px_34px_rgba(216,107,149,0.12)] sm:grid-cols-2 lg:grid-cols-5">
+          <div className="grid gap-5 rounded-2xl border border-meow-red/10 bg-white px-6 py-8 shadow-[0_14px_34px_rgba(216,107,149,0.12)] sm:grid-cols-2 lg:grid-cols-5">
             {benefits.map((item) => (
-              <div key={item.title} className="flex items-center gap-3">
+              <div key={item.title} className="flex items-start gap-4">
                 <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-meow-cream/70 text-meow-deep">
                   <item.icon size={22} aria-hidden />
                 </span>
-                <div>
-                  <p className="text-sm font-bold text-meow-charcoal">{item.title}</p>
-                  <p className="text-xs text-meow-muted">{item.description}</p>
+                <div className="space-y-1">
+                  <p className="text-sm font-bold leading-snug text-meow-charcoal">{item.title}</p>
+                  <p className="text-xs leading-relaxed text-meow-muted">{item.description}</p>
                 </div>
               </div>
             ))}
@@ -254,9 +254,9 @@ export const HomeContent = () => {
                     key={item.id ?? item.slug}
                     className="flex min-w-[120px] flex-col items-center gap-3"
                   >
-                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#cf1e3a] text-lg font-black text-white shadow-[0_12px_24px_rgba(207,30,58,0.35)]">
-                      {initials}
-                    </div>
+                  <div className="flex h-24 w-24 items-center justify-center rounded-full bg-meow-deep text-xl font-black text-white shadow-[0_16px_30px_rgba(255,107,149,0.35)]">
+                    {initials}
+                  </div>
                     <span className="text-xs font-semibold text-meow-charcoal">
                       {item.label}
                     </span>

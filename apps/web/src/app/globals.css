@@ -21,8 +21,8 @@
     --radius-lg: 20px;
     --radius-md: 12px;
     --radius-sm: 8px;
-    --font-display: "Nunito", sans-serif;
-    --font-body: "Nunito", sans-serif;
+    --font-display: "Poppins", sans-serif;
+    --font-body: "Poppins", sans-serif;
 }
 
 html[data-theme='dark'] {

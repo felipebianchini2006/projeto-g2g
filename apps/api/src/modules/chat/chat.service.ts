@@ -51,20 +51,81 @@ export class ChatService {
   }
 
   async listMessages(orderId: string, take = 20, cursor?: string) {
+    const room = await this.getOrCreateRoom(orderId);
     const limit = Math.max(1, Math.min(take, 100));
     const parsedCursor = cursor ? new Date(cursor) : null;
     const isValidCursor = parsedCursor instanceof Date && !Number.isNaN(parsedCursor.getTime());
     const where = isValidCursor
       ? {
-          room: { orderId },
+          roomId: room.id,
           createdAt: { lt: parsedCursor },
         }
-      : { room: { orderId } };
+      : { roomId: room.id };
 
-    return this.prisma.chatMessage.findMany({
+    const messages = await this.prisma.chatMessage.findMany({
       where,
       orderBy: { createdAt: 'desc' },
       take: limit,
     });
+
+    const readReceipts = await this.prisma.chatRoomRead.findMany({
+      where: { roomId: room.id },
+      select: { userId: true, lastReadAt: true },
+    });
+
+    return { messages, readReceipts, roomId: room.id };
+  }
+
+  async updateMessage(messageId: string, userId: string, role: UserRole, content: string) {
+    const message = await this.prisma.chatMessage.findUnique({
+      where: { id: messageId },
+      select: { id: true, senderId: true, deletedAt: true },
+    });
+    if (!message) {
+      throw new NotFoundException('Message not found.');
+    }
+    if (message.deletedAt) {
+      throw new ForbiddenException('Message deleted.');
+    }
+    if (role !== UserRole.ADMIN && message.senderId !== userId) {
+      throw new ForbiddenException('Only the author can edit.');
+    }
+
+    return this.prisma.chatMessage.update({
+      where: { id: messageId },
+      data: { content, editedAt: new Date() },
+      include: { room: { select: { orderId: true } } },
+    });
+  }
+
+  async deleteMessage(messageId: string, userId: string, role: UserRole) {
+    const message = await this.prisma.chatMessage.findUnique({
+      where: { id: messageId },
+      select: { id: true, senderId: true, deletedAt: true },
+    });
+    if (!message) {
+      throw new NotFoundException('Message not found.');
+    }
+    if (role !== UserRole.ADMIN && message.senderId !== userId) {
+      throw new ForbiddenException('Only the author can delete.');
+    }
+
+    const deletedAt = message.deletedAt ?? new Date();
+    return this.prisma.chatMessage.update({
+      where: { id: messageId },
+      data: { content: '', deletedAt },
+      include: { room: { select: { orderId: true } } },
+    });
+  }
+
+  async markRead(orderId: string, userId: string, readAt?: Date) {
+    const room = await this.getOrCreateRoom(orderId);
+    const lastReadAt = readAt ?? new Date();
+    const receipt = await this.prisma.chatRoomRead.upsert({
+      where: { roomId_userId: { roomId: room.id, userId } },
+      update: { lastReadAt },
+      create: { roomId: room.id, userId, lastReadAt },
+    });
+    return { roomId: room.id, userId, lastReadAt: receipt.lastReadAt };
   }
 }

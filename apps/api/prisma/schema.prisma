@@ -915,8 +915,9 @@ model ChatRoom {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  order    Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order    Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
   messages ChatMessage[]
+  reads    ChatRoomRead[]
 
   @@map("chat_rooms")
 }
@@ -927,6 +928,8 @@ model ChatMessage {
   senderId  String
   type      ChatMessageType @default(TEXT)
   content   String
+  editedAt  DateTime?
+  deletedAt DateTime?
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
 
@@ -936,6 +939,21 @@ model ChatMessage {
   @@index([roomId])
   @@index([senderId])
   @@map("chat_messages")
+}
+
+model ChatRoomRead {
+  id         String   @id @default(uuid())
+  roomId     String
+  userId     String
+  lastReadAt DateTime @default(now())
+
+  room ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User     @relation(fields: [userId], references: [id])
+
+  @@unique([roomId, userId])
+  @@index([roomId])
+  @@index([userId])
+  @@map("chat_room_reads")
 }
 
 model Ticket {

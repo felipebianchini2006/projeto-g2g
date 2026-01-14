@@ -93,12 +93,12 @@ export const AdminDisputeDetailContent = ({ disputeId }: AdminDisputeDetailConte
     setChatBusy(true);
     try {
       const data = await chatApi.listOrderMessages(accessToken, orderId, cursor ?? undefined, 20);
-      if (data.length === 0) {
+      if (data.messages.length === 0) {
         setHasMoreChat(false);
       } else {
-        const nextCursor = data[data.length - 1]?.createdAt;
+        const nextCursor = data.messages[data.messages.length - 1]?.createdAt;
         setChatCursor(nextCursor);
-        setChatMessages((prev) => [...prev, ...data]);
+        setChatMessages((prev) => [...prev, ...data.messages]);
       }
     } catch (error) {
       const message =
