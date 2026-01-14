@@ -83,7 +83,7 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
           { label: 'Favoritos', href: '/conta/favoritos' },
           { label: 'Carteira', href: '/conta/carteira' },
           { label: 'Meus tickets', href: '/conta/tickets' },
-          { label: 'Perguntas enviadas', href: '/conta/perguntas/enviadas' },
+          { label: 'Minhas perguntas', href: '/conta/perguntas' },
         ],
       },
     ];
@@ -95,7 +95,7 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
           { label: 'Painel do vendedor', href: '/conta/vendedor' },
           { label: 'Meus anúncios', href: '/conta/anuncios' },
           { label: 'Minhas vendas', href: '/conta/vendas' },
-          { label: 'Perguntas recebidas', href: '/conta/perguntas/recebidas' },
+          { label: 'Perguntas recebidas', href: '/conta/perguntas-recebidas' },
         ],
       });
     }
@@ -291,7 +291,7 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
                           Favoritos: <Heart size={16} aria-hidden />,
                           Carteira: <Wallet size={16} aria-hidden />,
                           'Meus tickets': <LifeBuoy size={16} aria-hidden />,
-                          'Perguntas enviadas': <MessageCircle size={16} aria-hidden />,
+                          'Minhas perguntas': <MessageCircle size={16} aria-hidden />,
                           'Perguntas recebidas': <MessageCircle size={16} aria-hidden />,
                           'Meus dados': <UserRound size={16} aria-hidden />,
                           Configuracoes: <Settings size={16} aria-hidden />,

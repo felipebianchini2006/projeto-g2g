@@ -264,7 +264,7 @@ export const AdminDisputeDetailContent = ({ disputeId }: AdminDisputeDetailConte
                 onClick={() => handleResolve('refund')}
                 disabled={actionBusy}
               >
-                {actionBusy ? 'Processando...' : 'Reembolsar buyer'}
+                {actionBusy ? 'Processando...' : 'Reembolsar'}
               </button>
               <button className={buttonVariants({ variant: 'ghost', size: 'sm' })} type="button" disabled>
                 Parcial (MVP)

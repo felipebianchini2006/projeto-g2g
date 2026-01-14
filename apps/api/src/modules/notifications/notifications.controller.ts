@@ -1,5 +1,6 @@
 import {
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -38,6 +39,18 @@ export class NotificationsController {
   markAllRead(@Req() req: AuthenticatedRequest) {
     const userId = this.getUserId(req);
     return this.notificationsService.markAllRead(userId);
+  }
+
+  @Delete(':id')
+  deleteOne(@Req() req: AuthenticatedRequest, @Param('id') notificationId: string) {
+    const userId = this.getUserId(req);
+    return this.notificationsService.deleteOne(userId, notificationId);
+  }
+
+  @Delete()
+  clearAll(@Req() req: AuthenticatedRequest) {
+    const userId = this.getUserId(req);
+    return this.notificationsService.clearAll(userId);
   }
 
   private getUserId(request: AuthenticatedRequest) {

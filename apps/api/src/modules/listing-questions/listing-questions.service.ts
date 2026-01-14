@@ -175,6 +175,9 @@ export class ListingQuestionsService {
               id: true,
               title: true,
               sellerId: true,
+              priceCents: true,
+              currency: true,
+              seller: { select: userSelect },
               media: {
                 orderBy: { position: 'asc' },
                 take: 1,
@@ -199,6 +202,9 @@ export class ListingQuestionsService {
             id: true,
             title: true,
             sellerId: true,
+            priceCents: true,
+            currency: true,
+            seller: { select: userSelect },
             media: {
               orderBy: { position: 'asc' },
               take: 1,

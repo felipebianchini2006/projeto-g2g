@@ -162,7 +162,7 @@ export const AdminShell = ({ breadcrumbs, children }: AdminShellProps) => {
   }
 
   return (
-    <section className="bg-meow-50/60 px-6 py-10">
+    <section className="bg-white px-6 py-10">
       <div className="mx-auto w-full max-w-[1200px]">
         {breadcrumbs?.length ? (
           <div className="text-xs font-semibold text-meow-muted">
@@ -189,7 +189,7 @@ export const AdminShell = ({ breadcrumbs, children }: AdminShellProps) => {
         ) : null}
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
-          <aside className="rounded-2xl border border-meow-100 bg-white p-5 shadow-card">
+          <aside className="rounded-xl border border-slate-200 bg-white p-5 shadow-card">
             {menuSections.map((section) => (
               <div key={section.title} className="mb-6 last:mb-0">
                 <button
@@ -211,10 +211,10 @@ export const AdminShell = ({ breadcrumbs, children }: AdminShellProps) => {
                   <div className="mt-3 grid gap-1 text-sm">
                     {section.items.map((item) => {
                       const baseClasses =
-                        'flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold transition';
+                        'flex items-center gap-3 rounded-xl border border-transparent px-3 py-2 text-sm font-semibold transition';
                       const activeClasses = isActivePath(pathname, item.href)
-                        ? 'bg-meow-100 text-meow-deep'
-                        : 'text-meow-charcoal/80 hover:bg-meow-50 hover:text-meow-charcoal';
+                        ? 'border-meow-red/30 bg-meow-red/10 text-meow-deep'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-700';
                       const dangerClasses =
                         item.tone === 'danger' ? 'text-red-500 hover:text-red-600' : '';
 

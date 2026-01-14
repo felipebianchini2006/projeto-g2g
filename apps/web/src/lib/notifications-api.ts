@@ -46,4 +46,16 @@ export const notificationsApi = {
       method: 'POST',
       headers: authHeaders(token),
     }),
+
+  deleteOne: (token: string | null, notificationId: string) =>
+    apiFetch<{ success: true }>(`/notifications/${notificationId}`, {
+      method: 'DELETE',
+      headers: authHeaders(token),
+    }),
+
+  clearAll: (token: string | null) =>
+    apiFetch<{ success: true }>('/notifications', {
+      method: 'DELETE',
+      headers: authHeaders(token),
+    }),
 };

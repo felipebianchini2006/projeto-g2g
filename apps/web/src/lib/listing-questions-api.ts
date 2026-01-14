@@ -11,7 +11,10 @@ export type ListingQuestionListing = {
   id: string;
   title: string;
   sellerId?: string | null;
+  seller?: ListingQuestionUser | null;
   media?: { id: string; url: string; type: string }[];
+  priceCents?: number;
+  currency?: string;
 };
 
 export type ListingQuestion = {
