@@ -325,11 +325,11 @@ export const SiteHeader = () => {
   return (
     <>
       <div className="bg-gradient-to-r from-[#f2a4c3] via-[#f7b8d1] to-[#f2a4c3] text-white">
-        <div className="mx-auto flex w-full max-w-[1280px] flex-wrap items-center justify-center gap-3 px-6 py-2 text-center text-[11px] font-bold uppercase tracking-[0.6px] sm:justify-between">
+        <div className="relative mx-auto w-full max-w-[1280px] px-6 py-2 text-[11px] font-bold uppercase tracking-[0.6px] flex flex-col items-center gap-2 text-center sm:block">
           <span>Frete grátis em regiões selecionadas nas compras acima de R$349</span>
           <Link
             href="/produtos"
-            className="rounded-full bg-white px-3 py-1 text-[10px] font-extrabold text-meow-deep shadow-sm"
+            className="rounded-full bg-white px-3 py-1 text-[10px] font-extrabold text-meow-deep shadow-sm sm:absolute sm:right-6 sm:top-1/2 sm:-translate-y-1/2"
           >
             Saiba mais
           </Link>
@@ -651,9 +651,8 @@ export const SiteHeader = () => {
                           className={`flex items-center gap-3 rounded-2xl px-3 py-2 transition ${darkMode ? 'hover:bg-white/5' : 'hover:bg-meow-cream/60'}`}
                         >
                           <span
-                            className={`flex h-10 w-10 items-center justify-center rounded-2xl ${
-                              darkMode ? 'bg-white/10 text-white' : item.tone
-                            }`}
+                            className={`flex h-10 w-10 items-center justify-center rounded-2xl ${darkMode ? 'bg-white/10 text-white' : item.tone
+                              }`}
                           >
                             <item.icon size={18} aria-hidden />
                           </span>
