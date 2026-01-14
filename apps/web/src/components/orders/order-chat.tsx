@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { io, type Socket } from 'socket.io-client';
 import {
   MoreHorizontal,
@@ -73,8 +74,18 @@ type ReadReceiptPayload = {
 const PAGE_SIZE = 20;
 
 const buildChatUrl = () => {
-  const baseUrl = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:3001';
-  return `${baseUrl.replace(/\/$/, '')}/chat`;
+  const fallbackOrigin =
+    typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3001';
+
+  const wsOrigin = process.env['NEXT_PUBLIC_WS_ORIGIN'];
+  if (wsOrigin) {
+    const resolved = new URL(wsOrigin, fallbackOrigin);
+    return `${resolved.origin}/chat`;
+  }
+
+  const base = process.env['NEXT_PUBLIC_API_URL'] ?? fallbackOrigin;
+  const resolved = new URL(base, fallbackOrigin);
+  return `${resolved.origin}/chat`;
 };
 
 const formatTime = (value: string) =>
@@ -111,6 +122,9 @@ export const OrderChat = ({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState('');
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(
+    null,
+  );
   const socketRef = useRef<Socket | null>(null);
   const timeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const listRef = useRef<HTMLDivElement | null>(null);
@@ -146,6 +160,24 @@ export const OrderChat = ({
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
+
+  useEffect(() => {
+    if (!openMenuId) {
+      return;
+    }
+    const closeMenu = () => {
+      setOpenMenuId(null);
+      setMenuPosition(null);
+    };
+    window.addEventListener('click', closeMenu);
+    window.addEventListener('scroll', closeMenu, true);
+    window.addEventListener('resize', closeMenu);
+    return () => {
+      window.removeEventListener('click', closeMenu);
+      window.removeEventListener('scroll', closeMenu, true);
+      window.removeEventListener('resize', closeMenu);
+    };
+  }, [openMenuId]);
 
   const loadHistory = async (cursor?: string | null) => {
     if (!accessToken || historyBusy || !hasMoreHistory) {
@@ -194,6 +226,7 @@ export const OrderChat = ({
     setEditingId(null);
     setEditDraft('');
     setOpenMenuId(null);
+    setMenuPosition(null);
     if (accessToken && orderId) {
       loadHistory(null);
     }
@@ -223,7 +256,9 @@ export const OrderChat = ({
 
     const socket = io(chatUrl, {
       auth: { token: accessToken },
-      transports: ['websocket'],
+      path: '/socket.io',
+      transports: ['websocket', 'polling'],
+      timeout: 20000,
       reconnectionAttempts: 10,
     });
 
@@ -244,6 +279,12 @@ export const OrderChat = ({
     const handleConnectError = (err: Error) => {
       const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
       setConnection(isOnline ? 'reconnecting' : 'offline');
+      if (err?.message?.toLowerCase().includes('timeout')) {
+        setError(
+          'Não foi possível conectar ao chat em tempo real. Verifique a configuração do WebSocket (/socket.io).',
+        );
+        return;
+      }
       setError(err?.message ?? 'Falha ao conectar no chat.');
     };
 
@@ -385,6 +426,7 @@ export const OrderChat = ({
     setEditingId(message.id);
     setEditDraft(message.text);
     setOpenMenuId(null);
+    setMenuPosition(null);
   };
 
   const handleCancelEdit = () => {
@@ -430,6 +472,7 @@ export const OrderChat = ({
     );
     socket.emit('deleteMessage', { messageId });
     setOpenMenuId(null);
+    setMenuPosition(null);
   };
 
   const handleSend = (event: FormEvent<HTMLFormElement>) => {
@@ -660,32 +703,61 @@ export const OrderChat = ({
                           <button
                             type="button"
                             className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-500 hover:border-meow-red/30 hover:text-meow-deep"
-                            onClick={() =>
-                              setOpenMenuId((prev) => (prev === message.id ? null : message.id))
-                            }
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              if (openMenuId === message.id) {
+                                setOpenMenuId(null);
+                                setMenuPosition(null);
+                                return;
+                              }
+                              const rect = event.currentTarget.getBoundingClientRect();
+                              const menuWidth = 144;
+                              const menuHeight = 76;
+                              const spacing = 8;
+                              const shouldOpenUp =
+                                rect.bottom + menuHeight + spacing > window.innerHeight;
+                              const top = shouldOpenUp
+                                ? Math.max(spacing, rect.top - menuHeight - spacing)
+                                : rect.bottom + spacing;
+                              const left = Math.min(
+                                Math.max(spacing, rect.right - menuWidth),
+                                window.innerWidth - menuWidth - spacing,
+                              );
+                              setOpenMenuId(message.id);
+                              setMenuPosition({ top, left });
+                            }}
                             aria-label="Mais acoes"
                           >
                             <MoreHorizontal size={14} />
                           </button>
                           {openMenuId === message.id ? (
-                            <div className="absolute right-0 top-9 z-10 w-36 rounded-xl border border-slate-200 bg-white p-2 text-xs shadow-card">
-                              <button
-                                type="button"
-                                className="flex w-full items-center gap-2 rounded-lg px-2 py-1 text-slate-600 hover:bg-slate-50"
-                                onClick={() => handleStartEdit(message)}
-                              >
-                                <Pencil size={12} />
-                                Editar
-                              </button>
-                              <button
-                                type="button"
-                                className="mt-1 flex w-full items-center gap-2 rounded-lg px-2 py-1 text-red-500 hover:bg-red-50"
-                                onClick={() => handleDeleteMessage(message.id)}
-                              >
-                                <Trash2 size={12} />
-                                Apagar
-                              </button>
-                            </div>
+                            menuPosition
+                              ? createPortal(
+                                  <div
+                                    className="fixed z-[1000] w-36 rounded-xl bg-white p-2 text-xs shadow-card"
+                                    style={{ top: menuPosition.top, left: menuPosition.left }}
+                                    onClick={(event) => event.stopPropagation()}
+                                  >
+                                    <button
+                                      type="button"
+                                      className="flex w-full items-center gap-2 rounded-lg px-2 py-1 text-slate-600 hover:bg-slate-50"
+                                      onClick={() => handleStartEdit(message)}
+                                    >
+                                      <Pencil size={12} />
+                                      Editar
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="mt-1 flex w-full items-center gap-2 rounded-lg px-2 py-1 text-red-500 hover:bg-red-50"
+                                      onClick={() => handleDeleteMessage(message.id)}
+                                    >
+                                      <Trash2 size={12} />
+                                      Apagar
+                                    </button>
+                                  </div>,
+                                  document.body,
+                                )
+                              : null
                           ) : null}
                         </div>
                       ) : null}

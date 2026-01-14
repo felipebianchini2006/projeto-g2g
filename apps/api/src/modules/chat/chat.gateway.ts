@@ -78,6 +78,8 @@ const MAX_MESSAGE_LENGTH = 2000;
 
 @WebSocketGateway({
   namespace: '/chat',
+  path: '/socket.io',
+  cors: { origin: true, credentials: true },
 })
 export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
