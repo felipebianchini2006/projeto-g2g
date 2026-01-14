@@ -247,12 +247,12 @@ export const HomeContent = () => {
                 return (
                   <div
                     key={item.id ?? item.slug}
-                    className="flex min-w-[120px] flex-col items-center gap-3"
+                    className="flex min-w-[144px] flex-col items-center gap-4"
                   >
-                    <div className="flex h-24 w-24 items-center justify-center rounded-full bg-meow-deep text-xl font-black text-white shadow-[0_16px_30px_rgba(255,107,149,0.35)]">
+                    <div className="flex h-32 w-32 items-center justify-center rounded-full bg-meow-deep text-3xl font-black text-white shadow-[0_16px_30px_rgba(255,107,149,0.35)] transition duration-300 hover:scale-105">
                       {initials}
                     </div>
-                    <span className="text-xs font-semibold text-meow-charcoal">
+                    <span className="text-sm font-bold text-meow-charcoal">
                       {item.label}
                     </span>
                   </div>
