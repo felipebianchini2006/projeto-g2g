@@ -249,7 +249,7 @@ export const WalletSummaryContent = () => {
         { label: 'Carteira' },
       ]}
     >
-      <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
+      <Card className="rounded-2xl border border-slate-100 p-6 shadow-card">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
@@ -330,7 +330,7 @@ export const WalletSummaryContent = () => {
       ) : null}
 
       <div className="grid gap-4 lg:grid-cols-[1.7fr_1fr]">
-        <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
+        <Card className="rounded-2xl border border-slate-100 p-6 shadow-card">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-base font-black text-meow-charcoal">Fluxo de caixa</h2>
             <Select className="h-9 w-[160px]" defaultValue="7">
@@ -352,7 +352,7 @@ export const WalletSummaryContent = () => {
           ) : null}
         </Card>
 
-        <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
+        <Card className="rounded-2xl border border-slate-100 p-6 shadow-card">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-black text-meow-charcoal">Nivel de vendedor</h2>
           </div>

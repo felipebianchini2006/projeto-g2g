@@ -177,7 +177,7 @@ export const HomeContent = () => {
     <div className="pb-16">
       <section className="px-6 pb-10 pt-8">
         <div className="mx-auto w-full max-w-[1280px]">
-          <div className="relative overflow-hidden rounded-[32px] border border-meow-red/15 bg-[#f5d6e5] shadow-[0_30px_60px_rgba(216,107,149,0.28)]">
+          <div className="relative overflow-hidden rounded-3xl border border-meow-red/15 bg-[#f5d6e5] shadow-[0_30px_60px_rgba(216,107,149,0.28)]">
             <div className="flex min-h-[220px] items-center justify-center sm:min-h-[340px] lg:min-h-[420px]">
               <img
                 src="/assets/meoow/banner.png"
@@ -192,7 +192,7 @@ export const HomeContent = () => {
 
       <section className="px-6 pb-10">
         <div className="mx-auto w-full max-w-[1280px]">
-          <div className="grid gap-4 rounded-[28px] border border-meow-red/10 bg-white px-5 py-6 shadow-[0_14px_34px_rgba(216,107,149,0.12)] sm:grid-cols-2 lg:grid-cols-5">
+          <div className="grid gap-4 rounded-2xl border border-meow-red/10 bg-white px-5 py-6 shadow-[0_14px_34px_rgba(216,107,149,0.12)] sm:grid-cols-2 lg:grid-cols-5">
             {benefits.map((item) => (
               <div key={item.title} className="flex items-center gap-3">
                 <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-meow-cream/70 text-meow-deep">

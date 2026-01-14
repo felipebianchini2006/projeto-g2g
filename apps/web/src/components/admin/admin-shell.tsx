@@ -189,7 +189,7 @@ export const AdminShell = ({ breadcrumbs, children }: AdminShellProps) => {
         ) : null}
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
-          <aside className="rounded-[28px] border border-meow-100 bg-white p-5 shadow-card">
+          <aside className="rounded-2xl border border-meow-100 bg-white p-5 shadow-card">
             {menuSections.map((section) => (
               <div key={section.title} className="mb-6 last:mb-0">
                 <button

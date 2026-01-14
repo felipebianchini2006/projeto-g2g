@@ -90,7 +90,7 @@ export const CategoryContent = ({ slug }: CategoryContentProps) => {
   return (
     <section className="bg-meow-gradient pb-16">
       <div className="mx-auto w-full max-w-[1240px] px-6 pt-10">
-        <div className="rounded-[32px] border border-meow-red/10 bg-white p-6 shadow-card">
+        <div className="rounded-3xl border border-meow-red/10 bg-white p-6 shadow-card">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <h1 className="text-3xl font-black text-meow-charcoal">

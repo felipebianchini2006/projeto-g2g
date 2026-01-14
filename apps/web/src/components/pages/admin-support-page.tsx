@@ -199,7 +199,7 @@ export const AdminSupportContent = () => {
         { label: 'Atendimento' },
       ]}
     >
-      <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
+      <Card className="rounded-2xl border border-slate-100 p-6 shadow-card">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="text-xl font-black text-meow-charcoal">Fila de suporte</h1>
@@ -216,7 +216,7 @@ export const AdminSupportContent = () => {
         </div>
       </Card>
 
-      <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
+      <Card className="rounded-2xl border border-slate-100 p-6 shadow-card">
         <div className="grid gap-4 md:grid-cols-3">
           <label className="grid gap-2 text-xs font-semibold text-meow-muted">
             SLA
@@ -258,7 +258,7 @@ export const AdminSupportContent = () => {
       </Card>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
+        <Card className="rounded-2xl border border-slate-100 p-6 shadow-card">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-bold text-meow-charcoal">Disputas</h2>
             <span className="text-xs text-meow-muted">{filteredDisputes.length} itens</span>
@@ -306,7 +306,7 @@ export const AdminSupportContent = () => {
           </div>
         </Card>
 
-        <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
+        <Card className="rounded-2xl border border-slate-100 p-6 shadow-card">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-bold text-meow-charcoal">Tickets</h2>
             <span className="text-xs text-meow-muted">{filteredTickets.length} itens</span>

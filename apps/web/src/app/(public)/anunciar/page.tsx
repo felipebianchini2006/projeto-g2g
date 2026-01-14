@@ -433,7 +433,7 @@ export default function Page() {
   if (!user) {
     return (
       <section className="flex min-h-screen items-center justify-center bg-meow-50 px-6 py-16">
-        <div className="w-full max-w-xl rounded-[32px] border border-meow-100 bg-white p-8 text-center shadow-card">
+        <div className="w-full max-w-xl rounded-3xl border border-meow-100 bg-white p-8 text-center shadow-card">
           <h1 className="text-2xl font-black text-meow-charcoal">Criar anúncio</h1>
           <p className="mt-2 text-sm text-meow-muted">
             Entre com sua conta para anunciar.
@@ -495,7 +495,7 @@ export default function Page() {
           ) : null}
 
           {step === 1 ? (
-            <section className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+            <section className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
               <h2 className="mb-4 flex items-center gap-2 text-lg font-black text-slate-800">
                 <span className="grid h-6 w-6 place-items-center rounded-full bg-meow-100 text-xs text-meow-500">
                   1
@@ -537,7 +537,7 @@ export default function Page() {
           ) : null}
 
           {step === 2 ? (
-            <section className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+            <section className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
               <h2 className="mb-4 flex items-center gap-2 text-lg font-black text-slate-800">
                 <span className="grid h-6 w-6 place-items-center rounded-full bg-meow-100 text-xs text-meow-500">
                   2
@@ -754,7 +754,7 @@ export default function Page() {
           ) : null}
 
           {step === 3 ? (
-            <section className="rounded-[28px] border border-emerald-100 bg-gradient-to-r from-emerald-50 to-green-50 p-6 shadow-card">
+            <section className="rounded-2xl border border-emerald-100 bg-gradient-to-r from-emerald-50 to-green-50 p-6 shadow-card">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <div className="grid h-10 w-10 place-items-center rounded-full bg-emerald-500 text-white shadow-cute">
@@ -832,7 +832,7 @@ export default function Page() {
           ) : null}
 
           {step === 4 ? (
-            <section className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+            <section className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
               <h2 className="mb-4 flex items-center gap-2 text-lg font-black text-slate-800">
                 <span className="grid h-6 w-6 place-items-center rounded-full bg-meow-100 text-xs text-meow-500">
                   4
@@ -888,7 +888,7 @@ export default function Page() {
           ) : null}
 
           {step === 5 ? (
-            <section className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+            <section className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
               <h2 className="mb-4 flex items-center gap-2 text-lg font-black text-slate-800">
                 <span className="grid h-6 w-6 place-items-center rounded-full bg-meow-100 text-xs text-meow-500">
                   5
@@ -967,7 +967,7 @@ export default function Page() {
         </main>
 
         <aside className="hidden w-full max-w-[320px] space-y-6 lg:block">
-          <div className="sticky top-24 rounded-[28px] border border-slate-100 bg-white p-5 shadow-card">
+          <div className="sticky top-24 rounded-2xl border border-slate-100 bg-white p-5 shadow-card">
             <h3 className="mb-4 text-sm font-black uppercase tracking-wide text-slate-800">
               Pre-visualizacao
             </h3>

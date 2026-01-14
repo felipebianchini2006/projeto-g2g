@@ -265,7 +265,7 @@ const SidebarCard = ({
   };
 
   return (
-    <Card className="rounded-[28px] border border-meow-red/10 bg-white/95 p-5 shadow-card">
+    <Card className="rounded-2xl border border-meow-red/10 bg-white/95 p-5 shadow-card">
       <div className="flex flex-col items-center text-center">
         <ProfileAvatar
           displayName={displayName}

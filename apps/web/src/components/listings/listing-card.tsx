@@ -47,7 +47,7 @@ export const ListingCard = ({
     }).format(value / 100);
 
   return (
-    <article className="group flex flex-col overflow-hidden rounded-[28px] border border-meow-red/10 bg-white shadow-card transition hover:-translate-y-1">
+    <article className="group flex flex-col overflow-hidden rounded-2xl border border-meow-red/10 bg-white shadow-card transition hover:-translate-y-1">
       <div className="relative p-4">
         <div
           className={`relative h-[230px] overflow-hidden rounded-[22px] ${mediaVariants[variant]}`}

@@ -10,19 +10,19 @@ const config = {
     extend: {
       colors: {
         meow: {
-          50: "#FFF0F5",
-          100: "#FFE4E9",
-          200: "#FDA4AF",
+          50: "#F8FAFC",
+          100: "#F1F5F9",
+          200: "#E2E8F0",
           300: "#FF6B95",
-          400: "#F43F5E",
-          500: "#E11D48",
-          600: "#BE123C",
+          400: "#FF6B95",
+          500: "#FF6B95",
+          600: "#FF6B95",
           dark: "#881337",
           purple: "#A78BFA",
           purpleDeep: "#7C3AED",
           red: "#FF6B95", // primary
-          deep: "#F43F5E",
-          cream: "#FFF0F5",
+          deep: "#FF6B95",
+          cream: "#FFFFFF",
           charcoal: "#1F2937",
           muted: "#6B7280",
           gold: "#FCD34D",
@@ -35,9 +35,9 @@ const config = {
         display: ["Nunito", "sans-serif"], // --font-display
       },
       borderRadius: {
-        "xl": "16px", // --radius-md
-        "2xl": "24px", // --radius-lg
-        "3xl": "32px",
+        "xl": "12px", // --radius-md
+        "2xl": "16px", // --radius-lg
+        "3xl": "20px",
       },
       boxShadow: {
         meow: "0 18px 45px rgba(31, 41, 55, 0.12)",
@@ -46,10 +46,8 @@ const config = {
         focus: "0 0 0 4px rgba(255, 107, 149, 0.2)",
       },
       backgroundImage: {
-        "meow-gradient":
-          "radial-gradient(circle at top, #ffe9f3 0%, #fff7fb 55%, #f8fafc 100%)",
-        "meow-linear":
-          "linear-gradient(90deg, #FF6B95 0%, #FDA4AF 50%, #FF6B95 100%)",
+        "meow-gradient": "linear-gradient(0deg, #ffffff 0%, #ffffff 100%)",
+        "meow-linear": "linear-gradient(90deg, #FF6B95 0%, #FF6B95 100%)",
       },
     },
   },

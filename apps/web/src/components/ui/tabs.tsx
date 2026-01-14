@@ -75,8 +75,8 @@ export const TabsTrigger = React.forwardRef<HTMLButtonElement, TabsTriggerProps>
         className={cn(
           'rounded-full px-4 py-2 text-xs font-bold transition',
           isActive
-            ? 'bg-meow-300 text-white shadow-cute'
-            : 'bg-meow-50 text-meow-muted hover:bg-meow-100',
+            ? 'bg-meow-red text-white shadow-cute'
+            : 'bg-slate-100 text-slate-500 hover:bg-slate-200',
           className,
         )}
         aria-selected={isActive}

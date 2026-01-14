@@ -272,7 +272,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
         ) : null}
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
             <div className="relative rounded-[24px] bg-slate-50 p-6">
               <Badge
                 variant="pink"
@@ -327,7 +327,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
             </div>
           </div>
 
-          <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
             <h1 className="text-2xl font-black text-meow-charcoal">{listing.title}</h1>
             <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-meow-muted">
               <div className="flex items-center gap-1 text-amber-400">
@@ -439,7 +439,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
           </div>
         </div>
 
-        <div className="mt-10 rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+        <div className="mt-10 rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
           <Tabs defaultValue="descricao">
             <TabsList className="gap-2">
               {tabs.map((tab) => (

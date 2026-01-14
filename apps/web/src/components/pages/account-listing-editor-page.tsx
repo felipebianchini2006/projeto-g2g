@@ -403,7 +403,7 @@ export const AccountListingEditorContent = ({ listingId }: { listingId: string }
           </div>
         ) : null}
 
-        <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
+        <Card className="rounded-2xl border border-slate-100 p-6 shadow-card">
           <div className="mt-2 grid gap-4 md:grid-cols-2">
             <label className="grid gap-2 text-xs font-semibold text-meow-muted">
               Titulo
@@ -507,7 +507,7 @@ export const AccountListingEditorContent = ({ listingId }: { listingId: string }
           </div>
         </Card>
 
-        <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
+        <Card className="rounded-2xl border border-slate-100 p-6 shadow-card">
           <h3 className="text-base font-bold text-meow-charcoal">Midia do anuncio</h3>
           <p className="mt-1 text-xs text-meow-muted">
             Arraste ou selecione arquivos para enviar.
@@ -557,7 +557,7 @@ export const AccountListingEditorContent = ({ listingId }: { listingId: string }
           </div>
         </Card>
 
-        <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
+        <Card className="rounded-2xl border border-slate-100 p-6 shadow-card">
           <h3 className="text-base font-bold text-meow-charcoal">Inventario</h3>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <div>

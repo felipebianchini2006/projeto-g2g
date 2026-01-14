@@ -157,7 +157,7 @@ export const OrderPaymentContent = ({ orderId }: { orderId: string }) => {
 
       {user ? (
         <div className="grid gap-6 lg:grid-cols-[1fr_1.1fr]">
-          <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
+          <Card className="rounded-2xl border border-slate-100 p-6 shadow-card">
             <h2 className="text-base font-bold text-meow-charcoal">Resumo</h2>
             <p className="mt-2 text-sm text-meow-muted">
               Codigo do pedido: <strong className="text-meow-charcoal">{orderCode}</strong>
@@ -206,7 +206,7 @@ export const OrderPaymentContent = ({ orderId }: { orderId: string }) => {
             ) : null}
           </Card>
 
-          <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
+          <Card className="rounded-2xl border border-slate-100 p-6 shadow-card">
             <h2 className="text-base font-bold text-meow-charcoal">Pagamento Pix</h2>
             <p className="mt-2 text-sm text-meow-muted">
               {activePayment

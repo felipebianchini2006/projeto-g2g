@@ -374,7 +374,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
           </Link>
         </div>
 
-        <div className="mt-6 rounded-[28px] border border-slate-100 bg-white px-6 py-5 shadow-card">
+        <div className="mt-6 rounded-2xl border border-slate-100 bg-white px-6 py-5 shadow-card">
           <div className="relative flex items-center justify-between">
             <span className="absolute left-6 right-6 top-1/2 h-px -translate-y-1/2 bg-slate-200" />
             {stepConfig.map((item, index) => {
@@ -423,7 +423,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
             <div className="space-y-6">
               {step === 'produto' ? (
                 <>
-                  <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
+                  <Card className="rounded-2xl border border-slate-100 p-6 shadow-card">
                     <div className="flex items-start gap-4">
                       <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
                         <Download size={20} aria-hidden />
@@ -440,7 +440,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                     </div>
                   </Card>
 
-                  <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
+                  <Card className="rounded-2xl border border-slate-100 p-6 shadow-card">
                     <div className="flex items-center gap-3">
                       <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-100 text-amber-600">
                         <Crown size={20} aria-hidden />
@@ -529,7 +529,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
 
               {step === 'pagamento' ? (
                 <>
-                  <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
+                  <Card className="rounded-2xl border border-slate-100 p-6 shadow-card">
                     <h2 className="text-base font-bold text-meow-charcoal">
                       Método de pagamento
                     </h2>
@@ -582,7 +582,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                     </div>
                   </Card>
 
-                  <Card className="rounded-[28px] border border-emerald-200 bg-emerald-50/70 p-6 shadow-card">
+                  <Card className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-6 shadow-card">
                     <div className="flex items-center gap-3">
                       <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600">
                         <QrCode size={20} aria-hidden />
@@ -664,7 +664,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
               ) : null}
 
               {step === 'confirmacao' ? (
-                <Card className="rounded-[28px] border border-slate-100 p-6 text-center shadow-card">
+                <Card className="rounded-2xl border border-slate-100 p-6 text-center shadow-card">
                   <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
                     <CheckCircle2 size={28} aria-hidden />
                   </div>
@@ -695,7 +695,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
             </div>
 
             <div>
-              <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
+              <Card className="rounded-2xl border border-slate-100 p-6 shadow-card">
                 <h3 className="text-base font-bold text-meow-charcoal">Resumo</h3>
                 <div className="mt-4 flex items-center gap-4">
                   <div className="h-16 w-16 overflow-hidden rounded-2xl bg-slate-100">

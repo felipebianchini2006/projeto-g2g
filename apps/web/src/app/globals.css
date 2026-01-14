@@ -4,8 +4,8 @@
 
 :root {
     --red: #ff6b95;
-    --deep-red: #f43f5e;
-    --cream: #fff0f5;
+    --deep-red: #ff6b95;
+    --cream: #ffffff;
     --charcoal: #1f2937;
     --muted: #6b7280;
     --gold: #fcd34d;
@@ -13,14 +13,14 @@
     --indigo-dark: #4338ca;
     --shadow: 0 18px 45px rgba(31, 41, 55, 0.12);
     --surface: #ffffff;
-    --surface-muted: #fffafc;
-    --surface-soft: #fff5fb;
-    --surface-strong: #fff1f7;
-    --surface-danger: #fff1f1;
+    --surface-muted: #f8fafc;
+    --surface-soft: #f1f5f9;
+    --surface-strong: #e2e8f0;
+    --surface-danger: #fef2f2;
     --border-soft: rgba(15, 23, 42, 0.08);
-    --radius-lg: 24px;
-    --radius-md: 16px;
-    --radius-sm: 10px;
+    --radius-lg: 20px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
     --font-display: "Nunito", sans-serif;
     --font-body: "Nunito", sans-serif;
 }
@@ -45,7 +45,7 @@ html[data-theme='dark'] {
 
 body {
     font-family: var(--font-body);
-    background: radial-gradient(circle at top, #ffe9f3 0%, #fff7fb 55%, #f8fafc 100%);
+    background: #ffffff;
     color: var(--charcoal);
     letter-spacing: 0.1px;
 }
@@ -168,7 +168,7 @@ img {
 }
 
 .top-bar {
-    background: linear-gradient(90deg, #f2a4c3 0%, #f7b8d1 50%, #f2a4c3 100%);
+    background: var(--red);
     color: #fff;
     padding: 10px 0;
     text-transform: uppercase;
@@ -275,7 +275,7 @@ img {
 .search-bar button {
     border: none;
     padding: 0 18px;
-    background: linear-gradient(135deg, #f2a4c3 0%, #f7b8d1 100%);
+    background: var(--red);
     color: #fff;
     font-size: 18px;
     height: 100%;
@@ -338,8 +338,8 @@ img {
     color: var(--deep-red);
     padding: 10px 14px;
     border-radius: 14px;
-    border: 1px solid rgba(216, 107, 149, 0.3);
-    box-shadow: 0 10px 24px rgba(216, 107, 149, 0.18);
+    border: 1px solid rgba(255, 107, 149, 0.3);
+    box-shadow: 0 10px 24px rgba(255, 107, 149, 0.18);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -358,11 +358,11 @@ img {
 
 .cart-link:hover {
     transform: translateY(-2px);
-    box-shadow: 0 14px 30px rgba(216, 107, 149, 0.24);
+    box-shadow: 0 14px 30px rgba(255, 107, 149, 0.24);
 }
 
 .main-nav {
-    background: linear-gradient(90deg, #d86b95 0%, #f2a4c3 50%, #d86b95 100%);
+    background: var(--red);
 }
 
 .nav-list {
@@ -561,7 +561,7 @@ img {
     bottom: 40px;
     width: 52px;
     height: 52px;
-    background: linear-gradient(45deg, #f7b8d1 0%, #f2a4c3 35%, #d86b95 70%, #b35c82 100%);
+    background: var(--red);
     border-radius: 16px;
     display: flex;
     align-items: center;
@@ -613,8 +613,8 @@ img {
 }
 
 .feature-icon.generic {
-    background: linear-gradient(135deg, #ffd1e6 0%, #ff9fc6 100%);
-    border: 2px solid rgba(214, 51, 108, 0.2);
+    background: rgba(255, 107, 149, 0.15);
+    border: 2px solid rgba(255, 107, 149, 0.2);
 }
 
 .feature-text h4 {
@@ -820,13 +820,13 @@ img {
     width: 120px;
     height: 120px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #f2a4c3 0%, #f7b8d1 100%);
+    background: var(--red);
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto 12px;
     overflow: hidden;
-    box-shadow: 0 12px 30px rgba(216, 107, 149, 0.24);
+    box-shadow: 0 12px 30px rgba(255, 107, 149, 0.24);
 }
 
 .franchise-circle img {
@@ -851,7 +851,7 @@ img {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: #f1d9d1;
+    background: rgba(255, 107, 149, 0.2);
     border: none;
     padding: 0;
     cursor: pointer;
@@ -950,7 +950,7 @@ img {
     align-items: center;
     justify-content: center;
     padding: 80px 24px;
-    background: radial-gradient(circle at top, #ffe9f3 0%, #fff7fb 50%, #ffffff 100%);
+    background: #ffffff;
 }
 
 .auth-card,
@@ -980,7 +980,7 @@ img {
 }
 
 .auth-input {
-    border: 1px solid rgba(216, 107, 149, 0.3);
+    border: 1px solid rgba(255, 107, 149, 0.3);
     border-radius: 14px;
     padding: 12px 14px;
     font-size: 14px;
@@ -990,8 +990,8 @@ img {
 }
 
 .auth-input:focus {
-    outline: 2px solid rgba(216, 107, 149, 0.35);
-    border-color: rgba(216, 107, 149, 0.6);
+    outline: 2px solid rgba(255, 107, 149, 0.35);
+    border-color: rgba(255, 107, 149, 0.6);
 }
 
 .auth-error {
@@ -1041,7 +1041,7 @@ img {
 .auth-card .ghost-button,
 .dashboard-card .ghost-button {
     color: var(--charcoal);
-    border-color: rgba(216, 107, 149, 0.3);
+    border-color: rgba(255, 107, 149, 0.3);
 }
 
 @keyframes float {
@@ -1288,7 +1288,7 @@ img {
 }
 
 .filter-input {
-  border: 1px solid rgba(216, 107, 149, 0.3);
+  border: 1px solid rgba(255, 107, 149, 0.3);
   border-radius: 12px;
   padding: 10px 12px;
   background: var(--surface-muted);
@@ -1317,7 +1317,7 @@ img {
 
 .state-pill {
   background: var(--surface);
-  border: 1px solid rgba(216, 107, 149, 0.3);
+  border: 1px solid rgba(255, 107, 149, 0.3);
   padding: 6px 12px;
   border-radius: 999px;
   font-size: 12px;
@@ -1512,7 +1512,7 @@ img {
 }
 
 .listing-thumbs .thumb {
-  border: 1px solid rgba(216, 107, 149, 0.2);
+  border: 1px solid rgba(255, 107, 149, 0.2);
   border-radius: 14px;
   padding: 6px;
   background: var(--surface);
@@ -1521,7 +1521,7 @@ img {
 
 .listing-thumbs .thumb.active {
   border-color: var(--deep-red);
-  box-shadow: 0 8px 18px rgba(216, 107, 149, 0.2);
+  box-shadow: 0 8px 18px rgba(255, 107, 149, 0.2);
 }
 
 .listing-thumbs img {
@@ -1583,7 +1583,7 @@ img {
 }
 
 .state-card.info {
-  border: 1px solid rgba(216, 107, 149, 0.3);
+  border: 1px solid rgba(255, 107, 149, 0.3);
   color: var(--deep-red);
 }
 
@@ -1641,7 +1641,7 @@ img {
 }
 
 .listing-row {
-  border: 1px solid rgba(216, 107, 149, 0.2);
+  border: 1px solid rgba(255, 107, 149, 0.2);
   border-radius: 16px;
   padding: 14px;
   display: flex;
@@ -1656,7 +1656,7 @@ img {
 
 .listing-row.active {
   border-color: var(--deep-red);
-  box-shadow: 0 14px 30px rgba(216, 107, 149, 0.16);
+  box-shadow: 0 14px 30px rgba(255, 107, 149, 0.16);
 }
 
 .listing-row h3 {
@@ -1718,7 +1718,7 @@ img {
 
 .form-input,
 .form-textarea {
-  border: 1px solid rgba(216, 107, 149, 0.3);
+  border: 1px solid rgba(255, 107, 149, 0.3);
   border-radius: 12px;
   padding: 10px 12px;
   background: var(--surface-muted);
@@ -1757,7 +1757,7 @@ img {
 }
 
 .seller-section {
-  border-top: 1px dashed rgba(216, 107, 149, 0.2);
+  border-top: 1px dashed rgba(255, 107, 149, 0.2);
   padding-top: 16px;
   display: grid;
   gap: 12px;
@@ -1840,7 +1840,7 @@ img {
   box-shadow: var(--shadow);
   display: grid;
   gap: 8px;
-  border: 1px solid rgba(216, 107, 149, 0.16);
+  border: 1px solid rgba(255, 107, 149, 0.16);
 }
 
 .wallet-card span {
@@ -1889,7 +1889,7 @@ img {
   padding: 14px 18px;
   border-radius: 18px;
   background: var(--surface);
-  border: 1px solid rgba(216, 107, 149, 0.18);
+  border: 1px solid rgba(255, 107, 149, 0.18);
   box-shadow: var(--shadow);
 }
 
@@ -1953,7 +1953,7 @@ img {
   padding: 14px 18px;
   border-radius: 18px;
   background: var(--surface);
-  border: 1px solid rgba(216, 107, 149, 0.18);
+  border: 1px solid rgba(255, 107, 149, 0.18);
   box-shadow: var(--shadow);
 }
 
@@ -2044,7 +2044,7 @@ img {
   padding: 12px 16px;
   border-radius: 16px;
   background: var(--surface-muted);
-  border: 1px solid rgba(216, 107, 149, 0.2);
+  border: 1px solid rgba(255, 107, 149, 0.2);
   align-items: center;
 }
 
@@ -2083,14 +2083,14 @@ img {
   padding: 12px 14px;
   border-radius: 16px;
   background: var(--surface-muted);
-  border: 1px solid rgba(216, 107, 149, 0.2);
+  border: 1px solid rgba(255, 107, 149, 0.2);
   display: grid;
   gap: 6px;
 }
 
 .ticket-message.own {
   background: #fef1f6;
-  border-color: rgba(216, 107, 149, 0.3);
+  border-color: rgba(255, 107, 149, 0.3);
 }
 
 .ticket-message span {
@@ -2108,7 +2108,7 @@ img {
   display: grid;
   gap: 6px;
   padding: 10px 0;
-  border-bottom: 1px dashed rgba(216, 107, 149, 0.2);
+  border-bottom: 1px dashed rgba(255, 107, 149, 0.2);
 }
 
 .ticket-evidence:last-child {
@@ -2168,7 +2168,7 @@ img {
   padding: 12px 14px;
   background: var(--surface-muted);
   border-radius: 16px;
-  border: 1px dashed rgba(216, 107, 149, 0.2);
+  border: 1px dashed rgba(255, 107, 149, 0.2);
 }
 
 .order-item span {
@@ -2187,7 +2187,7 @@ img {
   padding: 12px 14px;
   display: grid;
   gap: 8px;
-  border: 1px dashed rgba(216, 107, 149, 0.2);
+  border: 1px dashed rgba(255, 107, 149, 0.2);
 }
 
 .delivery-block h4 {
@@ -2237,7 +2237,7 @@ img {
 }
 
 .chat-status--offline {
-  background: rgba(216, 107, 149, 0.18);
+  background: rgba(255, 107, 149, 0.18);
   color: var(--deep-red);
 }
 
@@ -2269,7 +2269,7 @@ img {
   padding: 8px;
   background: var(--surface-muted);
   border-radius: 14px;
-  border: 1px dashed rgba(216, 107, 149, 0.2);
+  border: 1px dashed rgba(255, 107, 149, 0.2);
 }
 
 .chat-message {
@@ -2277,7 +2277,7 @@ img {
   background: var(--surface-muted);
   border-radius: 16px;
   padding: 10px 12px;
-  border: 1px solid rgba(216, 107, 149, 0.2);
+  border: 1px solid rgba(255, 107, 149, 0.2);
   display: grid;
   gap: 6px;
 }
@@ -2285,7 +2285,7 @@ img {
 .chat-message.own {
   justify-self: flex-end;
   background: #fef1f6;
-  border-color: rgba(216, 107, 149, 0.3);
+  border-color: rgba(255, 107, 149, 0.3);
 }
 
 .chat-message.pending {
@@ -2398,7 +2398,7 @@ img {
   padding: 10px;
   border-radius: 16px;
   background: var(--surface-muted);
-  border: 1px solid rgba(216, 107, 149, 0.2);
+  border: 1px solid rgba(255, 107, 149, 0.2);
 }
 
 .notification-row.unread {
@@ -2451,7 +2451,7 @@ img {
   border-radius: 999px;
   background: var(--deep-red);
   margin-top: 6px;
-  box-shadow: 0 0 0 4px rgba(216, 107, 149, 0.18);
+  box-shadow: 0 0 0 4px rgba(255, 107, 149, 0.18);
 }
 
 .timeline-item span {
@@ -2474,7 +2474,7 @@ img {
   background: var(--surface-muted);
   border-radius: 18px;
   padding: 14px;
-  border: 1px dashed rgba(216, 107, 149, 0.2);
+  border: 1px dashed rgba(255, 107, 149, 0.2);
 }
 
 .payment-pill {
@@ -2558,7 +2558,7 @@ img {
   padding: 10px 12px;
   background: var(--surface-muted);
   border-radius: 14px;
-  border: 1px dashed rgba(216, 107, 149, 0.2);
+  border: 1px dashed rgba(255, 107, 149, 0.2);
 }
 
 .checkout-total {
@@ -2594,7 +2594,7 @@ img {
 
 .pix-code {
   background: var(--surface);
-  border: 1px dashed rgba(216, 107, 149, 0.35);
+  border: 1px dashed rgba(255, 107, 149, 0.35);
   border-radius: 12px;
   padding: 12px;
   font-size: 12px;

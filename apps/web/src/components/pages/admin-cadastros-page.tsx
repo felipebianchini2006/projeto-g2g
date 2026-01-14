@@ -209,7 +209,7 @@ export const AdminCadastrosContent = () => {
         { label: 'Cadastros' },
       ]}
     >
-      <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="text-xl font-black text-meow-charcoal">Cadastros do sistema</h1>
@@ -235,7 +235,7 @@ export const AdminCadastrosContent = () => {
       {notice ? <div className="state-card success">{notice}</div> : null}
 
       <div className="space-y-6">
-        <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+        <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
           <div className="panel-header">
             <h2>Categorias</h2>
           </div>
@@ -350,7 +350,7 @@ export const AdminCadastrosContent = () => {
           </div>
         </div>
 
-        <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+        <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
           <div className="panel-header">
             <h2>Subcategorias / Jogos</h2>
           </div>
@@ -500,7 +500,7 @@ export const AdminCadastrosContent = () => {
           </div>
         </div>
 
-        <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+        <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
           <div className="panel-header">
             <h2>Secoes</h2>
           </div>
@@ -651,7 +651,7 @@ export const AdminCadastrosContent = () => {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
-          <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
             <div className="panel-header">
               <h2>Tipos de venda</h2>
             </div>
@@ -764,7 +764,7 @@ export const AdminCadastrosContent = () => {
             </div>
           </div>
 
-          <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
             <div className="panel-header">
               <h2>Procedencias</h2>
             </div>
@@ -877,7 +877,7 @@ export const AdminCadastrosContent = () => {
             </div>
           </div>
 
-          <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
             <div className="panel-header">
               <h2>Dados de recuperação</h2>
             </div>

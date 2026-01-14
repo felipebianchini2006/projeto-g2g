@@ -173,7 +173,7 @@ export const AccountOverviewContent = () => {
         { label: 'Conta' },
       ]}
     >
-      <div className="rounded-[28px] border border-pink-100 bg-gradient-to-r from-[#ff6aa2] via-[#e57bd0] to-[#b78dff] p-6 text-white shadow-[0_18px_40px_rgba(255,107,154,0.25)]">
+      <div className="rounded-2xl border border-pink-100 bg-gradient-to-r from-[#ff6aa2] via-[#e57bd0] to-[#b78dff] p-6 text-white shadow-[0_18px_40px_rgba(255,107,154,0.25)]">
         <div className="flex flex-wrap items-center gap-4">
           <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white/20 text-xl">
             ??
@@ -240,7 +240,7 @@ export const AccountOverviewContent = () => {
         </div>
       ) : null}
 
-      <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
+      <Card className="rounded-2xl border border-slate-100 p-6 shadow-card">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-lg font-black text-meow-charcoal">Pedidos recentes</h2>
           <Link href="/conta/pedidos" className="text-xs font-bold text-rose-500">

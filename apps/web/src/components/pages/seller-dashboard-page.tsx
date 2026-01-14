@@ -238,7 +238,7 @@ export const SellerDashboardContent = () => {
         </div>
       ) : null}
 
-      <Card className="rounded-[28px] border border-meow-red/20 p-6 shadow-card">
+      <Card className="rounded-2xl border border-meow-red/20 p-6 shadow-card">
         <div className="flex items-center justify-between gap-3">
           <div>
             <h2 className="text-lg font-black text-meow-charcoal">Desempenho de vendas</h2>

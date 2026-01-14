@@ -2,13 +2,18 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { Download, MoreHorizontal, Search } from 'lucide-react';
 
 import { ApiClientError } from '../../lib/api-client';
-import { ordersApi, type Order, type PaymentStatus } from '../../lib/orders-api';
+import { ordersApi, type Order } from '../../lib/orders-api';
 import { useAuth } from '../auth/auth-provider';
 import { AccountShell } from '../account/account-shell';
 import { Badge } from '../ui/badge';
+import { Button } from '../ui/button';
 import { Card } from '../ui/card';
+import { Input } from '../ui/input';
+import { Select } from '../ui/select';
+import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
 
 type OrdersState = {
   status: 'loading' | 'ready';
@@ -16,32 +21,34 @@ type OrdersState = {
   error?: string;
 };
 
+type PeriodOption = 'month' | '30d' | '90d' | 'all';
+type OrdersTab = 'recent' | 'history' | 'pending' | 'cancelled';
+
 const statusLabel: Record<string, string> = {
   CREATED: 'Criado',
   AWAITING_PAYMENT: 'Pagamento pendente',
   PAID: 'Pago',
   IN_DELIVERY: 'Em entrega',
   DELIVERED: 'Entregue',
-  COMPLETED: 'Concluído',
+  COMPLETED: 'Concluido',
   CANCELLED: 'Cancelado',
   DISPUTED: 'Em disputa',
   REFUNDED: 'Reembolsado',
 };
 
-const paymentLabel: Record<PaymentStatus, string> = {
-  PENDING: 'Pagamento pendente',
-  CONFIRMED: 'Pagamento aprovado',
-  EXPIRED: 'Pagamento expirado',
-  REFUNDED: 'Pagamento reembolsado',
-  FAILED: 'Falha no pagamento',
-};
-
-const paymentTone: Record<PaymentStatus, string> = {
-  PENDING: 'bg-amber-50 text-amber-700',
-  CONFIRMED: 'bg-emerald-50 text-emerald-700',
-  EXPIRED: 'bg-red-50 text-red-700',
-  REFUNDED: 'bg-indigo-50 text-indigo-700',
-  FAILED: 'bg-red-50 text-red-700',
+const statusTone: Record<
+  string,
+  'success' | 'warning' | 'info' | 'danger' | 'neutral'
+> = {
+  COMPLETED: 'success',
+  PAID: 'warning',
+  IN_DELIVERY: 'warning',
+  DELIVERED: 'info',
+  CANCELLED: 'danger',
+  REFUNDED: 'danger',
+  AWAITING_PAYMENT: 'neutral',
+  CREATED: 'neutral',
+  DISPUTED: 'warning',
 };
 
 const formatCurrency = (value: number, currency = 'BRL') =>
@@ -51,20 +58,30 @@ const formatCurrency = (value: number, currency = 'BRL') =>
     maximumFractionDigits: 2,
   }).format(value / 100);
 
+const formatDate = (value: string) =>
+  new Date(value).toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+
+const escapeCsv = (value: string) => {
+  const escaped = value.replace(/"/g, '""');
+  return `"${escaped}"`;
+};
+
 export const AccountSalesContent = () => {
   const { user, accessToken, loading } = useAuth();
   const [state, setState] = useState<OrdersState>({
     status: 'loading',
     orders: [],
   });
+  const [period, setPeriod] = useState<PeriodOption>('month');
+  const [tab, setTab] = useState<OrdersTab>('recent');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
 
   const accessAllowed = user?.role === 'SELLER' || user?.role === 'ADMIN';
-
-  const ordersSorted = useMemo(() => {
-    return [...state.orders].sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    );
-  }, [state.orders]);
 
   useEffect(() => {
     if (!accessToken || !accessAllowed) {
@@ -85,7 +102,7 @@ export const AccountSalesContent = () => {
         const message =
           error instanceof ApiClientError
             ? error.message
-            : 'Não foi possível carregar as vendas.';
+            : 'Nao foi possivel carregar as vendas.';
         setState({ status: 'ready', orders: [], error: message });
       }
     };
@@ -93,13 +110,117 @@ export const AccountSalesContent = () => {
     return () => {
       active = false;
     };
-  }, [accessToken, accessAllowed]);
+  }, [accessAllowed, accessToken]);
+
+  const ordersSorted = useMemo(() => {
+    return [...state.orders].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+  }, [state.orders]);
+
+  const ordersByPeriod = useMemo(() => {
+    if (period === 'all') {
+      return ordersSorted;
+    }
+    const now = new Date();
+    const threshold = new Date(now);
+    if (period === 'month') {
+      threshold.setDate(1);
+      threshold.setHours(0, 0, 0, 0);
+    } else if (period === '30d') {
+      threshold.setDate(threshold.getDate() - 30);
+    } else {
+      threshold.setDate(threshold.getDate() - 90);
+    }
+    return ordersSorted.filter((order) => new Date(order.createdAt) >= threshold);
+  }, [ordersSorted, period]);
+
+  const filteredByTab = useMemo(() => {
+    if (tab === 'history') {
+      return ordersByPeriod;
+    }
+    if (tab === 'pending') {
+      return ordersByPeriod.filter((order) =>
+        ['PAID', 'IN_DELIVERY', 'DELIVERED'].includes(order.status),
+      );
+    }
+    if (tab === 'cancelled') {
+      return ordersByPeriod.filter((order) =>
+        ['CANCELLED', 'REFUNDED'].includes(order.status),
+      );
+    }
+    return ordersByPeriod.slice(0, 8);
+  }, [ordersByPeriod, tab]);
+
+  const filteredOrders = useMemo(() => {
+    const search = searchTerm.trim().toLowerCase();
+    if (!search) {
+      return filteredByTab;
+    }
+    return filteredByTab.filter((order) => {
+      const buyer = order.buyer?.email ?? order.buyerId ?? '';
+      const product = order.items[0]?.title ?? '';
+      return (
+        order.id.toLowerCase().includes(search) ||
+        buyer.toLowerCase().includes(search) ||
+        product.toLowerCase().includes(search)
+      );
+    });
+  }, [filteredByTab, searchTerm]);
+
+  const totalRevenue = useMemo(
+    () =>
+      ordersByPeriod
+        .filter((order) => order.status === 'COMPLETED')
+        .reduce((acc, order) => acc + order.totalAmountCents, 0),
+    [ordersByPeriod],
+  );
+
+  const pendingRelease = useMemo(
+    () =>
+      ordersByPeriod
+        .filter((order) => ['PAID', 'IN_DELIVERY', 'DELIVERED'].includes(order.status))
+        .reduce((acc, order) => acc + order.totalAmountCents, 0),
+    [ordersByPeriod],
+  );
+
+  const averageTicket = useMemo(() => {
+    if (ordersByPeriod.length === 0) {
+      return 0;
+    }
+    const total = ordersByPeriod.reduce((acc, order) => acc + order.totalAmountCents, 0);
+    return Math.round(total / ordersByPeriod.length);
+  }, [ordersByPeriod]);
+
+  const handleExport = () => {
+    const headers = ['Pedido', 'Produto', 'Comprador', 'Data', 'Valor', 'Status'];
+    const rows = filteredOrders.map((order) => [
+      order.id,
+      order.items[0]?.title ?? 'Venda',
+      order.buyer?.email ?? order.buyerId ?? '',
+      formatDate(order.createdAt),
+      formatCurrency(order.totalAmountCents, order.currency),
+      statusLabel[order.status] ?? order.status,
+    ]);
+    const csv =
+      `${headers.map(escapeCsv).join(',')}\n` +
+      rows.map((row) => row.map((value) => escapeCsv(value)).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `vendas-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+  };
 
   if (loading) {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
-          Carregando sessão...
+          Carregando sessao...
         </div>
       </section>
     );
@@ -125,7 +246,7 @@ export const AccountSalesContent = () => {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center">
-          <p className="text-sm text-meow-muted">Seu perfil não possui acesso as vendas.</p>
+          <p className="text-sm text-meow-muted">Seu perfil nao possui acesso as vendas.</p>
           <Link
             href="/conta"
             className="mt-4 inline-flex rounded-full border border-meow-red/30 px-6 py-2 text-sm font-bold text-meow-deep"
@@ -145,89 +266,192 @@ export const AccountSalesContent = () => {
         { label: 'Minhas vendas' },
       ]}
     >
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-black text-meow-charcoal">Vendas recentes</h1>
-          <p className="text-sm text-meow-muted">
-            Ultimas transacoes feitas na sua loja.
-          </p>
-        </div>
-        <Link href="/conta/vendas" className="text-xs font-bold text-meow-deep">
-          Ver todas
-        </Link>
-      </div>
-
-      {state.error ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {state.error}
-        </div>
-      ) : null}
-
-      {state.status === 'loading' ? (
-        <div className="rounded-xl border border-meow-red/20 bg-white px-4 py-3 text-sm text-meow-muted">
-          Carregando vendas...
-        </div>
-      ) : null}
-
-      {state.status === 'ready' && ordersSorted.length === 0 ? (
-        <div className="rounded-xl border border-meow-red/20 bg-white px-4 py-3 text-sm text-meow-muted">
-          Nenhuma venda encontrada.
-        </div>
-      ) : null}
-
-      <Card className="mt-4 rounded-[28px] border border-slate-100 p-6 shadow-card">
-        {ordersSorted.map((order) => {
-          const firstItem = order.items[0];
-          const payment = order.payments?.[0];
-          const statusTag =
-            order.status === 'PAID' || order.status === 'COMPLETED'
-              ? { label: 'Aprovado', tone: 'success' }
-              : order.status === 'AWAITING_PAYMENT'
-                ? { label: 'Em análise', tone: 'warning' }
-                : { label: 'Entregue', tone: 'info' };
-
-          return (
-            <div
-              key={order.id}
-              className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-100 bg-meow-50/70 px-4 py-3"
+      <div className="space-y-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-black text-meow-charcoal">Minhas vendas</h1>
+            <p className="text-sm text-meow-muted">
+              Acompanhe faturamento, pedidos e status em tempo real.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Select
+              className="min-w-[160px] rounded-full border-slate-200 bg-white text-xs font-semibold text-slate-500 shadow-card"
+              value={period}
+              onChange={(event) => setPeriod(event.target.value as PeriodOption)}
             >
-              <div className="flex items-center gap-3">
-                <div className="grid h-10 w-10 place-items-center rounded-xl bg-white text-xs font-black text-meow-charcoal">
-                  #{order.id.slice(0, 4)}
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-meow-charcoal">
-                    {firstItem?.title ?? 'Venda'}
-                  </p>
-                  <p className="text-xs text-meow-muted">
-                    Comp: {order.buyer?.email ?? order.buyerId} -{' '}
-                    {new Date(order.createdAt).toLocaleDateString('pt-BR')}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="text-sm font-black text-meow-charcoal">
-                  {formatCurrency(order.totalAmountCents, order.currency)}
-                </div>
-                <Badge variant={statusTag.tone}>{statusTag.label}</Badge>
-                {payment ? (
-                  <span
-                    className={`rounded-full px-3 py-1 text-[11px] font-semibold ${paymentTone[payment.status]}`}
-                  >
-                    {paymentLabel[payment.status]}
-                  </span>
-                ) : null}
-                <Link
-                  href={`/conta/vendas/${order.id}`}
-                  className="rounded-full border border-slate-200 px-3 py-2 text-xs font-bold text-meow-charcoal"
-                >
-                  Detalhes
-                </Link>
-              </div>
+              <option value="month">Este mes</option>
+              <option value="30d">Ultimos 30 dias</option>
+              <option value="90d">Ultimos 90 dias</option>
+              <option value="all">Todo periodo</option>
+            </Select>
+            <Button variant="secondary" size="sm" onClick={handleExport}>
+              <Download size={14} aria-hidden />
+              Exportar
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card className="rounded-[26px] border border-slate-100 p-5 shadow-card">
+            <p className="text-xs font-semibold uppercase tracking-[0.3px] text-slate-400">
+              Faturamento total
+            </p>
+            <p className="mt-3 text-2xl font-black text-meow-charcoal">
+              {formatCurrency(totalRevenue, 'BRL')}
+            </p>
+            <p className="mt-1 text-xs text-meow-muted">Pedidos concluidos.</p>
+          </Card>
+          <Card className="rounded-[26px] border border-slate-100 p-5 shadow-card">
+            <p className="text-xs font-semibold uppercase tracking-[0.3px] text-slate-400">
+              Saldo a liberar
+            </p>
+            <p className="mt-3 text-2xl font-black text-meow-charcoal">
+              {formatCurrency(pendingRelease, 'BRL')}
+            </p>
+            <p className="mt-1 text-xs text-meow-muted">Pagos e entregues.</p>
+          </Card>
+          <Card className="rounded-[26px] border border-slate-100 p-5 shadow-card">
+            <p className="text-xs font-semibold uppercase tracking-[0.3px] text-slate-400">
+              Ticket medio
+            </p>
+            <p className="mt-3 text-2xl font-black text-meow-charcoal">
+              {formatCurrency(averageTicket, 'BRL')}
+            </p>
+            <p className="mt-1 text-xs text-meow-muted">Media por pedido.</p>
+          </Card>
+        </div>
+
+        <Card className="rounded-[26px] border border-slate-100 p-6 shadow-card">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <Tabs value={tab} onValueChange={(value) => setTab(value as OrdersTab)}>
+              <TabsList className="flex flex-wrap gap-2">
+                <TabsTrigger value="recent">Vendas recentes</TabsTrigger>
+                <TabsTrigger value="history">Historico</TabsTrigger>
+                <TabsTrigger value="pending">Pendentes</TabsTrigger>
+                <TabsTrigger value="cancelled">Cancelados</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="relative flex-1 min-w-[220px]">
+              <Search
+                size={16}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                aria-hidden
+              />
+              <Input
+                className="pl-10"
+                placeholder="Buscar pedido ou comprador..."
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+              />
             </div>
-          );
-        })}
-      </Card>
+          </div>
+
+          {state.error ? (
+            <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {state.error}
+            </div>
+          ) : null}
+
+          {state.status === 'loading' ? (
+            <div className="mt-4 rounded-xl border border-meow-red/20 bg-white px-4 py-3 text-sm text-meow-muted">
+              Carregando vendas...
+            </div>
+          ) : null}
+
+          {state.status === 'ready' && filteredOrders.length === 0 ? (
+            <div className="mt-4 rounded-xl border border-slate-100 bg-meow-50 px-4 py-3 text-sm text-meow-muted">
+              Nenhuma venda encontrada.
+            </div>
+          ) : null}
+
+          <div className="mt-6 overflow-x-auto">
+            <table className="min-w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-slate-100 text-xs uppercase text-slate-400">
+                  <th className="px-3 py-2">Pedido/Produto</th>
+                  <th className="px-3 py-2">Comprador</th>
+                  <th className="px-3 py-2">Data</th>
+                  <th className="px-3 py-2">Valor</th>
+                  <th className="px-3 py-2">Status</th>
+                  <th className="px-3 py-2 text-right">Acoes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredOrders.map((order) => {
+                  const buyer = order.buyer?.email ?? order.buyerId ?? 'Comprador';
+                  const product = order.items[0]?.title ?? 'Venda';
+                  const tone = statusTone[order.status] ?? 'neutral';
+                  return (
+                    <tr key={order.id} className="border-b border-slate-100">
+                      <td className="px-3 py-3">
+                        <div className="text-xs font-semibold text-slate-400">
+                          #{order.id.slice(0, 8).toUpperCase()}
+                        </div>
+                        <div className="text-sm font-semibold text-meow-charcoal">
+                          {product}
+                        </div>
+                      </td>
+                      <td className="px-3 py-3 text-sm text-slate-600">{buyer}</td>
+                      <td className="px-3 py-3 text-sm text-slate-600">
+                        {formatDate(order.createdAt)}
+                      </td>
+                      <td className="px-3 py-3 text-sm font-semibold text-meow-charcoal">
+                        {formatCurrency(order.totalAmountCents, order.currency)}
+                      </td>
+                      <td className="px-3 py-3">
+                        <Badge variant={tone}>
+                          {statusLabel[order.status] ?? order.status}
+                        </Badge>
+                      </td>
+                      <td className="px-3 py-3 text-right">
+                        <div className="relative inline-flex">
+                          <button
+                            type="button"
+                            className="grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:border-meow-200 hover:text-meow-deep"
+                            onClick={() =>
+                              setMenuOpenId((prev) => (prev === order.id ? null : order.id))
+                            }
+                            aria-label="Acoes"
+                          >
+                            <MoreHorizontal size={16} aria-hidden />
+                          </button>
+                          {menuOpenId === order.id ? (
+                            <div className="absolute right-0 top-11 z-10 w-40 rounded-2xl border border-slate-100 bg-white p-2 text-sm shadow-[0_18px_32px_rgba(15,23,42,0.12)]">
+                              <Link
+                                href={`/conta/vendas/${order.id}`}
+                                className="block rounded-xl px-3 py-2 text-sm font-semibold text-meow-charcoal hover:bg-meow-50"
+                                onClick={() => setMenuOpenId(null)}
+                              >
+                                Ver detalhes
+                              </Link>
+                              <button
+                                type="button"
+                                className="w-full rounded-xl px-3 py-2 text-left text-sm font-semibold text-meow-charcoal hover:bg-meow-50"
+                                onClick={() => {
+                                  setMenuOpenId(null);
+                                  if (navigator?.clipboard) {
+                                    navigator.clipboard.writeText(order.id).catch(() => {});
+                                  }
+                                }}
+                              >
+                                Copiar ID
+                              </button>
+                            </div>
+                          ) : null}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      </div>
     </AccountShell>
   );
 };

@@ -99,7 +99,7 @@ export const AdminWebhooksContent = () => {
         { label: 'Webhooks' },
       ]}
     >
-      <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="text-xl font-black text-meow-charcoal">Webhooks Pix</h1>
@@ -131,7 +131,7 @@ export const AdminWebhooksContent = () => {
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+        <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
           <h2 className="text-base font-bold text-meow-charcoal">Endpoint público</h2>
           <p className="mt-2 text-sm text-meow-muted">
             Configure o provedor para enviar eventos para:
@@ -159,7 +159,7 @@ export const AdminWebhooksContent = () => {
           </div>
         </div>
 
-        <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+        <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
           <h2 className="text-base font-bold text-meow-charcoal">Metricas</h2>
           {!metrics ? (
             <div className="mt-4 rounded-xl border border-slate-100 bg-meow-50 px-4 py-3 text-sm text-meow-muted">

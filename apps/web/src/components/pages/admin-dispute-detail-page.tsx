@@ -189,7 +189,7 @@ export const AdminDisputeDetailContent = ({ disputeId }: AdminDisputeDetailConte
         { label: 'Detalhe' },
       ]}
     >
-      <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
+      <Card className="rounded-2xl border border-slate-100 p-6 shadow-card">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="text-xl font-black text-meow-charcoal">Decisão de disputa</h1>
@@ -221,7 +221,7 @@ export const AdminDisputeDetailContent = ({ disputeId }: AdminDisputeDetailConte
         </div>
       ) : (
         <div className="grid gap-6 lg:grid-cols-2">
-          <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
+          <Card className="rounded-2xl border border-slate-100 p-6 shadow-card">
             <h3 className="text-base font-bold text-meow-charcoal">Resumo</h3>
             <div className="mt-4 grid gap-3 text-sm text-meow-muted">
               <div className="flex items-center justify-between">
@@ -272,7 +272,7 @@ export const AdminDisputeDetailContent = ({ disputeId }: AdminDisputeDetailConte
             </div>
           </Card>
 
-          <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
+          <Card className="rounded-2xl border border-slate-100 p-6 shadow-card">
             <h3 className="text-base font-bold text-meow-charcoal">Pedido</h3>
             {order ? (
               <div className="mt-4 grid gap-3 text-sm text-meow-muted">
@@ -320,7 +320,7 @@ export const AdminDisputeDetailContent = ({ disputeId }: AdminDisputeDetailConte
             </div>
           </Card>
 
-          <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
+          <Card className="rounded-2xl border border-slate-100 p-6 shadow-card">
             <h3 className="text-base font-bold text-meow-charcoal">Evidencias</h3>
             {order?.items?.length ? (
               <div className="mt-4 grid gap-3">
@@ -355,7 +355,7 @@ export const AdminDisputeDetailContent = ({ disputeId }: AdminDisputeDetailConte
             )}
           </Card>
 
-          <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
+          <Card className="rounded-2xl border border-slate-100 p-6 shadow-card">
             <h3 className="text-base font-bold text-meow-charcoal">Chat</h3>
             {chatView.length === 0 ? (
               <div className="mt-4 rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-muted">

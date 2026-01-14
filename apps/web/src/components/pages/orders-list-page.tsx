@@ -179,7 +179,7 @@ export const OrdersListContent = ({ scope }: OrdersListContentProps) => {
       ) : null}
 
       {state.orders.length ? (
-        <Card className="rounded-[28px] border border-slate-100 p-6 shadow-card">
+        <Card className="rounded-2xl border border-slate-100 p-6 shadow-card">
           <div className="grid gap-3">
             {state.orders.map((order) => (
               <div

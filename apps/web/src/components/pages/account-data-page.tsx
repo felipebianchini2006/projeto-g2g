@@ -262,7 +262,7 @@ export const AccountDataContent = () => {
       ]}
     >
       <form
-        className="relative rounded-[28px] border border-slate-100 bg-white pb-28 shadow-card"
+        className="relative rounded-2xl border border-slate-100 bg-white pb-28 shadow-card"
         onSubmit={handleSubmit}
       >
         <div className="p-6">

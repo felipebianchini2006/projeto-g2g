@@ -28,7 +28,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${nunito.className} min-h-screen bg-meow-gradient text-meow-charcoal`}
+        className={`${nunito.className} min-h-screen bg-white text-meow-charcoal`}
       >
         <Providers>{children}</Providers>
       </body>

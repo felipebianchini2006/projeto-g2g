@@ -132,7 +132,7 @@ const ProfileHeaderCard = ({
   chatLoading,
   onChat,
 }: ProfileHeaderCardProps) => (
-  <Card className="-mt-16 rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+  <Card className="-mt-16 rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
     <div className="flex flex-wrap items-center justify-between gap-4">
       <div className="flex items-center gap-4">
         <div className="relative h-24 w-24 overflow-hidden rounded-[24px] bg-slate-100">
@@ -592,7 +592,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
     return (
       <section className="bg-gradient-to-b from-rose-100/60 via-white to-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] space-y-6">
-          <div className="h-32 rounded-[32px] bg-rose-100" />
+          <div className="h-32 rounded-3xl bg-rose-100" />
           <SkeletonProfile />
         </div>
       </section>
@@ -645,8 +645,8 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
     <section className="bg-gradient-to-b from-rose-100/60 via-white to-white px-6 py-12">
       <div className="mx-auto w-full max-w-[1200px] space-y-6">
         <div className="relative">
-          <div className="h-32 rounded-[32px] bg-gradient-to-r from-rose-500 to-fuchsia-500">
-            <div className="h-full w-full rounded-[32px] bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.4),_transparent_60%)]" />
+          <div className="h-32 rounded-3xl bg-gradient-to-r from-rose-500 to-fuchsia-500">
+            <div className="h-full w-full rounded-3xl bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.4),_transparent_60%)]" />
           </div>
           <ProfileHeaderCard
             profile={{ ...profile, handle: handleLabel }}

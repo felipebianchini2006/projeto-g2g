@@ -184,7 +184,7 @@ export const ProdutosContent = () => {
           </Link>
         </div>
 
-        <div className="mt-6 rounded-[28px] border border-meow-red/10 bg-white p-6 shadow-card">
+        <div className="mt-6 rounded-2xl border border-meow-red/10 bg-white p-6 shadow-card">
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex flex-1 items-center gap-3 rounded-full border border-meow-red/20 bg-meow-cream/80 px-4 py-2 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
               <Search size={16} className="text-meow-deep" aria-hidden />

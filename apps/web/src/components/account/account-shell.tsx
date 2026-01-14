@@ -244,7 +244,7 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
         ) : null}
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
-          <aside className="rounded-[28px] border border-meow-100 bg-white p-5 shadow-card">
+          <aside className="rounded-2xl border border-meow-100 bg-white p-5 shadow-card">
             <div className="flex flex-col items-center text-center">
               <ProfileAvatar
                 displayName={displayName}

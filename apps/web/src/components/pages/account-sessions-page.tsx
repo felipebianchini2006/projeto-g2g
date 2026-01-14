@@ -291,7 +291,7 @@ export const AccountSessionsContent = () => {
         </div>
       </Card>
 
-      <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h2 className="text-lg font-black text-meow-charcoal">Dispositivos conectados</h2>

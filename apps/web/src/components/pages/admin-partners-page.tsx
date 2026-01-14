@@ -156,7 +156,7 @@ export const AdminPartnersContent = () => {
         { label: 'Parceiros' },
       ]}
     >
-      <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="text-xl font-black text-meow-charcoal">Parceiros</h1>
@@ -181,7 +181,7 @@ export const AdminPartnersContent = () => {
       {error ? <div className="state-card error">{error}</div> : null}
       {notice ? <div className="state-card success">{notice}</div> : null}
 
-      <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-card">
+      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
         <div className="panel-header">
           <h2>{editingId ? 'Editar parceiro' : 'Novo parceiro'}</h2>
         </div>

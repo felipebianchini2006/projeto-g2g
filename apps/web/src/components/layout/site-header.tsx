@@ -375,7 +375,7 @@ export const SiteHeader = () => {
                 <ChevronDown size={16} aria-hidden />
               </button>
               {categoriesOpen ? (
-                <div className="absolute right-0 top-full z-50 mt-3 w-[min(92vw,360px)] rounded-[28px] border border-meow-red/20 bg-white p-5 shadow-[0_18px_45px_rgba(64,37,50,0.16)] sm:left-1/2 sm:right-auto sm:w-[min(1100px,94vw)] sm:-translate-x-1/2 sm:p-6">
+                <div className="absolute right-0 top-full z-50 mt-3 w-[min(92vw,360px)] rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_18px_45px_rgba(64,37,50,0.16)] sm:left-1/2 sm:right-auto sm:w-[min(1100px,94vw)] sm:-translate-x-1/2 sm:p-6">
                   <div className="flex flex-wrap items-center gap-3 sm:gap-4">
                     <span className="text-sm font-semibold text-meow-muted">
                       Filtrar categoria:
@@ -610,7 +610,7 @@ export const SiteHeader = () => {
               </button>
               {menuOpen ? (
                 <div
-                  className={`fixed left-1/2 top-20 z-50 w-[min(92vw,320px)] -translate-x-1/2 overflow-hidden rounded-[28px] border sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:w-[320px] sm:translate-x-0 ${menuPanelClass}`}
+                  className={`fixed left-1/2 top-20 z-50 w-[min(92vw,320px)] -translate-x-1/2 overflow-hidden rounded-2xl border sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:w-[320px] sm:translate-x-0 ${menuPanelClass}`}
                 >
                   <div className={`px-5 py-4 ${menuGradientClass}`}>
                     <div className="flex items-center gap-3">
