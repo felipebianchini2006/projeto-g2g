@@ -25,28 +25,23 @@ import { HomeListingCard } from '../listings/home-listing-card';
 const benefits = [
   {
     icon: Truck,
-    title: 'Frete grátis acima de R$349',
-    description: 'Em regiões selecionadas',
+    title: 'Entrega garantida ou seu dinheiro de volta',
+    description: 'Sua compra protegida do início ao fim',
   },
   {
-    icon: BadgePercent,
-    title: 'Descontos em pagamentos à vista',
-    description: 'Economize no Pix',
+    icon: ShieldCheck,
+    title: 'Segurança: site totalmente seguro',
+    description: 'Ambiente certificado e dados protegidos',
   },
   {
     icon: Package,
-    title: 'Entrega local, receba hoje',
-    description: 'Entrega expressaa',
+    title: 'Entrega virtual: receba sem sair de casa',
+    description: 'Mais comodidade para você',
   },
   {
     icon: CreditCard,
     title: 'Pague com cartão em até 12x sem juros',
     description: 'Parcelamento fácil',
-  },
-  {
-    icon: ShieldCheck,
-    title: 'Segurança de loja oficial',
-    description: 'Compra protegida',
   },
 ];
 
@@ -143,7 +138,7 @@ export const HomeContent = () => {
     };
   }, []);
 
-  const scrollRow = (ref: RefObject<HTMLDivElement>, amount: number) => {
+  const scrollRow = (ref: RefObject<HTMLDivElement | null>, amount: number) => {
     ref.current?.scrollBy({ left: amount, behavior: 'smooth' });
   };
 
@@ -192,7 +187,7 @@ export const HomeContent = () => {
 
       <section className="px-6 pb-10">
         <div className="mx-auto w-full max-w-[1280px]">
-          <div className="grid gap-5 rounded-2xl border border-meow-red/10 bg-white px-6 py-8 shadow-[0_14px_34px_rgba(216,107,149,0.12)] sm:grid-cols-2 lg:grid-cols-5">
+          <div className="grid gap-5 rounded-2xl border border-meow-red/10 bg-white px-6 py-8 shadow-[0_14px_34px_rgba(216,107,149,0.12)] sm:grid-cols-2 lg:grid-cols-4">
             {benefits.map((item) => (
               <div key={item.title} className="flex items-start gap-4">
                 <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-meow-cream/70 text-meow-deep">
@@ -254,9 +249,9 @@ export const HomeContent = () => {
                     key={item.id ?? item.slug}
                     className="flex min-w-[120px] flex-col items-center gap-3"
                   >
-                  <div className="flex h-24 w-24 items-center justify-center rounded-full bg-meow-deep text-xl font-black text-white shadow-[0_16px_30px_rgba(255,107,149,0.35)]">
-                    {initials}
-                  </div>
+                    <div className="flex h-24 w-24 items-center justify-center rounded-full bg-meow-deep text-xl font-black text-white shadow-[0_16px_30px_rgba(255,107,149,0.35)]">
+                      {initials}
+                    </div>
                     <span className="text-xs font-semibold text-meow-charcoal">
                       {item.label}
                     </span>
