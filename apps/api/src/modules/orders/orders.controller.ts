@@ -24,6 +24,7 @@ import { MarkDeliveredDto } from './dto/mark-delivered.dto';
 import { OpenDisputeDto } from './dto/open-dispute.dto';
 import { OrderQueryDto } from './dto/order-query.dto';
 import { CreateSellerReviewDto } from './dto/create-seller-review.dto';
+import { ReviewEligibilityQueryDto } from './dto/review-eligibility-query.dto';
 import { OrderAccessGuard } from './guards/order-access.guard';
 import { OrdersService } from './orders.service';
 
@@ -45,6 +46,15 @@ export class OrdersController {
     const userId = this.getUserId(req);
     const role = req.user?.role ?? 'USER';
     return this.ordersService.listOrders(userId, role, query);
+  }
+
+  @Get('review-eligibility')
+  getReviewEligibility(
+    @Req() req: AuthenticatedRequest,
+    @Query() query: ReviewEligibilityQueryDto,
+  ) {
+    const userId = this.getUserId(req);
+    return this.ordersService.getReviewEligibility(userId, query.listingId);
   }
 
   @Get(':id')

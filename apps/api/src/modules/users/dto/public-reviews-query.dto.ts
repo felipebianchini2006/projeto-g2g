@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, Max, Min } from 'class-validator';
+import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class PublicReviewsQueryDto {
   @IsOptional()
@@ -14,4 +14,8 @@ export class PublicReviewsQueryDto {
   @Min(1)
   @Max(50)
   take?: number;
+
+  @IsOptional()
+  @IsString()
+  listingId?: string;
 }

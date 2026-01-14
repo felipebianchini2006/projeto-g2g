@@ -13,10 +13,20 @@ export class PublicReviewsController {
   async listReviews(@Param('id') sellerId: string, @Query() query: PublicReviewsQueryDto) {
     const skip = query.skip ?? 0;
     const take = query.take ?? 10;
+    const listingId = query.listingId?.trim();
+    const where = listingId
+      ? {
+          sellerId,
+          OR: [
+            { orderItem: { listingId } },
+            { order: { items: { some: { listingId } } } },
+          ],
+        }
+      : { sellerId };
 
     const [items, total, aggregate, distributionRaw] = await Promise.all([
       this.prisma.sellerReview.findMany({
-        where: { sellerId },
+        where,
         orderBy: { createdAt: 'desc' },
         skip,
         take,
@@ -26,14 +36,14 @@ export class PublicReviewsController {
           order: { select: { items: { select: { title: true } } } },
         },
       }),
-      this.prisma.sellerReview.count({ where: { sellerId } }),
+      this.prisma.sellerReview.count({ where }),
       this.prisma.sellerReview.aggregate({
-        where: { sellerId },
+        where,
         _avg: { rating: true },
       }),
       this.prisma.sellerReview.groupBy({
         by: ['rating'],
-        where: { sellerId },
+        where,
         _count: { _all: true },
       }),
     ]);

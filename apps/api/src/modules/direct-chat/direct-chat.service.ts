@@ -11,7 +11,7 @@ const getEmailPrefix = (email: string) => email.split('@')[0] || 'usuario';
 export class DirectChatService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private normalizePair(userId: string, targetId: string) {
+  private normalizePair(userId: string, targetId: string): [string, string] {
     return userId < targetId ? [userId, targetId] : [targetId, userId];
   }
 

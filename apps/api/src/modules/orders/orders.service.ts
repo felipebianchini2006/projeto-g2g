@@ -276,8 +276,17 @@ export class OrdersService {
       if (order.buyerId !== userId) {
         throw new ForbiddenException('Only the buyer can review.');
       }
-      if (order.status !== OrderStatus.COMPLETED) {
-        throw new BadRequestException('Order is not completed.');
+      if (order.status === OrderStatus.DISPUTED) {
+        throw new BadRequestException('Pedido em disputa não pode ser avaliado no momento.');
+      }
+      const allowedStatuses: OrderStatus[] = [
+        OrderStatus.PAID,
+        OrderStatus.IN_DELIVERY,
+        OrderStatus.DELIVERED,
+        OrderStatus.COMPLETED,
+      ];
+      if (!allowedStatuses.includes(order.status)) {
+        throw new BadRequestException('Order is not eligible for review.');
       }
       if (!order.sellerId) {
         throw new BadRequestException('Order does not have a seller.');
@@ -305,6 +314,78 @@ export class OrdersService {
         },
       });
     });
+  }
+
+  async getReviewEligibility(buyerId: string, listingId: string) {
+    const allowedStatuses: OrderStatus[] = [
+      OrderStatus.PAID,
+      OrderStatus.IN_DELIVERY,
+      OrderStatus.DELIVERED,
+      OrderStatus.COMPLETED,
+    ];
+
+    const eligibleOrder = await this.prisma.order.findFirst({
+      where: {
+        buyerId,
+        status: { in: allowedStatuses },
+        items: { some: { listingId } },
+        sellerReview: { is: null },
+      },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true },
+    });
+
+    if (eligibleOrder) {
+      return { canReview: true, orderId: eligibleOrder.id };
+    }
+
+    const latestOrder = await this.prisma.order.findFirst({
+      where: { buyerId, items: { some: { listingId } } },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        status: true,
+        sellerReview: { select: { id: true } },
+      },
+    });
+
+    if (!latestOrder) {
+      return {
+        canReview: false,
+        orderId: null,
+        reason: 'Você precisa pagar para avaliar.',
+      };
+    }
+
+    if (latestOrder.status === OrderStatus.DISPUTED) {
+      return {
+        canReview: false,
+        orderId: null,
+        reason: 'Pedido em disputa não pode ser avaliado no momento.',
+      };
+    }
+
+    if (latestOrder.sellerReview) {
+      return {
+        canReview: false,
+        orderId: null,
+        reason: 'Você já avaliou este pedido.',
+      };
+    }
+
+    if (!allowedStatuses.includes(latestOrder.status)) {
+      return {
+        canReview: false,
+        orderId: null,
+        reason: 'Você precisa pagar para avaliar.',
+      };
+    }
+
+    return {
+      canReview: false,
+      orderId: null,
+      reason: 'Você não pode avaliar este pedido no momento.',
+    };
   }
 
   async cancelOrder(orderId: string, buyerId: string, dto: CancelOrderDto, meta: AuthRequestMeta) {

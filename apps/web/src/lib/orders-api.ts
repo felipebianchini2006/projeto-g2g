@@ -118,6 +118,12 @@ export type DeliveryEvidenceResponse = {
   evidence: DeliveryEvidence[];
 };
 
+export type ReviewEligibilityResponse = {
+  canReview: boolean;
+  orderId: string | null;
+  reason?: string;
+};
+
 const authHeaders = (token: string | null): HeadersInit | undefined =>
   token ? { Authorization: `Bearer ${token}` } : undefined;
 
@@ -166,6 +172,13 @@ export const ordersApi = {
     apiFetch<Order[]>(`/orders?scope=${scope}`, {
       headers: authHeaders(token),
     }),
+
+  getReviewEligibility: (token: string | null, listingId: string) => {
+    const query = new URLSearchParams({ listingId }).toString();
+    return apiFetch<ReviewEligibilityResponse>(`/orders/review-eligibility?${query}`, {
+      headers: authHeaders(token),
+    });
+  },
 
   getOrder: (token: string | null, orderId: string) =>
     apiFetch<Order>(`/orders/${orderId}`, { headers: authHeaders(token) }),

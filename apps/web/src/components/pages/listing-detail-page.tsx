@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { type FormEvent, useEffect, useRef, useState } from 'react';
 import { Heart, ShoppingBag, ShoppingCart, Star } from 'lucide-react';
 
 import { ApiClientError } from '../../lib/api-client';
@@ -10,6 +10,12 @@ import {
   type ListingQuestion,
 } from '../../lib/listing-questions-api';
 import { fetchPublicListing, type PublicListing } from '../../lib/marketplace-public';
+import {
+  publicReviewsApi,
+  type PublicReview,
+  type ReviewDistribution,
+} from '../../lib/public-reviews-api';
+import { ordersApi, type ReviewEligibilityResponse } from '../../lib/orders-api';
 import { useAuth } from '../auth/auth-provider';
 import { useSite } from '../site-context';
 import { Badge } from '../ui/badge';
@@ -32,6 +38,21 @@ type ListingQuestionsState = {
   error?: string;
 };
 
+type ReviewsState = {
+  status: 'idle' | 'loading' | 'ready' | 'error';
+  items: PublicReview[];
+  total: number;
+  ratingAverage: number;
+  distribution: ReviewDistribution | null;
+  error?: string;
+};
+
+type ReviewEligibilityState = {
+  status: 'idle' | 'loading' | 'ready' | 'error';
+  data: ReviewEligibilityResponse | null;
+  error?: string;
+};
+
 const formatCurrency = (value: number, currency = 'BRL') =>
   new Intl.NumberFormat('pt-BR', {
     style: 'currency',
@@ -41,7 +62,7 @@ const formatCurrency = (value: number, currency = 'BRL') =>
 
 export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
   const { addToCart, isFavorite, toggleFavorite } = useSite();
-  const { user, accessToken } = useAuth();
+  const { accessToken } = useAuth();
   const [state, setState] = useState<ListingDetailState>({
     status: 'loading',
     listing: null,
@@ -52,6 +73,23 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
     items: [],
     total: 0,
   });
+  const [reviewsState, setReviewsState] = useState<ReviewsState>({
+    status: 'idle',
+    items: [],
+    total: 0,
+    ratingAverage: 0,
+    distribution: null,
+  });
+  const [eligibilityState, setEligibilityState] = useState<ReviewEligibilityState>({
+    status: 'idle',
+    data: null,
+  });
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+  const [reviewError, setReviewError] = useState<string | null>(null);
+  const [reviewSending, setReviewSending] = useState(false);
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
+  const [activeTab, setActiveTab] = useState('descricao');
   const [questionDraft, setQuestionDraft] = useState('');
   const [questionError, setQuestionError] = useState<string | null>(null);
   const [questionSending, setQuestionSending] = useState(false);
@@ -122,6 +160,81 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
     };
   }, [listingId]);
 
+  useEffect(() => {
+    setReviewSubmitted(false);
+    setReviewComment('');
+    setReviewRating(5);
+    setReviewError(null);
+  }, [listingId]);
+
+  useEffect(() => {
+    if (activeTab !== 'avaliacoes') {
+      return;
+    }
+    const sellerId = state.listing?.sellerId;
+    const listingKey = state.listing?.id;
+    if (!sellerId || !listingKey) {
+      return;
+    }
+    let active = true;
+    setReviewsState((prev) => ({ ...prev, status: 'loading', error: undefined }));
+    publicReviewsApi
+      .listSellerReviews(sellerId, 0, 10, listingKey)
+      .then((response) => {
+        if (!active) return;
+        setReviewsState({
+          status: 'ready',
+          items: response.items,
+          total: response.total,
+          ratingAverage: response.ratingAverage,
+          distribution: response.distribution,
+        });
+      })
+      .catch((error: Error) => {
+        if (!active) return;
+        setReviewsState({
+          status: 'error',
+          items: [],
+          total: 0,
+          ratingAverage: 0,
+          distribution: null,
+          error: error.message || 'Não foi possível carregar as avaliações.',
+        });
+      });
+    return () => {
+      active = false;
+    };
+  }, [activeTab, state.listing?.id, state.listing?.sellerId]);
+
+  useEffect(() => {
+    if (activeTab !== 'avaliacoes') {
+      return;
+    }
+    if (!accessToken || !state.listing?.id) {
+      setEligibilityState({ status: 'idle', data: null });
+      return;
+    }
+    let active = true;
+    setEligibilityState({ status: 'loading', data: null });
+    ordersApi
+      .getReviewEligibility(accessToken, state.listing.id)
+      .then((response) => {
+        if (!active) return;
+        setEligibilityState({ status: 'ready', data: response });
+      })
+      .catch((error: Error) => {
+        if (!active) return;
+        setEligibilityState({
+          status: 'error',
+          data: null,
+          error: error.message || 'Não foi possível verificar sua avaliação.',
+        });
+      });
+    return () => {
+      active = false;
+    };
+  }, [accessToken, activeTab, state.listing?.id]);
+
   if (state.status === 'loading') {
     return (
       <section className="listing-detail">
@@ -148,9 +261,10 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
   const listing = state.listing;
   const categoryLabel = listing.categoryLabel ?? listing.categorySlug ?? 'Marketplace';
   const favoriteActive = isFavorite(listing.id);
+  const reviewsLabel = `Avaliacoes (${reviewsState.total})`;
   const tabs = [
     { id: 'descricao', label: 'Descrição' },
-    { id: 'avaliacoes', label: 'Avaliações (42)' },
+    { id: 'avaliacoes', label: reviewsLabel },
     { id: 'duvidas', label: 'Duvidas' },
   ] as const;
   const fallbackImage = '/assets/meoow/highlight-01.webp';
@@ -181,6 +295,9 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
       : null;
   const questionCount = questionsState.total || questionsState.items.length;
   const canAskQuestion = Boolean(accessToken);
+  const reviewEligibility = eligibilityState.data;
+  const canReview = Boolean(reviewEligibility?.canReview && reviewEligibility.orderId);
+  const reviewOrderId = reviewEligibility?.orderId ?? null;
 
   const resolveInitials = (value?: string | null) => {
     if (!value) {
@@ -233,6 +350,53 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
       setQuestionError(message);
     } finally {
       setQuestionSending(false);
+    }
+  };
+
+  const handleSubmitReview = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!accessToken || !reviewOrderId) {
+      return;
+    }
+    const comment = reviewComment.trim();
+    if (comment.length < 5) {
+      setReviewError('Escreva um comentario com pelo menos 5 caracteres.');
+      return;
+    }
+    setReviewSending(true);
+    setReviewError(null);
+    try {
+      await ordersApi.createReview(accessToken, reviewOrderId, {
+        rating: reviewRating,
+        comment,
+      });
+      setReviewSubmitted(true);
+      setReviewComment('');
+      if (listing.sellerId && listing.id) {
+        const response = await publicReviewsApi.listSellerReviews(
+          listing.sellerId,
+          0,
+          10,
+          listing.id,
+        );
+        setReviewsState({
+          status: 'ready',
+          items: response.items,
+          total: response.total,
+          ratingAverage: response.ratingAverage,
+          distribution: response.distribution,
+        });
+      }
+      const eligibility = await ordersApi.getReviewEligibility(accessToken, listing.id);
+      setEligibilityState({ status: 'ready', data: eligibility });
+    } catch (error) {
+      const message =
+        error instanceof ApiClientError
+          ? error.message
+          : 'Nao foi possivel enviar sua avaliacao.';
+      setReviewError(message);
+    } finally {
+      setReviewSending(false);
     }
   };
 
@@ -440,7 +604,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
         </div>
 
         <div className="mt-10 rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
-          <Tabs defaultValue="descricao">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="gap-2">
               {tabs.map((tab) => (
                 <TabsTrigger key={tab.id} value={tab.id}>
@@ -453,7 +617,205 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
               <p>{listing.description ?? 'Descrição não informada.'}</p>
             </TabsContent>
             <TabsContent value="avaliacoes">
-              <p>Em breve.</p>
+              <div className="space-y-6">
+                <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-card">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <h3 className="text-lg font-black text-meow-charcoal">Avalie este produto</h3>
+                      <p className="text-xs text-slate-400">
+                        Conte como foi sua experiencia com o vendedor.
+                      </p>
+                    </div>
+                    {!accessToken ? (
+                      <Link
+                        href="/login"
+                        className="rounded-full border border-meow-200 bg-white px-4 py-2 text-xs font-bold text-meow-deep"
+                      >
+                        Entre para avaliar
+                      </Link>
+                    ) : null}
+                  </div>
+
+                  {!accessToken ? (
+                    <div className="mt-4 rounded-2xl border border-meow-200 bg-meow-50 px-4 py-4 text-sm text-meow-muted">
+                      Entre na sua conta para avaliar este vendedor.
+                    </div>
+                  ) : eligibilityState.status === 'loading' ? (
+                    <div className="mt-4 text-xs text-slate-400">
+                      Verificando se voce pode avaliar...
+                    </div>
+                  ) : reviewSubmitted ? (
+                    <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-700">
+                      Obrigado! Sua avaliacao foi enviada.
+                    </div>
+                  ) : canReview ? (
+                    <form className="mt-4 space-y-4" onSubmit={handleSubmitReview}>
+                      <div className="flex items-center gap-2 text-amber-400">
+                        {Array.from({ length: 5 }).map((_, index) => {
+                          const value = index + 1;
+                          const isActive = reviewRating >= value;
+                          return (
+                            <button
+                              key={`rating-${value}`}
+                              type="button"
+                              onClick={() => setReviewRating(value)}
+                              className="rounded-full p-1 transition hover:bg-amber-50"
+                              aria-label={`Nota ${value}`}
+                            >
+                              <Star size={18} fill={isActive ? 'currentColor' : 'none'} />
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <Textarea
+                        rows={4}
+                        placeholder="Escreva sua avaliacao..."
+                        value={reviewComment}
+                        onChange={(event) => setReviewComment(event.target.value)}
+                      />
+                      {reviewError ? (
+                        <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                          {reviewError}
+                        </div>
+                      ) : null}
+                      <div className="flex flex-wrap items-center gap-3">
+                        <Button
+                          type="submit"
+                          variant="primary"
+                          size="sm"
+                          disabled={reviewSending || reviewComment.trim().length < 5}
+                        >
+                          {reviewSending ? 'Enviando...' : 'Enviar avaliacao'}
+                        </Button>
+                        <span className="text-xs text-slate-400">
+                          Sua avaliacao fica vinculada ao vendedor.
+                        </span>
+                      </div>
+                    </form>
+                  ) : (
+                    <div className="mt-4 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-4 text-sm text-meow-muted">
+                      <p>{reviewEligibility?.reason ?? 'Voce nao pode avaliar este produto.'}</p>
+                      <Link
+                        href="/conta/pedidos"
+                        className="mt-3 inline-flex rounded-full bg-meow-linear px-4 py-2 text-xs font-bold text-white"
+                      >
+                        Ver meus pedidos
+                      </Link>
+                    </div>
+                  )}
+                </div>
+
+                {reviewsState.status === 'loading' ? (
+                  <div className="space-y-3">
+                    {Array.from({ length: 3 }).map((_, index) => (
+                      <div
+                        key={`review-skeleton-${index}`}
+                        className="rounded-2xl border border-slate-100 bg-slate-50/80 p-4"
+                      >
+                        <div className="flex items-start gap-3">
+                          <Skeleton className="h-10 w-10 rounded-full" />
+                          <div className="flex-1 space-y-2">
+                            <Skeleton className="h-3 w-32" />
+                            <Skeleton className="h-4 w-full" />
+                            <Skeleton className="h-4 w-2/3" />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+
+                {reviewsState.status === 'error' ? (
+                  <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    {reviewsState.error || 'Nao foi possivel carregar as avaliacoes.'}
+                  </div>
+                ) : null}
+
+                {reviewsState.status === 'ready' && reviewsState.total === 0 ? (
+                  <div className="rounded-2xl border border-slate-100 bg-meow-50 px-5 py-4 text-sm text-meow-muted">
+                    Nenhuma avaliacao encontrada para este produto.
+                  </div>
+                ) : null}
+
+                {reviewsState.status === 'ready' && reviewsState.total > 0 ? (
+                  <div className="space-y-4">
+                    <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-card">
+                      <div className="flex flex-wrap items-center gap-4">
+                        <div>
+                          <div className="text-3xl font-black text-meow-charcoal">
+                            {reviewsState.ratingAverage.toFixed(1)}
+                          </div>
+                          <div className="mt-2 flex items-center gap-1 text-amber-400">
+                            {Array.from({ length: 5 }).map((_, index) => (
+                              <Star key={`avg-star-${index}`} size={16} fill="currentColor" />
+                            ))}
+                          </div>
+                        </div>
+                        <div className="text-xs text-slate-500">
+                          Baseado em {reviewsState.total} avaliacao
+                          {reviewsState.total === 1 ? '' : 'es'}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      {reviewsState.items.map((review) => (
+                        <div
+                          key={review.id}
+                          className="rounded-2xl border border-slate-100 bg-white p-5 shadow-card"
+                        >
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                              <div className="h-10 w-10 overflow-hidden rounded-full bg-meow-100">
+                                {review.buyer.avatarUrl ? (
+                                  <img
+                                    src={review.buyer.avatarUrl}
+                                    alt={review.buyer.displayName}
+                                    className="h-full w-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="grid h-full w-full place-items-center text-sm font-bold text-slate-400">
+                                    {review.buyer.displayName.slice(0, 2).toUpperCase()}
+                                  </div>
+                                )}
+                              </div>
+                              <div>
+                                <p className="text-sm font-semibold text-meow-charcoal">
+                                  {review.buyer.displayName}
+                                </p>
+                                <div className="flex items-center gap-1 text-xs text-amber-400">
+                                  {Array.from({ length: review.rating }).map((_, index) => (
+                                    <Star key={`review-star-${review.id}-${index}`} size={12} />
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                            <span className="text-xs text-meow-muted">
+                              {formatDateTime(review.createdAt)}
+                            </span>
+                          </div>
+                          <p className="mt-3 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm text-meow-muted">
+                            {review.comment}
+                          </p>
+                          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+                            {review.verifiedPurchase ? (
+                              <span className="rounded-full bg-emerald-50 px-3 py-1 font-semibold text-emerald-600">
+                                COMPRA VERIFICADA
+                              </span>
+                            ) : null}
+                            <span className="text-meow-muted">
+                              PRODUTO:{' '}
+                              <strong className="text-meow-charcoal">
+                                {review.productTitle ?? 'Produto'}
+                              </strong>
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
             </TabsContent>
             <TabsContent value="duvidas">
               <div className="space-y-6">

@@ -129,6 +129,8 @@ Google OAuth:
 
 ## Prisma (migracoes)
 
+Ao puxar mudancas que alterem o schema, rode as migrations antes de subir a API.
+
 Desenvolvimento:
 
 ```bash

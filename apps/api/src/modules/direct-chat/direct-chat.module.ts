@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
 
-import { PrismaService } from '../prisma/prisma.service';
+import { AuthModule } from '../auth/auth.module';
 import { DirectChatController } from './direct-chat.controller';
 import { DirectChatService } from './direct-chat.service';
 
 @Module({
+  imports: [AuthModule],
   controllers: [DirectChatController],
-  providers: [DirectChatService, PrismaService],
+  providers: [DirectChatService],
 })
 export class DirectChatModule {}

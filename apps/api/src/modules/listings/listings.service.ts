@@ -15,6 +15,7 @@ type AuditMeta = {
 
 type PublicListing = {
   id: string;
+  sellerId: string;
   title: string;
   description: string | null;
   priceCents: number;
@@ -123,6 +124,7 @@ export class ListingsService {
 
     return listings.map((listing) => ({
       id: listing.id,
+      sellerId: listing.sellerId,
       title: listing.title,
       description: listing.description,
       priceCents: listing.priceCents,
@@ -161,6 +163,7 @@ export class ListingsService {
 
     const payload = {
       id: listing.id,
+      sellerId: listing.sellerId,
       title: listing.title,
       description: listing.description,
       priceCents: listing.priceCents,
@@ -450,7 +453,8 @@ export class ListingsService {
       throw new NotFoundException('Listing not found.');
     }
 
-    if (![ListingStatus.DRAFT, ListingStatus.SUSPENDED].includes(listing.status)) {
+    const allowedStatuses: ListingStatus[] = [ListingStatus.DRAFT, ListingStatus.SUSPENDED];
+    if (!allowedStatuses.includes(listing.status)) {
       throw new BadRequestException('Only draft or suspended listings can be submitted.');
     }
 

@@ -29,8 +29,13 @@ export type PublicReviewsResponse = {
 };
 
 export const publicReviewsApi = {
-  listSellerReviews: (sellerId: string, skip = 0, take = 10) =>
-    apiFetch<PublicReviewsResponse>(
-      `/public/sellers/${sellerId}/reviews?skip=${skip}&take=${take}`,
-    ),
+  listSellerReviews: (sellerId: string, skip = 0, take = 10, listingId?: string) => {
+    const params = new URLSearchParams({ skip: `${skip}`, take: `${take}` });
+    if (listingId) {
+      params.set('listingId', listingId);
+    }
+    return apiFetch<PublicReviewsResponse>(
+      `/public/sellers/${sellerId}/reviews?${params.toString()}`,
+    );
+  },
 };
