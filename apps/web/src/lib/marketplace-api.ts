@@ -30,6 +30,7 @@ export type Listing = {
   deliverySlaHours: number;
   refundPolicy: string;
   media?: ListingMedia[];
+  inventoryAvailableCount?: number;
   createdAt?: string;
   updatedAt?: string;
 };

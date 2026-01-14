@@ -247,15 +247,35 @@ export class ListingsService {
   }
 
   async listSellerListings(sellerId: string, query: ListingQueryDto) {
-    return this.prisma.listing.findMany({
+    const listings = await this.prisma.listing.findMany({
       where: {
         sellerId,
         status: query.status,
+      },
+      include: {
+        media: { orderBy: { position: 'asc' }, take: 1 },
       },
       orderBy: { createdAt: 'desc' },
       skip: query.skip,
       take: query.take ?? 20,
     });
+    const listingIds = listings.map((listing) => listing.id);
+    const inventoryCounts =
+      listingIds.length > 0
+        ? await this.prisma.inventoryItem.groupBy({
+            by: ['listingId'],
+            where: { listingId: { in: listingIds }, status: 'AVAILABLE' },
+            _count: { _all: true },
+          })
+        : [];
+    const countsByListingId = new Map(
+      inventoryCounts.map((item) => [item.listingId, item._count._all]),
+    );
+
+    return listings.map((listing) => ({
+      ...listing,
+      inventoryAvailableCount: countsByListingId.get(listing.id) ?? 0,
+    }));
   }
 
   async listAdminListings(query: ListingQueryDto) {
@@ -430,8 +450,8 @@ export class ListingsService {
       throw new NotFoundException('Listing not found.');
     }
 
-    if (listing.status !== ListingStatus.DRAFT) {
-      throw new BadRequestException('Only draft listings can be submitted.');
+    if (![ListingStatus.DRAFT, ListingStatus.SUSPENDED].includes(listing.status)) {
+      throw new BadRequestException('Only draft or suspended listings can be submitted.');
     }
 
     const updated = await this.prisma.listing.update({

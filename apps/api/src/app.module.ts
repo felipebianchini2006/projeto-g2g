@@ -26,6 +26,7 @@ import { DirectChatModule } from './modules/direct-chat/direct-chat.module';
 import { PartnersModule } from './modules/partners/partners.module';
 import { CouponsModule } from './modules/coupons/coupons.module';
 import { CommunityModule } from './modules/community/community.module';
+import { ListingQuestionsModule } from './modules/listing-questions/listing-questions.module';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { CommunityModule } from './modules/community/community.module';
     PartnersModule,
     CouponsModule,
     CommunityModule,
+    ListingQuestionsModule,
   ],
 })
 export class AppModule {}

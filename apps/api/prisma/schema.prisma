@@ -224,6 +224,8 @@ model User {
   directChatThreadsAsUserA DirectChatThread[] @relation("DirectChatUserA")
   directChatThreadsAsUserB DirectChatThread[] @relation("DirectChatUserB")
   directChatMessages       DirectChatMessage[] @relation("DirectChatSender")
+  listingQuestionsAsked    ListingQuestion[] @relation("ListingQuestionAskedBy")
+  listingQuestionsAnswered ListingQuestion[] @relation("ListingQuestionAnsweredBy")
 
   @@map("users")
 }
@@ -543,6 +545,7 @@ model Listing {
   media               ListingMedia[]
   inventoryItems      InventoryItem[]
   orderItemSnapshots  OrderItemSnapshot[]
+  questions           ListingQuestion[]
 
   @@index([sellerId])
   @@index([categoryId])
@@ -686,6 +689,27 @@ model DeliveryEvidence {
   @@index([orderItemId])
   @@index([createdByUserId])
   @@map("delivery_evidence")
+}
+
+model ListingQuestion {
+  id           String   @id @default(cuid())
+  listingId    String
+  askedById    String
+  question     String
+  answer       String?
+  answeredById String?
+  answeredAt   DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  listing    Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  askedBy    User    @relation("ListingQuestionAskedBy", fields: [askedById], references: [id])
+  answeredBy User?   @relation("ListingQuestionAnsweredBy", fields: [answeredById], references: [id], onDelete: SetNull)
+
+  @@index([listingId])
+  @@index([askedById])
+  @@index([answeredById])
+  @@map("listing_questions")
 }
 
 model SellerReview {
