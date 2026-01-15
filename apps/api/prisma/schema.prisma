@@ -173,6 +173,21 @@ enum AuditAction {
   MANUAL_ADJUSTMENT
 }
 
+enum ReportStatus {
+  OPEN
+  REVIEWING
+  RESOLVED
+  REJECTED
+}
+
+enum ReportReason {
+  SCAM
+  PROHIBITED_CONTENT
+  MISLEADING_DESCRIPTION
+  DUPLICATE
+  OTHER
+}
+
 model User {
   id           String   @id @default(uuid())
   email        String   @unique
@@ -229,6 +244,8 @@ model User {
   directChatMessages       DirectChatMessage[] @relation("DirectChatSender")
   listingQuestionsAsked    ListingQuestion[] @relation("ListingQuestionAskedBy")
   listingQuestionsAnswered ListingQuestion[] @relation("ListingQuestionAnsweredBy")
+  listingReportsSubmitted  ListingReport[]   @relation("ListingReportReporter")
+  listingReportsReviewed   ListingReport[]   @relation("ListingReportAdmin")
 
   @@map("users")
 }
@@ -549,6 +566,7 @@ model Listing {
   inventoryItems      InventoryItem[]
   orderItemSnapshots  OrderItemSnapshot[]
   questions           ListingQuestion[]
+  reports             ListingReport[]
 
   @@index([sellerId])
   @@index([categoryId])
@@ -562,6 +580,30 @@ model Listing {
   @@index([mustHaveAt])
   @@index([title])
   @@map("listings")
+}
+
+model ListingReport {
+  id              String       @id @default(cuid())
+  listingId       String
+  reporterId      String
+  reason          ReportReason
+  message         String?
+  status          ReportStatus @default(OPEN)
+  reviewedByAdminId String?
+  adminNote       String?
+  resolvedAt      DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  listing        Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  reporter       User    @relation("ListingReportReporter", fields: [reporterId], references: [id])
+  reviewedByAdmin User?  @relation("ListingReportAdmin", fields: [reviewedByAdminId], references: [id])
+
+  @@index([listingId])
+  @@index([reporterId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("listing_reports")
 }
 
 model ListingMedia {

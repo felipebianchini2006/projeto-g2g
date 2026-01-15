@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { type FormEvent, useEffect, useRef, useState } from 'react';
-import { Heart, ShoppingBag, ShoppingCart, Star } from 'lucide-react';
+import { Flag, Heart, ShoppingBag, ShoppingCart, Star, X } from 'lucide-react';
 
 import { ApiClientError } from '../../lib/api-client';
 import {
@@ -17,6 +18,7 @@ import {
 } from '../../lib/public-reviews-api';
 import { publicProfilesApi, type PublicProfile } from '../../lib/public-profiles-api';
 import { ordersApi, type ReviewEligibilityResponse } from '../../lib/orders-api';
+import { reportsApi, type ReportReason } from '../../lib/reports-api';
 import { useAuth } from '../auth/auth-provider';
 import { useSite } from '../site-context';
 import { Badge } from '../ui/badge';
@@ -100,6 +102,13 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
   const [selectedEdition, setSelectedEdition] = useState<'standard' | 'deluxe'>(
     'standard',
   );
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [reportReason, setReportReason] = useState<ReportReason>('SCAM');
+  const [reportMessage, setReportMessage] = useState('');
+  const [reportSending, setReportSending] = useState(false);
+  const [reportSuccess, setReportSuccess] = useState(false);
+  const [reportError, setReportError] = useState<string | null>(null);
+  const router = useRouter();
   useEffect(() => {
     let active = true;
     const loadListing = async () => {
@@ -417,6 +426,46 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
     }
   };
 
+  const handleOpenReportModal = () => {
+    if (!accessToken) {
+      router.push(`/login?redirect=/anuncios/${listingId}`);
+      return;
+    }
+    setReportModalOpen(true);
+    setReportSuccess(false);
+    setReportError(null);
+  };
+
+  const handleSubmitReport = async () => {
+    if (!accessToken) return;
+    setReportSending(true);
+    setReportError(null);
+    try {
+      await reportsApi.createReport(accessToken, listingId, {
+        reason: reportReason,
+        message: reportMessage.trim() || undefined,
+      });
+      setReportSuccess(true);
+      setReportMessage('');
+    } catch (error) {
+      const message =
+        error instanceof ApiClientError
+          ? error.message
+          : 'Não foi possível enviar a denúncia.';
+      setReportError(message);
+    } finally {
+      setReportSending(false);
+    }
+  };
+
+  const reasonOptions: { value: ReportReason; label: string }[] = [
+    { value: 'SCAM', label: 'Golpe / Fraude' },
+    { value: 'PROHIBITED_CONTENT', label: 'Conteúdo Proibido' },
+    { value: 'MISLEADING_DESCRIPTION', label: 'Descrição Enganosa' },
+    { value: 'DUPLICATE', label: 'Anúncio Duplicado' },
+    { value: 'OTHER', label: 'Outro' },
+  ];
+
   return (
     <section className="bg-meow-50/60 pb-16 pt-10">
       <div className="mx-auto w-full max-w-[1200px] px-6">
@@ -431,12 +480,22 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
             </Link>{' '}
             &gt; <span className="text-slate-500">{listing.title}</span>
           </div>
-          <Link
-            href="/produtos"
-            className="rounded-full border border-meow-200 bg-white px-4 py-2 text-xs font-bold text-meow-deep"
-          >
-            Voltar ao catalogo
-          </Link>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleOpenReportModal}
+              className="flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+            >
+              <Flag size={12} />
+              Denunciar
+            </button>
+            <Link
+              href="/produtos"
+              className="rounded-full border border-meow-200 bg-white px-4 py-2 text-xs font-bold text-meow-deep"
+            >
+              Voltar ao catalogo
+            </Link>
+          </div>
         </div>
 
         {state.error ? (
@@ -1065,6 +1124,99 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
           </Tabs>
         </div>
       </div>
+
+      {/* Report Modal */}
+      {reportModalOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold text-meow-charcoal">Denunciar Anúncio</h3>
+              <button
+                type="button"
+                onClick={() => setReportModalOpen(false)}
+                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {reportSuccess ? (
+              <div className="mt-4">
+                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-700">
+                  Denúncia enviada com sucesso! Nossa equipe irá analisar.
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setReportModalOpen(false)}
+                  className="mt-4 w-full rounded-full bg-meow-linear px-4 py-2 text-sm font-bold text-white"
+                >
+                  Fechar
+                </button>
+              </div>
+            ) : (
+              <>
+                <p className="mt-2 text-sm text-slate-500">
+                  Informe o motivo da denúncia. Analisaremos e tomaremos as medidas necessárias.
+                </p>
+
+                <div className="mt-4 space-y-4">
+                  <label className="block">
+                    <span className="text-sm font-semibold text-meow-charcoal">Motivo</span>
+                    <select
+                      className="mt-1 block w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+                      value={reportReason}
+                      onChange={(e) => setReportReason(e.target.value as ReportReason)}
+                    >
+                      {reasonOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className="block">
+                    <span className="text-sm font-semibold text-meow-charcoal">
+                      Detalhes (opcional)
+                    </span>
+                    <Textarea
+                      rows={4}
+                      placeholder="Descreva o problema com mais detalhes..."
+                      value={reportMessage}
+                      onChange={(e) => setReportMessage(e.target.value)}
+                      className="mt-1"
+                    />
+                  </label>
+
+                  {reportError ? (
+                    <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                      {reportError}
+                    </div>
+                  ) : null}
+
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setReportModalOpen(false)}
+                      className="flex-1 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSubmitReport}
+                      disabled={reportSending}
+                      className="flex-1 rounded-full bg-red-500 px-4 py-2 text-sm font-bold text-white hover:bg-red-600 disabled:opacity-50"
+                    >
+                      {reportSending ? 'Enviando...' : 'Enviar Denúncia'}
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 };

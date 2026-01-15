@@ -27,6 +27,7 @@ import { PartnersModule } from './modules/partners/partners.module';
 import { CouponsModule } from './modules/coupons/coupons.module';
 import { CommunityModule } from './modules/community/community.module';
 import { ListingQuestionsModule } from './modules/listing-questions/listing-questions.module';
+import { ReportsModule } from './modules/reports/reports.module';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { ListingQuestionsModule } from './modules/listing-questions/listing-ques
     CouponsModule,
     CommunityModule,
     ListingQuestionsModule,
+    ReportsModule,
   ],
 })
-export class AppModule {}
+export class AppModule { }

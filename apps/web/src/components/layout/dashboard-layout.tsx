@@ -10,6 +10,7 @@ import {
   Bell,
   ChevronDown,
   Database,
+  Flag,
   Gavel,
   Headset,
   Heart,
@@ -161,6 +162,7 @@ const adminNav = (logout: () => Promise<void>, goHome: () => void): MenuSection[
     items: [
       { label: 'Atendimento', href: '/admin/atendimento' },
       { label: 'Disputas', href: '/admin/disputas' },
+      { label: 'Denúncias', href: '/admin/denuncias' },
       { label: 'Moderação', href: '/admin/anuncios' },
       { label: 'Usuarios', href: '/admin/usuarios' },
       { label: 'Parceiros', href: '/admin/parceiros' },
@@ -216,6 +218,7 @@ const iconMap: Record<string, React.ReactNode> = {
   'Sair da conta': <LogOut size={16} aria-hidden />,
   Atendimento: <Headset size={16} aria-hidden />,
   Disputas: <Gavel size={16} aria-hidden />,
+  Denúncias: <Flag size={16} aria-hidden />,
   Moderação: <ShieldAlert size={16} aria-hidden />,
   Usuarios: <Users size={16} aria-hidden />,
   Parceiros: <Link2 size={16} aria-hidden />,
