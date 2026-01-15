@@ -15,7 +15,9 @@ import { useAuth } from '../auth/auth-provider';
 import { AccountShell } from '../account/account-shell';
 import { OrderChat } from '../orders/order-chat';
 import { Badge } from '../ui/badge';
+import { Button } from '../ui/button';
 import { Skeleton } from '../ui/skeleton';
+import { Textarea } from '../ui/textarea';
 
 type OrderDetailContentProps = {
   orderId: string;
@@ -81,6 +83,8 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
     content: '',
   });
   const [evidenceBusy, setEvidenceBusy] = useState(false);
+  const [isDisputeModalOpen, setIsDisputeModalOpen] = useState(false);
+  const [disputeReason, setDisputeReason] = useState('');
   const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -195,6 +199,24 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
     } finally {
       setEvidenceBusy(false);
     }
+  };
+
+  const handleOpenDispute = () => {
+    if (!canDispute) return;
+    setIsDisputeModalOpen(true);
+  };
+
+  const handleSubmitDispute = async () => {
+    if (!disputeReason || disputeReason.length < 10) {
+      alert('O motivo deve ter pelo menos 10 caracteres.');
+      return;
+    }
+    setIsDisputeModalOpen(false);
+    await handleAction(
+      () => ordersApi.openDispute(accessToken!, orderId, disputeReason),
+      'Disputa aberta.',
+    );
+    setDisputeReason('');
   };
 
   const isBuyer = user?.id && state.order?.buyerId === user.id;
@@ -581,37 +603,29 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
                 </div>
 
                 <div className="mt-4 grid gap-3">
-                  <button
-                    type="button"
-                    className="w-full rounded-full bg-meow-linear px-4 py-3 text-xs font-bold text-white"
+                  <Button
+                    className="w-full rounded-full bg-meow-linear px-4 py-3 text-xs font-bold text-white shadow-cute hover:shadow-meow disabled:cursor-not-allowed disabled:opacity-50"
                     disabled={!canConfirm}
                     onClick={() =>
                       handleAction(
-                        () => ordersApi.confirmReceipt(accessToken, orderId),
+                        () => ordersApi.confirmReceipt(accessToken!, orderId),
                         'Recebimento confirmado.',
                       )
                     }
                   >
-                    ✅ Confirmar e Avaliar
-                  </button>
-                  <button
-                    type="button"
-                    className="w-full rounded-full border border-meow-red/30 px-4 py-3 text-xs font-bold text-meow-deep"
+                    Confirmar e Avaliar
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    className="w-full rounded-full border border-meow-red/30 px-4 py-3 text-xs font-bold text-meow-deep disabled:cursor-not-allowed disabled:opacity-50"
                     disabled={!canDispute}
-                    onClick={() =>
-                      handleAction(
-                        () =>
-                          ordersApi.openDispute(
-                            accessToken,
-                            orderId,
-                            'Disputa aberta pelo comprador.',
-                          ),
-                        'Disputa aberta.',
-                      )
+                    title={
+                      !canDispute ? 'Disponível apenas quando Entregue/Concluído' : undefined
                     }
+                    onClick={handleOpenDispute}
                   >
-                    🚩 Reportar compra/vendedor
-                  </button>
+                    Reportar compra/vendedor
+                  </Button>
                 </div>
 
                 <div className="mt-4 text-[11px] text-slate-400">
@@ -626,339 +640,368 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
           </div>
 
           <div className="mt-8 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-          <div className="space-y-4">
-            <div className="rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
-              <div className="flex flex-wrap items-center gap-6 text-sm text-meow-muted">
-                <div>
-                  <span className="text-xs font-semibold uppercase tracking-[0.4px]">Status</span>
-                  <p className="text-base font-bold text-meow-charcoal">
-                    {statusLabel[state.order.status] ?? state.order.status}
-                  </p>
+            <div className="space-y-4">
+              <div className="rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+                <div className="flex flex-wrap items-center gap-6 text-sm text-meow-muted">
+                  <div>
+                    <span className="text-xs font-semibold uppercase tracking-[0.4px]">Status</span>
+                    <p className="text-base font-bold text-meow-charcoal">
+                      {statusLabel[state.order.status] ?? state.order.status}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold uppercase tracking-[0.4px]">Valor</span>
+                    <p className="text-base font-bold text-meow-charcoal">
+                      {formatCurrency(state.order.totalAmountCents, state.order.currency)}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold uppercase tracking-[0.4px]">Criado em</span>
+                    <p className="text-base font-bold text-meow-charcoal">
+                      {new Date(state.order.createdAt).toLocaleString('pt-BR')}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-xs font-semibold uppercase tracking-[0.4px]">Valor</span>
-                  <p className="text-base font-bold text-meow-charcoal">
-                    {formatCurrency(state.order.totalAmountCents, state.order.currency)}
-                  </p>
-                </div>
-                <div>
-                  <span className="text-xs font-semibold uppercase tracking-[0.4px]">Criado em</span>
-                  <p className="text-base font-bold text-meow-charcoal">
-                    {new Date(state.order.createdAt).toLocaleString('pt-BR')}
-                  </p>
-                </div>
-              </div>
 
-              <div className="mt-5 flex flex-wrap gap-3">
-                <button
-                  className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
-                  type="button"
-                  disabled={!canCancel}
-                  onClick={() =>
-                    handleAction(
-                      () => ordersApi.cancelOrder(accessToken, orderId),
-                      'Pedido cancelado.',
-                    )
-                  }
-                >
-                  Cancelar
-                </button>
-                {canConfirm ? (
+                <div className="mt-5 flex flex-wrap gap-3">
                   <button
-                    className="rounded-full bg-meow-linear px-4 py-2 text-xs font-bold text-white"
+                    className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
                     type="button"
+                    disabled={!canCancel}
                     onClick={() =>
                       handleAction(
-                        () => ordersApi.confirmReceipt(accessToken, orderId),
-                        'Recebimento confirmado.',
+                        () => ordersApi.cancelOrder(accessToken, orderId),
+                        'Pedido cancelado.',
                       )
                     }
                   >
-                    Confirmar recebimento
+                    Cancelar
                   </button>
-                ) : null}
-                <button
-                  className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
-                  type="button"
-                  disabled={!canDispute}
-                  onClick={() =>
-                    handleAction(
-                      () =>
-                        ordersApi.openDispute(
-                          accessToken,
-                          orderId,
-                          'Disputa aberta pelo comprador.',
-                        ),
-                      'Disputa aberta.',
-                    )
-                  }
-                >
-                  Abrir disputa
-                </button>
-                <Link
-                  className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
-                  href={`/conta/tickets?orderId=${orderId}`}
-                >
-                  Abrir ticket
-                </Link>
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
-              <h2 className="text-base font-bold text-meow-charcoal">Itens</h2>
-              <div className="mt-4 grid gap-3">
-                {(state.order.items ?? []).map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-meow-red/10 bg-meow-cream/40 px-4 py-3"
-                  >
-                    <div>
-                      <p className="text-sm font-semibold text-meow-charcoal">{item.title}</p>
-                      <p className="text-xs text-meow-muted">
-                        {item.deliveryType === 'AUTO' ? 'Entrega auto' : 'Entrega manual'}
-                      </p>
-                    </div>
-                    <span className="text-sm font-semibold text-meow-charcoal">
-                      {formatCurrency(item.unitPriceCents, state.order?.currency ?? 'BRL')} x{' '}
-                      {item.quantity}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
-              <h2 className="text-base font-bold text-meow-charcoal">Entrega</h2>
-              {deliverySection?.autoItems.length ? (
-                <div className="mt-4 rounded-xl border border-meow-red/20 bg-meow-cream/40 px-4 py-3 text-sm text-meow-muted">
-                  <p className="font-semibold text-meow-charcoal">Itens auto</p>
-                  {deliverySection.revealAllowed ? (
-                    <ul className="mt-2 grid gap-1 text-xs">
-                      {deliverySection.autoItems.flatMap((item) =>
-                        (item.inventoryItems ?? []).map((inv) => (
-                          <li key={inv.id} className="rounded bg-white px-2 py-1 font-mono">
-                            {inv.code}
-                          </li>
-                        )),
-                      )}
-                    </ul>
-                  ) : (
-                    <p className="mt-2 text-xs">Disponivel apÃ³s a entrega.</p>
-                  )}
-                </div>
-              ) : null}
-
-              {deliverySection?.manualItems.length ? (
-                <div className="mt-4 rounded-xl border border-meow-red/20 bg-meow-cream/40 px-4 py-3 text-sm text-meow-muted">
-                  <p className="font-semibold text-meow-charcoal">Evidencias (manual)</p>
-                  {waitingSellerDelivery ? (
-                    <p className="mt-2 text-xs">Aguardando entrega do vendedor.</p>
+                  {canConfirm ? (
+                    <button
+                      className="rounded-full bg-meow-linear px-4 py-2 text-xs font-bold text-white"
+                      type="button"
+                      onClick={() =>
+                        handleAction(
+                          () => ordersApi.confirmReceipt(accessToken, orderId),
+                          'Recebimento confirmado.',
+                        )
+                      }
+                    >
+                      Confirmar recebimento
+                    </button>
                   ) : null}
-                  {deliverySection.manualItems.some((item) => item.deliveryEvidence?.length) ? (
-                    <ul className="mt-2 grid gap-2 text-xs">
-                      {deliverySection.manualItems.flatMap((item) =>
-                        (item.deliveryEvidence ?? []).map((evidence) => (
-                          <li
-                            key={evidence.id}
-                            className="rounded-lg border border-meow-red/10 bg-white px-3 py-2"
-                          >
-                            <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-meow-muted">
-                              <span className="rounded-full bg-meow-cream px-2 py-0.5 text-[10px] font-semibold text-meow-charcoal">
-                                {evidence.type === 'LINK' || evidence.type === 'URL'
-                                  ? 'URL'
-                                  : evidence.type === 'FILE'
-                                    ? 'FILE'
-                                    : 'TEXT'}
-                              </span>
-                              {evidence.createdAt ? (
-                                <span>
-                                  {new Date(evidence.createdAt).toLocaleString('pt-BR')}
-                                </span>
-                              ) : null}
-                            </div>
-                            <div className="mt-1 break-words text-xs text-meow-charcoal">
-                              {evidence.type === 'LINK' ||
-                              evidence.type === 'URL' ||
-                              evidence.type === 'FILE' ? (
-                                <a
-                                  href={evidence.content}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="text-meow-deep underline"
-                                >
-                                  {evidence.content}
-                                </a>
-                              ) : (
-                                evidence.content
-                              )}
-                            </div>
-                            {evidence.createdByUserId ? (
-                              <div className="mt-1 text-[11px] text-meow-muted">
-                                Por {evidence.createdByUserId.slice(0, 7).toUpperCase()}
-                              </div>
-                            ) : null}
-                          </li>
-                        )),
-                      )}
-                    </ul>
-                  ) : waitingSellerDelivery ? null : (
-                    <p className="mt-2 text-xs">Aguardando envio do vendedor.</p>
-                  )}
+                  <Button
+                    variant="secondary"
+                    className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled={!canDispute}
+                    title={
+                      !canDispute ? 'Disponível apenas quando Entregue/Concluído' : undefined
+                    }
+                    onClick={handleOpenDispute}
+                  >
+                    Abrir disputa
+                  </Button>
+                  <Link
+                    className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
+                    href={`/conta/tickets?orderId=${orderId}`}
+                  >
+                    Abrir ticket
+                  </Link>
+                </div>
+              </div>
 
-                  {canManageManualDelivery ? (
-                    <form onSubmit={handleAddEvidence} className="mt-4 grid gap-3">
-                      <div className="grid gap-3 sm:grid-cols-[130px_1fr]">
-                        <label className="grid gap-1 text-xs font-semibold text-meow-muted">
-                          Tipo
-                          <select
-                            className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
-                            value={evidenceForm.type}
-                            disabled={!canManageManualEvidence || evidenceBusy}
-                            onChange={(event) =>
-                              setEvidenceForm((prev) => ({
-                                ...prev,
-                                type: event.target.value as CreateEvidencePayload['type'],
-                              }))
+              <div className="rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+                <h2 className="text-base font-bold text-meow-charcoal">Itens</h2>
+                <div className="mt-4 grid gap-3">
+                  {(state.order.items ?? []).map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-meow-red/10 bg-meow-cream/40 px-4 py-3"
+                    >
+                      <div>
+                        <p className="text-sm font-semibold text-meow-charcoal">{item.title}</p>
+                        <p className="text-xs text-meow-muted">
+                          {item.deliveryType === 'AUTO' ? 'Entrega auto' : 'Entrega manual'}
+                        </p>
+                      </div>
+                      <span className="text-sm font-semibold text-meow-charcoal">
+                        {formatCurrency(item.unitPriceCents, state.order?.currency ?? 'BRL')} x{' '}
+                        {item.quantity}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+                <h2 className="text-base font-bold text-meow-charcoal">Entrega</h2>
+                {deliverySection?.autoItems.length ? (
+                  <div className="mt-4 rounded-xl border border-meow-red/20 bg-meow-cream/40 px-4 py-3 text-sm text-meow-muted">
+                    <p className="font-semibold text-meow-charcoal">Itens auto</p>
+                    {deliverySection.revealAllowed ? (
+                      <ul className="mt-2 grid gap-1 text-xs">
+                        {deliverySection.autoItems.flatMap((item) =>
+                          (item.inventoryItems ?? []).map((inv) => (
+                            <li key={inv.id} className="rounded bg-white px-2 py-1 font-mono">
+                              {inv.code}
+                            </li>
+                          )),
+                        )}
+                      </ul>
+                    ) : (
+                      <p className="mt-2 text-xs">Disponivel apÃ³s a entrega.</p>
+                    )}
+                  </div>
+                ) : null}
+
+                {deliverySection?.manualItems.length ? (
+                  <div className="mt-4 rounded-xl border border-meow-red/20 bg-meow-cream/40 px-4 py-3 text-sm text-meow-muted">
+                    <p className="font-semibold text-meow-charcoal">Evidencias (manual)</p>
+                    {waitingSellerDelivery ? (
+                      <p className="mt-2 text-xs">Aguardando entrega do vendedor.</p>
+                    ) : null}
+                    {deliverySection.manualItems.some((item) => item.deliveryEvidence?.length) ? (
+                      <ul className="mt-2 grid gap-2 text-xs">
+                        {deliverySection.manualItems.flatMap((item) =>
+                          (item.deliveryEvidence ?? []).map((evidence) => (
+                            <li
+                              key={evidence.id}
+                              className="rounded-lg border border-meow-red/10 bg-white px-3 py-2"
+                            >
+                              <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-meow-muted">
+                                <span className="rounded-full bg-meow-cream px-2 py-0.5 text-[10px] font-semibold text-meow-charcoal">
+                                  {evidence.type === 'LINK' || evidence.type === 'URL'
+                                    ? 'URL'
+                                    : evidence.type === 'FILE'
+                                      ? 'FILE'
+                                      : 'TEXT'}
+                                </span>
+                                {evidence.createdAt ? (
+                                  <span>
+                                    {new Date(evidence.createdAt).toLocaleString('pt-BR')}
+                                  </span>
+                                ) : null}
+                              </div>
+                              <div className="mt-1 break-words text-xs text-meow-charcoal">
+                                {evidence.type === 'LINK' ||
+                                  evidence.type === 'URL' ||
+                                  evidence.type === 'FILE' ? (
+                                  <a
+                                    href={evidence.content}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-meow-deep underline"
+                                  >
+                                    {evidence.content}
+                                  </a>
+                                ) : (
+                                  evidence.content
+                                )}
+                              </div>
+                              {evidence.createdByUserId ? (
+                                <div className="mt-1 text-[11px] text-meow-muted">
+                                  Por {evidence.createdByUserId.slice(0, 7).toUpperCase()}
+                                </div>
+                              ) : null}
+                            </li>
+                          )),
+                        )}
+                      </ul>
+                    ) : waitingSellerDelivery ? null : (
+                      <p className="mt-2 text-xs">Aguardando envio do vendedor.</p>
+                    )}
+
+                    {canManageManualDelivery ? (
+                      <form onSubmit={handleAddEvidence} className="mt-4 grid gap-3">
+                        <div className="grid gap-3 sm:grid-cols-[130px_1fr]">
+                          <label className="grid gap-1 text-xs font-semibold text-meow-muted">
+                            Tipo
+                            <select
+                              className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
+                              value={evidenceForm.type}
+                              disabled={!canManageManualEvidence || evidenceBusy}
+                              onChange={(event) =>
+                                setEvidenceForm((prev) => ({
+                                  ...prev,
+                                  type: event.target.value as CreateEvidencePayload['type'],
+                                }))
+                              }
+                            >
+                              <option value="TEXT">Texto</option>
+                              <option value="URL">URL</option>
+                            </select>
+                          </label>
+                          <label className="grid gap-1 text-xs font-semibold text-meow-muted">
+                            ConteÃºdo
+                            {evidenceForm.type === 'URL' ? (
+                              <input
+                                className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
+                                placeholder="https://exemplo.com/entrega"
+                                value={evidenceForm.content}
+                                disabled={!canManageManualEvidence || evidenceBusy}
+                                onChange={(event) =>
+                                  setEvidenceForm((prev) => ({
+                                    ...prev,
+                                    content: event.target.value,
+                                  }))
+                                }
+                              />
+                            ) : (
+                              <textarea
+                                className="min-h-[92px] rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
+                                placeholder="Descreva a entrega"
+                                value={evidenceForm.content}
+                                disabled={!canManageManualEvidence || evidenceBusy}
+                                onChange={(event) =>
+                                  setEvidenceForm((prev) => ({
+                                    ...prev,
+                                    content: event.target.value,
+                                  }))
+                                }
+                              />
+                            )}
+                          </label>
+                        </div>
+                        {!canManageManualEvidence ? (
+                          <p className="text-xs text-meow-muted">
+                            Evidencias e marcacao de entrega so podem ser feitas enquanto o pedido
+                            estiver em entrega.
+                          </p>
+                        ) : null}
+                        <div className="flex flex-wrap items-center gap-3">
+                          <button
+                            type="submit"
+                            className="rounded-full bg-meow-linear px-4 py-2 text-xs font-bold text-white"
+                            disabled={evidenceBusy || !canManageManualEvidence}
+                          >
+                            {evidenceBusy ? 'Enviando...' : 'Adicionar evidencia'}
+                          </button>
+                          <button
+                            type="button"
+                            className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
+                            disabled={!canManageManualEvidence}
+                            onClick={() =>
+                              handleAction(
+                                () => ordersApi.markManualDelivered(accessToken, orderId),
+                                'Pedido marcado como entregue.',
+                              )
                             }
                           >
-                            <option value="TEXT">Texto</option>
-                            <option value="URL">URL</option>
-                          </select>
-                        </label>
-                        <label className="grid gap-1 text-xs font-semibold text-meow-muted">
-                          ConteÃºdo
-                          {evidenceForm.type === 'URL' ? (
-                            <input
-                              className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
-                              placeholder="https://exemplo.com/entrega"
-                              value={evidenceForm.content}
-                              disabled={!canManageManualEvidence || evidenceBusy}
-                              onChange={(event) =>
-                                setEvidenceForm((prev) => ({
-                                  ...prev,
-                                  content: event.target.value,
-                                }))
-                              }
-                            />
-                          ) : (
-                            <textarea
-                              className="min-h-[92px] rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-sm text-meow-charcoal"
-                              placeholder="Descreva a entrega"
-                              value={evidenceForm.content}
-                              disabled={!canManageManualEvidence || evidenceBusy}
-                              onChange={(event) =>
-                                setEvidenceForm((prev) => ({
-                                  ...prev,
-                                  content: event.target.value,
-                                }))
-                              }
-                            />
-                          )}
-                        </label>
-                      </div>
-                      {!canManageManualEvidence ? (
-                        <p className="text-xs text-meow-muted">
-                          Evidencias e marcacao de entrega so podem ser feitas enquanto o pedido
-                          estiver em entrega.
-                        </p>
-                      ) : null}
-                      <div className="flex flex-wrap items-center gap-3">
-                        <button
-                          type="submit"
-                          className="rounded-full bg-meow-linear px-4 py-2 text-xs font-bold text-white"
-                          disabled={evidenceBusy || !canManageManualEvidence}
-                        >
-                          {evidenceBusy ? 'Enviando...' : 'Adicionar evidencia'}
-                        </button>
-                        <button
-                          type="button"
-                          className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
-                          disabled={!canManageManualEvidence}
-                          onClick={() =>
-                            handleAction(
-                              () => ordersApi.markManualDelivered(accessToken, orderId),
-                              'Pedido marcado como entregue.',
-                            )
-                          }
-                        >
-                          Marcar como entregue
-                        </button>
-                      </div>
-                    </form>
-                  ) : null}
-                </div>
-              ) : null}
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
-              <h2 className="text-base font-bold text-meow-charcoal">Pagamento</h2>
-              {paymentSummary ? (
-                <div className="mt-3 space-y-3 text-sm text-meow-muted">
-                  <div className="flex items-center justify-between">
-                    <span>Status</span>
-                    <span className="rounded-full bg-meow-cream px-3 py-1 text-xs font-semibold text-meow-charcoal">
-                      {paymentStatusLabel[paymentSummary.status]}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Txid</span>
-                    <span className="font-mono text-xs text-meow-charcoal">
-                      {paymentSummary.txid}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Pago em</span>
-                    <span className="text-xs text-meow-charcoal">
-                      {paymentSummary.paidAt
-                        ? new Date(paymentSummary.paidAt).toLocaleString('pt-BR')
-                        : 'Aguardando'}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Expira em</span>
-                    <span className="text-xs text-meow-charcoal">
-                      {paymentSummary.expiresAt
-                        ? new Date(paymentSummary.expiresAt).toLocaleString('pt-BR')
-                        : 'NÃ£o informado'}
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <p className="mt-3 text-sm text-meow-muted">
-                  Nenhuma cobranca registrada ainda.
-                </p>
-              )}
-
-              <h3 className="mt-6 text-sm font-bold text-meow-charcoal">Timeline</h3>
-              <div className="mt-3 grid gap-3 text-xs text-meow-muted">
-                {state.order.events?.map((event) => (
-                  <div key={event.id} className="rounded-xl border border-meow-red/10 bg-meow-cream/40 px-3 py-2">
-                    <p className="font-semibold text-meow-charcoal">
-                      {eventLabel[event.type] ?? event.type}
-                    </p>
-                    <span>{new Date(event.createdAt).toLocaleString('pt-BR')}</span>
-                    {event.metadata && typeof event.metadata === 'object' ? (
-                      <p className="mt-1 text-[11px] text-meow-muted">
-                        {event.metadata['from'] ? `De ${event.metadata['from']} ` : ''}
-                        {event.metadata['to'] ? `para ${event.metadata['to']}` : ''}
-                      </p>
+                            Marcar como entregue
+                          </button>
+                        </div>
+                      </form>
                     ) : null}
-                  </div>
-                ))}
-                {state.order.events?.length === 0 ? (
-                  <div className="rounded-xl border border-meow-red/20 bg-white px-3 py-2">
-                    Nenhum evento registrado.
                   </div>
                 ) : null}
               </div>
             </div>
 
+            <div className="space-y-4">
+              <div className="rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+                <h2 className="text-base font-bold text-meow-charcoal">Pagamento</h2>
+                {paymentSummary ? (
+                  <div className="mt-3 space-y-3 text-sm text-meow-muted">
+                    <div className="flex items-center justify-between">
+                      <span>Status</span>
+                      <span className="rounded-full bg-meow-cream px-3 py-1 text-xs font-semibold text-meow-charcoal">
+                        {paymentStatusLabel[paymentSummary.status]}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Txid</span>
+                      <span className="font-mono text-xs text-meow-charcoal">
+                        {paymentSummary.txid}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Pago em</span>
+                      <span className="text-xs text-meow-charcoal">
+                        {paymentSummary.paidAt
+                          ? new Date(paymentSummary.paidAt).toLocaleString('pt-BR')
+                          : 'Aguardando'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Expira em</span>
+                      <span className="text-xs text-meow-charcoal">
+                        {paymentSummary.expiresAt
+                          ? new Date(paymentSummary.expiresAt).toLocaleString('pt-BR')
+                          : 'NÃ£o informado'}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="mt-3 text-sm text-meow-muted">
+                    Nenhuma cobranca registrada ainda.
+                  </p>
+                )}
+
+                <h3 className="mt-6 text-sm font-bold text-meow-charcoal">Timeline</h3>
+                <div className="mt-3 grid gap-3 text-xs text-meow-muted">
+                  {state.order.events?.map((event) => (
+                    <div key={event.id} className="rounded-xl border border-meow-red/10 bg-meow-cream/40 px-3 py-2">
+                      <p className="font-semibold text-meow-charcoal">
+                        {eventLabel[event.type] ?? event.type}
+                      </p>
+                      <span>{new Date(event.createdAt).toLocaleString('pt-BR')}</span>
+                      {event.metadata && typeof event.metadata === 'object' ? (
+                        <p className="mt-1 text-[11px] text-meow-muted">
+                          {event.metadata['from'] ? `De ${event.metadata['from']} ` : ''}
+                          {event.metadata['to'] ? `para ${event.metadata['to']}` : ''}
+                        </p>
+                      ) : null}
+                    </div>
+                  ))}
+                  {state.order.events?.length === 0 ? (
+                    <div className="rounded-xl border border-meow-red/20 bg-white px-3 py-2">
+                      Nenhum evento registrado.
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+
+            </div>
           </div>
-        </div>
         </>
       ) : null}
+
+      {isDisputeModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95">
+            <h2 className="text-lg font-black text-meow-charcoal">Abrir disputa</h2>
+            <p className="mt-2 text-sm text-meow-muted">
+              Descreva o motivo da disputa com detalhes para que possamos analisar.
+            </p>
+            <div className="mt-4">
+              <Textarea
+                placeholder="Explique o problema (mínimo 10 caracteres)..."
+                value={disputeReason}
+                onChange={(e) => setDisputeReason(e.target.value)}
+                className="min-h-[120px]"
+              />
+            </div>
+            <div className="mt-6 flex justify-end gap-3">
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setIsDisputeModalOpen(false);
+                  setDisputeReason('');
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleSubmitDispute}
+                disabled={!disputeReason || disputeReason.length < 10}
+              >
+                Confirmar abertura
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </AccountShell>
   );
 };

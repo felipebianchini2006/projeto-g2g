@@ -110,6 +110,11 @@ test.describe.serial('e2e flows', () => {
     await page.goto(`/conta/pedidos/${orderId}`);
     await page.getByRole('button', { name: 'Abrir disputa' }).click();
 
+    // Handle dispute modal
+    await expect(page.getByText('Descreva o motivo da disputa')).toBeVisible();
+    await page.getByPlaceholder('Explique o problema').fill('Produto veio com defeito e não funciona.');
+    await page.getByRole('button', { name: 'Confirmar abertura' }).click();
+
     await expect(page.getByText('Disputa aberta.')).toBeVisible();
   });
 
