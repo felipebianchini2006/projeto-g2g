@@ -301,6 +301,20 @@ export const AdminPartnersContent = () => {
                     >
                       {busyAction === `stats-${partner.id}` ? 'Carregando...' : 'Ver metricas'}
                     </button>
+                    <button
+                      className="text-xs font-bold text-red-500 hover:text-red-700 hover:underline"
+                      type="button"
+                      onClick={() => {
+                        if (confirm('Tem certeza que deseja excluir/desativar este parceiro?')) {
+                          runAction('delete', async () => {
+                            await adminPartnersApi.deletePartner(accessToken, partner.id);
+                          });
+                        }
+                      }}
+                      disabled={busyAction === 'delete'}
+                    >
+                      Excluir
+                    </button>
                   </div>
                 </div>
                 {statsInfo ? (

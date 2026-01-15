@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { UserRole } from '@prisma/client';
 
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -12,7 +12,7 @@ import { CouponsService } from './coupons.service';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN)
 export class AdminCouponsController {
-  constructor(private readonly couponsService: CouponsService) {}
+  constructor(private readonly couponsService: CouponsService) { }
 
   @Post()
   create(@Body() dto: CreateCouponDto) {
@@ -27,5 +27,10 @@ export class AdminCouponsController {
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateCouponDto) {
     return this.couponsService.updateCoupon(id, dto);
+  }
+
+  @Delete(':id')
+  delete(@Param('id') id: string) {
+    return this.couponsService.deleteCoupon(id);
   }
 }

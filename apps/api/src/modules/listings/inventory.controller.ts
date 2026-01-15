@@ -25,10 +25,10 @@ type AuthenticatedRequest = Request & { user?: JwtPayload };
 @Controller('listings/:listingId/inventory')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class InventoryController {
-  constructor(private readonly inventoryService: InventoryService) {}
+  constructor(private readonly inventoryService: InventoryService) { }
 
   @Post('items')
-  @Roles(UserRole.SELLER)
+  @Roles(UserRole.SELLER, UserRole.ADMIN)
   add(
     @Req() req: AuthenticatedRequest,
     @Param('listingId') listingId: string,
@@ -39,7 +39,7 @@ export class InventoryController {
   }
 
   @Post('import')
-  @Roles(UserRole.SELLER)
+  @Roles(UserRole.SELLER, UserRole.ADMIN)
   import(
     @Req() req: AuthenticatedRequest,
     @Param('listingId') listingId: string,
@@ -50,7 +50,7 @@ export class InventoryController {
   }
 
   @Delete('items/:itemId')
-  @Roles(UserRole.SELLER)
+  @Roles(UserRole.SELLER, UserRole.ADMIN)
   remove(
     @Req() req: AuthenticatedRequest,
     @Param('listingId') listingId: string,

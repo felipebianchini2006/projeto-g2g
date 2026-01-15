@@ -14,7 +14,7 @@ type ReserveOptions = {
 
 @Injectable()
 export class InventoryService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async addInventoryItems(sellerId: string, listingId: string, codes: string[]) {
     const listing = await this.ensureAutoListing(sellerId, listingId);
@@ -126,12 +126,20 @@ export class InventoryService {
   }
 
   private async ensureAutoListing(sellerId: string, listingId: string) {
-    const listing = await this.prisma.listing.findFirst({
-      where: { id: listingId, sellerId },
+    const listing = await this.prisma.listing.findUnique({
+      where: { id: listingId },
     });
 
     if (!listing) {
       throw new NotFoundException('Listing not found.');
+    }
+
+    if (listing.sellerId !== sellerId) {
+      // Allow Admin override
+      const user = await this.prisma.user.findUnique({ where: { id: sellerId } });
+      if (user?.role !== 'ADMIN') {
+        throw new NotFoundException('Listing not found.');
+      }
     }
 
     if (listing.deliveryType !== DeliveryType.AUTO) {

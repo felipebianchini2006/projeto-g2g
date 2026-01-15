@@ -12,7 +12,7 @@ type PartnerClickMeta = {
 
 @Injectable()
 export class PartnersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   normalizeSlug(value: string) {
     return value.trim().toLowerCase();
@@ -103,5 +103,18 @@ export class PartnersService {
       },
     });
     return { tracked: true };
+  }
+
+  async deletePartner(id: string) {
+    const partner = await this.prisma.partner.findUnique({ where: { id } });
+    if (!partner) {
+      throw new NotFoundException('Partner not found.');
+    }
+    // Soft delete to preserve history (clicks, orders, commissions)
+    await this.prisma.partner.update({
+      where: { id },
+      data: { active: false },
+    });
+    return { success: true };
   }
 }

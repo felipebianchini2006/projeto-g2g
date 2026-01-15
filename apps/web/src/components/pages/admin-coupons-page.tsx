@@ -348,6 +348,20 @@ export const AdminCouponsContent = () => {
                 >
                   Editar
                 </button>
+                <button
+                  className="text-xs font-bold text-red-500 hover:text-red-700 hover:underline"
+                  type="button"
+                  onClick={() => {
+                    if (confirm('Tem certeza que deseja excluir/desativar este cupom?')) {
+                      runAction('delete', async () => {
+                        await adminCouponsApi.deleteCoupon(accessToken, coupon.id);
+                      });
+                    }
+                  }}
+                  disabled={busyAction === 'delete'}
+                >
+                  Excluir
+                </button>
               </div>
             </div>
           ))

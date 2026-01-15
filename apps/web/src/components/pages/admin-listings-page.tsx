@@ -144,6 +144,223 @@ export const AdminListingsContent = () => {
     }
   }, [accessToken, user?.role]);
 
+  const AdminListingInventory = ({
+    listingId,
+    accessToken,
+  }: {
+    listingId: string;
+    accessToken: string;
+  }) => {
+    const [addPayload, setAddPayload] = useState('');
+    const [importPayload, setImportPayload] = useState('');
+    const [removeId, setRemoveId] = useState('');
+    const [busy, setBusy] = useState<string | null>(null);
+    const [msg, setMsg] = useState('');
+
+    const handleAdd = async () => {
+      if (!addPayload.trim()) return;
+      setBusy('add');
+      setMsg('');
+      try {
+        const codes = addPayload.split('\n').filter((l) => l.trim());
+        const res = await marketplaceApi.addInventoryItems(accessToken, listingId, codes);
+        setMsg(`Adicionado: ${res.created}, Pula: ${res.skipped}`);
+        setAddPayload('');
+      } catch (err) {
+        setMsg('Erro ao adicionar.');
+      } finally {
+        setBusy(null);
+      }
+    };
+
+    const handleImport = async () => {
+      if (!importPayload.trim()) return;
+      setBusy('import');
+      setMsg('');
+      try {
+        const res = await marketplaceApi.importInventoryItems(
+          accessToken,
+          listingId,
+          importPayload,
+        );
+        setMsg(`Importado: ${res.created}, Pula: ${res.skipped}`);
+        setImportPayload('');
+      } catch (err) {
+        setMsg('Erro ao importar.');
+      } finally {
+        setBusy(null);
+      }
+    };
+
+    const handleRemove = async () => {
+      if (!removeId.trim()) return;
+      if (!confirm('Remover item?')) return;
+      setBusy('remove');
+      setMsg('');
+      try {
+        await marketplaceApi.removeInventoryItem(accessToken, listingId, removeId.trim());
+        setMsg('Item removido.');
+        setRemoveId('');
+      } catch (err) {
+        setMsg('Erro ao remover (ID não encontrado?).');
+      } finally {
+        setBusy(null);
+      }
+    };
+
+    return (
+      <div className="mt-4 border-t border-slate-100 pt-4">
+        <h4 className="mb-2 font-bold text-meow-charcoal">Gestão de Estoque</h4>
+        {msg && <div className="mb-2 text-xs text-blue-600">{msg}</div>}
+
+        <div className="grid gap-4">
+          <div>
+            <label className="text-xs font-bold text-meow-muted">Adicionar Itens (um por linha)</label>
+            <textarea
+              className="form-textarea mt-1"
+              rows={3}
+              placeholder="ITEM-001&#10;ITEM-002"
+              value={addPayload}
+              onChange={(e) => setAddPayload(e.target.value)}
+            />
+            <button
+              className="mt-1 rounded bg-meow-red px-3 py-1 text-xs font-bold text-white hover:bg-meow-deep disabled:opacity-50"
+              onClick={handleAdd}
+              disabled={busy === 'add'}
+            >
+              {busy === 'add' ? 'Adicionando...' : 'Adicionar'}
+            </button>
+          </div>
+
+          <div>
+            <label className="text-xs font-bold text-meow-muted">Importar (formato livre)</label>
+            <textarea
+              className="form-textarea mt-1"
+              rows={3}
+              placeholder="Cole o dump aqui..."
+              value={importPayload}
+              onChange={(e) => setImportPayload(e.target.value)}
+            />
+            <button
+              className="mt-1 rounded bg-blue-500 px-3 py-1 text-xs font-bold text-white hover:bg-meow-deep disabled:opacity-50"
+              onClick={handleImport}
+              disabled={busy === 'import'}
+            >
+              {busy === 'import' ? 'Importando...' : 'Importar'}
+            </button>
+          </div>
+
+          <div>
+            <label className="text-xs font-bold text-meow-muted">Remover Item por ID</label>
+            <div className="flex gap-2">
+              <input
+                className="form-input flex-1"
+                placeholder="UUID do item"
+                value={removeId}
+                onChange={(e) => setRemoveId(e.target.value)}
+              />
+              <button
+                className="rounded bg-red-500 px-3 py-1 text-xs font-bold text-white hover:bg-red-700 disabled:opacity-50"
+                onClick={handleRemove}
+                disabled={busy === 'remove'}
+              >
+                {busy === 'remove' ? '...' : 'Remover'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const AdminListingMedia = ({
+    listingId,
+    accessToken,
+  }: {
+    listingId: string;
+    accessToken: string;
+  }) => {
+    const [media, setMedia] = useState<any[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [uploading, setUploading] = useState(false);
+
+    const loadMedia = async () => {
+      setLoading(true);
+      try {
+        const data = await marketplaceApi.listMedia(accessToken, listingId);
+        setMedia(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    useEffect(() => {
+      loadMedia();
+    }, [listingId]);
+
+    const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (!e.target.files?.length) return;
+      setUploading(true);
+      try {
+        const file = e.target.files[0];
+        await marketplaceApi.uploadMedia(accessToken, listingId, file, media.length);
+        await loadMedia();
+      } catch (err) {
+        alert('Erro ao enviar imagem.');
+      } finally {
+        setUploading(false);
+        e.target.value = '';
+      }
+    };
+
+    const handleRemove = async (mediaId: string) => {
+      if (!confirm('Remover mídia?')) return;
+      try {
+        await marketplaceApi.removeMedia(accessToken, listingId, mediaId);
+        setMedia((prev) => prev.filter((m) => m.id !== mediaId));
+      } catch (err) {
+        alert('Erro ao remover mídia.');
+      }
+    };
+
+    return (
+      <div className="mt-8 border-t border-slate-100 pt-4">
+        <h4 className="mb-2 font-bold text-meow-charcoal">Gestão de Mídia</h4>
+        <div className="grid grid-cols-4 gap-2">
+          {media.map((item) => (
+            <div key={item.id} className="relative aspect-square overflow-hidden rounded bg-slate-100">
+              {item.type === 'VIDEO' ? (
+                <video src={item.url} className="h-full w-full object-cover" />
+              ) : (
+                <img src={item.url} alt="" className="h-full w-full object-cover" />
+              )}
+              <button
+                className="absolute right-1 top-1 rounded bg-red-600 p-1 text-white shadow hover:bg-red-700"
+                onClick={() => handleRemove(item.id)}
+              >
+                ×
+              </button>
+            </div>
+          ))}
+          <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded border-2 border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100">
+            <span className="text-xs font-bold text-slate-500">
+              {uploading ? '...' : '+ Add'}
+            </span>
+            <input
+              type="file"
+              className="hidden"
+              accept="image/*,video/*"
+              onChange={handleUpload}
+              disabled={uploading}
+            />
+          </label>
+        </div>
+      </div>
+    );
+  };
+
   const detailSummary = useMemo(() => {
     if (!selectedListing) {
       return null;
@@ -807,6 +1024,16 @@ export const AdminListingsContent = () => {
                 >
                   {busyAction === 'reserve' ? 'Reservando...' : 'Reservar inventário'}
                 </button>
+
+                <AdminListingInventory
+                  listingId={selectedListing.id}
+                  accessToken={accessToken!}
+                />
+
+                <AdminListingMedia
+                  listingId={selectedListing.id}
+                  accessToken={accessToken!}
+                />
               </div>
             </>
           )}

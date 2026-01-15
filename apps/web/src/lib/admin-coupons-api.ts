@@ -29,7 +29,7 @@ export type CouponPayload = {
 
 export type CouponUpdatePayload = Partial<CouponPayload>;
 
-const authHeaders = (token: string | null) =>
+const authHeaders = (token: string | null): Record<string, string> =>
   token ? { Authorization: `Bearer ${token}` } : {};
 
 export const adminCouponsApi = {
@@ -48,5 +48,11 @@ export const adminCouponsApi = {
       method: 'PATCH',
       headers: authHeaders(token),
       body: JSON.stringify(payload),
+    }),
+
+  deleteCoupon: (token: string | null, couponId: string) =>
+    apiFetch<{ success: boolean }>(`/admin/coupons/${couponId}`, {
+      method: 'DELETE',
+      headers: authHeaders(token),
     }),
 };

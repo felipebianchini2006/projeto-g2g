@@ -5,7 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class ListingMediaService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async listMedia(sellerId: string, listingId: string) {
     await this.ensureSellerListing(sellerId, listingId);
@@ -54,12 +54,24 @@ export class ListingMediaService {
   }
 
   private async ensureSellerListing(sellerId: string, listingId: string) {
-    const listing = await this.prisma.listing.findFirst({
-      where: { id: listingId, sellerId },
+    const listing = await this.prisma.listing.findUnique({
+      where: { id: listingId },
     });
+
     if (!listing) {
       throw new NotFoundException('Listing not found.');
     }
-    return listing;
+
+    if (listing.sellerId === sellerId) {
+      return listing;
+    }
+
+    // Allow Admin override
+    const user = await this.prisma.user.findUnique({ where: { id: sellerId } });
+    if (user?.role === 'ADMIN') {
+      return listing;
+    }
+
+    throw new NotFoundException('Listing not found.');
   }
 }

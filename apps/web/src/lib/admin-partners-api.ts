@@ -26,7 +26,7 @@ export type PartnerPayload = {
 
 export type PartnerUpdatePayload = Partial<PartnerPayload>;
 
-const authHeaders = (token: string | null) =>
+const authHeaders = (token: string | null): Record<string, string> =>
   token ? { Authorization: `Bearer ${token}` } : {};
 
 export const adminPartnersApi = {
@@ -49,6 +49,12 @@ export const adminPartnersApi = {
 
   getStats: (token: string | null, partnerId: string) =>
     apiFetch<PartnerStats>(`/admin/partners/${partnerId}/stats`, {
+      headers: authHeaders(token),
+    }),
+
+  deletePartner: (token: string | null, partnerId: string) =>
+    apiFetch<{ success: boolean }>(`/admin/partners/${partnerId}`, {
+      method: 'DELETE',
       headers: authHeaders(token),
     }),
 };

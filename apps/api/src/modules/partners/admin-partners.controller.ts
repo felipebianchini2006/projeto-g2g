@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { UserRole } from '@prisma/client';
 
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -12,7 +12,7 @@ import { PartnersService } from './partners.service';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN)
 export class AdminPartnersController {
-  constructor(private readonly partnersService: PartnersService) {}
+  constructor(private readonly partnersService: PartnersService) { }
 
   @Post()
   create(@Body() dto: CreatePartnerDto) {
@@ -32,5 +32,10 @@ export class AdminPartnersController {
   @Get(':id/stats')
   stats(@Param('id') id: string) {
     return this.partnersService.getPartnerStats(id);
+  }
+
+  @Delete(':id')
+  delete(@Param('id') id: string) {
+    return this.partnersService.deletePartner(id);
   }
 }

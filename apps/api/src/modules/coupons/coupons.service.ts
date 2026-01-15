@@ -7,7 +7,7 @@ import { UpdateCouponDto } from './dto/update-coupon.dto';
 
 @Injectable()
 export class CouponsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   normalizeCode(value: string) {
     return value.trim().toUpperCase();
@@ -174,5 +174,18 @@ export class CouponsService {
       throw new NotFoundException('Coupon not found.');
     }
     return coupon;
+  }
+  async deleteCoupon(id: string) {
+    const coupon = await this.prisma.coupon.findUnique({ where: { id } });
+    if (!coupon) {
+      throw new NotFoundException('Coupon not found.');
+    }
+    // Soft delete to preserve history (attributions, etc)
+    // We are simply deactivating it to prevent future usage
+    await this.prisma.coupon.update({
+      where: { id },
+      data: { active: false },
+    });
+    return { success: true };
   }
 }

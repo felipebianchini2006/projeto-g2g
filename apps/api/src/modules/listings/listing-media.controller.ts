@@ -33,9 +33,9 @@ const uploadRoot = join(process.cwd(), 'uploads', 'listings');
 
 @Controller('listings/:listingId/media')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.SELLER)
+@Roles(UserRole.SELLER, UserRole.ADMIN)
 export class ListingMediaController {
-  constructor(private readonly listingMediaService: ListingMediaService) {}
+  constructor(private readonly listingMediaService: ListingMediaService) { }
 
   @Get()
   list(@Req() req: AuthenticatedRequest, @Param('listingId') listingId: string) {
