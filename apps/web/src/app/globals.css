@@ -2424,6 +2424,32 @@ img {
   z-index: 20;
 }
 
+@media (max-width: 640px) {
+  .notifications-panel {
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-height: 80vh;
+    border-radius: 24px 24px 0 0;
+    animation: slideUpPanel 0.3s ease-out;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2);
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUpPanel {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
 .notifications-panel-header {
   display: flex;
   justify-content: space-between;

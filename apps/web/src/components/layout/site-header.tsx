@@ -373,80 +373,98 @@ export const SiteHeader = () => {
                 <ChevronDown size={16} aria-hidden />
               </button>
               {categoriesOpen ? (
-                <div className="absolute right-0 top-full z-50 mt-3 w-[min(92vw,360px)] rounded-2xl border border-meow-red/20 bg-white p-5 shadow-[0_18px_45px_rgba(64,37,50,0.16)] sm:left-1/2 sm:right-auto sm:w-[min(1100px,94vw)] sm:-translate-x-1/2 sm:p-6">
-                  <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-                    <span className="text-sm font-semibold text-meow-muted">
-                      Filtrar categoria:
-                    </span>
-                    <div className="flex w-full items-center gap-3 rounded-2xl border border-meow-red/20 bg-meow-cream/70 px-4 py-2 sm:w-auto">
-                      <Search size={14} className="text-meow-deep" aria-hidden />
-                      <input
-                        className="w-full bg-transparent text-sm text-meow-charcoal outline-none placeholder:text-meow-muted sm:w-56"
-                        placeholder="Digite aqui..."
-                        value={categoriesQuery}
-                        onChange={(event) => setCategoriesQuery(event.target.value)}
-                      />
+                <>
+                  <div
+                    className="fixed inset-0 z-[49] bg-black/60 backdrop-blur-[2px] sm:hidden"
+                    onClick={() => setCategoriesOpen(false)}
+                    aria-hidden="true"
+                  />
+                  <div className="fixed inset-x-0 bottom-0 top-[100px] z-[50] flex flex-col overflow-hidden rounded-t-[32px] border-t border-meow-red/20 bg-white shadow-[0_-10px_40px_rgba(0,0,0,0.15)] sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-3 sm:block sm:h-auto sm:w-[min(1100px,94vw)] sm:rounded-2xl sm:p-6 sm:shadow-[0_18px_45px_rgba(64,37,50,0.16)] sm:translate-x-0 sm:overflow-visible">
+                    <div
+                      className="flex shrink-0 items-center justify-center p-3 sm:hidden"
+                      onClick={() => setCategoriesOpen(false)}
+                    >
+                      <div className="h-1.5 w-12 rounded-full bg-slate-200" />
                     </div>
-                  </div>
-
-                  <div className="mt-6 max-h-[60vh] overflow-y-auto pr-2">
-                    {categoriesStatus === 'ready' && categories.length === 0 ? (
-                      <div className="rounded-2xl border border-meow-red/20 bg-meow-cream/60 px-4 py-3 text-sm text-meow-muted">
-                        Nenhuma categoria cadastrada.
+                    <div className="flex-1 overflow-y-auto p-5 sm:p-0">
+                      <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+                        <span className="text-sm font-semibold text-meow-muted">
+                          Filtrar categoria:
+                        </span>
+                        <div className="flex w-full items-center gap-3 rounded-2xl border border-meow-red/20 bg-meow-cream/70 px-4 py-2 sm:w-auto">
+                          <Search size={14} className="text-meow-deep" aria-hidden />
+                          <input
+                            className="w-full bg-transparent text-sm text-meow-charcoal outline-none placeholder:text-meow-muted sm:w-56"
+                            placeholder="Digite aqui..."
+                            value={categoriesQuery}
+                            onChange={(event) => setCategoriesQuery(event.target.value)}
+                          />
+                        </div>
                       </div>
-                    ) : (
-                      <div className="grid gap-10 lg:grid-cols-[3fr_1.3fr]">
-                        {[
-                          { title: 'Jogos', items: jogosCategories },
-                          { title: 'Outros', items: outrosCategories },
-                        ].map((block) => (
-                          <div key={block.title}>
-                            <div className="flex items-center justify-between text-xs font-bold uppercase tracking-[0.4px] text-meow-muted">
-                              <span>{block.title}</span>
-                              <Link
-                                href="/categoria"
-                                className="text-[11px] font-bold uppercase tracking-[0.4px] text-meow-deep"
-                                onClick={closeAll}
-                              >
-                                Ver todos
-                              </Link>
-                            </div>
-                            <div className="mt-4 flex flex-col gap-6 sm:flex-row sm:gap-8">
-                              {splitIntoColumns(block.items, 8).map((column, columnIndex) => (
-                                <div key={`${block.title}-${columnIndex}`} className="flex flex-col gap-3">
-                                  {column.map((category) => (
-                                    <Link
-                                      key={category.slug}
-                                      href={`/categoria/${category.slug}`}
-                                      className="flex items-center gap-3 text-sm font-semibold text-meow-charcoal hover:text-meow-deep"
-                                      onClick={closeAll}
+
+                      <div className="mt-6 max-h-[none] overflow-y-visible pr-0 sm:max-h-[60vh] sm:overflow-y-auto sm:pr-2">
+                        {categoriesStatus === 'ready' && categories.length === 0 ? (
+                          <div className="rounded-2xl border border-meow-red/20 bg-meow-cream/60 px-4 py-3 text-sm text-meow-muted">
+                            Nenhuma categoria cadastrada.
+                          </div>
+                        ) : (
+                          <div className="grid gap-10 lg:grid-cols-[3fr_1.3fr]">
+                            {[
+                              { title: 'Jogos', items: jogosCategories },
+                              { title: 'Outros', items: outrosCategories },
+                            ].map((block) => (
+                              <div key={block.title}>
+                                <div className="flex items-center justify-between text-xs font-bold uppercase tracking-[0.4px] text-meow-muted">
+                                  <span>{block.title}</span>
+                                  <Link
+                                    href="/categoria"
+                                    className="text-[11px] font-bold uppercase tracking-[0.4px] text-meow-deep"
+                                    onClick={closeAll}
+                                  >
+                                    Ver todos
+                                  </Link>
+                                </div>
+                                <div className="mt-4 flex flex-col gap-6 sm:flex-row sm:gap-8">
+                                  {splitIntoColumns(block.items, 8).map((column, columnIndex) => (
+                                    <div
+                                      key={`${block.title}-${columnIndex}`}
+                                      className="flex flex-col gap-3"
                                     >
-                                      <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-meow-red/20 bg-meow-cream">
-                                        <img
-                                          src={category.highlight}
-                                          alt={category.label}
-                                          className="h-full w-full object-cover"
-                                        />
-                                      </span>
-                                      <span className="flex items-center gap-2">
-                                        {category.label}
-                                        {popularCategorySlugs.has(category.slug) ? (
-                                          <span className="rounded-full bg-meow-deep px-2 py-0.5 text-[10px] font-bold uppercase text-white">
-                                            Popular
+                                      {column.map((category) => (
+                                        <Link
+                                          key={category.slug}
+                                          href={`/categoria/${category.slug}`}
+                                          className="flex items-center gap-3 text-sm font-semibold text-meow-charcoal hover:text-meow-deep"
+                                          onClick={closeAll}
+                                        >
+                                          <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-meow-red/20 bg-meow-cream">
+                                            <img
+                                              src={category.highlight}
+                                              alt={category.label}
+                                              className="h-full w-full object-cover"
+                                            />
                                           </span>
-                                        ) : null}
-                                      </span>
-                                    </Link>
+                                          <span className="flex items-center gap-2">
+                                            {category.label}
+                                            {popularCategorySlugs.has(category.slug) ? (
+                                              <span className="rounded-full bg-meow-deep px-2 py-0.5 text-[10px] font-bold uppercase text-white">
+                                                Popular
+                                              </span>
+                                            ) : null}
+                                          </span>
+                                        </Link>
+                                      ))}
+                                    </div>
                                   ))}
                                 </div>
-                              ))}
-                            </div>
+                              </div>
+                            ))}
                           </div>
-                        ))}
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
-                </div>
+                </>
               ) : null}
             </div>
 
@@ -458,62 +476,77 @@ export const SiteHeader = () => {
               Criar anúncio
             </Link>
 
-            <div className="relative" ref={notificationsRef}>
-              <button
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-meow-red/20 bg-white text-meow-deep"
-                type="button"
-                aria-label="Notificacoes"
-                onClick={toggleNotifications}
-              >
-                <Bell size={18} aria-hidden />
-              </button>
-              {notificationsOpen ? (
-                <div className="fixed left-1/2 top-20 z-50 w-[min(92vw,340px)] -translate-x-1/2 overflow-hidden rounded-2xl border border-meow-red/20 bg-white shadow-[0_18px_45px_rgba(64,37,50,0.16)] sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:w-[340px] sm:translate-x-0">
-                  <div className="flex items-center justify-between border-b border-meow-red/20 px-4 py-3">
-                    <span className="text-sm font-semibold text-meow-charcoal">Notificacoes</span>
-                    <Link
-                      href="/central-de-notificacoes"
-                      className="text-[11px] font-semibold uppercase tracking-[0.4px] text-meow-deep"
-                      onClick={closeAll}
-                    >
-                      Ver todas
-                    </Link>
-                  </div>
-                  <div className="max-h-[320px] overflow-y-auto p-4">
-                    {notificationsStatus === 'loading' ? (
-                      <div className="text-sm text-meow-muted">
-                        Carregando notificacoes...
+            {user ? (
+              <div className="relative" ref={notificationsRef}>
+                <button
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-meow-red/20 bg-white text-meow-deep"
+                  type="button"
+                  aria-label="Notificacoes"
+                  onClick={toggleNotifications}
+                >
+                  <Bell size={18} aria-hidden />
+                </button>
+                {notificationsOpen ? (
+                  <>
+                    <div
+                      className="fixed inset-0 z-[49] bg-black/60 backdrop-blur-[2px] sm:hidden"
+                      onClick={() => setNotificationsOpen(false)}
+                      aria-hidden="true"
+                    />
+                    <div className="fixed inset-x-0 bottom-0 z-[50] w-full overflow-hidden rounded-t-[32px] border-t border-meow-red/20 bg-white shadow-[0_-10px_40px_rgba(0,0,0,0.2)] sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 sm:w-[340px] sm:rounded-2xl sm:border sm:shadow-[0_18px_45px_rgba(64,37,50,0.16)] sm:translate-x-0">
+                      <div
+                        className="flex items-center justify-center p-3 sm:hidden"
+                        onClick={() => setNotificationsOpen(false)}
+                      >
+                        <div className="h-1.5 w-12 rounded-full bg-slate-200" />
                       </div>
-                    ) : null}
-                    {notificationsStatus !== 'loading' && notifications.length === 0 ? (
-                      <div className="text-sm text-meow-muted">
-                        Nenhuma notificacao.
+                      <div className="flex items-center justify-between border-b border-meow-red/20 px-4 py-3">
+                        <span className="text-sm font-semibold text-meow-charcoal">
+                          Notificacoes
+                        </span>
+                        <Link
+                          href="/central-de-notificacoes"
+                          className="text-[11px] font-semibold uppercase tracking-[0.4px] text-meow-deep"
+                          onClick={closeAll}
+                        >
+                          Ver todas
+                        </Link>
                       </div>
-                    ) : null}
-                    {notifications.length ? (
-                      <ul className="grid gap-3">
-                        {notifications.map((notification) => (
-                          <li
-                            key={notification.id}
-                            className="rounded-xl border border-meow-red/10 bg-meow-cream/40 px-3 py-2"
-                          >
-                            <p className="text-xs font-semibold text-meow-charcoal">
-                              {notification.title}
-                            </p>
-                            <p className="mt-1 text-[11px] text-meow-muted">
-                              {notification.body}
-                            </p>
-                            <span className="mt-1 block text-[10px] text-meow-muted">
-                              {new Date(notification.createdAt).toLocaleString('pt-BR')}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : null}
-                  </div>
-                </div>
-              ) : null}
-            </div>
+                      <div className="max-h-[60vh] overflow-y-auto p-4 sm:max-h-[320px]">
+                        {notificationsStatus === 'loading' ? (
+                          <div className="text-sm text-meow-muted">
+                            Carregando notificacoes...
+                          </div>
+                        ) : null}
+                        {notificationsStatus !== 'loading' && notifications.length === 0 ? (
+                          <div className="text-sm text-meow-muted">Nenhuma notificacao.</div>
+                        ) : null}
+                        {notifications.length ? (
+                          <ul className="grid gap-3">
+                            {notifications.map((notification) => (
+                              <li
+                                key={notification.id}
+                                className="rounded-xl border border-meow-red/10 bg-meow-cream/40 px-3 py-2"
+                              >
+                                <p className="text-xs font-semibold text-meow-charcoal">
+                                  {notification.title}
+                                </p>
+                                <p className="mt-1 text-[11px] text-meow-muted">
+                                  {notification.body}
+                                </p>
+                                <span className="mt-1 block text-[10px] text-meow-muted">
+                                  {new Date(notification.createdAt).toLocaleString('pt-BR')}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </div>
+                    </div>
+                  </>
+                ) : null}
+              </div>
+            ) : null}
 
             <div className="relative" ref={cartRef}>
               <button
@@ -597,104 +630,121 @@ export const SiteHeader = () => {
               ) : null}
             </div>
 
-            <div className="relative" ref={menuRef}>
-              <button
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-meow-red/20 bg-white text-meow-deep"
-                type="button"
-                aria-label="Menu do usuário"
-                onClick={toggleMenu}
-              >
-                <Menu size={18} aria-hidden />
-              </button>
-              {menuOpen ? (
-                <div
-                  className={`fixed left-1/2 top-20 z-50 w-[min(92vw,320px)] -translate-x-1/2 overflow-hidden rounded-2xl border sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:w-[320px] sm:translate-x-0 ${menuPanelClass}`}
+            {user ? (
+              <div className="relative" ref={menuRef}>
+                <button
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-meow-red/20 bg-white text-meow-deep"
+                  type="button"
+                  aria-label="Menu do usuário"
+                  onClick={toggleMenu}
                 >
-                  <div className={`px-5 py-4 ${menuGradientClass}`}>
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-yellow-300 text-lg font-black text-meow-deep shadow-[0_10px_24px_rgba(0,0,0,0.18)]">
-                        {displayName.slice(0, 2).toUpperCase()}
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-white">{displayName}</p>
-                        <p className="text-xs text-white/80">Membro desde {memberSinceYear}</p>
+                  <Menu size={18} aria-hidden />
+                </button>
+                {menuOpen ? (
+                  <div
+                    className={`fixed left-1/2 top-20 z-50 w-[min(92vw,320px)] -translate-x-1/2 overflow-hidden rounded-2xl border sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:w-[320px] sm:translate-x-0 ${menuPanelClass}`}
+                  >
+                    <div className={`px-5 py-4 ${menuGradientClass}`}>
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-yellow-300 text-lg font-black text-meow-deep shadow-[0_10px_24px_rgba(0,0,0,0.18)]">
+                          {displayName.slice(0, 2).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-white">{displayName}</p>
+                          <p className="text-xs text-white/80">Membro desde {memberSinceYear}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="px-5 py-4">
-                    <div className={`flex items-center justify-between rounded-2xl border px-4 py-3 ${menuCardClass}`}>
-                      <div>
-                        <span className={`text-[11px] font-semibold uppercase ${menuSubtleTextClass}`}>
-                          Seu saldo
-                        </span>
-                        <p className={`mt-1 text-lg font-black ${darkMode ? 'text-white' : 'text-meow-deep'}`}>
-                          {balanceLabel}
-                        </p>
-                      </div>
-                      <Link
-                        href="/conta/carteira"
-                        className={`text-[11px] font-semibold uppercase tracking-[0.4px] ${darkMode ? 'text-white/80' : 'text-meow-deep'}`}
-                        onClick={closeAll}
-                      >
-                        Historico completo
-                      </Link>
-                    </div>
-
-                    <div className="mt-4 grid gap-2">
-                      {menuLinks.map((item) => (
-                        <Link
-                          key={item.label}
-                          href={item.href}
-                          onClick={closeAll}
-                          className={`flex items-center gap-3 rounded-2xl px-3 py-2 transition ${darkMode ? 'hover:bg-white/5' : 'hover:bg-meow-cream/60'}`}
-                        >
-                          <span
-                            className={`flex h-10 w-10 items-center justify-center rounded-2xl ${darkMode ? 'bg-white/10 text-white' : item.tone
-                              }`}
-                          >
-                            <item.icon size={18} aria-hidden />
+                    <div className="px-5 py-4">
+                      <div className={`flex items-center justify-between rounded-2xl border px-4 py-3 ${menuCardClass}`}>
+                        <div>
+                          <span className={`text-[11px] font-semibold uppercase ${menuSubtleTextClass}`}>
+                            Seu saldo
                           </span>
-                          <div className="flex-1">
-                            <p className={`text-sm font-semibold ${darkMode ? 'text-white' : 'text-meow-charcoal'}`}>
-                              {item.label}
-                            </p>
-                            <p className={`text-[11px] ${menuSubtleTextClass}`}>
-                              {item.description}
-                            </p>
-                          </div>
+                          <p className={`mt-1 text-lg font-black ${darkMode ? 'text-white' : 'text-meow-deep'}`}>
+                            {balanceLabel}
+                          </p>
+                        </div>
+                        <Link
+                          href="/conta/carteira"
+                          className={`text-[11px] font-semibold uppercase tracking-[0.4px] ${darkMode ? 'text-white/80' : 'text-meow-deep'}`}
+                          onClick={closeAll}
+                        >
+                          Historico completo
                         </Link>
-                      ))}
-                    </div>
+                      </div>
 
-                    <div className={`mt-4 border-t pt-4 ${darkMode ? 'border-white/10' : 'border-meow-red/10'}`}>
-                      <button
-                        type="button"
-                        className={`flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold ${darkMode ? 'border-white/10 text-white/80 hover:bg-white/5' : 'border-meow-red/20 text-meow-charcoal hover:bg-meow-cream/50'}`}
-                        onClick={() => setDarkMode((prev) => !prev)}
-                      >
-                        <Moon size={14} aria-hidden />
-                        {darkMode ? 'Tema claro' : 'Tema escuro'}
-                      </button>
-                      <button
-                        type="button"
-                        className={`mt-3 flex w-full items-center justify-center gap-2 rounded-full text-xs font-semibold ${darkMode ? 'text-white/80' : 'text-meow-muted'}`}
-                        onClick={async () => {
-                          if (!user) {
-                            return;
-                          }
-                          await logout();
-                          closeAll();
-                          router.push('/');
-                        }}
-                      >
-                        <LogOut size={14} aria-hidden />
-                        Sair da conta
-                      </button>
+                      <div className="mt-4 grid gap-2">
+                        {menuLinks.map((item) => (
+                          <Link
+                            key={item.label}
+                            href={item.href}
+                            onClick={closeAll}
+                            className={`flex items-center gap-3 rounded-2xl px-3 py-2 transition ${darkMode ? 'hover:bg-white/5' : 'hover:bg-meow-cream/60'}`}
+                          >
+                            <span
+                              className={`flex h-10 w-10 items-center justify-center rounded-2xl ${darkMode ? 'bg-white/10 text-white' : item.tone
+                                }`}
+                            >
+                              <item.icon size={18} aria-hidden />
+                            </span>
+                            <div className="flex-1">
+                              <p className={`text-sm font-semibold ${darkMode ? 'text-white' : 'text-meow-charcoal'}`}>
+                                {item.label}
+                              </p>
+                              <p className={`text-[11px] ${menuSubtleTextClass}`}>
+                                {item.description}
+                              </p>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+
+                      <div className={`mt-4 border-t pt-4 ${darkMode ? 'border-white/10' : 'border-meow-red/10'}`}>
+                        <button
+                          type="button"
+                          className={`flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold ${darkMode ? 'border-white/10 text-white/80 hover:bg-white/5' : 'border-meow-red/20 text-meow-charcoal hover:bg-meow-cream/50'}`}
+                          onClick={() => setDarkMode((prev) => !prev)}
+                        >
+                          <Moon size={14} aria-hidden />
+                          {darkMode ? 'Tema claro' : 'Tema escuro'}
+                        </button>
+                        <button
+                          type="button"
+                          className={`mt-3 flex w-full items-center justify-center gap-2 rounded-full text-xs font-semibold ${darkMode ? 'text-white/80' : 'text-meow-muted'}`}
+                          onClick={async () => {
+                            if (!user) {
+                              return;
+                            }
+                            await logout();
+                            closeAll();
+                            router.push('/');
+                          }}
+                        >
+                          <LogOut size={14} aria-hidden />
+                          Sair da conta
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ) : null}
-            </div>
+                ) : null}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 sm:gap-3">
+                <Link
+                  href="/login"
+                  className="rounded-full px-3 py-2 text-xs font-bold text-meow-deep hover:bg-meow-red/10 sm:px-4 sm:text-sm"
+                >
+                  Entrar
+                </Link>
+                <Link
+                  href="/register"
+                  className="rounded-full bg-meow-linear px-3 py-2 text-xs font-bold text-white shadow-[0_14px_28px_rgba(216,107,149,0.35)] sm:px-5 sm:text-sm"
+                >
+                  Criar conta
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </header>

@@ -71,9 +71,9 @@ export const NotificationsBell = () => {
     if (!accessToken) {
       return;
     }
-    refresh().catch(() => {});
+    refresh().catch(() => { });
     const interval = setInterval(() => {
-      refresh().catch(() => {});
+      refresh().catch(() => { });
     }, 30000);
     return () => clearInterval(interval);
   }, [accessToken]);
@@ -132,63 +132,78 @@ export const NotificationsBell = () => {
       </button>
 
       {open ? (
-        <div className="notifications-panel">
-          <div className="notifications-panel-header">
-            <strong>Notificacoes</strong>
-            <div className="notifications-panel-actions">
-              <button className="ghost-button" type="button" onClick={refresh} disabled={busy}>
-                Atualizar
-              </button>
-              <button className="ghost-button" type="button" onClick={handleMarkAll}>
-                Marcar todas
-              </button>
-            </div>
-          </div>
-
-          {error ? <div className="state-card info">{error}</div> : null}
-
-          {items.length === 0 && !busy ? (
-            <div className="state-card">Nenhuma notificacao.</div>
-          ) : null}
-
-          <div className="notifications-list">
-            {items.map((item) => (
-              <div
-                key={item.id}
-                className={`notification-row${item.readAt ? '' : ' unread'}`}
+        <>
+          <div
+            className="fixed inset-0 z-10 bg-black/50 backdrop-blur-sm sm:hidden"
+            onClick={() => setOpen(false)}
+            aria-hidden="true"
+          />
+          <div className="notifications-panel">
+            <div className="notifications-panel-header">
+              <strong>Notificacoes</strong>
+              <button
+                className="text-meow-muted sm:hidden"
+                type="button"
+                onClick={() => setOpen(false)}
+                aria-label="Fechar"
               >
-                <div className="notification-icon">
-                  <i className={`fas ${typeIcon[item.type] ?? 'fa-bell'}`} aria-hidden="true" />
-                </div>
-                <div className="notification-body">
-                  <strong>{item.title}</strong>
-                  <span>{item.body}</span>
-                  <small>{new Date(item.createdAt).toLocaleString('pt-BR')}</small>
-                </div>
-                {!item.readAt ? (
-                  <button
-                    className="ghost-button"
-                    type="button"
-                    onClick={() => handleMarkRead(item.id)}
-                  >
-                    Lida
-                  </button>
-                ) : null}
+                <i className="fas fa-times" aria-hidden="true" />
+              </button>
+              <div className="notifications-panel-actions">
+                <button className="ghost-button" type="button" onClick={refresh} disabled={busy}>
+                  Atualizar
+                </button>
+                <button className="ghost-button" type="button" onClick={handleMarkAll}>
+                  Marcar todas
+                </button>
               </div>
-            ))}
-          </div>
+            </div>
 
-          {hasMore ? (
-            <button
-              className="ghost-button"
-              type="button"
-              onClick={() => loadNotifications(false)}
-              disabled={busy}
-            >
-              {busy ? 'Carregando...' : 'Carregar mais'}
-            </button>
-          ) : null}
-        </div>
+            {error ? <div className="state-card info">{error}</div> : null}
+
+            {items.length === 0 && !busy ? (
+              <div className="state-card">Nenhuma notificacao.</div>
+            ) : null}
+
+            <div className="notifications-list">
+              {items.map((item) => (
+                <div
+                  key={item.id}
+                  className={`notification-row${item.readAt ? '' : ' unread'}`}
+                >
+                  <div className="notification-icon">
+                    <i className={`fas ${typeIcon[item.type] ?? 'fa-bell'}`} aria-hidden="true" />
+                  </div>
+                  <div className="notification-body">
+                    <strong>{item.title}</strong>
+                    <span>{item.body}</span>
+                    <small>{new Date(item.createdAt).toLocaleString('pt-BR')}</small>
+                  </div>
+                  {!item.readAt ? (
+                    <button
+                      className="ghost-button"
+                      type="button"
+                      onClick={() => handleMarkRead(item.id)}
+                    >
+                      Lida
+                    </button>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+
+            {hasMore ? (
+              <button
+                className="ghost-button"
+                type="button"
+                onClick={() => loadNotifications(false)}
+                disabled={busy}
+              >
+                {busy ? 'Carregando...' : 'Carregar mais'}
+              </button>
+            ) : null}
+          </div>
+        </>
       ) : null}
     </div>
   );
