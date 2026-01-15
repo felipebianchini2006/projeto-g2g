@@ -15,7 +15,6 @@ import { disputesApi, type Dispute, type DisputeStatus } from '../../lib/dispute
 import { ticketsApi, type Ticket, type TicketStatus } from '../../lib/tickets-api';
 import { useAuth } from '../auth/auth-provider';
 import { AdminShell } from '../admin/admin-shell';
-import { NotificationsBell } from '../notifications/notifications-bell';
 import { Badge } from '../ui/badge';
 import { buttonVariants } from '../ui/button';
 import { Card } from '../ui/card';
@@ -251,16 +250,13 @@ export const AdminSupportContent = () => {
               Acompanhe tickets e disputas com prioridade de atendimento.
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <NotificationsBell />
-            <button
-              type="button"
-              className={buttonVariants({ variant: 'secondary', size: 'sm' })}
-              onClick={refreshQueue}
-            >
-              Atualizar fila
-            </button>
-          </div>
+          <button
+            type="button"
+            className={buttonVariants({ variant: 'secondary', size: 'sm' })}
+            onClick={refreshQueue}
+          >
+            Atualizar fila
+          </button>
         </div>
       </Card>
 
@@ -359,11 +355,10 @@ export const AdminSupportContent = () => {
             {filteredDisputes.map((dispute) => (
               <div
                 key={dispute.id}
-                className={`flex flex-wrap items-center justify-between gap-4 rounded-xl border px-4 py-3 ${
-                  dispute.status === 'OPEN'
+                className={`flex flex-wrap items-center justify-between gap-4 rounded-xl border px-4 py-3 ${dispute.status === 'OPEN'
                     ? 'border-meow-red/30 bg-meow-red/5'
                     : 'border-slate-100 bg-white'
-                }`}
+                  }`}
               >
                 <div className="flex flex-1 items-start gap-3">
                   <Badge variant={disputeBadge[dispute.status] ?? 'neutral'}>
@@ -432,11 +427,10 @@ export const AdminSupportContent = () => {
             {filteredTickets.map((ticket) => (
               <div
                 key={ticket.id}
-                className={`flex flex-wrap items-center justify-between gap-4 rounded-xl border px-4 py-3 ${
-                  ticket.status === 'OPEN'
+                className={`flex flex-wrap items-center justify-between gap-4 rounded-xl border px-4 py-3 ${ticket.status === 'OPEN'
                     ? 'border-meow-red/30 bg-meow-red/5'
                     : 'border-slate-100 bg-white'
-                }`}
+                  }`}
               >
                 <div className="flex flex-1 items-start gap-3">
                   <Badge variant={ticketBadge[ticket.status] ?? 'neutral'}>
@@ -472,6 +466,6 @@ export const AdminSupportContent = () => {
           </div>
         </Card>
       </div>
-    </AdminShell>
+    </AdminShell >
   );
 };
