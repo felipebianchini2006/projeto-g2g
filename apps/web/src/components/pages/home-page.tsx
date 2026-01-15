@@ -293,7 +293,7 @@ export const HomeContent = () => {
           ) : (
             <div
               ref={featuredRef}
-              className="mt-6 flex gap-5 overflow-x-auto pb-4 pt-1 scroll-smooth"
+              className="mt-6 flex gap-5 overflow-x-auto pb-4 pt-1 scroll-smooth mx-auto w-fit max-w-full"
             >
               {featuredCards}
             </div>
