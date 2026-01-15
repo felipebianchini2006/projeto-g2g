@@ -395,7 +395,7 @@ export const AdminUsersContent = () => {
 
               <div className="form-actions">
                 <button
-                  className="primary-button"
+                  className="admin-primary-button"
                   type="button"
                   onClick={handleUpdate}
                   disabled={busyAction === 'update'}
@@ -467,7 +467,7 @@ export const AdminUsersContent = () => {
                     </label>
                     <div className="order-actions">
                       <button
-                        className="primary-button"
+                        className="admin-primary-button"
                         type="button"
                         onClick={handleBlock}
                         disabled={!actionReason.trim() || busyAction === 'block'}
@@ -479,7 +479,7 @@ export const AdminUsersContent = () => {
                 ) : (
                   <div className="order-actions">
                     <button
-                      className="primary-button"
+                      className="admin-primary-button"
                       type="button"
                       onClick={handleUnblock}
                       disabled={busyAction === 'unblock'}

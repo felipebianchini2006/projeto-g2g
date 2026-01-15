@@ -269,7 +269,7 @@ export const AdminCadastrosContent = () => {
             </div>
             <div className="flex flex-col gap-2">
               <button
-                className="primary-button"
+                className="admin-primary-button"
                 type="button"
                 onClick={() =>
                   runAction('category-save', async () => {
@@ -398,7 +398,7 @@ export const AdminCadastrosContent = () => {
             </div>
             <div className="flex flex-col gap-2">
               <button
-                className="primary-button"
+                className="admin-primary-button"
                 type="button"
                 onClick={() =>
                   runAction('group-save', async () => {
@@ -548,7 +548,7 @@ export const AdminCadastrosContent = () => {
             </div>
             <div className="flex flex-col gap-2">
               <button
-                className="primary-button"
+                className="admin-primary-button"
                 type="button"
                 onClick={() =>
                   runAction('section-save', async () => {
@@ -683,7 +683,7 @@ export const AdminCadastrosContent = () => {
               />
               <div className="flex gap-2">
                 <button
-                  className="primary-button"
+                  className="admin-primary-button"
                   type="button"
                   onClick={() =>
                     runAction('sales-save', async () => {
@@ -796,7 +796,7 @@ export const AdminCadastrosContent = () => {
               />
               <div className="flex gap-2">
                 <button
-                  className="primary-button"
+                  className="admin-primary-button"
                   type="button"
                   onClick={() =>
                     runAction('origin-save', async () => {
@@ -909,7 +909,7 @@ export const AdminCadastrosContent = () => {
               />
               <div className="flex gap-2">
                 <button
-                  className="primary-button"
+                  className="admin-primary-button"
                   type="button"
                   onClick={() =>
                     runAction('recovery-save', async () => {

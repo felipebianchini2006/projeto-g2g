@@ -223,11 +223,11 @@ export const AdminListingsContent = () => {
           ? await adminListingsApi.approveListing(accessToken, selectedListing.id)
           : action === 'reject'
             ? await adminListingsApi.rejectListing(accessToken, selectedListing.id, {
-                reason: actionReason.trim(),
-              })
+              reason: actionReason.trim(),
+            })
             : await adminListingsApi.suspendListing(accessToken, selectedListing.id, {
-                reason: actionReason.trim(),
-              });
+              reason: actionReason.trim(),
+            });
       applyListingUpdate(updated);
       setNotice('Anúncio atualizado com sucesso.');
       setActionReason('');
@@ -609,7 +609,7 @@ export const AdminListingsContent = () => {
         </div>
         <div className="mt-4 flex justify-end">
           <button
-            className="primary-button"
+            className="admin-primary-button"
             type="button"
             onClick={handleCreateListing}
             disabled={busyAction === 'create'}
@@ -762,7 +762,7 @@ export const AdminListingsContent = () => {
 
               <div className="order-actions">
                 <button
-                  className="primary-button"
+                  className="admin-primary-button"
                   type="button"
                   onClick={() => handleAction('approve')}
                   disabled={busyAction === 'approve'}

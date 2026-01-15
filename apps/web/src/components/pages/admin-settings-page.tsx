@@ -242,7 +242,7 @@ export const AdminSettingsContent = () => {
 
               <div className="form-actions">
                 <button
-                  className="primary-button"
+                  className="admin-primary-button"
                   type="submit"
                   disabled={busyAction === 'save'}
                 >

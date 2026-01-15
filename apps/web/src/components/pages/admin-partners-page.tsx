@@ -225,7 +225,7 @@ export const AdminPartnersContent = () => {
           </div>
           <div className="flex flex-col gap-2">
             <button
-              className="primary-button"
+              className="admin-primary-button"
               type="button"
               disabled={!form.name.trim() || !form.slug.trim() || commissionBps === null}
               onClick={() =>

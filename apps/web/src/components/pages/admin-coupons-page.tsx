@@ -268,7 +268,7 @@ export const AdminCouponsContent = () => {
           </div>
           <div className="flex flex-col gap-2">
             <button
-              className="primary-button"
+              className="admin-primary-button"
               type="button"
               disabled={!canSave}
               onClick={() =>
