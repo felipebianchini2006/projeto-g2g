@@ -81,6 +81,7 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
           { label: 'Visão geral', href: '/conta' },
           { label: 'Minhas compras', href: '/conta/pedidos' },
           { label: 'Favoritos', href: '/conta/favoritos' },
+          // Questions links
           { label: 'Minhas perguntas', href: '/conta/perguntas' },
           { label: 'Carteira', href: '/conta/carteira' },
           { label: 'Meus tickets', href: '/conta/tickets' },

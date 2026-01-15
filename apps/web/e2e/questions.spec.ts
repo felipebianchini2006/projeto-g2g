@@ -22,7 +22,7 @@ test.describe.serial('Questions Flow', () => {
         // Assuming there is a question input. If not, it might be "Perguntar" button opening a modal.
         // Based on typical flows: Input text area + "Enviar pergunta".
         // Use generic selector if specific label is unknown, or guess "Pergunte ao vendedor"
-        const input = page.getByPlaceholder('Escreva sua dúvida...'); // Guessing placeholder
+        const input = page.getByPlaceholder('Escreva sua duvida...'); // Fixed placeholder (no accent)
 
         // Fallback if placeholder is different, try looking for textarea
         if (await input.count() === 0) {
@@ -32,7 +32,7 @@ test.describe.serial('Questions Flow', () => {
         }
 
         await page.getByRole('button', { name: 'Enviar pergunta' }).click();
-        await expect(page.getByText('Pergunta enviada!')).toBeVisible();
+        await expect(page.getByText('Pergunta enviada!')).toBeVisible(); // This text might differ, need to verify toast/success message
 
         // Logout
         await page.goto('/conta/config'); // Or click Logout in menu
@@ -58,7 +58,9 @@ test.describe.serial('Questions Flow', () => {
         await page.getByLabel('Senha').fill(seedPassword);
         await page.getByRole('button', { name: 'Entrar' }).click();
 
-        await page.goto('/conta/perguntas/recebidas');
+        await page.waitForURL('**/conta');
+
+        await page.goto('/conta/perguntas-recebidas'); // Fixed URL
         await expect(page.getByText(questionText)).toBeVisible();
     });
 });

@@ -20,6 +20,7 @@ import {
   LogOut,
   Megaphone,
   Menu,
+  MessageCircle,
   NotebookPen,
   Receipt,
   Settings,
@@ -114,6 +115,7 @@ const accountNav = (
         { label: 'Visão geral', href: '/conta' },
         { label: 'Minhas compras', href: '/conta/pedidos' },
         { label: 'Favoritos', href: '/conta/favoritos' },
+        { label: 'Minhas perguntas', href: '/conta/perguntas' },
         { label: 'Carteira', href: '/conta/carteira' },
         { label: 'Meus tickets', href: '/conta/tickets' },
       ],
@@ -127,6 +129,7 @@ const accountNav = (
         { label: 'Painel do vendedor', href: '/conta/vendedor' },
         { label: 'Meus anúncios', href: '/conta/anuncios' },
         { label: 'Minhas vendas', href: '/conta/vendas' },
+        { label: 'Perguntas recebidas', href: '/conta/perguntas-recebidas' },
       ],
     });
   }
@@ -195,6 +198,8 @@ const iconMap: Record<string, React.ReactNode> = {
   Favoritos: <Heart size={16} aria-hidden />,
   Carteira: <Wallet size={16} aria-hidden />,
   'Meus tickets': <Ticket size={16} aria-hidden />,
+  'Minhas perguntas': <MessageCircle size={16} aria-hidden />,
+  'Perguntas recebidas': <MessageCircle size={16} aria-hidden />,
   'Meus anúncios': <NotebookPen size={16} aria-hidden />,
   'Minhas vendas': <BanknoteArrowUp size={16} aria-hidden />,
   'Painel do vendedor': <Store size={16} aria-hidden />,

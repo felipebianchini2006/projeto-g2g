@@ -159,11 +159,11 @@ export const AccountOverviewContent = () => {
   );
   const recentOrders = openOrder
     ? [
-        openOrder,
-        ...ordersState.orders
-          .filter((order) => order.id !== openOrder.id)
-          .slice(0, 2),
-      ]
+      openOrder,
+      ...ordersState.orders
+        .filter((order) => order.id !== openOrder.id)
+        .slice(0, 2),
+    ]
     : ordersState.orders.slice(0, 3);
 
   return (
@@ -220,9 +220,9 @@ export const AccountOverviewContent = () => {
             <div className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-50 text-emerald-600">
               <Wallet size={18} aria-hidden />
             </div>
-            <button type="button" className="text-xs font-semibold text-rose-500">
+            <Link href="/conta/carteira" className="text-xs font-semibold text-rose-500">
               + Adicionar
-            </button>
+            </Link>
           </div>
           <p className="mt-4 text-xs font-semibold uppercase text-meow-muted">
             Saldo disponível
