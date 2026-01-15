@@ -2,8 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { LedgerEntrySource, LedgerEntryState, LedgerEntryType, Prisma } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
+import { PaymentsService } from '../payments/payments.service';
+import { OrdersQueueService } from '../orders/orders.queue.service';
 import { WalletEntriesQueryDto } from './dto/wallet-entries-query.dto';
+import { TopupWalletDto } from './dto/topup-wallet.dto';
 import { buildWalletSummary, type WalletSummaryRow } from './wallet.utils';
+import { OrderStatus } from '@prisma/client';
 
 const DEFAULT_TAKE = 20;
 
@@ -22,7 +26,11 @@ type WalletEntryItem = {
 
 @Injectable()
 export class WalletService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly paymentsService: PaymentsService,
+    private readonly ordersQueue: OrdersQueueService,
+  ) { }
 
   async getSummary(userId: string) {
     const rows = await this.prisma.ledgerEntry.groupBy({
@@ -32,6 +40,33 @@ export class WalletService {
     });
 
     return buildWalletSummary(rows as WalletSummaryRow[]);
+  }
+
+  async createTopupPix(userId: string, dto: TopupWalletDto) {
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 min
+
+    const order = await this.prisma.order.create({
+      data: {
+        buyerId: userId,
+        sellerId: null, // Top-up has no seller
+        totalAmountCents: dto.amountCents,
+        currency: 'BRL',
+        status: OrderStatus.CREATED,
+        expiresAt,
+        items: {
+          create: [], // Top-up has no items
+        },
+      },
+    });
+
+    await this.ordersQueue.scheduleOrderExpiration(order.id, expiresAt);
+
+    const payment = await this.paymentsService.createPixCharge(order, userId);
+
+    return {
+      orderId: order.id,
+      payment,
+    };
   }
 
   async listEntries(userId: string, query: WalletEntriesQueryDto) {

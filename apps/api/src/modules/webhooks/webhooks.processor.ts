@@ -115,6 +115,36 @@ export class WebhooksProcessor extends WorkerHost {
               },
               tx,
             );
+          } else if (orderDetails?.buyerId && !orderDetails?.sellerId) {
+            // WALLET TOPUP
+            const existingEntry = await tx.ledgerEntry.findFirst({
+              where: {
+                paymentId: payment.id,
+                source: 'WALLET_TOPUP',
+              },
+            });
+
+            if (!existingEntry) {
+              await tx.ledgerEntry.create({
+                data: {
+                  userId: orderDetails.buyerId,
+                  type: 'CREDIT',
+                  state: 'AVAILABLE',
+                  source: 'WALLET_TOPUP',
+                  amountCents: payment.amountCents,
+                  currency: payment.currency,
+                  description: `Adição de saldo #${payment.id.slice(0, 8)}`,
+                  orderId: order.id,
+                  paymentId: payment.id,
+                },
+              });
+
+              // Complete the order immediately for Top-up
+              await tx.order.update({
+                where: { id: order.id },
+                data: { status: 'COMPLETED', completedAt: new Date() },
+              });
+            }
           }
 
           const shouldNotify = applied || paymentNeedsUpdate;

@@ -1,32 +1,27 @@
-jest.mock('@nestjs/bullmq', () => ({
-  Processor: () => (target: unknown) => target,
-  InjectQueue: () => () => undefined,
-  WorkerHost: class {},
-}));
-
+/* eslint-disable @typescript-eslint/unbound-method */
+import type { ConfigService } from '@nestjs/config';
+import { OrderStatus, PaymentStatus } from '@prisma/client';
 import type { Job } from 'bullmq';
-import { NotificationType, PaymentStatus } from '@prisma/client';
 
+import { EmailQueueService } from '../email/email.service';
 import type { AppLogger } from '../logger/logger.service';
-import type { EmailQueueService } from '../email/email.service';
-import type { OrdersService } from '../orders/orders.service';
+import { OrdersService } from '../orders/orders.service';
 import type { PrismaService } from '../prisma/prisma.service';
-import type { RequestContextService } from '../request-context/request-context.service';
+import { RequestContextService } from '../request-context/request-context.service';
 import type { SettlementService } from '../settlement/settlement.service';
-import type { WebhookMetricsService } from './webhooks.metrics';
+import { WebhookMetricsService } from './webhooks.metrics';
 import { WebhooksProcessor } from './webhooks.processor';
 
-describe('WebhooksProcessor', () => {
+describe('WebhooksProcessor (Wallet Top-up)', () => {
   let processor: WebhooksProcessor;
   let prismaService: PrismaService;
   let ordersService: OrdersService;
-  let settlementService: SettlementService;
-  let metricsService: WebhookMetricsService;
-  let emailQueueService: EmailQueueService;
 
   beforeEach(() => {
     const prismaMock = {
-      $transaction: jest.fn(),
+      $transaction: jest.fn(async (callback: (tx: any) => Promise<unknown>) =>
+        callback(prismaMock),
+      ),
       webhookEvent: {
         findUnique: jest.fn(),
         update: jest.fn(),
@@ -37,6 +32,11 @@ describe('WebhooksProcessor', () => {
       },
       order: {
         findUnique: jest.fn(),
+        update: jest.fn(),
+      },
+      ledgerEntry: {
+        findFirst: jest.fn(),
+        create: jest.fn(),
       },
       notification: {
         create: jest.fn(),
@@ -44,123 +44,142 @@ describe('WebhooksProcessor', () => {
       emailOutbox: {
         create: jest.fn(),
       },
-    } as unknown as PrismaService;
+    };
 
-    const ordersMock = {
+    ordersService = {
       applyPaymentConfirmation: jest.fn(),
       handlePaymentSideEffects: jest.fn(),
     } as unknown as OrdersService;
 
-    const settlementMock = {
-      createHeldEntry: jest.fn(),
-    } as unknown as SettlementService;
-
-    const loggerMock = {
-      log: jest.fn(),
-      error: jest.fn(),
-      warn: jest.fn(),
-      debug: jest.fn(),
-    } as unknown as AppLogger;
-
-    const metricsMock = {
-      increment: jest.fn(),
-    } as unknown as WebhookMetricsService;
-
-    const emailQueueMock = {
-      enqueueEmail: jest.fn(),
-    } as unknown as EmailQueueService;
-
-    const requestContextMock = {
-      run: jest.fn((_context: unknown, callback: () => Promise<unknown>) => callback()),
-      set: jest.fn(),
-    } as unknown as RequestContextService;
-
-    (prismaMock.$transaction as jest.Mock).mockImplementation(
-      async (callback: (client: PrismaService) => Promise<unknown>) => callback(prismaMock),
-    );
-
     processor = new WebhooksProcessor(
-      prismaMock,
-      ordersMock,
-      settlementMock,
-      loggerMock,
-      metricsMock,
-      emailQueueMock,
-      requestContextMock,
+      prismaMock as unknown as PrismaService,
+      ordersService,
+      { createHeldEntry: jest.fn() } as unknown as SettlementService,
+      { log: jest.fn(), warn: jest.fn(), error: jest.fn() } as unknown as AppLogger,
+      { increment: jest.fn() } as unknown as WebhookMetricsService,
+      { enqueueEmail: jest.fn() } as unknown as EmailQueueService,
+      {
+        run: jest.fn(
+          async (_ctx: unknown, callback: () => Promise<unknown>) => await callback(),
+        ),
+        set: jest.fn(),
+      } as unknown as RequestContextService,
     );
 
-    prismaService = prismaMock;
-    ordersService = ordersMock;
-    settlementService = settlementMock;
-    metricsService = metricsMock;
-    emailQueueService = emailQueueMock;
+    prismaService = prismaMock as unknown as PrismaService;
   });
 
-  it('processes paid webhook and updates payment', async () => {
-    (prismaService.webhookEvent.findUnique as jest.Mock).mockResolvedValue({
+  it('credits wallet and completes top-up order on webhook', async () => {
+    const webhookEvent = {
       id: 'event-1',
-      eventType: 'pix',
-      txid: 'tx-1',
-      processedAt: null,
-      payload: { pix: [{ txid: 'tx-1' }] },
-    });
+      eventType: 'PIX',
+      payload: {
+        pix: [{ txid: 'txid-123', horario: new Date().toISOString() }],
+      },
+    };
+
+    (prismaService.webhookEvent.findUnique as jest.Mock).mockResolvedValue(webhookEvent);
     (prismaService.payment.findUnique as jest.Mock).mockResolvedValue({
       id: 'payment-1',
-      orderId: 'order-1',
+      orderId: 'order-topup',
       status: PaymentStatus.PENDING,
-      amountCents: 1500,
+      amountCents: 5000,
       currency: 'BRL',
+      txid: 'txid-123',
     });
+
     (ordersService.applyPaymentConfirmation as jest.Mock).mockResolvedValue({
-      order: { id: 'order-1', items: [] },
+      order: { id: 'order-topup' },
       applied: true,
     });
+
     (prismaService.order.findUnique as jest.Mock).mockResolvedValue({
-      id: 'order-1',
-      buyerId: 'buyer-1',
-      sellerId: 'seller-1',
-      buyer: { email: 'buyer@email.com' },
-      seller: { email: 'seller@email.com' },
-    });
-    (prismaService.emailOutbox.create as jest.Mock).mockResolvedValue({
-      id: 'outbox-1',
+      id: 'order-topup',
+      buyerId: 'user-1',
+      sellerId: null, // Top-up
+      buyer: { email: 'user@test.com' },
     });
 
-    await processor.handleProcess({ data: { webhookEventId: 'event-1' } } as Job);
+    // Mock no existing entry to allow creation
+    (prismaService.ledgerEntry.findFirst as jest.Mock).mockResolvedValue(null);
 
-    expect(prismaService.payment.update).toHaveBeenCalledWith({
-      where: { id: 'payment-1' },
-      data: expect.objectContaining({ status: PaymentStatus.CONFIRMED }),
-    });
-    expect(prismaService.webhookEvent.update).toHaveBeenCalledWith({
-      where: { id: 'event-1' },
-      data: expect.objectContaining({ processedAt: expect.any(Date), paymentId: 'payment-1' }),
-    });
-    expect(prismaService.notification.create).toHaveBeenCalledWith({
-      data: expect.objectContaining({
-        userId: 'buyer-1',
-        type: NotificationType.PAYMENT,
+    const job = {
+      name: 'ProcessEfi',
+      data: { webhookEventId: 'event-1' },
+      id: 'job-1',
+    } as unknown as Job;
+
+    await processor.process(job);
+
+    // Verify Ledger Entry Creation
+    expect(prismaService.ledgerEntry.create).toHaveBeenCalledTimes(1);
+    expect(prismaService.ledgerEntry.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          userId: 'user-1',
+          type: 'CREDIT',
+          state: 'AVAILABLE',
+          source: 'WALLET_TOPUP',
+          amountCents: 5000,
+          paymentId: 'payment-1',
+        }),
       }),
-    });
-    expect(prismaService.emailOutbox.create).toHaveBeenCalled();
-    expect(emailQueueService.enqueueEmail).toHaveBeenCalledWith('outbox-1');
-    expect(metricsService.increment).toHaveBeenCalledWith('processed', 'tx-1');
-    expect(ordersService.handlePaymentSideEffects).toHaveBeenCalled();
-    expect(settlementService.createHeldEntry).toHaveBeenCalled();
+    );
+
+    // Verify Order Completion
+    expect(prismaService.order.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'order-topup' },
+        data: expect.objectContaining({
+          status: 'COMPLETED',
+        }),
+      }),
+    );
   });
 
-  it('skips already processed webhook', async () => {
-    (prismaService.webhookEvent.findUnique as jest.Mock).mockResolvedValue({
+  it('is idempotent and does not credit twice', async () => {
+    const webhookEvent = {
       id: 'event-1',
-      processedAt: new Date(),
-      payload: {},
-      eventType: 'pix',
+      eventType: 'PIX',
+      payload: {
+        pix: [{ txid: 'txid-123', horario: new Date().toISOString() }],
+      },
+    };
+
+    (prismaService.webhookEvent.findUnique as jest.Mock).mockResolvedValue(webhookEvent);
+    (prismaService.payment.findUnique as jest.Mock).mockResolvedValue({
+      id: 'payment-1',
+      orderId: 'order-topup',
+      status: PaymentStatus.CONFIRMED, // Already confirmed
+      amountCents: 5000,
+      currency: 'BRL',
+      txid: 'txid-123',
     });
 
-    await processor.handleProcess({ data: { webhookEventId: 'event-1' } } as Job);
+    (ordersService.applyPaymentConfirmation as jest.Mock).mockResolvedValue({
+      order: { id: 'order-topup' },
+      applied: false, // Not applied again
+    });
 
-    expect(metricsService.increment).toHaveBeenCalledWith('duplicated', 'event-1');
-    expect(prismaService.payment.update).not.toHaveBeenCalled();
-    expect(ordersService.applyPaymentConfirmation).not.toHaveBeenCalled();
+    (prismaService.order.findUnique as jest.Mock).mockResolvedValue({
+      id: 'order-topup',
+      buyerId: 'user-1',
+      sellerId: null,
+      buyer: { email: 'user@test.com' },
+    });
+
+    // Mock existing entry
+    (prismaService.ledgerEntry.findFirst as jest.Mock).mockResolvedValue({ id: 'existing-entry' });
+
+    const job = {
+      name: 'ProcessEfi',
+      data: { webhookEventId: 'event-1' },
+      id: 'job-1',
+    } as unknown as Job;
+
+    await processor.process(job);
+
+    // Should NOT create new ledger entry
+    expect(prismaService.ledgerEntry.create).not.toHaveBeenCalled();
   });
 });

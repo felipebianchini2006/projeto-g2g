@@ -2,7 +2,20 @@ import { apiFetch } from './api-client';
 
 export type LedgerEntryType = 'CREDIT' | 'DEBIT';
 export type LedgerEntryState = 'HELD' | 'AVAILABLE' | 'REVERSED';
-export type LedgerEntrySource = 'ORDER_PAYMENT' | 'REFUND' | 'FEE' | 'PAYOUT';
+export type LedgerEntrySource = 'ORDER_PAYMENT' | 'REFUND' | 'FEE' | 'PAYOUT' | 'WALLET_TOPUP';
+
+export type TopupResponse = {
+  orderId: string;
+  payment: {
+    id: string;
+    txid: string;
+    qrCode?: string;
+    copyPaste?: string;
+    expiresAt: string;
+    amountCents: number;
+    currency: string;
+  };
+};
 
 export type WalletSummary = {
   currency: string;
@@ -39,7 +52,7 @@ export type WalletEntriesQuery = {
   take?: number;
 };
 
-const authHeaders = (token: string | null) =>
+const authHeaders = (token: string | null): Record<string, string> =>
   token ? { Authorization: `Bearer ${token}` } : {};
 
 const buildQuery = (query: WalletEntriesQuery) => {
@@ -62,5 +75,12 @@ export const walletApi = {
   listEntries: (token: string | null, query: WalletEntriesQuery) =>
     apiFetch<WalletEntriesResponse>(`/wallet/entries${buildQuery(query)}`, {
       headers: authHeaders(token),
+    }),
+
+  createTopupPix: (token: string | null, amountCents: number) =>
+    apiFetch<TopupResponse>('/wallet/topup/pix', {
+      method: 'POST',
+      headers: authHeaders(token),
+      body: JSON.stringify({ amountCents }),
     }),
 };

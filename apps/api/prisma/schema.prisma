@@ -116,6 +116,7 @@ enum LedgerEntryType {
   DEBIT
 }
 
+
 enum LedgerEntryState {
   HELD
   AVAILABLE
@@ -127,6 +128,7 @@ enum LedgerEntrySource {
   REFUND
   FEE
   PAYOUT
+  WALLET_TOPUP
 }
 
 enum ChatMessageType {
