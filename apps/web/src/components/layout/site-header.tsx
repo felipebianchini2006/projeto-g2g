@@ -336,14 +336,16 @@ export const SiteHeader = () => {
         </div>
       </div>
       <header className="site-header relative z-40 border-b border-meow-deep/10 bg-white/95 shadow-[0_12px_30px_rgba(240,98,146,0.08)] backdrop-blur">
-        <div className="mx-auto grid w-full max-w-[1280px] items-center gap-6 px-6 py-4 md:grid-cols-[auto_minmax(280px,1fr)_auto]">
-          <Link href="/" className="flex items-center gap-3" onClick={closeAll}>
-            <img
-              src="/assets/meoow/logo.png"
-              alt="Meoww Games"
-              className="h-12 w-auto"
-            />
-          </Link>
+        <div className="mx-auto grid w-full max-w-[1280px] grid-cols-1 items-center gap-4 px-6 py-4 md:grid-cols-[auto_minmax(280px,1fr)_auto] md:gap-6">
+          <div className="flex justify-center md:justify-start">
+            <Link href="/" className="flex items-center gap-3" onClick={closeAll}>
+              <img
+                src="/assets/meoow/logo.png"
+                alt="Meoww Games"
+                className="h-12 w-auto"
+              />
+            </Link>
+          </div>
 
           <div className="flex w-full items-center gap-3 rounded-full border border-meow-red/20 bg-meow-cream/80 px-4 py-2 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
             <Search size={16} className="text-meow-deep" aria-hidden />
@@ -364,7 +366,7 @@ export const SiteHeader = () => {
             </span>
           </div>
 
-          <div className="ml-auto flex w-full flex-wrap items-center justify-between gap-3 md:w-auto md:justify-end md:gap-4">
+          <div className="ml-auto flex w-full flex-wrap items-center justify-center gap-3 md:w-auto md:justify-end md:gap-4">
             <div className="relative" ref={categoriesRef}>
               <button
                 className="inline-flex items-center gap-1 text-sm font-semibold text-meow-charcoal"

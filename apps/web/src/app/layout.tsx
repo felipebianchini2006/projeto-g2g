@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Poppins } from 'next/font/google';
 
 import { Providers } from '../components/providers';
@@ -18,6 +18,13 @@ const poppinsDisplay = Poppins({
 export const metadata: Metadata = {
   title: 'Meoww Games - Loja oficial',
   description: 'A casa gamer dos gatinhos: consoles, jogos e colecionaveis.',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
