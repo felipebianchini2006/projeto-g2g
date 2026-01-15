@@ -533,11 +533,11 @@ export const OrderChat = ({
           prev.map((entry) =>
             entry.localId === localId
               ? {
-                  ...entry,
-                  id: response.id ?? entry.id,
-                  createdAt,
-                  status: 'sent',
-                }
+                ...entry,
+                id: response.id ?? entry.id,
+                createdAt,
+                status: 'sent',
+              }
               : entry,
           ),
         );
@@ -646,14 +646,15 @@ export const OrderChat = ({
                 isOwn && lastRead
                   ? lastRead.getTime() >= new Date(message.createdAt).getTime()
                   : false;
+
               const statusText = isOwn
                 ? message.status === 'pending'
                   ? 'Enviando...'
                   : message.status === 'failed'
                     ? 'Falhou'
                     : isSeen
-                      ? 'âœ“âœ“ Visto'
-                      : 'âœ“ Enviado'
+                      ? '✓✓ Visto' // Fixed corrupted text
+                      : '✓ Enviado' // Fixed corrupted text
                 : null;
 
               return (
@@ -665,17 +666,17 @@ export const OrderChat = ({
                     <div className="mr-2 mt-auto flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-[10px] font-bold text-slate-500">
                       {(sellerInitials ?? 'VP').slice(0, 2).toUpperCase()}
                     </div>
-                  ) : null}
+                  ) : null
+                  }
                   <div className="max-w-[75%]">
                     <div className="flex items-start justify-between gap-2">
                       <div
-                        className={`rounded-2xl px-4 py-2 text-sm shadow-sm ${
-                          isDeleted
-                            ? 'bg-slate-100 text-slate-400'
-                            : isOwn
-                              ? 'bg-meow-linear text-white'
-                              : 'bg-white text-meow-charcoal'
-                        } ${message.status === 'failed' ? 'border border-red-200' : ''}`}
+                        className={`rounded-2xl px-4 py-2 text-sm shadow-sm ${isDeleted
+                          ? 'bg-slate-100 text-slate-400'
+                          : isOwn
+                            ? 'bg-meow-linear text-white'
+                            : 'bg-white text-meow-charcoal'
+                          } ${message.status === 'failed' ? 'border border-red-200' : ''}`}
                       >
                         {isEditing ? (
                           <div className="space-y-2 text-meow-charcoal">
@@ -733,39 +734,38 @@ export const OrderChat = ({
                           {openMenuId === message.id ? (
                             menuPosition
                               ? createPortal(
-                                  <div
-                                    className="fixed z-[1000] w-36 rounded-xl bg-white p-2 text-xs shadow-card"
-                                    style={{ top: menuPosition.top, left: menuPosition.left }}
-                                    onClick={(event) => event.stopPropagation()}
+                                <div
+                                  className="fixed z-[1000] w-36 rounded-xl bg-white p-2 text-xs shadow-card"
+                                  style={{ top: menuPosition.top, left: menuPosition.left }}
+                                  onClick={(event) => event.stopPropagation()}
+                                >
+                                  <button
+                                    type="button"
+                                    className="flex w-full items-center gap-2 rounded-lg px-2 py-1 text-slate-600 hover:bg-slate-50"
+                                    onClick={() => handleStartEdit(message)}
                                   >
-                                    <button
-                                      type="button"
-                                      className="flex w-full items-center gap-2 rounded-lg px-2 py-1 text-slate-600 hover:bg-slate-50"
-                                      onClick={() => handleStartEdit(message)}
-                                    >
-                                      <Pencil size={12} />
-                                      Editar
-                                    </button>
-                                    <button
-                                      type="button"
-                                      className="mt-1 flex w-full items-center gap-2 rounded-lg px-2 py-1 text-red-500 hover:bg-red-50"
-                                      onClick={() => handleDeleteMessage(message.id)}
-                                    >
-                                      <Trash2 size={12} />
-                                      Apagar
-                                    </button>
-                                  </div>,
-                                  document.body,
-                                )
+                                    <Pencil size={12} />
+                                    Editar
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="mt-1 flex w-full items-center gap-2 rounded-lg px-2 py-1 text-red-500 hover:bg-red-50"
+                                    onClick={() => handleDeleteMessage(message.id)}
+                                  >
+                                    <Trash2 size={12} />
+                                    Apagar
+                                  </button>
+                                </div>,
+                                document.body,
+                              )
                               : null
                           ) : null}
                         </div>
                       ) : null}
                     </div>
                     <div
-                      className={`mt-1 flex items-center justify-between gap-2 text-[10px] ${
-                        isOwn ? 'text-pink-400' : 'text-slate-400'
-                      }`}
+                      className={`mt-1 flex items-center justify-between gap-2 text-[10px] ${isOwn ? 'text-pink-400' : 'text-slate-400'
+                        }`}
                     >
                       <span>
                         {formatTime(message.createdAt)}
@@ -774,17 +774,18 @@ export const OrderChat = ({
                       {statusText ? <span>{statusText}</span> : null}
                     </div>
                   </div>
-                  {isOwn ? (
-                    <div className="ml-2 mt-auto flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 text-[10px] font-bold text-white">
-                      EU
-                    </div>
-                  ) : null}
+                  {
+                    isOwn ? (
+                      <div className="ml-2 mt-auto flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 text-[10px] font-bold text-white" >
+                        EU
+                      </div>
+                    ) : null}
                 </div>
               );
             })
           )}
         </div>
-      </div>
+      </div >
 
       <form
         className="border-t border-slate-100 px-6 py-4"
@@ -811,7 +812,7 @@ export const OrderChat = ({
           </button>
         </div>
       </form>
-    </div>
+    </div >
   );
 };
 

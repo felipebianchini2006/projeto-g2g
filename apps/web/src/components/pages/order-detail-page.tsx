@@ -447,7 +447,7 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
                     <div>
                       <h2 className="text-sm font-bold text-meow-charcoal">DADOS DE ACESSO</h2>
                       <p className="text-xs text-meow-muted">
-                        Acesso liberado apÃ³s a entrega.
+                        Acesso liberado após a entrega.
                       </p>
                     </div>
                   </div>
@@ -466,7 +466,7 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
 
                 {!deliverySection?.revealAllowed ? (
                   <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-xs text-slate-500">
-                    Disponivel apÃ³s a entrega.
+                    Disponível após a entrega.
                   </div>
                 ) : null}
 
@@ -594,7 +594,7 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
                       {state.order.items?.[0]?.title ?? 'Produto'}
                     </p>
                     <p className="text-xs text-meow-muted">
-                      Qtd: {state.order.items?.[0]?.quantity ?? 1} â€¢ PIX
+                      Qtd: {state.order.items?.[0]?.quantity ?? 1} • PIX
                     </p>
                     <p className="text-[11px] text-slate-400">
                       {new Date(state.order.createdAt).toLocaleString('pt-BR')}
@@ -750,7 +750,7 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
                         )}
                       </ul>
                     ) : (
-                      <p className="mt-2 text-xs">Disponivel apÃ³s a entrega.</p>
+                      <p className="mt-2 text-xs">Disponível após a entrega.</p>
                     )}
                   </div>
                 ) : null}

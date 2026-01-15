@@ -449,8 +449,8 @@ export const WalletSummaryContent = () => {
               {!topupPix ? (
                 <form onSubmit={handleCreateTopup} className="mt-4 grid gap-4">
                   <p className="text-sm text-meow-muted">
-                    Adicione saldo para realizar compras na plataforma. O valor serÃ¡ creditado
-                    automaticamente apÃ³s o pagamento.
+                    Adicione saldo para realizar compras na plataforma. O valor será creditado
+                    automaticamente após o pagamento.
                   </p>
                   <div>
                     <label className="mb-1 block text-xs font-bold text-meow-charcoal">
@@ -522,7 +522,7 @@ export const WalletSummaryContent = () => {
                   </div>
 
                   <Button onClick={closeTopup} className="w-full mt-2">
-                    JÃ¡ realizei o pagamento
+                    Já realizei o pagamento
                   </Button>
                 </div>
               )}
