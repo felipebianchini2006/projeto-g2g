@@ -15,6 +15,7 @@ import { AccountShell } from '../account/account-shell';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { Textarea } from '../ui/textarea';
+import { ChatBubble } from '../chat/chat-bubble';
 
 type TicketDetailContentProps = {
   ticketId: string;
@@ -193,18 +194,13 @@ export const TicketDetailContent = ({ ticketId }: TicketDetailContentProps) => {
                 </div>
               ) : (
                 messages.map((message) => (
-                  <div
-                    className={`rounded-xl border border-meow-red/10 px-4 py-3 text-sm ${
-                      message.senderId === user.id ? 'bg-meow-cream/60' : 'bg-white'
-                    }`}
+                  <ChatBubble
                     key={message.id}
-                  >
-                    <p className="text-meow-charcoal">{message.message}</p>
-                    <span className="mt-2 block text-xs text-meow-muted">
-                      {message.senderId === user.id ? 'Você' : 'Outro usuário'} -{' '}
-                      {new Date(message.createdAt).toLocaleString('pt-BR')}
-                    </span>
-                  </div>
+                    text={message.message}
+                    isOwn={message.senderId === user.id}
+                    senderInitials={message.senderId === user.id ? 'EU' : 'SU'}
+                    timestamp={message.createdAt}
+                  />
                 ))
               )}
             </div>
