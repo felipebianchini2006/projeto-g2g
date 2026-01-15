@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Facebook, Instagram, Youtube, Sparkles } from 'lucide-react';
 
 export const SiteFooter = () => (
-  <footer className="bg-meow-dark text-white">
+  <footer className="bg-meow-linear text-white">
     <div className="mx-auto w-full max-w-[1280px] px-6 py-14">
       <div className="grid gap-10 lg:grid-cols-[2fr_1fr_1fr_1fr]">
         <div>
@@ -16,12 +16,12 @@ export const SiteFooter = () => (
               <span className="block font-display text-xl font-black">
                 Meoww Games
               </span>
-              <span className="text-xs font-semibold text-meow-cream/80">
+              <span className="text-xs font-semibold text-white/90">
                 A casa gamer dos gatinhos
               </span>
             </div>
           </div>
-          <p className="mt-4 text-sm leading-relaxed text-[#d6c1c8]">
+          <p className="mt-4 text-sm leading-relaxed text-white/80">
             A loja gamer com curadoria felina. Consoles, jogos e colecionaveis com
             entrega rápida e segura.
           </p>
@@ -61,7 +61,7 @@ export const SiteFooter = () => (
           <h4 className="mb-4 text-sm font-extrabold uppercase tracking-[0.6px]">
             Institucional
           </h4>
-          <ul className="space-y-2 text-[13px] text-[#d6c1c8]">
+          <ul className="space-y-2 text-[13px] text-white/80">
             <li>
               <Link className="transition hover:text-white" href="/institucional/sobre">
                 Sobre nos
@@ -89,7 +89,7 @@ export const SiteFooter = () => (
           <h4 className="mb-4 text-sm font-extrabold uppercase tracking-[0.6px]">
             Categorias
           </h4>
-          <ul className="space-y-2 text-[13px] text-[#d6c1c8]">
+          <ul className="space-y-2 text-[13px] text-white/80">
             <li>
               <Link className="transition hover:text-white" href="/categoria/consoles">
                 Consoles
@@ -117,7 +117,7 @@ export const SiteFooter = () => (
           <h4 className="mb-4 text-sm font-extrabold uppercase tracking-[0.6px]">
             Ajuda
           </h4>
-          <ul className="space-y-2 text-[13px] text-[#d6c1c8]">
+          <ul className="space-y-2 text-[13px] text-white/80">
             <li>
               <Link className="transition hover:text-white" href="/ajuda/central">
                 Central de ajuda
@@ -142,7 +142,7 @@ export const SiteFooter = () => (
         </div>
       </div>
 
-      <div className="mt-8 border-t border-white/10 pt-5 text-center text-[12px] text-[#a78b95]">
+      <div className="mt-8 border-t border-white/20 pt-5 text-center text-[12px] text-white/60">
         &copy; 2025 Meoww Games. Todos os direitos reservados.
       </div>
     </div>
