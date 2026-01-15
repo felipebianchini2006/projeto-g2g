@@ -268,7 +268,7 @@ export const AccountProfileContent = () => {
               </Button>
               <Link
                 href="/conta/ajuda"
-                className={buttonVariants({ variant: 'ghost', size: 'sm' })}
+                className={buttonVariants({ variant: 'outline' })}
               >
                 Falar com suporte
               </Link>
