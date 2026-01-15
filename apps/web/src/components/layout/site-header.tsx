@@ -324,17 +324,8 @@ export const SiteHeader = () => {
 
   return (
     <>
-      <div className="bg-gradient-to-r from-[#f2a4c3] via-[#f7b8d1] to-[#f2a4c3] text-white">
-        <div className="relative mx-auto w-full max-w-[1280px] px-6 py-2 text-[11px] font-bold uppercase tracking-[0.6px] flex flex-col items-center gap-2 text-center sm:block">
-          <span>Frete grátis em regiões selecionadas nas compras acima de R$349</span>
-          <Link
-            href="/produtos"
-            className="rounded-full bg-white px-3 py-1 text-[10px] font-extrabold text-meow-deep shadow-sm sm:absolute sm:right-6 sm:top-1/2 sm:-translate-y-1/2"
-          >
-            Saiba mais
-          </Link>
-        </div>
-      </div>
+      <div className="h-2 w-full bg-gradient-to-r from-[#f2a4c3] via-[#f7b8d1] to-[#f2a4c3]" />
+
       <header className="site-header relative z-40 border-b border-meow-deep/10 bg-white/95 shadow-[0_12px_30px_rgba(240,98,146,0.08)] backdrop-blur">
         <div className="mx-auto grid w-full max-w-[1280px] grid-cols-1 items-center gap-4 px-6 py-4 md:grid-cols-[auto_minmax(280px,1fr)_auto] md:gap-6">
           <div className="flex justify-center md:justify-start">
@@ -348,7 +339,9 @@ export const SiteHeader = () => {
           </div>
 
           <div className="flex w-full items-center gap-3 rounded-full border border-meow-red/20 bg-meow-cream/80 px-4 py-2 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
-            <Search size={16} className="text-meow-deep" aria-hidden />
+            <div className="flex h-4 w-4 items-center justify-center">
+              <Search size={16} className="text-meow-deep" aria-hidden />
+            </div>
             <input
               className="flex-1 bg-transparent text-sm text-meow-charcoal outline-none placeholder:text-meow-muted"
               type="text"
@@ -361,7 +354,7 @@ export const SiteHeader = () => {
                 }
               }}
             />
-            <span className="rounded-full bg-white px-3 py-0.5 text-xs font-bold text-meow-deep">
+            <span className="flex h-5 items-center justify-center rounded-full bg-white px-3 text-xs font-bold text-meow-deep">
               P
             </span>
           </div>

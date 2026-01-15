@@ -266,9 +266,9 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
   const sellerInitials = useMemo(() => {
     const parts = sellerLabel.split(' ').filter((item) => item.length > 0);
     if (parts.length === 1) {
-      return parts[0].slice(0, 2).toUpperCase();
+      return parts[0]?.slice(0, 2).toUpperCase() ?? '';
     }
-    return `${parts[0][0] ?? ''}${parts[1][0] ?? ''}`.toUpperCase();
+    return `${parts[0]?.[0] ?? ''}${parts[1]?.[0] ?? ''}`.toUpperCase();
   }, [sellerLabel]);
 
   const accessEntries = useMemo(() => {
@@ -291,7 +291,7 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
     const emailMatch = trimmed.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
     if (emailMatch && trimmed.includes(':')) {
       const [maybeEmail, ...rest] = trimmed.split(':');
-      if (maybeEmail.includes('@') && rest.length > 0) {
+      if (maybeEmail?.includes('@') && rest.length > 0) {
         return { email: maybeEmail.trim(), password: rest.join(':').trim() };
       }
     }
@@ -703,7 +703,7 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
                     Abrir disputa
                   </Button>
                   <Link
-                    className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
+                    className="flex items-center justify-center rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
                     href={`/conta/tickets?orderId=${orderId}`}
                   >
                     Abrir ticket
@@ -928,7 +928,7 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
                       <span className="text-xs text-meow-charcoal">
                         {paymentSummary.expiresAt
                           ? new Date(paymentSummary.expiresAt).toLocaleString('pt-BR')
-                          : 'NÃ£o informado'}
+                          : 'Não informado'}
                       </span>
                     </div>
                   </div>

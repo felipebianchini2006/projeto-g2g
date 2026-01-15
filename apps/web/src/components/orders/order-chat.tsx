@@ -687,7 +687,7 @@ export const OrderChat = ({
                               className="bg-white"
                             />
                             <div className="flex items-center justify-end gap-2">
-                              <Button type="button" size="sm" variant="ghost" onClick={handleCancelEdit}>
+                              <Button type="button" size="sm" variant="ghost" className="text-white hover:bg-white/20 hover:text-white" onClick={handleCancelEdit}>
                                 Cancelar
                               </Button>
                               <Button type="button" size="sm" onClick={() => handleSaveEdit(message.id)}>
