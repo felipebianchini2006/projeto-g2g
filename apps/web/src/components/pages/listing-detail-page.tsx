@@ -15,6 +15,7 @@ import {
   type PublicReview,
   type ReviewDistribution,
 } from '../../lib/public-reviews-api';
+import { publicProfilesApi, type PublicProfile } from '../../lib/public-profiles-api';
 import { ordersApi, type ReviewEligibilityResponse } from '../../lib/orders-api';
 import { useAuth } from '../auth/auth-provider';
 import { useSite } from '../site-context';
@@ -63,6 +64,7 @@ const formatCurrency = (value: number, currency = 'BRL') =>
 export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
   const { addToCart, isFavorite, toggleFavorite } = useSite();
   const { accessToken } = useAuth();
+  const [sellerProfile, setSellerProfile] = useState<PublicProfile | null>(null);
   const [state, setState] = useState<ListingDetailState>({
     status: 'loading',
     listing: null,
@@ -114,6 +116,14 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
       const fallbackImage = '/assets/meoow/highlight-01.webp';
       const nextMedia = response.listing?.media?.[0]?.url ?? fallbackImage;
       setActiveMedia(nextMedia);
+
+      if (response.listing?.sellerId) {
+        publicProfilesApi.getProfile(response.listing.sellerId)
+          .then((profile) => setSellerProfile(profile))
+          .catch(() => {
+            // Silently fail for seller profile if needed, or log
+          });
+      }
     };
     loadListing().catch(() => {
       if (active) {
@@ -271,10 +281,10 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
   const mediaItems =
     listing.media && listing.media.length > 0
       ? listing.media.map((media) => ({
-          id: media.id,
-          url: media.url,
-          type: media.type,
-        }))
+        id: media.id,
+        url: media.url,
+        type: media.type,
+      }))
       : [{ id: 'fallback', url: fallbackImage, type: 'IMAGE' }];
   const thumbnailItems = mediaItems.slice(0, 4);
   const remainingCount = Math.max(0, mediaItems.length - thumbnailItems.length);
@@ -287,7 +297,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
   const oldPriceCents =
     typeof listing.oldPriceCents === 'number'
       ? listing.oldPriceCents +
-        (selectedEdition === 'deluxe' ? editionDeltaCents : 0)
+      (selectedEdition === 'deluxe' ? editionDeltaCents : 0)
       : null;
   const discountPercent =
     oldPriceCents && oldPriceCents > priceCents
@@ -473,11 +483,10 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
                 <button
                   key={media.id}
                   type="button"
-                  className={`grid h-20 w-20 place-items-center rounded-2xl border bg-slate-50 ${
-                    activeMedia === media.url
-                      ? 'border-meow-300 shadow-cute'
-                      : 'border-slate-100'
-                  }`}
+                  className={`grid h-20 w-20 place-items-center rounded-2xl border bg-slate-50 ${activeMedia === media.url
+                    ? 'border-meow-300 shadow-cute'
+                    : 'border-slate-100'
+                    }`}
                   onClick={() => setActiveMedia(media.url)}
                 >
                   <img src={media.url} alt={media.type} className="h-14 w-14 object-cover" />
@@ -491,115 +500,177 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
-            <h1 className="text-2xl font-black text-meow-charcoal">{listing.title}</h1>
-            <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-meow-muted">
-              <div className="flex items-center gap-1 text-amber-400">
-                {Array.from({ length: 5 }).map((_, index) => (
-                  <Star key={`star-${index}`} size={16} fill="currentColor" />
-                ))}
-              </div>
-              <span className="text-xs font-semibold text-slate-500">5.0 (42)</span>
-              {listing.deliveryType === 'AUTO' ? (
-                <Badge variant="success" className="bg-emerald-100 text-emerald-700">
-                  Entrega automática
-                </Badge>
-              ) : null}
-            </div>
-
-            <div className="mt-6">
-              <p className="text-sm font-semibold text-slate-500">Escolha a Edição:</p>
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                {[
-                  { id: 'standard', label: 'Padrao' },
-                  { id: 'deluxe', label: 'Deluxe (+1k V)' },
-                ].map((edition) => {
-                  const isActive = selectedEdition === edition.id;
-                  return (
-                    <button
-                      key={edition.id}
-                      type="button"
-                      onClick={() =>
-                        setSelectedEdition(edition.id as 'standard' | 'deluxe')
-                      }
-                      className={`rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition ${
-                        isActive
-                          ? 'border-meow-300 bg-meow-100/70 text-meow-deep'
-                          : 'border-slate-100 bg-white text-meow-charcoal hover:border-meow-200'
-                      }`}
-                    >
-                      <span className="block text-sm font-bold">{edition.label}</span>
-                      <span className="mt-1 block text-xs text-slate-500">
-                        {edition.id === 'deluxe'
-                          ? 'Itens bonus para colecionar.'
-                          : 'Conteúdo base incluso.'}
-                      </span>
-                      <span className="mt-3 block text-sm font-bold text-meow-300">
-                        {formatCurrency(
-                          edition.id === 'deluxe'
-                            ? listing.priceCents + editionDeltaCents
-                            : listing.priceCents,
-                          listing.currency,
-                        )}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="mt-6">
-              <div className="flex flex-wrap items-center gap-2 text-sm text-slate-400">
-                {oldPriceCents ? (
-                  <span className="line-through">
-                    De {formatCurrency(oldPriceCents, listing.currency)}
-                  </span>
-                ) : null}
-                {discountPercent ? (
-                  <Badge variant="success" className="text-[9px]">
-                    -{discountPercent}%
+          <div className="space-y-6">
+            <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
+              <h1 className="text-2xl font-black text-meow-charcoal">{listing.title}</h1>
+              <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-meow-muted">
+                <div className="flex items-center gap-1 text-amber-400">
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <Star key={`star-${index}`} size={16} fill="currentColor" />
+                  ))}
+                </div>
+                <span className="text-xs font-semibold text-slate-500">5.0 (42)</span>
+                {listing.deliveryType === 'AUTO' ? (
+                  <Badge variant="success" className="bg-emerald-100 text-emerald-700">
+                    Entrega automática
                   </Badge>
                 ) : null}
               </div>
-              <div className="mt-2 text-3xl font-black text-meow-300">
-                {formatCurrency(priceCents, listing.currency)}
+
+              <div className="mt-6">
+                <p className="text-sm font-semibold text-slate-500">Escolha a Edição:</p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  {[
+                    { id: 'standard', label: 'Padrao' },
+                    { id: 'deluxe', label: 'Deluxe (+1k V)' },
+                  ].map((edition) => {
+                    const isActive = selectedEdition === edition.id;
+                    return (
+                      <button
+                        key={edition.id}
+                        type="button"
+                        onClick={() =>
+                          setSelectedEdition(edition.id as 'standard' | 'deluxe')
+                        }
+                        className={`rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition ${isActive
+                          ? 'border-meow-300 bg-meow-100/70 text-meow-deep'
+                          : 'border-slate-100 bg-white text-meow-charcoal hover:border-meow-200'
+                          }`}
+                      >
+                        <span className="block text-sm font-bold">{edition.label}</span>
+                        <span className="mt-1 block text-xs text-slate-500">
+                          {edition.id === 'deluxe'
+                            ? 'Itens bonus para colecionar.'
+                            : 'Conteúdo base incluso.'}
+                        </span>
+                        <span className="mt-3 block text-sm font-bold text-meow-300">
+                          {formatCurrency(
+                            edition.id === 'deluxe'
+                              ? listing.priceCents + editionDeltaCents
+                              : listing.priceCents,
+                            listing.currency,
+                          )}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-              <p className="mt-1 text-xs text-slate-500">{editionLabel}</p>
+
+              <div className="mt-6">
+                <div className="flex flex-wrap items-center gap-2 text-sm text-slate-400">
+                  {oldPriceCents ? (
+                    <span className="line-through">
+                      De {formatCurrency(oldPriceCents, listing.currency)}
+                    </span>
+                  ) : null}
+                  {discountPercent ? (
+                    <Badge variant="success" className="text-[9px]">
+                      -{discountPercent}%
+                    </Badge>
+                  ) : null}
+                </div>
+                <div className="mt-2 text-3xl font-black text-meow-300">
+                  {formatCurrency(priceCents, listing.currency)}
+                </div>
+                <p className="mt-1 text-xs text-slate-500">{editionLabel}</p>
+              </div>
+
+              <div className="mt-6 grid gap-3">
+                <Link
+                  className={buttonVariants({
+                    variant: 'primary',
+                    size: 'lg',
+                    className: 'w-full gap-2 text-xs sm:text-sm',
+                  })}
+                  href={`/checkout/${listing.id}?variant=${selectedEdition}`}
+                >
+                  <ShoppingBag size={18} aria-hidden />
+                  COMPRAR AGORA
+                </Link>
+                <button
+                  type="button"
+                  className={buttonVariants({
+                    variant: 'secondary',
+                    size: 'lg',
+                    className: 'w-full gap-2 text-xs sm:text-sm',
+                  })}
+                  onClick={() =>
+                    addToCart({
+                      id: listing.id,
+                      title: `${listing.title} - ${editionLabel}`,
+                      priceCents,
+                      currency: listing.currency,
+                      image: listing.media?.[0]?.url ?? null,
+                    })
+                  }
+                >
+                  <ShoppingCart size={18} aria-hidden />
+                  Adicionar ao Carrinho
+                </button>
+              </div>
             </div>
 
-            <div className="mt-6 grid gap-3">
-              <Link
-                className={buttonVariants({
-                  variant: 'primary',
-                  size: 'lg',
-                  className: 'w-full gap-2 text-xs sm:text-sm',
-                })}
-                href={`/checkout/${listing.id}?variant=${selectedEdition}`}
-              >
-                <ShoppingBag size={18} aria-hidden />
-                COMPRAR AGORA
-              </Link>
-              <button
-                type="button"
-                className={buttonVariants({
-                  variant: 'secondary',
-                  size: 'lg',
-                  className: 'w-full gap-2 text-xs sm:text-sm',
-                })}
-                onClick={() =>
-                  addToCart({
-                    id: listing.id,
-                    title: `${listing.title} - ${editionLabel}`,
-                    priceCents,
-                    currency: listing.currency,
-                    image: listing.media?.[0]?.url ?? null,
-                  })
-                }
-              >
-                <ShoppingCart size={18} aria-hidden />
-                Adicionar ao Carrinho
-              </button>
-            </div>
+            {sellerProfile ? (
+              <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
+                <div className="flex items-center gap-4">
+                  <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-base font-bold ${sellerProfile.avatarUrl ? '' : resolveAvatarTone(sellerProfile.displayName)
+                    }`}>
+                    {sellerProfile.avatarUrl ? (
+                      <img
+                        src={sellerProfile.avatarUrl}
+                        alt={sellerProfile.displayName}
+                        className="h-full w-full rounded-full object-cover"
+                      />
+                    ) : (
+                      resolveInitials(sellerProfile.displayName)
+                    )}
+                  </div>
+                  <div className="flex-1 overflow-hidden">
+                    <p className="truncate text-base font-bold text-meow-charcoal">
+                      {sellerProfile.displayName}
+                    </p>
+                    <Link
+                      href={`/perfil/${sellerProfile.id}`}
+                      className="truncate text-xs text-meow-muted hover:text-meow-deep hover:underline"
+                    >
+                      @{sellerProfile.handle}
+                    </Link>
+                  </div>
+                </div>
+
+                <div className="mt-4 flex items-center justify-between gap-4 rounded-xl border border-slate-50 bg-slate-50/50 px-4 py-3">
+                  <div className="text-center">
+                    <div className="flex items-center justify-center gap-1 text-xs font-bold text-meow-charcoal">
+                      <Star size={12} className="text-amber-400" fill="currentColor" />
+                      {sellerProfile.stats.ratingAverage.toFixed(1)}
+                    </div>
+                    <p className="text-[10px] text-slate-400">Avaliação</p>
+                  </div>
+                  <div className="h-6 w-px bg-slate-200" />
+                  <div className="text-center">
+                    <p className="text-xs font-bold text-meow-charcoal">
+                      {sellerProfile.stats.salesCount}
+                    </p>
+                    <p className="text-[10px] text-slate-400">Vendas</p>
+                  </div>
+                  <div className="h-6 w-px bg-slate-200" />
+                  <div className="text-center">
+                    <p className="text-xs font-bold text-meow-charcoal">
+                      {sellerProfile.stats.reviewsCount}
+                    </p>
+                    <p className="text-[10px] text-slate-400">Reviews</p>
+                  </div>
+                </div>
+
+                <Link
+                  href={`/perfil/${sellerProfile.id}`}
+                  className="mt-4 block w-full rounded-full border border-meow-red/20 bg-white py-2 text-center text-xs font-bold text-meow-deep hover:bg-meow-50"
+                >
+                  Ver perfil completo
+                </Link>
+              </div>
+            ) : null}
           </div>
         </div>
 

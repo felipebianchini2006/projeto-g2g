@@ -1,0 +1,110 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - text: Frete grátis em regiões selecionadas nas compras acima de R$349
+    - link "Saiba mais" [ref=e4] [cursor=pointer]:
+      - /url: /produtos
+  - banner [ref=e5]:
+    - generic [ref=e6]:
+      - link "Meoww Games" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img "Meoww Games" [ref=e8]
+      - generic [ref=e9]:
+        - img [ref=e10]
+        - textbox "Anúncio, usuário ou categoria" [ref=e13]
+        - generic [ref=e14]: P
+      - generic [ref=e15]:
+        - button "Categorias" [ref=e17] [cursor=pointer]:
+          - text: Categorias
+          - img [ref=e18]
+        - link "Criar anúncio" [ref=e20] [cursor=pointer]:
+          - /url: /anunciar
+        - button "Notificacoes" [ref=e22] [cursor=pointer]:
+          - img [ref=e23]
+        - button "Carrinho" [ref=e27] [cursor=pointer]:
+          - img [ref=e28]
+        - button "Menu do usuário" [ref=e33] [cursor=pointer]:
+          - img [ref=e34]
+  - main [ref=e35]:
+    - generic [ref=e37]:
+      - generic [ref=e38]: Anúncio não encontrado.
+      - link "Voltar ao catalogo" [ref=e39] [cursor=pointer]:
+        - /url: /produtos
+  - contentinfo [ref=e40]:
+    - generic [ref=e41]:
+      - generic [ref=e42]:
+        - generic [ref=e43]:
+          - generic [ref=e44]:
+            - img "Meoww" [ref=e46]
+            - generic [ref=e47]:
+              - generic [ref=e48]: Meoww Games
+              - text: A casa gamer dos gatinhos
+          - paragraph [ref=e49]: A loja gamer com curadoria felina. Consoles, jogos e colecionaveis com entrega rápida e segura.
+          - generic [ref=e50]:
+            - link "Facebook" [ref=e51] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e52]
+            - link "Instagram" [ref=e54] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e55]
+            - link "YouTube" [ref=e58] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e59]
+            - link "TikTok" [ref=e62] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e63]
+        - generic [ref=e66]:
+          - heading "Institucional" [level=4] [ref=e67]
+          - list [ref=e68]:
+            - listitem [ref=e69]:
+              - link "Sobre nos" [ref=e70] [cursor=pointer]:
+                - /url: /institucional/sobre
+            - listitem [ref=e71]:
+              - link "Contato" [ref=e72] [cursor=pointer]:
+                - /url: /institucional/contato
+            - listitem [ref=e73]:
+              - link "Politica de privacidade" [ref=e74] [cursor=pointer]:
+                - /url: /institucional/privacidade
+            - listitem [ref=e75]:
+              - link "Termos de uso" [ref=e76] [cursor=pointer]:
+                - /url: /institucional/termos
+        - generic [ref=e77]:
+          - heading "Categorias" [level=4] [ref=e78]
+          - list [ref=e79]:
+            - listitem [ref=e80]:
+              - link "Consoles" [ref=e81] [cursor=pointer]:
+                - /url: /categoria/consoles
+            - listitem [ref=e82]:
+              - link "Perifericos" [ref=e83] [cursor=pointer]:
+                - /url: /categoria/perifericos
+            - listitem [ref=e84]:
+              - link "Colecionaveis" [ref=e85] [cursor=pointer]:
+                - /url: /categoria/colecionaveis
+            - listitem [ref=e86]:
+              - link "Gift Cards" [ref=e87] [cursor=pointer]:
+                - /url: /categoria/gift-cards
+        - generic [ref=e88]:
+          - heading "Ajuda" [level=4] [ref=e89]
+          - list [ref=e90]:
+            - listitem [ref=e91]:
+              - link "Central de ajuda" [ref=e92] [cursor=pointer]:
+                - /url: /ajuda/central
+            - listitem [ref=e93]:
+              - link "Como comprar" [ref=e94] [cursor=pointer]:
+                - /url: /ajuda/como-comprar
+            - listitem [ref=e95]:
+              - link "Formas de pagamento" [ref=e96] [cursor=pointer]:
+                - /url: /ajuda/pagamentos
+            - listitem [ref=e97]:
+              - link "Trocas e devolucoes" [ref=e98] [cursor=pointer]:
+                - /url: /ajuda/trocas
+      - generic [ref=e99]: © 2025 Meoww Games. Todos os direitos reservados.
+  - link "Abrir chat de suporte" [ref=e100] [cursor=pointer]:
+    - /url: /conta/ajuda/chat
+    - img [ref=e101]
+  - button "Open Next.js Dev Tools" [ref=e108] [cursor=pointer]:
+    - img [ref=e109]
+  - alert [ref=e112]
+```
