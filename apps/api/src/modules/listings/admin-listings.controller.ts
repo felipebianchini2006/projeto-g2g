@@ -9,6 +9,7 @@ import {
   Req,
   UnauthorizedException,
   UseGuards,
+  Delete,
 } from '@nestjs/common';
 import { UserRole } from '@prisma/client';
 import { Request } from 'express';
@@ -29,7 +30,7 @@ type AuthenticatedRequest = Request & { user?: JwtPayload };
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN)
 export class AdminListingsController {
-  constructor(private readonly listingsService: ListingsService) {}
+  constructor(private readonly listingsService: ListingsService) { }
 
   @Get()
   list(@Query() query: ListingQueryDto) {
@@ -70,6 +71,13 @@ export class AdminListingsController {
     const adminId = this.getUserId(req);
     const meta = this.getRequestMeta(req);
     return this.listingsService.suspendListing(listingId, adminId, dto.reason, meta);
+  }
+
+  @Delete(':id')
+  delete(@Req() req: AuthenticatedRequest, @Param('id') listingId: string) {
+    const adminId = this.getUserId(req);
+    const meta = this.getRequestMeta(req);
+    return this.listingsService.deleteListing(listingId, adminId, meta);
   }
 
   @Patch(':id/home')

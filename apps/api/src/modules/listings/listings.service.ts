@@ -45,7 +45,7 @@ type CacheEntry<T> = {
 
 @Injectable()
 export class ListingsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   private readonly publicCacheTtlMs = 60_000;
   private readonly publicListingCache = new Map<string, CacheEntry<PublicListing>>();
@@ -266,10 +266,10 @@ export class ListingsService {
     const inventoryCounts =
       listingIds.length > 0
         ? await this.prisma.inventoryItem.groupBy({
-            by: ['listingId'],
-            where: { listingId: { in: listingIds }, status: 'AVAILABLE' },
-            _count: { _all: true },
-          })
+          by: ['listingId'],
+          where: { listingId: { in: listingIds }, status: 'AVAILABLE' },
+          _count: { _all: true },
+        })
         : [];
     const countsByListingId = new Map(
       inventoryCounts.map((item) => [item.listingId, item._count._all]),
@@ -597,6 +597,47 @@ export class ListingsService {
       this.invalidatePublicCaches();
       return updated;
     });
+  }
+
+
+
+  async deleteListing(listingId: string, adminId: string, meta: AuditMeta) {
+    const listing = await this.prisma.listing.findUnique({
+      where: { id: listingId },
+    });
+
+    if (!listing) {
+      throw new NotFoundException('Listing not found.');
+    }
+
+    try {
+      const deleted = await this.prisma.listing.delete({
+        where: { id: listingId },
+      });
+
+      await this.createAuditLog(
+        this.prisma,
+        adminId,
+        listingId, // Note: The entity is gone, but we log the ID.
+        {
+          action: AuditAction.DELETE,
+          reason: 'admin delete',
+          from: listing.status,
+          to: listing.status, // Not changing status, just deleting
+        },
+        meta,
+      );
+
+      this.invalidatePublicCaches();
+      return deleted;
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
+        throw new BadRequestException(
+          'Cannot delete listing with associated orders. Please suspend it instead.',
+        );
+      }
+      throw error;
+    }
   }
 
   async updateListingHomeFlags(

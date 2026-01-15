@@ -173,7 +173,10 @@ const adminNav = (logout: () => Promise<void>, goHome: () => void): MenuSection[
   },
   {
     title: 'Cadastros',
-    items: [{ label: 'Cadastros', href: '/admin/cadastros' }],
+    items: [
+      { label: 'Cadastros', href: '/admin/cadastros' },
+      { label: 'Anúncios', href: '/admin/anuncios' },
+    ],
   },
   {
     title: 'Conta',
@@ -222,6 +225,7 @@ const iconMap: Record<string, React.ReactNode> = {
   Sistema: <Settings2 size={16} aria-hidden />,
   Parametros: <SlidersHorizontal size={16} aria-hidden />,
   Cadastros: <Database size={16} aria-hidden />,
+  Anúncios: <Megaphone size={16} aria-hidden />,
   'Voltar ao site': <House size={16} aria-hidden />,
   Sair: <LogOut size={16} aria-hidden />,
 };

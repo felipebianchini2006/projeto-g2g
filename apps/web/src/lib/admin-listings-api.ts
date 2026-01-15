@@ -85,7 +85,7 @@ export type AdminCreateListingInput = {
   refundPolicy: string;
 };
 
-const authHeaders = (token: string | null) =>
+const authHeaders = (token: string | null): Record<string, string> =>
   token ? { Authorization: `Bearer ${token}` } : {};
 
 export const adminListingsApi = {
@@ -126,6 +126,11 @@ export const adminListingsApi = {
     apiFetch<AdminListing>(`/admin/listings/${listingId}/home`, {
       method: 'PATCH',
       headers: authHeaders(token),
-      body: JSON.stringify(input),
+    }),
+
+  deleteListing: (token: string | null, listingId: string) =>
+    apiFetch<void>(`/admin/listings/${listingId}`, {
+      method: 'DELETE',
+      headers: authHeaders(token),
     }),
 };

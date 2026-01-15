@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { Trash } from 'lucide-react';
 
 import { ApiClientError } from '../../lib/api-client';
 import {
@@ -555,6 +556,32 @@ export const AdminListingsContent = () => {
     );
   }
 
+  const handleDelete = async (listingToDelete?: AdminListing) => {
+    const target = listingToDelete || selectedListing;
+    if (!target || !accessToken) return;
+
+    if (
+      !confirm(
+        `Tem certeza que deseja EXCLUIR o anúncio "${target.title}"? Esta ação NÃO pode ser desfeita.`,
+      )
+    )
+      return;
+
+    setBusyAction('delete');
+    try {
+      await adminListingsApi.deleteListing(accessToken, target.id);
+      setNotice('Anúncio excluído com sucesso.');
+      if (selectedListing?.id === target.id) {
+        setSelectedListing(null);
+      }
+      loadListings();
+    } catch (error) {
+      handleError(error, 'Erro ao excluir anúncio. Verifique se existem pedidos associados.');
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
   return (
     <AdminShell
       breadcrumbs={[
@@ -868,28 +895,39 @@ export const AdminListingsContent = () => {
 
           <div className="support-list">
             {listings.map((listing) => (
-              <button
-                className="support-row"
+              <div
+                className={`support-row flex cursor-pointer items-center justify-between gap-2 p-3 ${selectedListing?.id === listing.id ? 'bg-meow-red/5' : ''}`}
                 key={listing.id}
-                type="button"
                 onClick={() => {
                   setSelectedListing(listing);
                   setActionReason('');
                 }}
               >
-                <div>
-                  <strong>{listing.title}</strong>
-                  <span className="auth-helper">
-                    {listing.seller?.email ?? listing.sellerId}
-                  </span>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <strong>{listing.title}</strong>
+                    <span className={`status-pill status-${listing.status.toLowerCase()} scale-75`}>
+                      {statusLabel[listing.status] ?? listing.status}
+                    </span>
+                  </div>
+                  <div className="text-xs text-meow-muted">
+                    {listing.seller?.email ?? listing.sellerId} •{' '}
+                    {formatCurrency(listing.priceCents, listing.currency)}
+                  </div>
                 </div>
-                <div className="ticket-meta">
-                  <span className={`status-pill status-${listing.status.toLowerCase()}`}>
-                    {statusLabel[listing.status] ?? listing.status}
-                  </span>
-                  <small>{formatCurrency(listing.priceCents, listing.currency)}</small>
-                </div>
-              </button>
+
+                <button
+                  className="rounded p-2 text-meow-muted hover:bg-red-50 hover:text-red-600"
+                  title="Excluir Anuncio"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(listing);
+                  }}
+                  disabled={busyAction === 'delete'}
+                >
+                  <Trash size={16} />
+                </button>
+              </div>
             ))}
           </div>
         </div>
@@ -1001,6 +1039,14 @@ export const AdminListingsContent = () => {
                   disabled={!actionReason.trim() || busyAction === 'suspend'}
                 >
                   {busyAction === 'suspend' ? 'Suspendendo...' : 'Suspender'}
+                </button>
+                <button
+                  className="ghost-button text-red-600 hover:bg-red-50 hover:text-red-700"
+                  type="button"
+                  onClick={() => handleDelete()}
+                  disabled={busyAction === 'delete'}
+                >
+                  {busyAction === 'delete' ? 'Excluindo...' : 'Excluir'}
                 </button>
               </div>
 
