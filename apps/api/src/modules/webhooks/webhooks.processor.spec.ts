@@ -51,6 +51,15 @@ describe('WebhooksProcessor (Wallet Top-up)', () => {
       handlePaymentSideEffects: jest.fn(),
     } as unknown as OrdersService;
 
+    // Fix: Explicitly cast prismaMock and define mock implementation properly
+    const mockTransaction = jest.fn(async (callback: (tx: any) => Promise<unknown>) =>
+      callback(prismaMock),
+    );
+
+    Object.assign(prismaMock, {
+      $transaction: mockTransaction
+    });
+
     processor = new WebhooksProcessor(
       prismaMock as unknown as PrismaService,
       ordersService,
@@ -60,7 +69,7 @@ describe('WebhooksProcessor (Wallet Top-up)', () => {
       { enqueueEmail: jest.fn() } as unknown as EmailQueueService,
       {
         run: jest.fn(
-          async (_ctx: unknown, callback: () => Promise<unknown>) => await callback(),
+          async (_ctx: unknown, callback: () => Promise<unknown>): Promise<unknown> => await callback(),
         ),
         set: jest.fn(),
       } as unknown as RequestContextService,

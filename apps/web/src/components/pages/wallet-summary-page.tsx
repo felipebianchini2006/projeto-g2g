@@ -436,101 +436,100 @@ export const WalletSummaryContent = () => {
           </div>
         </Card>
       </div>
-    </div>
 
       {
-    isTopupOpen && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-        <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95">
-          <h2 className="flex items-center gap-2 text-lg font-black text-meow-charcoal">
-            <Wallet className="text-meow-deep" size={24} />
-            Adicionar saldo
-          </h2>
+        isTopupOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+            <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95">
+              <h2 className="flex items-center gap-2 text-lg font-black text-meow-charcoal">
+                <Wallet className="text-meow-deep" size={24} />
+                Adicionar saldo
+              </h2>
 
-          {!topupPix ? (
-            <form onSubmit={handleCreateTopup} className="mt-4 grid gap-4">
-              <p className="text-sm text-meow-muted">
-                Adicione saldo para realizar compras na plataforma. O valor serÃ¡ creditado
-                automaticamente apÃ³s o pagamento.
-              </p>
-              <div>
-                <label className="mb-1 block text-xs font-bold text-meow-charcoal">
-                  Valor (R$)
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="5"
-                  className="w-full rounded-xl border border-meow-red/20 bg-slate-50 px-4 py-3 text-lg font-bold text-meow-charcoal outline-none focus:border-meow-red/60 focus:ring-4 focus:ring-meow-red/15"
-                  placeholder="0,00"
-                  value={topupAmount}
-                  onChange={(e) => setTopupAmount(e.target.value)}
-                  required
-                />
-                <p className="mt-1 text-xs text-meow-muted">Mínimo: R$ 5,00</p>
-              </div>
-              <div className="flex justify-end gap-3 pt-2">
-                <Button variant="ghost" onClick={closeTopup} type="button">
-                  Cancelar
-                </Button>
-                <Button type="submit" disabled={topupLoading}>
-                  {topupLoading ? 'Gerando...' : 'Gerar Pix'}
-                </Button>
-              </div>
-            </form>
-          ) : (
-            <div className="mt-4 grid gap-4 animate-in fade-in slide-in-from-bottom-4">
-              <div className="rounded-xl bg-emerald-50 p-4 text-center">
-                <p className="text-xs font-bold text-emerald-700">Pix gerado com sucesso!</p>
-                <p className="text-[10px] text-emerald-600">
-                  Pague para liberar o saldo imediatamente.
-                </p>
-              </div>
-
-              <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 py-6">
-                {topupPix.qrCode ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={topupPix.qrCode}
-                    alt="QR Code Pix"
-                    className="h-48 w-48 mix-blend-multiply"
-                  />
-                ) : (
-                  <QrCode className="h-24 w-24 text-slate-300" />
-                )}
-                <p className="mt-2 text-xs text-slate-400">Escaneie o QR Code</p>
-              </div>
-
-              <div>
-                <label className="mb-1 block text-xs font-bold text-meow-charcoal">
-                  Copia e Cola
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    readOnly
-                    value={topupPix.copyPaste ?? ''}
-                    className="w-full rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-xs text-meow-muted outline-none"
-                  />
-                  <CopyToClipboard
-                    text={topupPix.copyPaste ?? ''}
-                    onCopy={() => setCopied(true)}
-                  >
-                    <Button type="button" size="sm" variant="secondary">
-                      {copied ? 'Copiado!' : 'Copiar'}
+              {!topupPix ? (
+                <form onSubmit={handleCreateTopup} className="mt-4 grid gap-4">
+                  <p className="text-sm text-meow-muted">
+                    Adicione saldo para realizar compras na plataforma. O valor serÃ¡ creditado
+                    automaticamente apÃ³s o pagamento.
+                  </p>
+                  <div>
+                    <label className="mb-1 block text-xs font-bold text-meow-charcoal">
+                      Valor (R$)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="5"
+                      className="w-full rounded-xl border border-meow-red/20 bg-slate-50 px-4 py-3 text-lg font-bold text-meow-charcoal outline-none focus:border-meow-red/60 focus:ring-4 focus:ring-meow-red/15"
+                      placeholder="0,00"
+                      value={topupAmount}
+                      onChange={(e) => setTopupAmount(e.target.value)}
+                      required
+                    />
+                    <p className="mt-1 text-xs text-meow-muted">Mínimo: R$ 5,00</p>
+                  </div>
+                  <div className="flex justify-end gap-3 pt-2">
+                    <Button variant="ghost" onClick={closeTopup} type="button">
+                      Cancelar
                     </Button>
-                  </CopyToClipboard>
-                </div>
-              </div>
+                    <Button type="submit" disabled={topupLoading}>
+                      {topupLoading ? 'Gerando...' : 'Gerar Pix'}
+                    </Button>
+                  </div>
+                </form>
+              ) : (
+                <div className="mt-4 grid gap-4 animate-in fade-in slide-in-from-bottom-4">
+                  <div className="rounded-xl bg-emerald-50 p-4 text-center">
+                    <p className="text-xs font-bold text-emerald-700">Pix gerado com sucesso!</p>
+                    <p className="text-[10px] text-emerald-600">
+                      Pague para liberar o saldo imediatamente.
+                    </p>
+                  </div>
 
-              <Button onClick={closeTopup} className="w-full mt-2">
-                JÃ¡ realizei o pagamento
-              </Button>
+                  <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 py-6">
+                    {topupPix?.qrCode ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={topupPix.qrCode}
+                        alt="QR Code Pix"
+                        className="h-48 w-48 mix-blend-multiply"
+                      />
+                    ) : (
+                      <QrCode className="h-24 w-24 text-slate-300" />
+                    )}
+                    <p className="mt-2 text-xs text-slate-400">Escaneie o QR Code</p>
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-xs font-bold text-meow-charcoal">
+                      Copia e Cola
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        readOnly
+                        value={topupPix?.copyPaste ?? ''}
+                        className="w-full rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-xs text-meow-muted outline-none"
+                      />
+                      <CopyToClipboard
+                        text={topupPix?.copyPaste ?? ''}
+                        onCopy={() => setCopied(true)}
+                      >
+                        <Button type="button" size="sm" variant="secondary">
+                          {copied ? 'Copiado!' : 'Copiar'}
+                        </Button>
+                      </CopyToClipboard>
+                    </div>
+                  </div>
+
+                  <Button onClick={closeTopup} className="w-full mt-2">
+                    JÃ¡ realizei o pagamento
+                  </Button>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      </div>
-    )
-  }
+          </div>
+        )
+      }
     </AccountShell >
   );
 };

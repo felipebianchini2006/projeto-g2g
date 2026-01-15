@@ -33,6 +33,6 @@ import { PartnersModule } from '../partners/partners.module';
   ],
   controllers: [OrdersController, CheckoutController, AdminOrdersController],
   providers: [OrdersService, OrdersQueueService, OrdersProcessor, OrderAccessGuard],
-  exports: [OrdersService],
+  exports: [OrdersService, OrdersQueueService],
 })
-export class OrdersModule {}
+export class OrdersModule { }
