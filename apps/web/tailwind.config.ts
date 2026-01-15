@@ -47,7 +47,7 @@ const config = {
       },
       backgroundImage: {
         "meow-gradient": "linear-gradient(0deg, #ffffff 0%, #ffffff 100%)",
-        "meow-linear": "linear-gradient(90deg, #FF6B95 0%, #E11D48 100%)",
+        "meow-linear": "linear-gradient(90deg, #f2a4c3 0%, #f7b8d1 50%, #f2a4c3 100%)",
       },
     },
   },

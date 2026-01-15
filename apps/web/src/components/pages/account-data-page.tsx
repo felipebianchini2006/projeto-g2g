@@ -102,31 +102,7 @@ export const AccountDataContent = () => {
   const [cepBusy, setCepBusy] = useState(false);
   const [cepError, setCepError] = useState<string | null>(null);
 
-  if (loading) {
-    return (
-      <section className="bg-white px-6 py-12">
-        <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
-          Carregando sessão...
-        </div>
-      </section>
-    );
-  }
-
-  if (!user) {
-    return (
-      <section className="bg-white px-6 py-12">
-        <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center">
-          <p className="text-sm text-meow-muted">Entre para acessar seus dados.</p>
-          <Link
-            href="/login"
-            className="mt-4 inline-flex rounded-full bg-meow-linear px-6 py-2 text-sm font-bold text-white"
-          >
-            Fazer login
-          </Link>
-        </div>
-      </section>
-    );
-  }
+  /* Removed early returns */
 
   useEffect(() => {
     if (!user || !accessToken) {
@@ -253,6 +229,32 @@ export const AccountDataContent = () => {
     );
   }, [form, noNumber]);
 
+  if (loading) {
+    return (
+      <section className="bg-white px-6 py-12">
+        <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
+          Carregando sessão...
+        </div>
+      </section>
+    );
+  }
+
+  if (!user) {
+    return (
+      <section className="bg-white px-6 py-12">
+        <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center">
+          <p className="text-sm text-meow-muted">Entre para acessar seus dados.</p>
+          <Link
+            href="/login"
+            className="mt-4 inline-flex rounded-full bg-meow-linear px-6 py-2 text-sm font-bold text-white"
+          >
+            Fazer login
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <AccountShell
       breadcrumbs={[
@@ -347,12 +349,14 @@ export const AccountDataContent = () => {
                     />
                     <button
                       type="button"
-                      className="absolute inset-y-0 right-2 flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-rose-500"
+                      className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl border border-slate-200 bg-white text-rose-500"
                       onClick={handleCepLookup}
                       disabled={cepBusy || status === 'saving'}
                       aria-label="Buscar CEP"
                     >
-                      <Search size={16} aria-hidden />
+                      <div className="flex h-4 w-4 items-center justify-center">
+                        <Search size={16} aria-hidden />
+                      </div>
                     </button>
                   </div>
                   {cepError ? (
@@ -375,26 +379,28 @@ export const AccountDataContent = () => {
                     disabled={status === 'saving'}
                   />
                 </label>
-                <div className="grid gap-2">
-                  <label className="grid gap-1 text-xs font-semibold uppercase text-meow-muted">
-                    Número
-                    <Input
-                      placeholder="123"
-                      value={form.addressNumber}
-                      onChange={handleChange('addressNumber')}
-                      disabled={status === 'saving' || noNumber}
-                    />
-                  </label>
-                  <label className="flex items-center gap-2 text-xs font-semibold text-meow-muted">
-                    <input
-                      type="checkbox"
-                      checked={noNumber}
-                      onChange={(event) => handleNoNumber(event.target.checked)}
-                      className="h-4 w-4 rounded border-slate-300 text-meow-deep focus:ring-meow-200"
-                      disabled={status === 'saving'}
-                    />
-                    Sem número
-                  </label>
+                <div className="grid gap-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold uppercase text-meow-muted">
+                      Número
+                    </span>
+                    <label className="flex items-center gap-2 text-xs font-semibold text-meow-muted cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={noNumber}
+                        onChange={(event) => handleNoNumber(event.target.checked)}
+                        className="h-4 w-4 rounded border-slate-300 text-meow-deep focus:ring-meow-200"
+                        disabled={status === 'saving'}
+                      />
+                      Sem número
+                    </label>
+                  </div>
+                  <Input
+                    placeholder="123"
+                    value={form.addressNumber}
+                    onChange={handleChange('addressNumber')}
+                    disabled={status === 'saving' || noNumber}
+                  />
                 </div>
               </div>
 
@@ -502,7 +508,6 @@ export const AccountDataContent = () => {
               Cancelar
             </Link>
             <Button type="submit" size="lg" disabled={status === 'saving'}>
-              <CheckCircle2 size={16} aria-hidden />
               {status === 'saving' ? 'Salvando...' : 'Salvar Alterações'}
             </Button>
           </div>
