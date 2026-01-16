@@ -2,6 +2,20 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import {
+  Search,
+  Filter,
+  User,
+  Shield,
+  Ban,
+  CheckCircle,
+  RefreshCw,
+  Mail,
+  Calendar,
+  AlertOctagon,
+  ArrowBigLeft,
+  ChevronLeft,
+} from 'lucide-react';
 
 import { ApiClientError } from '../../lib/api-client';
 import {
@@ -12,11 +26,22 @@ import {
 } from '../../lib/admin-users-api';
 import { useAuth } from '../auth/auth-provider';
 import { AdminShell } from '../admin/admin-shell';
+import { Card } from '../ui/card';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Badge } from '../ui/badge';
+import { Textarea } from '../ui/textarea';
 
 const roleLabel: Record<AdminUserRole, string> = {
   USER: 'Buyer',
   SELLER: 'Seller',
   ADMIN: 'Admin',
+};
+
+const roleBadgeVariant: Record<AdminUserRole, 'info' | 'pink' | 'success'> = {
+  USER: 'info',
+  SELLER: 'pink',
+  ADMIN: 'success',
 };
 
 export const AdminUsersContent = () => {
@@ -62,7 +87,9 @@ export const AdminUsersContent = () => {
         search: search.trim() || undefined,
       });
       setUsers(response.items);
-      setSelectedUser(response.items[0] ?? null);
+      if (response.items.length > 0 && !selectedUser) {
+        setSelectedUser(response.items[0]);
+      }
       setActionReason('');
     } catch (error) {
       handleError(error, 'Não foi possível carregar usuarios.');
@@ -77,13 +104,6 @@ export const AdminUsersContent = () => {
     }
   }, [accessToken, roleFilter, blockedFilter, search, user?.role]);
 
-  const selectedStatus = useMemo(() => {
-    if (!selectedUser) {
-      return null;
-    }
-    return selectedUser.blockedAt ? 'Bloqueado' : 'Ativo';
-  }, [selectedUser]);
-
   const applyUserUpdate = (updated: AdminUser) => {
     const matchesBlockedFilter =
       blockedFilter === 'all'
@@ -93,9 +113,10 @@ export const AdminUsersContent = () => {
           : !updated.blockedAt;
     const matchesRoleFilter = roleFilter === 'all' ? true : updated.role === roleFilter;
     const trimmedSearch = search.trim().toLowerCase();
-    const matchesSearch = trimmedSearch.length === 0
-      ? true
-      : updated.email.toLowerCase().includes(trimmedSearch);
+    const matchesSearch =
+      trimmedSearch.length === 0
+        ? true
+        : updated.email.toLowerCase().includes(trimmedSearch);
     const matchesFilters = matchesBlockedFilter && matchesRoleFilter && matchesSearch;
 
     setUsers((prev) => {
@@ -217,7 +238,7 @@ export const AdminUsersContent = () => {
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center">
           <p className="text-sm text-meow-muted">Acesso restrito ao admin.</p>
           <Link
-            className="mt-4 inline-flex rounded-full border border-meow-red/30 px-6 py-2 text-sm font-bold text-meow-deep"
+            className="mt-4 inline-flex rounded-full bg-meow-linear px-6 py-2 text-sm font-bold text-white transition hover:opacity-90"
             href="/conta"
           >
             Voltar para conta
@@ -235,7 +256,7 @@ export const AdminUsersContent = () => {
         { label: 'Usuarios' },
       ]}
     >
-      <div className="rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+      <Card className="rounded-2xl border border-meow-red/20 p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="text-xl font-black text-meow-charcoal">Usuarios</h1>
@@ -243,252 +264,298 @@ export const AdminUsersContent = () => {
               Bloqueie ou desbloqueie acesso quando necessario.
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Link
-              className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
-              href="/conta"
-            >
-              Voltar para conta
-            </Link>
-          </div>
+          <Link
+            href="/conta"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-400 shadow-[0_4px_12px_rgba(0,0,0,0.05)] transition hover:text-meow-deep hover:shadow-md"
+          >
+            <ChevronLeft size={24} />
+          </Link>
         </div>
-      </div>
+      </Card>
 
-      {error ? <div className="state-card error">{error}</div> : null}
-      {notice ? <div className="state-card success">{notice}</div> : null}
-
-      <div className="admin-users-grid">
-        <div className="order-card">
-          <div className="panel-header">
-            <h2>Lista</h2>
-            <button
-              className="ghost-button"
-              type="button"
-              onClick={loadUsers}
-              disabled={busyAction === 'load'}
-            >
-              {busyAction === 'load' ? 'Atualizando...' : 'Atualizar'}
-            </button>
-          </div>
-
-          <div className="support-filters">
-            <div className="form-field">
-              <span className="summary-label">Role</span>
-              <select
-                className="form-input"
-                value={roleFilter}
-                onChange={(event) =>
-                  setRoleFilter(event.target.value as AdminUserRole | 'all')
-                }
-              >
-                <option value="all">Todos</option>
-                <option value="USER">Buyers</option>
-                <option value="SELLER">Sellers</option>
-                <option value="ADMIN">Admins</option>
-              </select>
-            </div>
-            <div className="form-field">
-              <span className="summary-label">Status</span>
-              <select
-                className="form-input"
-                value={blockedFilter}
-                onChange={(event) =>
-                  setBlockedFilter(event.target.value as 'all' | 'blocked' | 'active')
-                }
-              >
-                <option value="all">Todos</option>
-                <option value="active">Ativos</option>
-                <option value="blocked">Bloqueados</option>
-              </select>
-            </div>
-            <div className="form-field">
-              <span className="summary-label">Busca</span>
-              <input
-                className="form-input"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Email"
-              />
-            </div>
-          </div>
-
-          {busyAction === 'load' ? (
-            <div className="state-card">Carregando usuarios...</div>
-          ) : null}
-
-          {users.length === 0 && busyAction !== 'load' ? (
-            <div className="state-card">Nenhum usuário encontrado.</div>
-          ) : null}
-
-          <div className="support-list">
-            {users.map((item) => (
-              <button
-                className="support-row"
-                key={item.id}
-                type="button"
-                onClick={() => {
-                  setSelectedUser(item);
-                  setActionReason('');
-                }}
-              >
-                <div>
-                  <strong>{item.email}</strong>
-                  <span className="auth-helper">{roleLabel[item.role] ?? item.role}</span>
-                </div>
-                <div className="ticket-meta">
-                  <span
-                    className={`status-pill status-${item.blockedAt ? 'blocked' : 'active'}`}
-                  >
-                    {item.blockedAt ? 'Bloqueado' : 'Ativo'}
-                  </span>
-                  <small>{new Date(item.createdAt).toLocaleDateString('pt-BR')}</small>
-                </div>
-              </button>
-            ))}
-          </div>
+      {error ? (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 animate-in fade-in slide-in-from-top-2">
+          {error}
         </div>
+      ) : null}
+      {notice ? (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 animate-in fade-in slide-in-from-top-2">
+          {notice}
+        </div>
+      ) : null}
 
-        <div className="order-card">
-          <div className="panel-header">
-            <div>
-              <h2>Menu do usuário</h2>
-              {selectedUser ? (
-                <p className="text-xs text-meow-muted">{selectedUser.email}</p>
-              ) : null}
-            </div>
-          </div>
-          {!selectedUser ? (
-            <div className="state-card">Selecione um usuário.</div>
-          ) : (
-            <>
-              <div className="seller-form">
-                <label className="form-field">
-                  Email
-                  <input
-                    className="form-input"
-                    value={editForm.email}
-                    onChange={(event) =>
-                      setEditForm((prev) => ({ ...prev, email: event.target.value }))
-                    }
-                  />
-                </label>
-                <label className="form-field">
-                  Role
+      <div className="grid gap-6 lg:grid-cols-[1fr_400px]">
+        {/* Left Column: List and Filters */}
+        <div className="space-y-4">
+          <Card className="rounded-2xl border border-slate-200 p-5 shadow-sm">
+            <h2 className="text-sm font-bold uppercase tracking-wide text-meow-muted">Filtros</h2>
+            <div className="mt-4 grid gap-4 md:grid-cols-3">
+              <label className="grid gap-1.5 text-xs font-semibold text-slate-500">
+                <span className="flex items-center gap-1.5">
+                  <Shield size={12} /> Função (Role)
+                </span>
+                <div className="relative">
                   <select
-                    className="form-input"
-                    value={editForm.role}
-                    onChange={(event) =>
-                      setEditForm((prev) => ({
-                        ...prev,
-                        role: event.target.value as AdminUserRole,
-                      }))
-                    }
+                    className="h-10 w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-3 pr-8 text-sm font-medium text-slate-700 outline-none focus:border-meow-red/50 focus:ring-4 focus:ring-meow-red/10"
+                    value={roleFilter}
+                    onChange={(e) => setRoleFilter(e.target.value as AdminUserRole | 'all')}
                   >
-                    <option value="USER">Buyer</option>
-                    <option value="SELLER">Seller</option>
-                    <option value="ADMIN">Admin</option>
+                    <option value="all">Todos</option>
+                    <option value="USER">Compradores</option>
+                    <option value="SELLER">Vendedores</option>
+                    <option value="ADMIN">Admins</option>
                   </select>
-                </label>
-              </div>
+                  <Filter size={14} className="absolute right-3 top-3 text-slate-400 pointer-events-none" />
+                </div>
+              </label>
 
-              <div className="form-actions">
-                <button
-                  className="admin-primary-button"
-                  type="button"
-                  onClick={handleUpdate}
-                  disabled={busyAction === 'update'}
-                >
-                  {busyAction === 'update' ? 'Salvando...' : 'Salvar alteracoes'}
-                </button>
-                <button
-                  className="ghost-button"
-                  type="button"
-                  onClick={() =>
-                    setEditForm({
-                      email: selectedUser.email,
-                      role: selectedUser.role,
-                    })
-                  }
-                  disabled={busyAction === 'update'}
-                >
-                  Descartar
-                </button>
-              </div>
+              <label className="grid gap-1.5 text-xs font-semibold text-slate-500">
+                <span className="flex items-center gap-1.5">
+                  <AlertOctagon size={12} /> Status
+                </span>
+                <div className="relative">
+                  <select
+                    className="h-10 w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-3 pr-8 text-sm font-medium text-slate-700 outline-none focus:border-meow-red/50 focus:ring-4 focus:ring-meow-red/10"
+                    value={blockedFilter}
+                    onChange={(e) => setBlockedFilter(e.target.value as 'all' | 'blocked' | 'active')}
+                  >
+                    <option value="all">Todos</option>
+                    <option value="active">Ativos</option>
+                    <option value="blocked">Bloqueados</option>
+                  </select>
+                  <Filter size={14} className="absolute right-3 top-3 text-slate-400 pointer-events-none" />
+                </div>
+              </label>
 
-              <div className="seller-section">
-                <h3 className="text-sm font-bold text-meow-charcoal">Detalhes</h3>
-                <div className="ticket-summary">
-                  <div>
-                    <span className="summary-label">Status</span>
-                    <strong>{selectedStatus}</strong>
+              <label className="grid gap-1.5 text-xs font-semibold text-slate-500">
+                <span className="flex items-center gap-1.5">
+                  <Search size={12} /> Buscar
+                </span>
+                <div className="relative">
+                  <Input
+                    className="h-10 bg-slate-50"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Email do usuário..."
+                  />
+                  <div className="absolute right-3 top-3 text-slate-400 pointer-events-none">
+                    {busyAction === 'load' ? <RefreshCw size={14} className="animate-spin" /> : null}
                   </div>
-                  <div>
-                    <span className="summary-label">Role</span>
-                    <strong>{roleLabel[selectedUser.role] ?? selectedUser.role}</strong>
-                  </div>
-                  <div>
-                    <span className="summary-label">Criado</span>
-                    <strong>
-                      {new Date(selectedUser.createdAt).toLocaleDateString('pt-BR')}
-                    </strong>
-                  </div>
-                  <div>
-                    <span className="summary-label">Atualizado</span>
-                    <strong>
-                      {new Date(selectedUser.updatedAt).toLocaleDateString('pt-BR')}
-                    </strong>
+                </div>
+              </label>
+            </div>
+          </Card>
+
+          <Card className="overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
+            <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-5 py-3">
+              <h2 className="text-sm font-bold text-meow-charcoal">Lista de Usuários</h2>
+              <span className="text-xs font-medium text-meow-muted">{users.length} encontrados</span>
+            </div>
+
+            <div className="max-h-[600px] overflow-y-auto p-2 scrollbar-thin">
+              {users.length === 0 && busyAction !== 'load' ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center text-sm text-meow-muted">
+                  <User size={48} className="text-slate-200 mb-3" />
+                  <p>Nenhum usuário encontrado com os filtros atuais.</p>
+                </div>
+              ) : null}
+
+              <div className="space-y-2">
+                {users.map((item) => {
+                  const isSelected = selectedUser?.id === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedUser(item);
+                        setActionReason('');
+                        setError(null);
+                      }}
+                      className={`group flex w-full flex-col gap-3 rounded-xl border p-4 text-left transition-all ${isSelected
+                          ? 'border-meow-red/30 bg-meow-red/5 shadow-sm ring-1 ring-meow-red/20'
+                          : 'border-slate-100 bg-white hover:border-meow-red/20 hover:bg-slate-50'
+                        }`}
+                    >
+                      <div className="flex w-full items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold ${isSelected ? 'bg-meow-deep text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-white group-hover:text-meow-deep group-hover:shadow-sm'
+                            }`}>
+                            {item.email.slice(0, 2).toUpperCase()}
+                          </div>
+                          <div className="space-y-0.5">
+                            <p className={`text-sm font-bold ${isSelected ? 'text-meow-deep' : 'text-slate-700'}`}>
+                              {item.email}
+                            </p>
+                            <div className="flex items-center gap-2 text-xs">
+                              <Badge variant={roleBadgeVariant[item.role] || 'neutral'} size="sm">
+                                {roleLabel[item.role]}
+                              </Badge>
+                              <span className="text-slate-400">•</span>
+                              <span className={item.blockedAt ? 'font-bold text-red-500' : 'font-medium text-emerald-600'}>
+                                {item.blockedAt ? 'Bloqueado' : 'Ativo'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-medium text-slate-400">
+                          {new Date(item.createdAt).toLocaleDateString('pt-BR')}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Right Column: Details Panel */}
+        <div className="relative">
+          <div className="sticky top-6">
+            {!selectedUser ? (
+              <Card className="flex h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-400">
+                <User size={48} className="mb-4 text-slate-200" />
+                <p>Selecione um usuário da lista para ver os detalhes e gerenciar.</p>
+              </Card>
+            ) : (
+              <Card className="overflow-hidden rounded-2xl border border-slate-200 shadow-card">
+                <div className="bg-slate-50 px-6 py-6 border-b border-slate-100">
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-xl font-bold text-meow-deep shadow-sm">
+                      {selectedUser.email.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-black text-meow-charcoal">Detalhes do Usuário</h2>
+                      <p className="text-sm text-meow-muted break-all">{selectedUser.email}</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Badge variant={selectedUser.blockedAt ? 'danger' : 'success'}>
+                          {selectedUser.blockedAt ? 'Bloqueado' : 'Conta Ativa'}
+                        </Badge>
+                        {selectedUser.role === 'ADMIN' && <Badge variant="pink">Admin Access</Badge>}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                {selectedUser.blockedReason ? (
-                  <div className="state-card info">{selectedUser.blockedReason}</div>
-                ) : null}
-
-                {selectedUser.payoutBlockedAt ? (
-                  <div className="state-card info">
-                    Payout bloqueado: {selectedUser.payoutBlockedReason ?? 'Sem motivo.'}
-                  </div>
-                ) : null}
-              </div>
-
-              <div className="seller-section">
-                {!selectedUser.blockedAt ? (
-                  <>
-                    <label className="form-field">
-                      Motivo do bloqueio
-                      <textarea
-                        className="form-textarea"
-                        rows={3}
-                        value={actionReason}
-                        onChange={(event) => setActionReason(event.target.value)}
-                      />
-                    </label>
-                    <div className="order-actions">
-                      <button
-                        className="admin-primary-button"
-                        type="button"
-                        onClick={handleBlock}
-                        disabled={!actionReason.trim() || busyAction === 'block'}
-                      >
-                        {busyAction === 'block' ? 'Bloqueando...' : 'Bloquear'}
-                      </button>
+                <div className="p-6 space-y-6">
+                  {/* Edit Form */}
+                  <div className="space-y-4">
+                    <h3 className="text-xs font-bold uppercase tracking-wide text-meow-muted">Dados de Acesso</h3>
+                    <div className="grid gap-4">
+                      <label className="space-y-1.5">
+                        <span className="text-xs font-semibold text-slate-600">Email</span>
+                        <Input
+                          value={editForm.email}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
+                          className="bg-slate-50"
+                        />
+                      </label>
+                      <label className="space-y-1.5">
+                        <span className="text-xs font-semibold text-slate-600">Função</span>
+                        <select
+                          className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-700 outline-none focus:border-meow-red/60 focus:ring-4 focus:ring-meow-red/15"
+                          value={editForm.role}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, role: e.target.value as AdminUserRole }))}
+                        >
+                          <option value="USER">Comprador (Padrão)</option>
+                          <option value="SELLER">Vendedor</option>
+                          <option value="ADMIN">Administrador</option>
+                        </select>
+                      </label>
                     </div>
-                  </>
-                ) : (
-                  <div className="order-actions">
-                    <button
-                      className="admin-primary-button"
-                      type="button"
-                      onClick={handleUnblock}
-                      disabled={busyAction === 'unblock'}
-                    >
-                      {busyAction === 'unblock' ? 'Desbloqueando...' : 'Desbloquear'}
-                    </button>
+                    <div className="flex gap-3">
+                      <Button
+                        className="flex-1"
+                        onClick={handleUpdate}
+                        disabled={busyAction === 'update'}
+                      >
+                        {busyAction === 'update' ? <RefreshCw size={16} className="animate-spin mr-2" /> : <CheckCircle size={16} className="mr-2" />}
+                        Salvar Alterações
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setEditForm({
+                            email: selectedUser.email,
+                            role: selectedUser.role,
+                          });
+                        }}
+                        disabled={busyAction === 'update'}
+                      >
+                        Restaurar
+                      </Button>
+                    </div>
                   </div>
-                )}
-              </div>
-            </>
-          )}
+
+                  <hr className="border-slate-100" />
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                      <div className="text-xs font-medium text-slate-500 mb-1 flex items-center gap-1.5">
+                        <Calendar size={12} /> Criado em
+                      </div>
+                      <div className="text-sm font-bold text-meow-charcoal">
+                        {new Date(selectedUser.createdAt).toLocaleDateString('pt-BR')}
+                      </div>
+                    </div>
+                    <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                      <div className="text-xs font-medium text-slate-500 mb-1 flex items-center gap-1.5">
+                        <RefreshCw size={12} /> Atualizado
+                      </div>
+                      <div className="text-sm font-bold text-meow-charcoal">
+                        {new Date(selectedUser.updatedAt).toLocaleDateString('pt-BR')}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Blocking Zone */}
+                  <div className={`rounded-xl border p-4 ${selectedUser.blockedAt ? 'border-emerald-200 bg-emerald-50' : 'border-red-200 bg-red-50'}`}>
+                    <h3 className={`text-sm font-bold mb-2 flex items-center gap-2 ${selectedUser.blockedAt ? 'text-emerald-800' : 'text-red-800'}`}>
+                      {selectedUser.blockedAt ? <Shield size={16} /> : <Ban size={16} />}
+                      {selectedUser.blockedAt ? 'Desbloquear Acesso' : 'Bloquear Acesso'}
+                    </h3>
+
+                    {selectedUser.blockedAt ? (
+                      <div className="space-y-4">
+                        <div className="rounded-lg bg-white/60 p-3 text-xs text-emerald-800">
+                          <span className="font-bold">Motivo do bloqueio atual:</span>
+                          <p className="mt-1 opacity-80">{selectedUser.blockedReason || 'Não informado.'}</p>
+                        </div>
+                        <Button
+                          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-none border-0"
+                          onClick={handleUnblock}
+                          disabled={busyAction === 'unblock'}
+                        >
+                          {busyAction === 'unblock' ? 'Processando...' : 'Liberar Acesso do Usuário'}
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <p className="text-xs text-red-700 opacity-80">
+                          O usuário será desconectado e impedido de fazer login.
+                        </p>
+                        <Textarea
+                          placeholder="Descreva o motivo do bloqueio..."
+                          className="bg-white border-red-200 focus:border-red-400 focus:ring-red-200"
+                          value={actionReason}
+                          onChange={(e) => setActionReason(e.target.value)}
+                        />
+                        <Button
+                          className="w-full bg-red-600 hover:bg-red-700 text-white shadow-none border-0"
+                          onClick={handleBlock}
+                          disabled={busyAction === 'block' || !actionReason.trim()}
+                        >
+                          {busyAction === 'block' ? 'Bloqueando...' : 'Bloquear Usuário'}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+
+                </div>
+              </Card>
+            )}
+          </div>
         </div>
       </div>
     </AdminShell>

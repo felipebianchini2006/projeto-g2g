@@ -2,7 +2,18 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { ExternalLink, Flag, AlertTriangle, CheckCircle, XCircle, Clock } from 'lucide-react';
+import {
+    ExternalLink,
+    Flag,
+    AlertTriangle,
+    CheckCircle,
+    XCircle,
+    Clock,
+    ChevronLeft,
+    MessageSquare,
+    Search,
+    Filter
+} from 'lucide-react';
 
 import { ApiClientError } from '../../lib/api-client';
 import {
@@ -12,6 +23,10 @@ import {
 import type { ListingReport, ReportStatus, ReportReason } from '../../lib/reports-api';
 import { useAuth } from '../auth/auth-provider';
 import { AdminShell } from '../admin/admin-shell';
+import { Card } from '../ui/card';
+import { Badge } from '../ui/badge';
+import { Button } from '../ui/button';
+import { Textarea } from '../ui/textarea';
 
 const statusLabel: Record<ReportStatus, string> = {
     OPEN: 'Aberta',
@@ -20,11 +35,11 @@ const statusLabel: Record<ReportStatus, string> = {
     REJECTED: 'Rejeitada',
 };
 
-const statusIcon: Record<ReportStatus, React.ReactNode> = {
-    OPEN: <AlertTriangle size={14} className="text-yellow-500" />,
-    REVIEWING: <Clock size={14} className="text-blue-500" />,
-    RESOLVED: <CheckCircle size={14} className="text-green-500" />,
-    REJECTED: <XCircle size={14} className="text-red-500" />,
+const statusBadgeVariant: Record<ReportStatus, 'warning' | 'info' | 'success' | 'danger'> = {
+    OPEN: 'warning',
+    REVIEWING: 'info',
+    RESOLVED: 'success',
+    REJECTED: 'danger',
 };
 
 const reasonLabel: Record<ReportReason, string> = {
@@ -71,6 +86,9 @@ export const AdminReportsContent = () => {
                 statusFilter === 'all' ? undefined : statusFilter,
             );
             setReports(data);
+            if (data.length > 0 && !selectedReport) {
+                setSelectedReport(data[0] ?? null);
+            }
         } catch (err) {
             handleError(err, 'Erro ao carregar denúncias.');
         } finally {
@@ -138,7 +156,7 @@ export const AdminReportsContent = () => {
                 <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center">
                     <p className="text-sm text-meow-muted">Acesso restrito ao admin.</p>
                     <Link
-                        className="mt-4 inline-flex rounded-full border border-meow-red/30 px-6 py-2 text-sm font-bold text-meow-deep"
+                        className="mt-4 inline-flex rounded-full bg-meow-linear px-6 py-2 text-sm font-bold text-white transition hover:opacity-90"
                         href="/conta"
                     >
                         Voltar para conta
@@ -156,7 +174,7 @@ export const AdminReportsContent = () => {
                 { label: 'Denúncias' },
             ]}
         >
-            <div className="rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
+            <Card className="rounded-2xl border border-meow-red/20 p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div>
                         <h1 className="text-xl font-black text-meow-charcoal">Denúncias de Anúncios</h1>
@@ -164,220 +182,243 @@ export const AdminReportsContent = () => {
                             Gerencie denúncias enviadas pelos usuários.
                         </p>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <Link
-                            className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
-                            href="/conta"
-                        >
-                            Voltar para conta
-                        </Link>
-                    </div>
+                    <Link
+                        href="/conta"
+                        className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-400 shadow-[0_4px_12px_rgba(0,0,0,0.05)] transition hover:text-meow-deep hover:shadow-md"
+                    >
+                        <ChevronLeft size={24} />
+                    </Link>
                 </div>
-            </div>
+            </Card>
 
-            {error ? <div className="state-card error">{error}</div> : null}
-            {notice ? <div className="state-card success">{notice}</div> : null}
-
-            <div className="admin-listings-grid">
-                <div className="order-card">
-                    <div className="panel-header">
-                        <h2>Denúncias</h2>
-                        <div className="form-field">
-                            <span className="summary-label">Status</span>
-                            <select
-                                className="form-input"
-                                value={statusFilter}
-                                onChange={(e) => setStatusFilter(e.target.value as ReportStatus | 'all')}
-                            >
-                                <option value="all">Todas</option>
-                                <option value="OPEN">Abertas</option>
-                                <option value="REVIEWING">Em Análise</option>
-                                <option value="RESOLVED">Resolvidas</option>
-                                <option value="REJECTED">Rejeitadas</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    {busyAction === 'load' ? (
-                        <div className="state-card">Carregando denúncias...</div>
-                    ) : null}
-
-                    {reports.length === 0 && busyAction !== 'load' ? (
-                        <div className="state-card">Nenhuma denúncia encontrada.</div>
-                    ) : null}
-
-                    <div className="support-list">
-                        {reports.map((report) => (
-                            <button
-                                className={`support-row ${selectedReport?.id === report.id ? 'bg-meow-red/5' : ''}`}
-                                key={report.id}
-                                type="button"
-                                onClick={() => {
-                                    setSelectedReport(report);
-                                    setAdminNote(report.adminNote ?? '');
-                                    setError('');
-                                    setNotice('');
-                                }}
-                            >
-                                <div className="flex items-center gap-2">
-                                    <Flag size={14} className="text-meow-muted" />
-                                    <div>
-                                        <strong className="text-sm">{report.listing?.title ?? 'Anúncio removido'}</strong>
-                                        <span className="auth-helper block text-xs">
-                                            {reasonLabel[report.reason]} • {report.reporter?.email ?? 'Anônimo'}
-                                        </span>
-                                    </div>
-                                </div>
-                                <div className="ticket-meta">
-                                    <span className="flex items-center gap-1 text-xs">
-                                        {statusIcon[report.status]}
-                                        {statusLabel[report.status]}
-                                    </span>
-                                    <small>{formatDate(report.createdAt)}</small>
-                                </div>
-                            </button>
-                        ))}
-                    </div>
+            {error ? (
+                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 animate-in fade-in slide-in-from-top-2">
+                    {error}
                 </div>
+            ) : null}
+            {notice ? (
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 animate-in fade-in slide-in-from-top-2">
+                    {notice}
+                </div>
+            ) : null}
 
-                <div className="order-card">
-                    <div className="panel-header">
-                        <h2>Detalhes</h2>
-                    </div>
-
-                    {!selectedReport ? (
-                        <div className="state-card">Selecione uma denúncia para ver detalhes.</div>
-                    ) : (
-                        <>
-                            <div className="order-summary">
-                                <div className="summary-row">
-                                    <span className="summary-label">ID</span>
-                                    <span className="summary-value font-mono text-xs">{selectedReport.id}</span>
-                                </div>
-                                <div className="summary-row">
-                                    <span className="summary-label">Motivo</span>
-                                    <span className="summary-value">{reasonLabel[selectedReport.reason]}</span>
-                                </div>
-                                <div className="summary-row">
-                                    <span className="summary-label">Status</span>
-                                    <span className="summary-value flex items-center gap-1">
-                                        {statusIcon[selectedReport.status]}
-                                        {statusLabel[selectedReport.status]}
-                                    </span>
-                                </div>
-                                <div className="summary-row">
-                                    <span className="summary-label">Data</span>
-                                    <span className="summary-value">{formatDate(selectedReport.createdAt)}</span>
-                                </div>
-                                <div className="summary-row">
-                                    <span className="summary-label">Denunciante</span>
-                                    <span className="summary-value">
-                                        {selectedReport.reporter?.email ?? 'N/A'}
-                                    </span>
-                                </div>
-                                {selectedReport.reviewedByAdmin ? (
-                                    <div className="summary-row">
-                                        <span className="summary-label">Analisado por</span>
-                                        <span className="summary-value">
-                                            {selectedReport.reviewedByAdmin.email}
-                                        </span>
-                                    </div>
-                                ) : null}
-                                {selectedReport.resolvedAt ? (
-                                    <div className="summary-row">
-                                        <span className="summary-label">Resolvido em</span>
-                                        <span className="summary-value">
-                                            {formatDate(selectedReport.resolvedAt)}
-                                        </span>
-                                    </div>
-                                ) : null}
-                            </div>
-
-                            {selectedReport.listing ? (
-                                <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-4">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="text-sm font-bold text-meow-charcoal">
-                                                {selectedReport.listing.title}
-                                            </p>
-                                            <p className="text-xs text-meow-muted">
-                                                Vendedor: {selectedReport.listing.seller?.email ?? selectedReport.listing.sellerId}
-                                            </p>
-                                        </div>
-                                        <Link
-                                            href={`/anuncios/${selectedReport.listing.id}`}
-                                            target="_blank"
-                                            className="flex items-center gap-1 rounded-full border border-meow-red/30 px-3 py-1 text-xs font-bold text-meow-deep hover:bg-meow-50"
-                                        >
-                                            <ExternalLink size={12} />
-                                            Ver anúncio
-                                        </Link>
+            <div className="grid gap-6 lg:grid-cols-[1fr_450px]">
+                {/* Left Column: List */}
+                <div className="space-y-4">
+                    <Card className="rounded-2xl border border-slate-200 p-5 shadow-sm">
+                        <div className="flex items-center gap-4">
+                            <label className="grid gap-1.5 text-xs font-semibold text-slate-500 flex-1">
+                                <span className="flex items-center gap-1.5">
+                                    <Filter size={12} /> Status da Denúncia
+                                </span>
+                                <div className="relative">
+                                    <select
+                                        className="h-10 w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-3 pr-8 text-sm font-medium text-slate-700 outline-none focus:border-meow-red/50 focus:ring-4 focus:ring-meow-red/10"
+                                        value={statusFilter}
+                                        onChange={(e) => setStatusFilter(e.target.value as ReportStatus | 'all')}
+                                    >
+                                        <option value="all">Todas</option>
+                                        <option value="OPEN">Abertas</option>
+                                        <option value="REVIEWING">Em Análise</option>
+                                        <option value="RESOLVED">Resolvidas</option>
+                                        <option value="REJECTED">Rejeitadas</option>
+                                    </select>
+                                    <div className="absolute right-3 top-3 pointer-events-none">
+                                        <Filter size={14} className="text-slate-400" />
                                     </div>
                                 </div>
-                            ) : null}
-
-                            {selectedReport.message ? (
-                                <div className="state-card info mt-4">
-                                    <p className="text-xs font-bold text-meow-muted mb-1">Mensagem do denunciante:</p>
-                                    <p className="text-sm">{selectedReport.message}</p>
-                                </div>
-                            ) : null}
-
-                            <label className="form-field mt-4">
-                                Nota do admin
-                                <textarea
-                                    className="form-textarea"
-                                    rows={3}
-                                    value={adminNote}
-                                    onChange={(e) => setAdminNote(e.target.value)}
-                                    placeholder="Adicione uma nota sobre esta denúncia..."
-                                />
                             </label>
-                            <button
-                                className="ghost-button mt-2"
-                                type="button"
-                                onClick={handleSaveNote}
-                                disabled={busyAction === 'note' || !adminNote.trim()}
-                            >
-                                {busyAction === 'note' ? 'Salvando...' : 'Salvar nota'}
-                            </button>
+                        </div>
+                    </Card>
 
-                            <div className="order-actions mt-6">
-                                <button
-                                    className="ghost-button"
-                                    type="button"
-                                    onClick={() => handleStatusUpdate('REVIEWING')}
-                                    disabled={busyAction === 'REVIEWING' || selectedReport.status === 'REVIEWING'}
-                                >
-                                    {busyAction === 'REVIEWING' ? '...' : 'Marcar em Análise'}
-                                </button>
-                                <button
-                                    className="admin-primary-button"
-                                    type="button"
-                                    onClick={() => handleStatusUpdate('RESOLVED')}
-                                    disabled={busyAction === 'RESOLVED' || selectedReport.status === 'RESOLVED'}
-                                >
-                                    {busyAction === 'RESOLVED' ? '...' : 'Marcar Resolvida'}
-                                </button>
-                                <button
-                                    className="ghost-button text-red-600 hover:bg-red-50"
-                                    type="button"
-                                    onClick={() => handleStatusUpdate('REJECTED')}
-                                    disabled={busyAction === 'REJECTED' || selectedReport.status === 'REJECTED'}
-                                >
-                                    {busyAction === 'REJECTED' ? '...' : 'Rejeitar'}
-                                </button>
-                            </div>
+                    <Card className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50/50 shadow-sm">
+                        <div className="flex items-center justify-between border-b border-slate-100 bg-white px-5 py-3">
+                            <h2 className="text-sm font-bold text-meow-charcoal">Denúncias</h2>
+                            <span className="text-xs font-medium text-meow-muted">
+                                {reports.length} encontradas
+                            </span>
+                        </div>
 
-                            <p className="mt-4 text-xs text-meow-muted">
-                                Para suspender o anúncio, acesse a{' '}
-                                <Link href="/admin/anuncios" className="text-meow-deep underline">
-                                    moderação de anúncios
-                                </Link>
-                                .
-                            </p>
-                        </>
-                    )}
+                        <div className="max-h-[600px] overflow-y-auto p-2 scrollbar-thin">
+                            {reports.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center py-12 text-center text-sm text-meow-muted">
+                                    <Flag size={48} className="text-slate-200 mb-3" />
+                                    <p>Nenhuma denúncia encontrada.</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-2">
+                                    {reports.map((report) => {
+                                        const isSelected = selectedReport?.id === report.id;
+                                        return (
+                                            <button
+                                                key={report.id}
+                                                type="button"
+                                                onClick={() => {
+                                                    setSelectedReport(report);
+                                                    setAdminNote(report.adminNote ?? '');
+                                                    setError('');
+                                                    setNotice('');
+                                                }}
+                                                className={`group flex w-full flex-col gap-2 rounded-xl border p-4 text-left transition-all ${isSelected
+                                                    ? 'border-meow-red/30 bg-meow-red/5 shadow-sm ring-1 ring-meow-red/20'
+                                                    : 'border-slate-100 bg-white hover:border-meow-red/20 hover:bg-slate-50'
+                                                    }`}
+                                            >
+                                                <div className="flex w-full items-start justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg font-bold ${isSelected ? 'bg-meow-deep text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-white group-hover:text-meow-deep'
+                                                            }`}>
+                                                            <Flag size={18} />
+                                                        </div>
+                                                        <div>
+                                                            <p className={`text-sm font-bold line-clamp-1 ${isSelected ? 'text-meow-deep' : 'text-slate-700'}`}>
+                                                                {report.listing?.title ?? 'Anúncio removido'}
+                                                            </p>
+                                                            <div className="flex items-center gap-2 text-xs text-slate-500">
+                                                                <span>{reasonLabel[report.reason]}</span>
+                                                                <span>•</span>
+                                                                <span>{report.reporter?.email ?? 'Anônimo'}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <Badge variant={statusBadgeVariant[report.status]} size="sm">
+                                                        {statusLabel[report.status]}
+                                                    </Badge>
+                                                </div>
+                                                <div className="flex items-center gap-1.5 text-[10px] font-medium text-slate-400 pl-13">
+                                                    <Clock size={10} /> {formatDate(report.createdAt)}
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    </Card>
+                </div>
+
+                {/* Right Column: Details */}
+                <div className="relative">
+                    <div className="sticky top-6">
+                        {!selectedReport ? (
+                            <Card className="flex h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-400">
+                                <Flag size={48} className="mb-4 text-slate-200" />
+                                <p>Selecione uma denúncia para analisar.</p>
+                            </Card>
+                        ) : (
+                            <Card className="overflow-hidden rounded-2xl border border-slate-200 shadow-card">
+                                <div className="bg-slate-50 px-6 py-4 border-b border-slate-100">
+                                    <div className="flex items-center gap-4">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white text-meow-deep shadow-sm">
+                                            <AlertTriangle size={24} />
+                                        </div>
+                                        <div className="flex-1">
+                                            <h2 className="text-lg font-black text-meow-charcoal">Detalhes da Denúncia</h2>
+                                            <p className="text-xs text-meow-muted">ID: {selectedReport.id}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="p-6 space-y-6">
+                                    {/* Summary Grid */}
+                                    <div className="grid grid-cols-2 gap-4 text-sm">
+                                        <div className="space-y-1">
+                                            <span className="text-xs font-semibold text-slate-500 block">Motivo</span>
+                                            <span className="font-bold text-slate-800 block">{reasonLabel[selectedReport.reason]}</span>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <span className="text-xs font-semibold text-slate-500 block">Status Atual</span>
+                                            <Badge variant={statusBadgeVariant[selectedReport.status]}>{statusLabel[selectedReport.status]}</Badge>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <span className="text-xs font-semibold text-slate-500 block">Criado em</span>
+                                            <span className="text-slate-700 block">{formatDate(selectedReport.createdAt)}</span>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <span className="text-xs font-semibold text-slate-500 block">Denunciante</span>
+                                            <span className="text-slate-700 block truncate text-xs" title={selectedReport.reporter?.email}>{selectedReport.reporter?.email ?? 'Anônimo'}</span>
+                                        </div>
+                                    </div>
+
+                                    {selectedReport.listing && (
+                                        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                                            <div className="flex items-center justify-between">
+                                                <div className="overflow-hidden">
+                                                    <p className="text-xs font-bold text-meow-muted uppercase mb-1">Anúncio Denunciado</p>
+                                                    <p className="font-bold text-slate-800 truncate">{selectedReport.listing.title}</p>
+                                                    <p className="text-xs text-slate-500">Vendedor: {selectedReport.listing.seller?.email}</p>
+                                                </div>
+                                                <Link
+                                                    href={`/anuncios/${selectedReport.listing.id}`}
+                                                    target="_blank"
+                                                    className="ml-2 inline-flex h-9 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-900 shadow-sm transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950"
+                                                >
+                                                    <ExternalLink size={14} className="mr-1.5" /> Ver
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {selectedReport.message && (
+                                        <div className="rounded-xl bg-amber-50 border border-amber-100 p-4">
+                                            <p className="text-xs font-bold text-amber-800 flex items-center gap-2 mb-2">
+                                                <MessageSquare size={14} /> Mensagem do Denunciante
+                                            </p>
+                                            <p className="text-sm text-amber-900 italic">"{selectedReport.message}"</p>
+                                        </div>
+                                    )}
+
+                                    <div className="space-y-2 border-t border-slate-100 pt-4">
+                                        <label className="text-xs font-bold text-meow-muted">Nota interna do Admin</label>
+                                        <Textarea
+                                            placeholder="Adicione observações sobre a análise..."
+                                            value={adminNote}
+                                            onChange={(e) => setAdminNote(e.target.value)}
+                                            className="bg-white min-h-[80px]"
+                                        />
+                                        <div className="flex justify-end">
+                                            <Button size="sm" variant="ghost" onClick={handleSaveNote} disabled={busyAction === 'note' || !adminNote.trim()}>
+                                                {busyAction === 'note' ? 'Salvando...' : 'Salvar Nota'}
+                                            </Button>
+                                        </div>
+                                    </div>
+
+                                    <div className="border-t border-slate-100 pt-4 grid gap-3">
+                                        <p className="text-xs font-bold text-meow-muted uppercase text-center">Ações</p>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <Button
+                                                variant="secondary"
+                                                className="w-full bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200"
+                                                onClick={() => handleStatusUpdate('REVIEWING')}
+                                                disabled={busyAction === 'REVIEWING' || selectedReport.status === 'REVIEWING'}
+                                            >
+                                                Em Análise
+                                            </Button>
+                                            <Button
+                                                className="w-full bg-emerald-600 hover:bg-emerald-700"
+                                                onClick={() => handleStatusUpdate('RESOLVED')}
+                                                disabled={busyAction === 'RESOLVED' || selectedReport.status === 'RESOLVED'}
+                                            >
+                                                <CheckCircle size={16} className="mr-2" /> Resolver
+                                            </Button>
+                                        </div>
+                                        <Button
+                                            variant="ghost"
+                                            className="w-full text-red-500 hover:bg-red-50 hover:text-red-700"
+                                            onClick={() => handleStatusUpdate('REJECTED')}
+                                            disabled={busyAction === 'REJECTED' || selectedReport.status === 'REJECTED'}
+                                        >
+                                            <XCircle size={16} className="mr-2" /> Rejeitar Denúncia (Falso Positivo)
+                                        </Button>
+                                    </div>
+
+                                    <p className="text-[10px] text-center text-slate-400">
+                                        Para suspender o anúncio, acesse a <Link href="/admin/vendas" className="text-meow-deep hover:underline">moderação de anúncios</Link>.
+                                    </p>
+                                </div>
+                            </Card>
+                        )}
+                    </div>
                 </div>
             </div>
         </AdminShell>
