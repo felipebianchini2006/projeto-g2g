@@ -5,15 +5,20 @@ import {
   AlertTriangle,
   Calendar,
   CheckCircle2,
+  Clock,
+  FileCheck,
   Info,
   MapPin,
   Search,
+  Upload,
   UserRound,
+  XCircle,
 } from 'lucide-react';
 import type { ChangeEvent, FormEvent } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 
 import { usersApi, type UserProfile } from '../../lib/users-api';
+import { rgApi, type RgStatusResponse, type RgStatus } from '../../lib/rg-api';
 import { useAuth } from '../auth/auth-provider';
 import { AccountShell } from '../account/account-shell';
 import { Badge } from '../ui/badge';
@@ -101,6 +106,16 @@ export const AccountDataContent = () => {
   const [noNumber, setNoNumber] = useState(false);
   const [cepBusy, setCepBusy] = useState(false);
   const [cepError, setCepError] = useState<string | null>(null);
+
+  // RG Verification state
+  const [rgStatus, setRgStatus] = useState<RgStatusResponse | null>(null);
+  const [rgLoading, setRgLoading] = useState(false);
+  const [rgNumber, setRgNumber] = useState('');
+  const [rgFile, setRgFile] = useState<File | null>(null);
+  const [rgPreview, setRgPreview] = useState<string | null>(null);
+  const [rgSubmitting, setRgSubmitting] = useState(false);
+  const [rgError, setRgError] = useState<string | null>(null);
+  const [rgSuccess, setRgSuccess] = useState<string | null>(null);
 
   /* Removed early returns */
 
@@ -209,6 +224,71 @@ export const AccountDataContent = () => {
     } finally {
       setCepBusy(false);
     }
+  };
+
+  // Load RG status
+  useEffect(() => {
+    if (!accessToken) return;
+    let active = true;
+    setRgLoading(true);
+    rgApi.getStatus(accessToken)
+      .then((data) => {
+        if (active) setRgStatus(data);
+      })
+      .catch(() => { })
+      .finally(() => {
+        if (active) setRgLoading(false);
+      });
+    return () => { active = false; };
+  }, [accessToken]);
+
+  const handleRgFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setRgError('Apenas imagens são permitidas.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setRgError('Arquivo muito grande. Máximo 5MB.');
+      return;
+    }
+    setRgFile(file);
+    setRgError(null);
+    const reader = new FileReader();
+    reader.onload = () => setRgPreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleRgSubmit = async () => {
+    if (!accessToken || !rgFile || !rgNumber.trim()) {
+      setRgError('Preencha o número do RG e selecione uma foto.');
+      return;
+    }
+    setRgSubmitting(true);
+    setRgError(null);
+    try {
+      const result = await rgApi.submit(accessToken, rgNumber.trim(), rgFile);
+      setRgStatus(result);
+      setRgSuccess('RG enviado para análise!');
+      setRgNumber('');
+      setRgFile(null);
+      setRgPreview(null);
+    } catch (err) {
+      setRgError(err instanceof Error ? err.message : 'Erro ao enviar RG.');
+    } finally {
+      setRgSubmitting(false);
+    }
+  };
+
+  const getRgStatusDisplay = (): { icon: React.ReactNode; label: string; color: string } | null => {
+    if (!rgStatus || rgStatus.status === 'NOT_SUBMITTED') return null;
+    const statusMap: Record<Exclude<RgStatus, 'NOT_SUBMITTED'>, { icon: React.ReactNode; label: string; color: string }> = {
+      PENDING: { icon: <Clock size={14} />, label: 'Em Análise', color: 'text-yellow-600 bg-yellow-50 border-yellow-200' },
+      APPROVED: { icon: <CheckCircle2 size={14} />, label: 'Verificado', color: 'text-green-600 bg-green-50 border-green-200' },
+      REJECTED: { icon: <XCircle size={14} />, label: 'Reprovado', color: 'text-red-600 bg-red-50 border-red-200' },
+    };
+    return statusMap[rgStatus.status as Exclude<RgStatus, 'NOT_SUBMITTED'>];
   };
 
   const isProfileComplete = useMemo(() => {
@@ -492,6 +572,112 @@ export const AccountDataContent = () => {
                   </Select>
                 </label>
               </div>
+            </div>
+
+            {/* RG Verification Section */}
+            <div className="border-t border-slate-100 pt-6">
+              <SectionTitle icon={<FileCheck size={14} aria-hidden />} label="Verificação de Identidade (RG)" />
+
+              {rgLoading ? (
+                <div className="mt-4 text-sm text-meow-muted">Carregando status...</div>
+              ) : (
+                <div className="mt-4 space-y-4">
+                  {/* Status display */}
+                  {getRgStatusDisplay() ? (
+                    <div className={`flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-semibold ${getRgStatusDisplay()?.color}`}>
+                      {getRgStatusDisplay()?.icon}
+                      {getRgStatusDisplay()?.label}
+                      {rgStatus && rgStatus.status === 'REJECTED' && 'adminReason' in rgStatus && rgStatus.adminReason ? (
+                        <span className="ml-2 font-normal">— {rgStatus.adminReason}</span>
+                      ) : null}
+                    </div>
+                  ) : null}
+
+                  {rgSuccess ? (
+                    <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                      {rgSuccess}
+                    </div>
+                  ) : null}
+
+                  {rgError ? (
+                    <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                      {rgError}
+                    </div>
+                  ) : null}
+
+                  {/* Show form only if not pending or can resubmit */}
+                  {(!rgStatus || rgStatus.status === 'NOT_SUBMITTED' || rgStatus.status === 'REJECTED') ? (
+                    <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4">
+                      <p className="text-sm text-meow-muted mb-4">
+                        Envie uma foto do seu RG para verificar sua identidade. Isso aumenta a confiança nas transações.
+                      </p>
+
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <label className="grid gap-1 text-xs font-semibold uppercase text-meow-muted">
+                          Número do RG
+                          <Input
+                            placeholder="Ex: 12.345.678-9"
+                            value={rgNumber}
+                            onChange={(e) => setRgNumber(e.target.value)}
+                            disabled={rgSubmitting}
+                          />
+                        </label>
+
+                        <label className="grid gap-1 text-xs font-semibold uppercase text-meow-muted">
+                          Foto do RG
+                          <div className="relative">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleRgFileChange}
+                              disabled={rgSubmitting}
+                              className="hidden"
+                              id="rg-upload"
+                            />
+                            <label
+                              htmlFor="rg-upload"
+                              className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-meow-200 bg-white px-4 py-3 text-sm font-semibold text-meow-deep hover:border-meow-300 hover:bg-meow-50"
+                            >
+                              <Upload size={16} />
+                              {rgFile ? rgFile.name : 'Selecionar arquivo'}
+                            </label>
+                          </div>
+                        </label>
+                      </div>
+
+                      {rgPreview ? (
+                        <div className="mt-4">
+                          <p className="text-xs font-semibold text-meow-muted mb-2">Preview:</p>
+                          <img
+                            src={rgPreview}
+                            alt="Preview do RG"
+                            className="max-h-[150px] rounded-xl border border-slate-200 object-contain"
+                          />
+                        </div>
+                      ) : null}
+
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        className="mt-4"
+                        onClick={handleRgSubmit}
+                        disabled={rgSubmitting || !rgFile || !rgNumber.trim()}
+                      >
+                        {rgSubmitting ? 'Enviando...' : 'Enviar para Análise'}
+                      </Button>
+                    </div>
+                  ) : rgStatus?.status === 'PENDING' ? (
+                    <div className="rounded-2xl border border-yellow-200 bg-yellow-50 px-4 py-4 text-sm text-yellow-700">
+                      <p>Seu RG está em análise. Você será notificado quando for aprovado.</p>
+                    </div>
+                  ) : rgStatus?.status === 'APPROVED' ? (
+                    <div className="rounded-2xl border border-green-200 bg-green-50 px-4 py-4 text-sm text-green-700">
+                      <p>Sua identidade foi verificada com sucesso!</p>
+                    </div>
+                  ) : null}
+                </div>
+              )}
             </div>
           </div>
         </div>

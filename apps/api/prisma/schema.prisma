@@ -188,6 +188,12 @@ enum ReportReason {
   OTHER
 }
 
+enum RgStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
   id           String   @id @default(uuid())
   email        String   @unique
@@ -246,8 +252,32 @@ model User {
   listingQuestionsAnswered ListingQuestion[] @relation("ListingQuestionAnsweredBy")
   listingReportsSubmitted  ListingReport[]   @relation("ListingReportReporter")
   listingReportsReviewed   ListingReport[]   @relation("ListingReportAdmin")
+  rgVerifications          RgVerification[]  @relation("RgVerificationUser")
+  rgReviewsAsAdmin         RgVerification[]  @relation("RgVerificationAdmin")
 
   @@map("users")
+}
+
+model RgVerification {
+  id                String    @id @default(cuid())
+  userId            String
+  rgNumber          String
+  rgPhotoUrl        String
+  status            RgStatus  @default(PENDING)
+  submittedAt       DateTime  @default(now())
+  reviewedAt        DateTime?
+  reviewedByAdminId String?
+  adminReason       String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  user            User  @relation("RgVerificationUser", fields: [userId], references: [id], onDelete: Cascade)
+  reviewedByAdmin User? @relation("RgVerificationAdmin", fields: [reviewedByAdminId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@index([submittedAt])
+  @@map("rg_verifications")
 }
 
 model Partner {

@@ -28,6 +28,7 @@ import { CouponsModule } from './modules/coupons/coupons.module';
 import { CommunityModule } from './modules/community/community.module';
 import { ListingQuestionsModule } from './modules/listing-questions/listing-questions.module';
 import { ReportsModule } from './modules/reports/reports.module';
+import { RgVerificationModule } from './modules/rg-verification/rg-verification.module';
 
 @Module({
   imports: [
@@ -69,6 +70,7 @@ import { ReportsModule } from './modules/reports/reports.module';
     CommunityModule,
     ListingQuestionsModule,
     ReportsModule,
+    RgVerificationModule,
   ],
 })
 export class AppModule { }
