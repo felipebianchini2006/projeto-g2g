@@ -31,7 +31,10 @@ export class PartnersService {
   }
 
   async listPartners() {
-    return this.prisma.partner.findMany({ orderBy: { createdAt: 'desc' } });
+    return this.prisma.partner.findMany({
+      where: { active: true },
+      orderBy: { createdAt: 'desc' }
+    });
   }
 
   async updatePartner(id: string, dto: UpdatePartnerDto) {

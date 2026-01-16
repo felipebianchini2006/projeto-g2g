@@ -64,6 +64,7 @@ export class CouponsService {
 
   async listCoupons() {
     return this.prisma.coupon.findMany({
+      where: { active: true },
       orderBy: { createdAt: 'desc' },
       include: { partner: true },
     });

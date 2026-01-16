@@ -129,7 +129,7 @@ describe('Partners and Coupons Delete (e2e)', () => {
                 .send({
                     code: `TESTCOUPON${randomUUID().slice(0, 6).toUpperCase()}`,
                     discountBps: 1000,
-                    expiresAt: new Date(Date.now() + 86400000).toISOString(),
+                    endsAt: new Date(Date.now() + 86400000).toISOString(),
                 })
                 .expect(201);
 
@@ -171,7 +171,7 @@ describe('Partners and Coupons Delete (e2e)', () => {
                 .send({
                     code: `USERTEST${randomUUID().slice(0, 6).toUpperCase()}`,
                     discountBps: 500,
-                    expiresAt: new Date(Date.now() + 86400000).toISOString(),
+                    endsAt: new Date(Date.now() + 86400000).toISOString(),
                 });
 
             await request(app.getHttpServer())

@@ -1,0 +1,98 @@
+
+> api@0.0.1 test:e2e
+> jest --config ./test/jest-e2e.json --runInBand partners-coupons.e2e-spec.ts
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": PostgreSQL database "projeto_g2g_test", schema "public" at "localhost:5433"
+
+24 migrations found in prisma/migrations
+
+
+No pending migrations to apply.
+FAIL test/partners-coupons.e2e-spec.ts
+  Partners and Coupons Delete (e2e)
+    Partners CRUD
+      √ POST /admin/partners - creates a partner (47 ms)
+      √ GET /admin/partners - lists partners (11 ms)
+      √ DELETE /admin/partners/:id - deletes partner (12 ms)
+      √ GET /admin/partners - partner is removed from list (7 ms)
+      √ DELETE - user cannot delete partners (15 ms)
+    Coupons CRUD
+      × POST /admin/coupons - creates a coupon (9 ms)
+      × GET /admin/coupons - lists coupons (11 ms)
+      × DELETE /admin/coupons/:id - deletes coupon (12 ms)
+      √ GET /admin/coupons - coupon is removed from list (9 ms)
+      √ DELETE - user cannot delete coupons (12 ms)
+
+  ● Partners and Coupons Delete (e2e) › Coupons CRUD › POST /admin/coupons - creates a coupon
+
+    expected 201 "Created", got 400 "Bad Request"
+
+    [0m [90m 132 |[39m                     expiresAt[33m:[39m [36mnew[39m [33mDate[39m([33mDate[39m[33m.[39mnow() [33m+[39m [35m86400000[39m)[33m.[39mtoISOString()[33m,[39m
+     [90m 133 |[39m                 })
+    [31m[1m>[22m[39m[90m 134 |[39m                 [33m.[39mexpect([35m201[39m)[33m;[39m
+     [90m     |[39m                  [31m[1m^[22m[39m
+     [90m 135 |[39m
+     [90m 136 |[39m             expect(response[33m.[39mbody[33m.[39mid)[33m.[39mtoBeDefined()[33m;[39m
+     [90m 137 |[39m             couponId [33m=[39m response[33m.[39mbody[33m.[39mid[33m;[39m[0m
+
+      at Object.<anonymous> (partners-coupons.e2e-spec.ts:134:18)
+      ----
+      at Test._assertStatus (../../../node_modules/supertest/lib/test.js:309:14)
+      at ../../../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../../../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../../../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../../../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../../../node_modules/supertest/lib/test.js:152:11)
+
+  ● Partners and Coupons Delete (e2e) › Coupons CRUD › GET /admin/coupons - lists coupons
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+    [0m [90m 145 |[39m
+     [90m 146 |[39m             expect([33mArray[39m[33m.[39misArray(response[33m.[39mbody))[33m.[39mtoBe([36mtrue[39m)[33m;[39m
+    [31m[1m>[22m[39m[90m 147 |[39m             expect(response[33m.[39mbody[33m.[39msome((c[33m:[39m { id[33m:[39m string }) [33m=>[39m c[33m.[39mid [33m===[39m couponId))[33m.[39mtoBe([36mtrue[39m)[33m;[39m
+     [90m     |[39m                                                                                  [31m[1m^[22m[39m
+     [90m 148 |[39m         })[33m;[39m
+     [90m 149 |[39m
+     [90m 150 |[39m         it([32m'DELETE /admin/coupons/:id - deletes coupon'[39m[33m,[39m [36masync[39m () [33m=>[39m {[0m
+
+      at Object.<anonymous> (partners-coupons.e2e-spec.ts:147:82)
+
+  ● Partners and Coupons Delete (e2e) › Coupons CRUD › DELETE /admin/coupons/:id - deletes coupon
+
+    expected 200 "OK", got 404 "Not Found"
+
+    [0m [90m 152 |[39m                 [33m.[39m[36mdelete[39m([32m`/admin/coupons/${couponId}`[39m)
+     [90m 153 |[39m                 [33m.[39m[36mset[39m([32m'Authorization'[39m[33m,[39m [32m`Bearer ${adminToken}`[39m)
+    [31m[1m>[22m[39m[90m 154 |[39m                 [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m                  [31m[1m^[22m[39m
+     [90m 155 |[39m         })[33m;[39m
+     [90m 156 |[39m
+     [90m 157 |[39m         it([32m'GET /admin/coupons - coupon is removed from list'[39m[33m,[39m [36masync[39m () [33m=>[39m {[0m
+
+      at Object.<anonymous> (partners-coupons.e2e-spec.ts:154:18)
+      ----
+      at Test._assertStatus (../../../node_modules/supertest/lib/test.js:309:14)
+      at ../../../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../../../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../../../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../../../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../../../node_modules/supertest/lib/test.js:152:11)
+
+Test Suites: 1 failed, 1 total
+Tests:       3 failed, 7 passed, 10 total
+Snapshots:   0 total
+Time:        2.49 s, estimated 3 s
+Ran all test suites matching partners-coupons.e2e-spec.ts.
+npm error Lifecycle script `test:e2e` failed with error:
+npm error code 1
+npm error path C:\projetos\projeto-g2g\apps\api
+npm error workspace api@0.0.1
+npm error location C:\projetos\projeto-g2g\apps\api
+npm error command failed
+npm error command C:\Windows\system32\cmd.exe /d /s /c jest --config ./test/jest-e2e.json --runInBand partners-coupons.e2e-spec.ts

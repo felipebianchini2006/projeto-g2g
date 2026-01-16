@@ -1,0 +1,1009 @@
+
+> web@0.1.0 test
+> vitest run admin-reports-page.spec.tsx
+
+
+[1m[46m RUN [49m[22m [36mv3.2.4 [39m[90mC:/projetos/projeto-g2g/apps/web[39m
+
+[90mstderr[2m | src/components/pages/admin-reports-page.spec.tsx[2m > [22m[2mAdminReportsContent[2m > [22m[2mloads and lists reports
+[22m[39mRangeError: Invalid time value
+    at formatDate [90m(C:\projetos\projeto-g2g\apps\web\[39msrc\components\pages\admin-reports-page.tsx:46:8[90m)[39m
+    at [90mC:\projetos\projeto-g2g\apps\web\[39msrc\components\pages\admin-reports-page.tsx:238:45
+    at Array.map (<anonymous>)
+    at AdminReportsContent [90m(C:\projetos\projeto-g2g\apps\web\[39msrc\components\pages\admin-reports-page.tsx:212:34[90m)[39m
+    at Object.react_stack_bottom_frame (C:\projetos\projeto-g2g\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:25904:20)
+    at renderWithHooks (C:\projetos\projeto-g2g\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:7662:22)
+    at updateFunctionComponent (C:\projetos\projeto-g2g\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:10166:19)
+    at beginWork (C:\projetos\projeto-g2g\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:11778:18)
+    at runWithFiberInDEV (C:\projetos\projeto-g2g\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:874:13)
+    at performUnitOfWork (C:\projetos\projeto-g2g\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:17641:22)
+An error occurred in the <AdminReportsContent> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+
+ [31m❯[39m src/components/pages/admin-reports-page.spec.tsx [2m([22m[2m5 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[33m 2128[2mms[22m[39m
+   [32m✓[39m AdminReportsContent[2m > [22mrenders loading state[32m 36[2mms[22m[39m
+   [32m✓[39m AdminReportsContent[2m > [22mrenders access denied if not admin[32m 5[2mms[22m[39m
+[31m   [31m×[31m AdminReportsContent[2m > [22mloads and lists reports[39m[33m 1030[2mms[22m[39m
+[31m     → Unable to find an element with the text: Listing 1. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<section[31m
+      [33mclass[31m=[32m"bg-white px-6 py-12"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted"[31m
+      [36m>[31m
+        [0mCarregando sessão...[0m
+      [36m</div>[31m
+    [36m</section>[31m
+  [36m</div>[31m
+  [36m<div>[31m
+    [36m<section[31m
+      [33mclass[31m=[32m"bg-white px-6 py-12"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center"[31m
+      [36m>[31m
+        [36m<p[31m
+          [33mclass[31m=[32m"text-sm text-meow-muted"[31m
+        [36m>[31m
+          [0mAcesso restrito ao admin.[0m
+        [36m</p>[31m
+        [36m<a[31m
+          [33mclass[31m=[32m"mt-4 inline-flex rounded-full border border-meow-red/30 px-6 py-2 text-sm font-bold text-meow-deep"[31m
+          [33mhref[31m=[32m"/conta"[31m
+        [36m>[31m
+          [0mVoltar para conta[0m
+        [36m</a>[31m
+      [36m</div>[31m
+    [36m</section>[31m
+  [36m</div>[31m
+  [36m<div />[31m
+[36m</body>[31m
+
+Ignored nodes: comments, script, style
+[36m<html>[31m
+  [36m<head />[31m
+  [36m<body>[31m
+    [36m<div>[31m
+      [36m<section[31m
+        [33mclass[31m=[32m"bg-white px-6 py-12"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted"[31m
+        [36m>[31m
+          [0mCarregando sessão...[0m
+        [36m</div>[31m
+      [36m</section>[31m
+    [36m</div>[31m
+    [36m<div>[31m
+      [36m<section[31m
+        [33mclass[31m=[32m"bg-white px-6 py-12"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center"[31m
+        [36m>[31m
+          [36m<p[31m
+            [33mclass[31m=[32m"text-sm text-meow-muted"[31m
+          [36m>[31m
+            [0mAcesso restrito ao admin.[0m
+          [36m</p>[31m
+          [36m<a[31m
+            [33mclass[31m=[32m"mt-4 inline-flex rounded-full border border-meow-red/30 px-6 py-2 text-sm font-bold text-meow-deep"[31m
+            [33mhref[31m=[32m"/conta"[31m
+          [36m>[31m
+            [0mVoltar para conta[0m
+          [36m</a>[31m
+        [36m</div>[31m
+      [36m</section>[31m
+    [36m</div>[31m
+    [36m<div />[31m
+  [36m</body>[31m
+[36m</html>[31m[39m
+   [32m✓[39m AdminReportsContent[2m > [22mselects a report and shows details[32m 42[2mms[22m[39m
+[31m   [31m×[31m AdminReportsContent[2m > [22mupdates report status[39m[33m 1013[2mms[22m[39m
+[31m     → Found multiple elements with the text: Listing 1
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<strong[31m
+  [33mclass[31m=[32m"text-sm"[31m
+[36m>[31m
+  [0mListing 1[0m
+[36m</strong>[31m
+
+Ignored nodes: comments, script, style
+[36m<p[31m
+  [33mclass[31m=[32m"text-sm font-bold text-meow-charcoal"[31m
+[36m>[31m
+  [0mListing 1[0m
+[36m</p>[31m
+
+Ignored nodes: comments, script, style
+[36m<strong[31m
+  [33mclass[31m=[32m"text-sm"[31m
+[36m>[31m
+  [0mListing 1[0m
+[36m</strong>[31m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<section[31m
+      [33mclass[31m=[32m"bg-white px-6 py-12"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted"[31m
+      [36m>[31m
+        [0mCarregando sessão...[0m
+      [36m</div>[31m
+    [36m</section>[31m
+  [36m</div>[31m
+  [36m<div>[31m
+    [36m<section[31m
+      [33mclass[31m=[32m"bg-white px-6 py-12"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center"[31m
+      [36m>[31m
+        [36m<p[31m
+          [33mclass[31m=[32m"text-sm text-meow-muted"[31m
+        [36m>[31m
+          [0mAcesso restrito ao admin.[0m
+        [36m</p>[31m
+        [36m<a[31m
+          [33mclass[31m=[32m"mt-4 inline-flex rounded-full border border-meow-red/30 px-6 py-2 text-sm font-bold text-meow-deep"[31m
+          [33mhref[31m=[32m"/conta"[31m
+        [36m>[31m
+          [0mVoltar para conta[0m
+        [36m</a>[31m
+      [36m</div>[31m
+    [36m</section>[31m
+  [36m</div>[31m
+  [36m<div />[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mdata-testid[31m=[32m"admin-shell"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"flex flex-wrap items-center justify-between gap-4"[31m
+        [36m>[31m
+          [36m<div>[31m
+            [36m<h1[31m
+              [33mclass[31m=[32m"text-xl font-black text-meow-charcoal"[31m
+            [36m>[31m
+              [0mDenúncias de Anúncios[0m
+            [36m</h1>[31m
+            [36m<p[31m
+              [33mclass[31m=[32m"mt-2 text-sm text-meow-muted"[31m
+            [36m>[31m
+              [0mGerencie denúncias enviadas pelos usuários.[0m
+            [36m</p>[31m
+          [36m</div>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"flex items-center gap-2"[31m
+          [36m>[31m
+            [36m<div[31m
+              [33mdata-testid[31m=[32m"notifications-bell"[31m
+            [36m/>[31m
+            [36m<a[31m
+              [33mclass[31m=[32m"rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"[31m
+              [33mhref[31m=[32m"/conta"[31m
+            [36m>[31m
+              [0mVoltar para conta[0m
+            [36m</a>[31m
+          [36m</div>[31m
+        [36m</div>[31m
+      [36m</div>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"admin-listings-grid"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"order-card"[31m
+        [36m>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"panel-header"[31m
+          [36m>[31m
+            [36m<h2>[31m
+              [0mDenúncias[0m
+            [36m</h2>[31m
+            [36m<div[31m
+              [33mclass[31m=[32m"form-field"[31m
+            [36m>[31m
+              [36m<span[31m
+                [33mclass[31m=[32m"summary-label"[31m
+              [36m>[31m
+                [0mStatus[0m
+              [36m</span>[31m
+              [36m<select[31m
+                [33mclass[31m=[32m"form-input"[31m
+              [36m>[31m
+                [36m<option[31m
+                  [33mvalue[31m=[32m"all"[31m
+                [36m>[31m
+                  [0mTodas[0m
+                [36m</option>[31m
+                [36m<option[31m
+                  [33mvalue[31m=[32m"OPEN"[31m
+                [36m>[31m
+                  [0mAbertas[0m
+                [36m</option>[31m
+                [36m<option[31m
+                  [33mvalue[31m=[32m"REVIEWING"[31m
+                [36m>[31m
+                  [0mEm Análise[0m
+                [36m</option>[31m
+                [36m<option[31m
+                  [33mvalue[31m=[32m"RESOLVED"[31m
+                [36m>[31m
+                  [0mResolvidas[0m
+                [36m</option>[31m
+                [36m<option[31m
+                  [33mvalue[31m=[32m"REJECTED"[31m
+                [36m>[31m
+                  [0mRejeitadas[0m
+                [36m</option>[31m
+              [36m</select>[31m
+            [36m</div>[31m
+          [36m</div>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"support-list"[31m
+          [36m>[31m
+            [36m<button[31m
+              [33mclass[31m=[32m"support-row bg-meow-red/5"[31m
+              [33mtype[31m=[32m"button"[31m
+            [36m>[31m
+              [36m<div[31m
+                [33mclass[31m=[32m"flex items-center gap-2"[31m
+              [36m>[31m
+                [36m<svg[31m
+                  [33maria-hidden[31m=[32m"true"[31m
+                  [33mclass[31m=[32m"lucide lucide-flag text-meow-muted"[31m
+                  [33mfill[31m=[32m"none"[31m
+                  [33mheight[31m=[32m"14"[31m
+                  [33mstroke[31m=[32m"currentColor"[31m
+                  [33mstroke-linecap[31m=[32m"round"[31m
+                  [33mstroke-linejoin[31m=[32m"round"[31m
+                  [33mstroke-width[31m=[32m"2"[31m
+                  [33mviewBox[31m=[32m"0 0 24 24"[31m
+                  [33mwidth[31m=[32m"14"[31m
+                  [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+                [36m>[31m
+                  [36m<path[31m
+                    [33md[31m=[32m"M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528"[31m
+                  [36m/>[31m
+                [36m</svg>[31m
+                [36m<div>[31m
+                  [36m<strong[31m
+                    [33mclass[31m=[32m"text-sm"[31m
+                  [36m>[31m
+                    [0mListing 1[0m
+                  [36m</strong>[31m
+                  [36m<span[31m
+                    [33mclass[31m=[32m"auth-helper block text-xs"[31m
+                  [36m>[31m
+                    [0mGolpe / Fraude[0m
+                    [0m • [0m
+                    [0mAnônimo[0m
+                  [36m</span>[31m
+                [36m</div>[31m
+              [36m</div>[31m
+              [36m<div[31m
+                [33mclass[31m=[32m"ticket-meta"[31m
+              [36m>[31m
+                [36m<span[31m
+                  [33mclass[31m=[32m"flex items-center gap-1 text-xs"[31m
+                [36m>[31m
+                  [36m<svg[31m
+                    [33maria-hidden[31m=[32m"true"[31m
+                    [33mclass[31m=[32m"lucide lucide-triangle-alert text-yellow-500"[31m
+                    [33mfill[31m=[32m"none"[31m
+                    [33mheight[31m=...
+
+Ignored nodes: comments, script, style
+[36m<html>[31m
+  [36m<head />[31m
+  [36m<body>[31m
+    [36m<div>[31m
+      [36m<section[31m
+        [33mclass[31m=[32m"bg-white px-6 py-12"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted"[31m
+        [36m>[31m
+          [0mCarregando sessão...[0m
+        [36m</div>[31m
+      [36m</section>[31m
+    [36m</div>[31m
+    [36m<div>[31m
+      [36m<section[31m
+        [33mclass[31m=[32m"bg-white px-6 py-12"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center"[31m
+        [36m>[31m
+          [36m<p[31m
+            [33mclass[31m=[32m"text-sm text-meow-muted"[31m
+          [36m>[31m
+            [0mAcesso restrito ao admin.[0m
+          [36m</p>[31m
+          [36m<a[31m
+            [33mclass[31m=[32m"mt-4 inline-flex rounded-full border border-meow-red/30 px-6 py-2 text-sm font-bold text-meow-deep"[31m
+            [33mhref[31m=[32m"/conta"[31m
+          [36m>[31m
+            [0mVoltar para conta[0m
+          [36m</a>[31m
+        [36m</div>[31m
+      [36m</section>[31m
+    [36m</div>[31m
+    [36m<div />[31m
+    [36m<div>[31m
+      [36m<div[31m
+        [33mdata-testid[31m=[32m"admin-shell"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]"[31m
+        [36m>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"flex flex-wrap items-center justify-between gap-4"[31m
+          [36m>[31m
+            [36m<div>[31m
+              [36m<h1[31m
+                [33mclass[31m=[32m"text-xl font-black text-meow-charcoal"[31m
+              [36m>[31m
+                [0mDenúncias de Anúncios[0m
+              [36m</h1>[31m
+              [36m<p[31m
+                [33mclass[31m=[32m"mt-2 text-sm text-meow-muted"[31m
+              [36m>[31m
+                [0mGerencie denúncias enviadas pelos usuários.[0m
+              [36m</p>[31m
+            [36m</div>[31m
+            [36m<div[31m
+              [33mclass[31m=[32m"flex items-center gap-2"[31m
+            [36m>[31m
+              [36m<div[31m
+                [33mdata-testid[31m=[32m"notifications-bell"[31m
+              [36m/>[31m
+              [36m<a[31m
+                [33mclass[31m=[32m"rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"[31m
+                [33mhref[31m=[32m"/conta"[31m
+              [36m>[31m
+                [0mVoltar para conta[0m
+              [36m</a>[31m
+            [36m</div>[31m
+          [36m</div>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"admin-listings-grid"[31m
+        [36m>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"order-card"[31m
+          [36m>[31m
+            [36m<div[31m
+              [33mclass[31m=[32m"panel-header"[31m
+            [36m>[31m
+              [36m<h2>[31m
+                [0mDenúncias[0m
+              [36m</h2>[31m
+              [36m<div[31m
+                [33mclass[31m=[32m"form-field"[31m
+              [36m>[31m
+                [36m<span[31m
+                  [33mclass[31m=[32m"summary-label"[31m
+                [36m>[31m
+                  [0mStatus[0m
+                [36m</span>[31m
+                [36m<select[31m
+                  [33mclass[31m=[32m"form-input"[31m
+                [36m>[31m
+                  [36m<option[31m
+                    [33mvalue[31m=[32m"all"[31m
+                  [36m>[31m
+                    [0mTodas[0m
+                  [36m</option>[31m
+                  [36m<option[31m
+                    [33mvalue[31m=[32m"OPEN"[31m
+                  [36m>[31m
+                    [0mAbertas[0m
+                  [36m</option>[31m
+                  [36m<option[31m
+                    [33mvalue[31m=[32m"REVIEWING"[31m
+                  [36m>[31m
+                    [0mEm Análise[0m
+                  [36m</option>[31m
+                  [36m<option[31m
+                    [33mvalue[31m=[32m"RESOLVED"[31m
+                  [36m>[31m
+                    [0mResolvidas[0m
+                  [36m</option>[31m
+                  [36m<option[31m
+                    [33mvalue[31m=[32m"REJECTED"[31m
+                  [36m>[31m
+                    [0mRejeitadas[0m
+                  [36m</option>[31m
+                [36m</select>[31m
+              [36m</div>[31m
+            [36m</div>[31m
+            [36m<div[31m
+              [33mclass[31m=[32m"support-list"[31m
+            [36m>[31m
+              [36m<button[31m
+                [33mclass[31m=[32m"support-row bg-meow-red/5"[31m
+                [33mtype[31m=[32m"button"[31m
+              [36m>[31m
+                [36m<div[31m
+                  [33mclass[31m=[32m"flex items-center gap-2"[31m
+                [36m>[31m
+                  [36m<svg[31m
+                    [33maria-hidden[31m=[32m"true"[31m
+                    [33mclass[31m=[32m"lucide lucide-flag text-meow-muted"[31m
+                    [33mfill[31m=[32m"none"[31m
+                    [33mheight[31m=[32m"14"[31m
+                    [33mstroke[31m=[32m"currentColor"[31m
+                    [33mstroke-linecap[31m=[32m"round"[31m
+                    [33mstroke-linejoin[31m=[32m"round"[31m
+                    [33mstroke-width[31m=[32m"2"[31m
+                    [33mviewBox[31m=[32m"0 0 24 24"[31m
+                    [33mwidth[31m=[32m"14"[31m
+                    [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+                  [36m>[31m
+                    [36m<path[31m
+                      [33md[31m=[32m"M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528"[31m
+                    [36m/>[31m
+                  [36m</svg>[31m
+                  [36m<div>[31m
+                    [36m<strong[31m
+                      [33mclass[31m=[32m"text-sm"[31m
+                    [36m>[31m
+                      [0mListing 1[0m
+                    [36m</strong>[31m
+                    [36m<span[31m
+                      [33mclass[31m=[32m"auth-helper block text-xs"[31m
+                    [36m>[31m
+                      [0mGolpe / Fraude[0m
+                      [0m • [0m
+                      [0mAnônimo[0m
+                    [36m</span>[31m
+                  [36m</div>[31m
+                [36m</div>[31m
+                [36m<div[31m
+                  [33mclass[31m=[32m"ticket-meta"[31m
+                [36m>[31m
+                  [36m<span[31m
+       ...[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 2 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/components/pages/admin-reports-page.spec.tsx[2m > [22mAdminReportsContent[2m > [22mloads and lists reports
+[31m[1mTestingLibraryElementError[22m: Unable to find an element with the text: Listing 1. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<section[31m
+      [33mclass[31m=[32m"bg-white px-6 py-12"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted"[31m
+      [36m>[31m
+        [0mCarregando sessão...[0m
+      [36m</div>[31m
+    [36m</section>[31m
+  [36m</div>[31m
+  [36m<div>[31m
+    [36m<section[31m
+      [33mclass[31m=[32m"bg-white px-6 py-12"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center"[31m
+      [36m>[31m
+        [36m<p[31m
+          [33mclass[31m=[32m"text-sm text-meow-muted"[31m
+        [36m>[31m
+          [0mAcesso restrito ao admin.[0m
+        [36m</p>[31m
+        [36m<a[31m
+          [33mclass[31m=[32m"mt-4 inline-flex rounded-full border border-meow-red/30 px-6 py-2 text-sm font-bold text-meow-deep"[31m
+          [33mhref[31m=[32m"/conta"[31m
+        [36m>[31m
+          [0mVoltar para conta[0m
+        [36m</a>[31m
+      [36m</div>[31m
+    [36m</section>[31m
+  [36m</div>[31m
+  [36m<div />[31m
+[36m</body>[31m
+
+Ignored nodes: comments, script, style
+[36m<html>[31m
+  [36m<head />[31m
+  [36m<body>[31m
+    [36m<div>[31m
+      [36m<section[31m
+        [33mclass[31m=[32m"bg-white px-6 py-12"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted"[31m
+        [36m>[31m
+          [0mCarregando sessão...[0m
+        [36m</div>[31m
+      [36m</section>[31m
+    [36m</div>[31m
+    [36m<div>[31m
+      [36m<section[31m
+        [33mclass[31m=[32m"bg-white px-6 py-12"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center"[31m
+        [36m>[31m
+          [36m<p[31m
+            [33mclass[31m=[32m"text-sm text-meow-muted"[31m
+          [36m>[31m
+            [0mAcesso restrito ao admin.[0m
+          [36m</p>[31m
+          [36m<a[31m
+            [33mclass[31m=[32m"mt-4 inline-flex rounded-full border border-meow-red/30 px-6 py-2 text-sm font-bold text-meow-deep"[31m
+            [33mhref[31m=[32m"/conta"[31m
+          [36m>[31m
+            [0mVoltar para conta[0m
+          [36m</a>[31m
+        [36m</div>[31m
+      [36m</section>[31m
+    [36m</div>[31m
+    [36m<div />[31m
+  [36m</body>[31m
+[36m</html>[31m[39m
+[90m [2m❯[22m Proxy.waitForWrapper ../../node_modules/@testing-library/dom/dist/wait-for.js:[2m163:27[22m[39m
+[36m [2m❯[22m src/components/pages/admin-reports-page.spec.tsx:[2m53:15[22m[39m
+    [90m 51| [39m        expect(screen.getByText(/carregando denúncias/i)).toBeInTheDoc…
+    [90m 52| [39m
+    [90m 53| [39m        [35mawait[39m [34mwaitFor[39m(() [33m=>[39m {
+    [90m   | [39m              [31m^[39m
+    [90m 54| [39m            [34mexpect[39m(screen[33m.[39m[34mgetByText[39m([32m'Listing 1'[39m))[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
+    [90m 55| [39m        })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/components/pages/admin-reports-page.spec.tsx[2m > [22mAdminReportsContent[2m > [22mupdates report status
+[31m[1mTestingLibraryElementError[22m[39m: Found multiple elements with the text: Listing 1
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<strong[39m
+  [33mclass[39m=[32m"text-sm"[39m
+[36m>[39m
+  [0mListing 1[0m
+[36m</strong>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"text-sm font-bold text-meow-charcoal"[39m
+[36m>[39m
+  [0mListing 1[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<strong[39m
+  [33mclass[39m=[32m"text-sm"[39m
+[36m>[39m
+  [0mListing 1[0m
+[36m</strong>[39m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33mclass[39m=[32m"bg-white px-6 py-12"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted"[39m
+      [36m>[39m
+        [0mCarregando sessão...[0m
+      [36m</div>[39m
+    [36m</section>[39m
+  [36m</div>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33mclass[39m=[32m"bg-white px-6 py-12"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center"[39m
+      [36m>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"text-sm text-meow-muted"[39m
+        [36m>[39m
+          [0mAcesso restrito ao admin.[0m
+        [36m</p>[39m
+        [36m<a[39m
+          [33mclass[39m=[32m"mt-4 inline-flex rounded-full border border-meow-red/30 px-6 py-2 text-sm font-bold text-meow-deep"[39m
+          [33mhref[39m=[32m"/conta"[39m
+        [36m>[39m
+          [0mVoltar para conta[0m
+        [36m</a>[39m
+      [36m</div>[39m
+    [36m</section>[39m
+  [36m</div>[39m
+  [36m<div />[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mdata-testid[39m=[32m"admin-shell"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex flex-wrap items-center justify-between gap-4"[39m
+        [36m>[39m
+          [36m<div>[39m
+            [36m<h1[39m
+              [33mclass[39m=[32m"text-xl font-black text-meow-charcoal"[39m
+            [36m>[39m
+              [0mDenúncias de Anúncios[0m
+            [36m</h1>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"mt-2 text-sm text-meow-muted"[39m
+            [36m>[39m
+              [0mGerencie denúncias enviadas pelos usuários.[0m
+            [36m</p>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-center gap-2"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mdata-testid[39m=[32m"notifications-bell"[39m
+            [36m/>[39m
+            [36m<a[39m
+              [33mclass[39m=[32m"rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"[39m
+              [33mhref[39m=[32m"/conta"[39m
+            [36m>[39m
+              [0mVoltar para conta[0m
+            [36m</a>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"admin-listings-grid"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"order-card"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"panel-header"[39m
+          [36m>[39m
+            [36m<h2>[39m
+              [0mDenúncias[0m
+            [36m</h2>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"form-field"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"summary-label"[39m
+              [36m>[39m
+                [0mStatus[0m
+              [36m</span>[39m
+              [36m<select[39m
+                [33mclass[39m=[32m"form-input"[39m
+              [36m>[39m
+                [36m<option[39m
+                  [33mvalue[39m=[32m"all"[39m
+                [36m>[39m
+                  [0mTodas[0m
+                [36m</option>[39m
+                [36m<option[39m
+                  [33mvalue[39m=[32m"OPEN"[39m
+                [36m>[39m
+                  [0mAbertas[0m
+                [36m</option>[39m
+                [36m<option[39m
+                  [33mvalue[39m=[32m"REVIEWING"[39m
+                [36m>[39m
+                  [0mEm Análise[0m
+                [36m</option>[39m
+                [36m<option[39m
+                  [33mvalue[39m=[32m"RESOLVED"[39m
+                [36m>[39m
+                  [0mResolvidas[0m
+                [36m</option>[39m
+                [36m<option[39m
+                  [33mvalue[39m=[32m"REJECTED"[39m
+                [36m>[39m
+                  [0mRejeitadas[0m
+                [36m</option>[39m
+              [36m</select>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"support-list"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"support-row bg-meow-red/5"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"flex items-center gap-2"[39m
+              [36m>[39m
+                [36m<svg[39m
+                  [33maria-hidden[39m=[32m"true"[39m
+                  [33mclass[39m=[32m"lucide lucide-flag text-meow-muted"[39m
+                  [33mfill[39m=[32m"none"[39m
+                  [33mheight[39m=[32m"14"[39m
+                  [33mstroke[39m=[32m"currentColor"[39m
+                  [33mstroke-linecap[39m=[32m"round"[39m
+                  [33mstroke-linejoin[39m=[32m"round"[39m
+                  [33mstroke-width[39m=[32m"2"[39m
+                  [33mviewBox[39m=[32m"0 0 24 24"[39m
+                  [33mwidth[39m=[32m"14"[39m
+                  [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                [36m>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528"[39m
+                  [36m/>[39m
+                [36m</svg>[39m
+                [36m<div>[39m
+                  [36m<strong[39m
+                    [33mclass[39m=[32m"text-sm"[39m
+                  [36m>[39m
+                    [0mListing 1[0m
+                  [36m</strong>[39m
+                  [36m<span[39m
+                    [33mclass[39m=[32m"auth-helper block text-xs"[39m
+                  [36m>[39m
+                    [0mGolpe / Fraude[0m
+                    [0m • [0m
+                    [0mAnônimo[0m
+                  [36m</span>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"ticket-meta"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"flex items-center gap-1 text-xs"[39m
+                [36m>[39m
+                  [36m<svg[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mclass[39m=[32m"lucide lucide-triangle-alert text-yellow-500"[39m
+                    [33mfill[39m=[32m"none"[39m
+                    [33mheight[39m=...
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<section[39m
+        [33mclass[39m=[32m"bg-white px-6 py-12"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted"[39m
+        [36m>[39m
+          [0mCarregando sessão...[0m
+        [36m</div>[39m
+      [36m</section>[39m
+    [36m</div>[39m
+    [36m<div>[39m
+      [36m<section[39m
+        [33mclass[39m=[32m"bg-white px-6 py-12"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center"[39m
+        [36m>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"text-sm text-meow-muted"[39m
+          [36m>[39m
+            [0mAcesso restrito ao admin.[0m
+          [36m</p>[39m
+          [36m<a[39m
+            [33mclass[39m=[32m"mt-4 inline-flex rounded-full border border-meow-red/30 px-6 py-2 text-sm font-bold text-meow-deep"[39m
+            [33mhref[39m=[32m"/conta"[39m
+          [36m>[39m
+            [0mVoltar para conta[0m
+          [36m</a>[39m
+        [36m</div>[39m
+      [36m</section>[39m
+    [36m</div>[39m
+    [36m<div />[39m
+    [36m<div>[39m
+      [36m<div[39m
+        [33mdata-testid[39m=[32m"admin-shell"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex flex-wrap items-center justify-between gap-4"[39m
+          [36m>[39m
+            [36m<div>[39m
+              [36m<h1[39m
+                [33mclass[39m=[32m"text-xl font-black text-meow-charcoal"[39m
+              [36m>[39m
+                [0mDenúncias de Anúncios[0m
+              [36m</h1>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"mt-2 text-sm text-meow-muted"[39m
+              [36m>[39m
+                [0mGerencie denúncias enviadas pelos usuários.[0m
+              [36m</p>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex items-center gap-2"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mdata-testid[39m=[32m"notifications-bell"[39m
+              [36m/>[39m
+              [36m<a[39m
+                [33mclass[39m=[32m"rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"[39m
+                [33mhref[39m=[32m"/conta"[39m
+              [36m>[39m
+                [0mVoltar para conta[0m
+              [36m</a>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"admin-listings-grid"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"order-card"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"panel-header"[39m
+            [36m>[39m
+              [36m<h2>[39m
+                [0mDenúncias[0m
+              [36m</h2>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"form-field"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"summary-label"[39m
+                [36m>[39m
+                  [0mStatus[0m
+                [36m</span>[39m
+                [36m<select[39m
+                  [33mclass[39m=[32m"form-input"[39m
+                [36m>[39m
+                  [36m<option[39m
+                    [33mvalue[39m=[32m"all"[39m
+                  [36m>[39m
+                    [0mTodas[0m
+                  [36m</option>[39m
+                  [36m<option[39m
+                    [33mvalue[39m=[32m"OPEN"[39m
+                  [36m>[39m
+                    [0mAbertas[0m
+                  [36m</option>[39m
+                  [36m<option[39m
+                    [33mvalue[39m=[32m"REVIEWING"[39m
+                  [36m>[39m
+                    [0mEm Análise[0m
+                  [36m</option>[39m
+                  [36m<option[39m
+                    [33mvalue[39m=[32m"RESOLVED"[39m
+                  [36m>[39m
+                    [0mResolvidas[0m
+                  [36m</option>[39m
+                  [36m<option[39m
+                    [33mvalue[39m=[32m"REJECTED"[39m
+                  [36m>[39m
+                    [0mRejeitadas[0m
+                  [36m</option>[39m
+                [36m</select>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"support-list"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"support-row bg-meow-red/5"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"flex items-center gap-2"[39m
+                [36m>[39m
+                  [36m<svg[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mclass[39m=[32m"lucide lucide-flag text-meow-muted"[39m
+                    [33mfill[39m=[32m"none"[39m
+                    [33mheight[39m=[32m"14"[39m
+                    [33mstroke[39m=[32m"currentColor"[39m
+                    [33mstroke-linecap[39m=[32m"round"[39m
+                    [33mstroke-linejoin[39m=[32m"round"[39m
+                    [33mstroke-width[39m=[32m"2"[39m
+                    [33mviewBox[39m=[32m"0 0 24 24"[39m
+                    [33mwidth[39m=[32m"14"[39m
+                    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                  [36m>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528"[39m
+                    [36m/>[39m
+                  [36m</svg>[39m
+                  [36m<div>[39m
+                    [36m<strong[39m
+                      [33mclass[39m=[32m"text-sm"[39m
+                    [36m>[39m
+                      [0mListing 1[0m
+                    [36m</strong>[39m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"auth-helper block text-xs"[39m
+                    [36m>[39m
+                      [0mGolpe / Fraude[0m
+                      [0m • [0m
+                      [0mAnônimo[0m
+                    [36m</span>[39m
+                  [36m</div>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"ticket-meta"[39m
+                [36m>[39m
+                  [36m<span[39m
+       ...
+[90m [2m❯[22m Proxy.waitForWrapper ../../node_modules/@testing-library/dom/dist/wait-for.js:[2m163:27[22m[39m
+[36m [2m❯[22m src/components/pages/admin-reports-page.spec.tsx:[2m101:15[22m[39m
+    [90m 99| [39m        [34mrender[39m([33m<[39m[33mAdminReportsContent[39m [33m/[39m[33m>[39m)[33m;[39m
+    [90m100| [39m
+    [90m101| [39m        [35mawait[39m [34mwaitFor[39m(() [33m=>[39m screen[33m.[39m[34mgetByText[39m([32m'Listing 1'[39m))[33m;[39m
+    [90m   | [39m              [31m^[39m
+    [90m102| [39m        fireEvent[33m.[39m[34mclick[39m(screen[33m.[39m[34mgetByText[39m([32m'Listing 1'[39m))[33m;[39m
+    [90m103| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯[39m[1m[41m Unhandled Errors [49m[22m[31m⎯⎯⎯⎯⎯⎯[39m
+[31m[1m
+Vitest caught 1 unhandled error during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.[22m[39m
+
+[31m⎯⎯⎯⎯⎯[39m[1m[41m Uncaught Exception [49m[22m[31m⎯⎯⎯⎯⎯[39m
+[31m[1mRangeError[22m: Invalid time value[39m
+[36m [2m❯[22m formatDate src/components/pages/admin-reports-page.tsx:[2m46:8[22m[39m
+    [90m 44| [39m        hour[33m:[39m [32m'2-digit'[39m[33m,[39m
+    [90m 45| [39m        minute[33m:[39m [32m'2-digit'[39m[33m,[39m
+    [90m 46| [39m    })[33m.[39m[34mformat[39m([35mnew[39m [33mDate[39m(dateStr))[33m;[39m
+    [90m   | [39m       [31m^[39m
+    [90m 47| [39m
+    [90m 48| [39m[35mexport[39m [35mconst[39m [33mAdminReportsContent[39m [33m=[39m () [33m=>[39m {
+[90m [2m❯[22m src/components/pages/admin-reports-page.tsx:[2m238:45[22m[39m
+[90m [2m❯[22m AdminReportsContent src/components/pages/admin-reports-page.tsx:[2m212:34[22m[39m
+[90m [2m❯[22m Object.react_stack_bottom_frame ../../node_modules/react-dom/cjs/react-dom-client.development.js:[2m25904:20[22m[39m
+[90m [2m❯[22m renderWithHooks ../../node_modules/react-dom/cjs/react-dom-client.development.js:[2m7662:22[22m[39m
+[90m [2m❯[22m updateFunctionComponent ../../node_modules/react-dom/cjs/react-dom-client.development.js:[2m10166:19[22m[39m
+[90m [2m❯[22m beginWork ../../node_modules/react-dom/cjs/react-dom-client.development.js:[2m11778:18[22m[39m
+[90m [2m❯[22m runWithFiberInDEV ../../node_modules/react-dom/cjs/react-dom-client.development.js:[2m874:13[22m[39m
+[90m [2m❯[22m performUnitOfWork ../../node_modules/react-dom/cjs/react-dom-client.development.js:[2m17641:22[22m[39m
+
+[31mThis error originated in "[1msrc/components/pages/admin-reports-page.spec.tsx[22m" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.[39m
+[31mThe latest test that might've caused the error is "[1mloads and lists reports[22m". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.[39m
+[31m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m3 passed[39m[22m[90m (5)[39m
+[2m     Errors [22m [1m[31m1 error[39m[22m
+[2m   Start at [22m 07:46:47
+[2m   Duration [22m 3.79s[2m (transform 124ms, setup 104ms, collect 360ms, tests 2.13s, environment 581ms, prepare 94ms)[22m
+
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path C:\projetos\projeto-g2g\apps\web
+npm error workspace web@0.1.0
+npm error location C:\projetos\projeto-g2g\apps\web
+npm error command failed
+npm error command C:\Windows\system32\cmd.exe /d /s /c vitest run admin-reports-page.spec.tsx

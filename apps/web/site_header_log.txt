@@ -1,0 +1,2077 @@
+
+> web@0.1.0 test
+> vitest run site-header.spec.tsx
+
+
+[1m[46m RUN [49m[22m [36mv3.2.4 [39m[90mC:/projetos/projeto-g2g/apps/web[39m
+
+ [31m❯[39m src/components/layout/site-header.spec.tsx [2m([22m[2m5 tests[22m[2m | [22m[31m4 failed[39m[2m)[22m[32m 84[2mms[22m[39m
+   [32m✓[39m SiteHeader[2m > [22mLogged Out State[2m > [22mrenders login and create account buttons[32m 36[2mms[22m[39m
+[31m   [31m×[31m SiteHeader[2m > [22mLogged Out State[2m > [22mrenders search bar[39m[32m 17[2mms[22m[39m
+[31m     → Found multiple elements with the placeholder text of: /anúncio, usuário ou categoria/i
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<input[31m
+  [33mclass[31m=[32m"flex-1 bg-transparent text-sm text-meow-charcoal outline-none placeholder:text-meow-muted"[31m
+  [33mplaceholder[31m=[32m"Anúncio, usuário ou categoria"[31m
+  [33mtype[31m=[32m"text"[31m
+  [33mvalue[31m=[32m""[31m
+[36m/>[31m
+
+Ignored nodes: comments, script, style
+[36m<input[31m
+  [33mclass[31m=[32m"flex-1 bg-transparent text-sm text-meow-charcoal outline-none placeholder:text-meow-muted"[31m
+  [33mplaceholder[31m=[32m"Anúncio, usuário ou categoria"[31m
+  [33mtype[31m=[32m"text"[31m
+  [33mvalue[31m=[32m""[31m
+[36m/>[31m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m"bg-gradient-to-r from-[#f2a4c3] via-[#f7b8d1] to-[#f2a4c3] text-white"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"relative mx-auto w-full max-w-[1280px] px-6 py-2 text-[11px] font-bold uppercase tracking-[0.6px] flex flex-col items-center gap-2 text-center sm:block"[31m
+      [36m>[31m
+        [36m<span />[31m
+      [36m</div>[31m
+    [36m</div>[31m
+    [36m<header[31m
+      [33mclass[31m=[32m"site-header relative z-40 border-b border-meow-deep/10 bg-white/95 shadow-[0_12px_30px_rgba(240,98,146,0.08)] backdrop-blur"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"mx-auto grid w-full max-w-[1280px] grid-cols-1 items-center gap-4 px-6 py-4 md:grid-cols-[auto_minmax(280px,1fr)_auto] md:gap-6"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"flex justify-center md:justify-start"[31m
+        [36m>[31m
+          [36m<a[31m
+            [33mclass[31m=[32m"flex items-center gap-3"[31m
+            [33mhref[31m=[32m"/"[31m
+          [36m>[31m
+            [36m<img[31m
+              [33malt[31m=[32m"Meoww Games"[31m
+              [33mclass[31m=[32m"h-12 w-auto"[31m
+              [33msrc[31m=[32m"/assets/meoow/logo.png"[31m
+            [36m/>[31m
+          [36m</a>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"flex w-full items-center gap-3 rounded-full border border-meow-red/20 bg-meow-cream/80 px-4 py-2 shadow-[0_10px_24px_rgba(216,107,149,0.12)]"[31m
+        [36m>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"flex h-4 w-4 items-center justify-center"[31m
+          [36m>[31m
+            [36m<svg[31m
+              [33maria-hidden[31m=[32m"true"[31m
+              [33mclass[31m=[32m"lucide lucide-search text-meow-deep"[31m
+              [33mfill[31m=[32m"none"[31m
+              [33mheight[31m=[32m"16"[31m
+              [33mstroke[31m=[32m"currentColor"[31m
+              [33mstroke-linecap[31m=[32m"round"[31m
+              [33mstroke-linejoin[31m=[32m"round"[31m
+              [33mstroke-width[31m=[32m"2"[31m
+              [33mviewBox[31m=[32m"0 0 24 24"[31m
+              [33mwidth[31m=[32m"16"[31m
+              [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+            [36m>[31m
+              [36m<path[31m
+                [33md[31m=[32m"m21 21-4.34-4.34"[31m
+              [36m/>[31m
+              [36m<circle[31m
+                [33mcx[31m=[32m"11"[31m
+                [33mcy[31m=[32m"11"[31m
+                [33mr[31m=[32m"8"[31m
+              [36m/>[31m
+            [36m</svg>[31m
+          [36m</div>[31m
+          [36m<input[31m
+            [33mclass[31m=[32m"flex-1 bg-transparent text-sm text-meow-charcoal outline-none placeholder:text-meow-muted"[31m
+            [33mplaceholder[31m=[32m"Anúncio, usuário ou categoria"[31m
+            [33mtype[31m=[32m"text"[31m
+            [33mvalue[31m=[32m""[31m
+          [36m/>[31m
+          [36m<span[31m
+            [33mclass[31m=[32m"flex h-5 items-center justify-center rounded-full bg-white px-3 text-xs font-bold text-meow-deep"[31m
+          [36m>[31m
+            [0mP[0m
+          [36m</span>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"ml-auto flex w-full flex-wrap items-center justify-center gap-3 md:w-auto md:justify-end md:gap-4"[31m
+        [36m>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"relative"[31m
+          [36m>[31m
+            [36m<button[31m
+              [33mclass[31m=[32m"inline-flex items-center gap-1 text-sm font-semibold text-meow-charcoal"[31m
+              [33mtype[31m=[32m"button"[31m
+            [36m>[31m
+              [0mCategorias[0m
+              [36m<svg[31m
+                [33maria-hidden[31m=[32m"true"[31m
+                [33mclass[31m=[32m"lucide lucide-chevron-down"[31m
+                [33mfill[31m=[32m"none"[31m
+                [33mheight[31m=[32m"16"[31m
+                [33mstroke[31m=[32m"currentColor"[31m
+                [33mstroke-linecap[31m=[32m"round"[31m
+                [33mstroke-linejoin[31m=[32m"round"[31m
+                [33mstroke-width[31m=[32m"2"[31m
+                [33mviewBox[31m=[32m"0 0 24 24"[31m
+                [33mwidth[31m=[32m"16"[31m
+                [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+              [36m>[31m
+                [36m<path[31m
+                  [33md[31m=[32m"m6 9 6 6 6-6"[31m
+                [36m/>[31m
+              [36m</svg>[31m
+            [36m</button>[31m
+          [36m</div>[31m
+          [36m<a[31m
+            [33mclass[31m=[32m"rounded-full bg-meow-linear px-5 py-2 text-sm font-bold text-white shadow-[0_14px_28px_rgba(216,107,149,0.35)]"[31m
+            [33mhref[31m=[32m"/anunciar"[31m
+          [36m>[31m
+            [0mCriar anúncio[0m
+          [36m</a>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"relative"[31m
+          [36m>[31m
+            [36m<button[31m
+              [33maria-label[31m=[32m"Carrinho"[31m
+              [33mclass[31m=[32m"relative flex h-10 w-10 items-center justify-center rounded-full border border-meow-red/20 bg-white text-meow-deep"[31m
+              [33mtype[31m=[32m"button"[31m
+            [36m>[31m
+              [36m<svg[31m
+                [33maria-hidden[31m=[32m"true"[31m
+                [33mclass[31m=[32m"lucide lucide-shopping-cart"[31m
+                [33mfill[31m=[32m"none"[31m
+                [33mheight[31m=[32m"18"[31m
+                [33mstroke[31m=[32m"currentColor"[31m
+                [33mstroke-linecap[31m=[32m"round"[31m
+                [33mstroke-linejoin[31m=[32m"round"[31m
+                [33mstroke-width[31m=[32m"2"[31m
+                [33mviewBox[31m=[32m"0 0 24 24"[31m
+                [33mwidth[31m=[32m"18"[31m
+                [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+              [36m>[31m
+                [36m<circle[31m
+                  [33mcx[31m=[32m"8"[31m
+                  [33mcy[31m=[32m"21"[31m
+                  [33mr[31m=[32m"1"[31m
+                [36m/>[31m
+                [36m<circle[31m
+                  [33mcx[31m=[32m"19"[31m
+                  [33mcy[31m=[32m"21"[31m
+                  [33mr[31m=[32m"1"[31m
+                [36m/>[31m
+                [36m<path[31m
+                  [33md[31m=[32m"M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"[31m
+                [36m/>[31m
+              [36m</svg>[31m
+            [36m</button>[31m
+          [36m</div>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"flex items-center gap-2 sm:gap-3"[31m
+          [36m>[31m
+            [36m<a[31m
+              [33mclass[31m=[32m"rounded-full px-3 py-2 text-xs font-bold text-meow-deep hover:bg-meow-red/10 sm:px-4 sm:text-sm"[31m
+              [33mhref[31m=[32m"/login"[31m
+            [36m>[31m
+              [0mEntrar[0m
+            [36m</a>[31m
+            [36m<a[31m
+              [33mclass[31m=[32m"rounded-full bg-meow-linear px-3 py-2 text-xs font-bold text-white shadow-[0_14px_28px_rgba(216,107,149,0.35)] sm:px-5 sm:text-sm"[31m
+              [33mhref[31m=[32m"/register"[31m
+            [36m>[31m
+              [0mCriar conta[0m
+            [36m</a>[31m
+          [36m</div>[31m
+        [36m</div>[31m
+      [36m</div>[31m
+    [36m</header>[31m
+  [36m</div>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m"bg-gradient-to-r from-[#f2a4c3] via-[#f7b8d1] to-[#f2a4c3] text-white"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"relative mx-auto w-full max-w-[1280px] px-6 py-2 text-[11px] font-bold uppercase tracking-[0.6px] flex flex-col items-center gap-2 text-center sm:block"[31m
+      [36m>[31m
+        [36m<span />[31m
+      [36m</div>[31m
+    [36m</div>[31m
+    [36m<header[31m
+      [33mclass[31m=[32m"site-header relative z-40 border-b border-meow-deep/10 bg-white/95 shadow-[0_12px_30px_rgba(240,98,146,0.08)] backdrop-blur"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"mx-auto grid w-full max-w-[1280px] grid-cols-1 items-center gap-4 px-6 py-4 md:grid-cols-[auto_minmax(280px,1fr)_auto] md:gap-6"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"flex justify-center md:justify-start"[31m
+        [36m>[31m
+          [36m<a[31m
+            [33mclass[31m=[32m"flex items-center gap-3"[31m
+            [33mhref[31m=[32m"/"[31m
+          [36m>[31m
+            [36m<img[31m
+              [33malt[31m=[32m"Meoww Games"[31m
+              [33mclass[31m=[32m"h-12 w-auto"[31m
+              [33msrc[31m=[32m"/assets/meoow/logo.png"[31m
+            [36m/>[31m
+          [36m</a>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"flex w-full items-center gap-3 rounded-full border border-meow-red/20 bg-meow-cream/80 px-4 py-2 shadow-[0_10px_24px_rgba(216,107,149,0.12)]"[31m
+        [36m>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"flex h-4 w-4 items-center justify-center"[31m
+          [36m>[31m
+            [36m<svg[31m
+              [33maria-hidden[31m=[32m"true"[31m
+              [33mclass[31m=[32m"lucide lucide-search text-meow-deep"[31m
+              [33mfill[31m=[32m"none"[31m
+              [33mheight[31m=[32m"16"[31m
+              [33mstroke[31m=[32m"currentColor"[31m
+              [33mstroke-linecap[31m=[32m"round"[31m
+              [33mstroke-linejoin[31m=[32m"round"[31m
+              [33mstroke-width[31m=[32m"2"[31m
+              [33mviewBox[31m=[32m"0 0 24 24"[31m
+              [33mwidth[31m=[32m"16"[31m
+              [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+            [36m>[31m
+              [36m<path[31m
+                [33md[31m=[32m"m21 21-4.34-4.34"[31m
+              [36m/>[31m
+              [36m<circle[31m
+                [33mcx[31m=[32m"11"[31m
+                [33mcy[31m=[32m"11"[31m
+                [33mr[31m=[32m"8"[31m
+              [36m/>[31m
+            [36m</svg>[31m
+          [36m</div>[31m
+          [36m<input[31m
+            [33mclass[31m=[32m"flex-1 bg-transparent text-sm text-meow-charcoal outline-none placeholder:text-meow-muted"[31m
+            [33mplaceholder[31m=[32m"Anúncio, usuário ou categoria"[31m
+            [33mtype[31m=[32m"text"[31m
+            [33mvalue[31m=[32m""[31m
+          [36m/>[31m
+          [36m<span[31m
+            [33mclass[31m=[32m"flex h-5 items-center justify-center rounded-full bg-white px-3 text-xs font-bold text-meow-deep"[31m
+          [36m>[31m
+            [0mP[0m
+          [36m</span>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"ml-auto flex w-full flex-wrap items-center justify-center gap-3 md:w-auto md:justify-end md:gap-4"[31m
+        [36m>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"relative"[31m
+          [36m>[31m
+            [36m<button[31m
+              [33mclass[31m=[32m"inline-flex items-center gap-1 text-sm font-semibold text-meow-charcoal"[31m
+              [33mtype[31m=[32m"button"[31m
+            [36m>[31m
+              [0mCategorias[0m
+              [36m<svg[31m
+                [33maria-hidden[31m=[32m"true"[31m
+                [33mclass[31m=[32m"lucide lucide-chevron-down"[31m
+                [33mfill[31m=[32m"none"[31m
+                [33mheight[31m=[32m"16"[31m
+                [33mstroke[31m=[32m"currentColor"[31m
+                [33mstroke-linecap[31m=[32m"round"[31m
+                [33mstroke-linejoin[31m=[32m"round"[31m
+                [33mstroke-width[31m=[32m"2"[31m
+                [33mviewBox[31m=[32m"0 0 24 24"[31m
+                [33mwidth[31m=[32m"16"[31m
+                [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+              [36m>[31m
+                [36m<path[31m
+                  [33md[31m=[32m"m6 9 6 6 6-6"[31m
+                [36m/>[31m
+              [36m</svg>[31m
+            [36m</button>[31m
+          [36m</div>[31m
+          [36m<a[31m
+            [33mclass[31m=[32m"rounded-full bg-meow-linear px-5 py-2 text-sm font-bold text-white shadow-[0_14px_28px_rgba(216,107,149,0.35)]"[31m
+            [33mhref[31m=[32m"/anunciar"[31m
+          [36m>[31m
+            [0mCriar anúncio[0m
+          [36m</a>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"relative"[31m
+          [36m>[31m
+            [36m<button[31m
+              [33maria-label[31m=[32m"Carrinho"[31m
+              [33mclass[31m=[32m"relative flex h-10 w-10 items-center justify-center rounded-full border border-meow-red/20 bg-white text-meow-deep"[31m
+              [33mtype[31m=[32m"button"[31m
+            [36m>[31m
+              [36m<svg[31m
+                [33maria-hidden[31m=[32m"true"[31m
+                [33mclass[31m=[32m"lucide lucide-shopping-cart"[31m
+                [33mfill[31m=[32m"none"[31m
+                [33mheight[31m=[32m"18"[31m
+                [33mstroke[31m=[32m"currentColor"[31m
+                [33mstroke-linecap[31m=[32m"round"[31m
+                [33mstroke-linejoin[31m=[32m"round"[31m
+                [33mstroke-width[31m=[32m"2"[31m
+                [33mviewBox[31m=[32m"0 0 24 24"[31m
+                [33mwidth[31m=[32m"18"[31m
+                [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+              [36m>[31m
+                [36m<circle[31m
+                  [33mcx[31m=[32m"8"[31m
+                  [33mcy[31m=[32m"21"[31m
+                  [33mr[31m=[32m"1"[31m
+                [36m/>[31m
+                [36m<circle[31m
+                  [33mcx[31m=[32m"19"[31m
+                  [33mcy[31m=[32m"21"[31m
+                  [33mr[31m=[32m"1"[31m
+                [36m/>[31m
+                [36m<path[31m
+                  [33md[31m=[32m"M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"[31m
+                [36m/>[31m
+              [36m</svg>[31m
+            [36m</button>[31m
+          [36m</div>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"flex items-center gap-2 sm:gap-3"[31m
+          [36m>[31m
+            [36m<a[31m
+              [33mclass[31m=[32m"rounded-full px-3 py-2 text-xs font-bold text-meow-deep hover:bg-meow-red/10 sm:px-4 sm:text-sm"[31m
+              [33mhref[31m=[32m"/login"[31m
+            [36m>[31m
+              [0mEntrar[0m
+            [36m</a>[31m
+            [36m<a[31m
+              [33mclass[31m=[32m"rounded-full bg-meow-linear px-3 py-2 text-xs font-bold text-white shadow-[0_14px_28px_rgba(216,107,149,0.35)] sm:px-5 sm:text-sm"[31m
+              [33mhref[31m=[32m"/register"[31m
+            [36m>[31m
+              [0mCriar conta[0m
+            [36m</a>[31m
+          [36m</div>[31m
+        [36m</div>[31m
+      [36m</div>[31m
+    [36m</header>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+[31m   [31m×[31m SiteHeader[2m > [22mLogged In State (User)[2m > [22mrenders user menu and notifications bell[39m[32m 10[2mms[22m[39m
+[31m     → Found multiple elements with the text: /entrar/i
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<a[31m
+  [33mclass[31m=[32m"rounded-full px-3 py-2 text-xs font-bold text-meow-deep hover:bg-meow-red/10 sm:px-4 sm:text-sm"[31m
+  [33mhref[31m=[32m"/login"[31m
+[36m>[31m
+  [0mEntrar[0m
+[36m</a>[31m
+
+Ignored nodes: comments, script, style
+[36m<a[31m
+  [33mclass[31m=[32m"rounded-full px-3 py-2 text-xs font-bold text-meow-deep hover:bg-meow-red/10 sm:px-4 sm:text-sm"[31m
+  [33mhref[31m=[32m"/login"[31m
+[36m>[31m
+  [0mEntrar[0m
+[36m</a>[31m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m"bg-gradient-to-r from-[#f2a4c3] via-[#f7b8d1] to-[#f2a4c3] text-white"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"relative mx-auto w-full max-w-[1280px] px-6 py-2 text-[11px] font-bold uppercase tracking-[0.6px] flex flex-col items-center gap-2 text-center sm:block"[31m
+      [36m>[31m
+        [36m<span />[31m
+      [36m</div>[31m
+    [36m</div>[31m
+    [36m<header[31m
+      [33mclass[31m=[32m"site-header relative z-40 border-b border-meow-deep/10 bg-white/95 shadow-[0_12px_30px_rgba(240,98,146,0.08)] backdrop-blur"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"mx-auto grid w-full max-w-[1280px] grid-cols-1 items-center gap-4 px-6 py-4 md:grid-cols-[auto_minmax(280px,1fr)_auto] md:gap-6"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"flex justify-center md:justify-start"[31m
+        [36m>[31m
+          [36m<a[31m
+            [33mclass[31m=[32m"flex items-center gap-3"[31m
+            [33mhref[31m=[32m"/"[31m
+          [36m>[31m
+            [36m<img[31m
+              [33malt[31m=[32m"Meoww Games"[31m
+              [33mclass[31m=[32m"h-12 w-auto"[31m
+              [33msrc[31m=[32m"/assets/meoow/logo.png"[31m
+            [36m/>[31m
+          [36m</a>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"flex w-full items-center gap-3 rounded-full border border-meow-red/20 bg-meow-cream/80 px-4 py-2 shadow-[0_10px_24px_rgba(216,107,149,0.12)]"[31m
+        [36m>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"flex h-4 w-4 items-center justify-center"[31m
+          [36m>[31m
+            [36m<svg[31m
+              [33maria-hidden[31m=[32m"true"[31m
+              [33mclass[31m=[32m"lucide lucide-search text-meow-deep"[31m
+              [33mfill[31m=[32m"none"[31m
+              [33mheight[31m=[32m"16"[31m
+              [33mstroke[31m=[32m"currentColor"[31m
+              [33mstroke-linecap[31m=[32m"round"[31m
+              [33mstroke-linejoin[31m=[32m"round"[31m
+              [33mstroke-width[31m=[32m"2"[31m
+              [33mviewBox[31m=[32m"0 0 24 24"[31m
+              [33mwidth[31m=[32m"16"[31m
+              [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+            [36m>[31m
+              [36m<path[31m
+                [33md[31m=[32m"m21 21-4.34-4.34"[31m
+              [36m/>[31m
+              [36m<circle[31m
+                [33mcx[31m=[32m"11"[31m
+                [33mcy[31m=[32m"11"[31m
+                [33mr[31m=[32m"8"[31m
+              [36m/>[31m
+            [36m</svg>[31m
+          [36m</div>[31m
+          [36m<input[31m
+            [33mclass[31m=[32m"flex-1 bg-transparent text-sm text-meow-charcoal outline-none placeholder:text-meow-muted"[31m
+            [33mplaceholder[31m=[32m"Anúncio, usuário ou categoria"[31m
+            [33mtype[31m=[32m"text"[31m
+            [33mvalue[31m=[32m""[31m
+          [36m/>[31m
+          [36m<span[31m
+            [33mclass[31m=[32m"flex h-5 items-center justify-center rounded-full bg-white px-3 text-xs font-bold text-meow-deep"[31m
+          [36m>[31m
+            [0mP[0m
+          [36m</span>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"ml-auto flex w-full flex-wrap items-center justify-center gap-3 md:w-auto md:justify-end md:gap-4"[31m
+        [36m>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"relative"[31m
+          [36m>[31m
+            [36m<button[31m
+              [33mclass[31m=[32m"inline-flex items-center gap-1 text-sm font-semibold text-meow-charcoal"[31m
+              [33mtype[31m=[32m"button"[31m
+            [36m>[31m
+              [0mCategorias[0m
+              [36m<svg[31m
+                [33maria-hidden[31m=[32m"true"[31m
+                [33mclass[31m=[32m"lucide lucide-chevron-down"[31m
+                [33mfill[31m=[32m"none"[31m
+                [33mheight[31m=[32m"16"[31m
+                [33mstroke[31m=[32m"currentColor"[31m
+                [33mstroke-linecap[31m=[32m"round"[31m
+                [33mstroke-linejoin[31m=[32m"round"[31m
+                [33mstroke-width[31m=[32m"2"[31m
+                [33mviewBox[31m=[32m"0 0 24 24"[31m
+                [33mwidth[31m=[32m"16"[31m
+                [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+              [36m>[31m
+                [36m<path[31m
+                  [33md[31m=[32m"m6 9 6 6 6-6"[31m
+                [36m/>[31m
+              [36m</svg>[31m
+            [36m</button>[31m
+          [36m</div>[31m
+          [36m<a[31m
+            [33mclass[31m=[32m"rounded-full bg-meow-linear px-5 py-2 text-sm font-bold text-white shadow-[0_14px_28px_rgba(216,107,149,0.35)]"[31m
+            [33mhref[31m=[32m"/anunciar"[31m
+          [36m>[31m
+            [0mCriar anúncio[0m
+          [36m</a>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"relative"[31m
+          [36m>[31m
+            [36m<button[31m
+              [33maria-label[31m=[32m"Carrinho"[31m
+              [33mclass[31m=[32m"relative flex h-10 w-10 items-center justify-center rounded-full border border-meow-red/20 bg-white text-meow-deep"[31m
+              [33mtype[31m=[32m"button"[31m
+            [36m>[31m
+              [36m<svg[31m
+                [33maria-hidden[31m=[32m"true"[31m
+                [33mclass[31m=[32m"lucide lucide-shopping-cart"[31m
+                [33mfill[31m=[32m"none"[31m
+                [33mheight[31m=[32m"18"[31m
+                [33mstroke[31m=[32m"currentColor"[31m
+                [33mstroke-linecap[31m=[32m"round"[31m
+                [33mstroke-linejoin[31m=[32m"round"[31m
+                [33mstroke-width[31m=[32m"2"[31m
+                [33mviewBox[31m=[32m"0 0 24 24"[31m
+                [33mwidth[31m=[32m"18"[31m
+                [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+              [36m>[31m
+                [36m<circle[31m
+                  [33mcx[31m=[32m"8"[31m
+                  [33mcy[31m=[32m"21"[31m
+                  [33mr[31m=[32m"1"[31m
+                [36m/>[31m
+                [36m<circle[31m
+                  [33mcx[31m=[32m"19"[31m
+                  [33mcy[31m=[32m"21"[31m
+                  [33mr[31m=[32m"1"[31m
+                [36m/>[31m
+                [36m<path[31m
+                  [33md[31m=[32m"M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"[31m
+                [36m/>[31m
+              [36m</svg>[31m
+            [36m</button>[31m
+          [36m</div>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"flex items-center gap-2 sm:gap-3"[31m
+          [36m>[31m
+            [36m...[39m
+[31m   [31m×[31m SiteHeader[2m > [22mLogged In State (User)[2m > [22mopens user menu on click[39m[32m 9[2mms[22m[39m
+[31m     → Found multiple elements with the text of: /menu do usuário/i
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<button[31m
+  [33maria-label[31m=[32m"Menu do usuário"[31m
+  [33mclass[31m=[32m"flex h-10 w-10 items-center justify-center rounded-full border border-meow-red/20 bg-white text-meow-deep"[31m
+  [33mtype[31m=[32m"button"[31m
+[36m>[31m
+  [36m<svg[31m
+    [33maria-hidden[31m=[32m"true"[31m
+    [33mclass[31m=[32m"lucide lucide-menu"[31m
+    [33mfill[31m=[32m"none"[31m
+    [33mheight[31m=[32m"18"[31m
+    [33mstroke[31m=[32m"currentColor"[31m
+    [33mstroke-linecap[31m=[32m"round"[31m
+    [33mstroke-linejoin[31m=[32m"round"[31m
+    [33mstroke-width[31m=[32m"2"[31m
+    [33mviewBox[31m=[32m"0 0 24 24"[31m
+    [33mwidth[31m=[32m"18"[31m
+    [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+  [36m>[31m
+    [36m<path[31m
+      [33md[31m=[32m"M4 12h16"[31m
+    [36m/>[31m
+    [36m<path[31m
+      [33md[31m=[32m"M4 18h16"[31m
+    [36m/>[31m
+    [36m<path[31m
+      [33md[31m=[32m"M4 6h16"[31m
+    [36m/>[31m
+  [36m</svg>[31m
+[36m</button>[31m
+
+Ignored nodes: comments, script, style
+[36m<button[31m
+  [33maria-label[31m=[32m"Menu do usuário"[31m
+  [33mclass[31m=[32m"flex h-10 w-10 items-center justify-center rounded-full border border-meow-red/20 bg-white text-meow-deep"[31m
+  [33mtype[31m=[32m"button"[31m
+[36m>[31m
+  [36m<svg[31m
+    [33maria-hidden[31m=[32m"true"[31m
+    [33mclass[31m=[32m"lucide lucide-menu"[31m
+    [33mfill[31m=[32m"none"[31m
+    [33mheight[31m=[32m"18"[31m
+    [33mstroke[31m=[32m"currentColor"[31m
+    [33mstroke-linecap[31m=[32m"round"[31m
+    [33mstroke-linejoin[31m=[32m"round"[31m
+    [33mstroke-width[31m=[32m"2"[31m
+    [33mviewBox[31m=[32m"0 0 24 24"[31m
+    [33mwidth[31m=[32m"18"[31m
+    [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+  [36m>[31m
+    [36m<path[31m
+      [33md[31m=[32m"M4 12h16"[31m
+    [36m/>[31m
+    [36m<path[31m
+      [33md[31m=[32m"M4 18h16"[31m
+    [36m/>[31m
+    [36m<path[31m
+      [33md[31m=[32m"M4 6h16"[31m
+    [36m/>[31m
+  [36m</svg>[31m
+[36m</button>[31m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m"bg-gradient-to-r from-[#f2a4c3] via-[#f7b8d1] to-[#f2a4c3] text-white"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"relative mx-auto w-full max-w-[1280px] px-6 py-2 text-[11px] font-bold uppercase tracking-[0.6px] flex flex-col items-center gap-2 text-center sm:block"[31m
+      [36m>[31m
+        [36m<span />[31m
+      [36m</div>[31m
+    [36m</div>[31m
+    [36m<header[31m
+      [33mclass[31m=[32m"site-header relative z-40 border-b border-meow-deep/10 bg-white/95 shadow-[0_12px_30px_rgba(240,98,146,0.08)] backdrop-blur"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"mx-auto grid w-full max-w-[1280px] grid-cols-1 items-center gap-4 px-6 py-4 md:grid-cols-[auto_minmax(280px,1fr)_auto] md:gap-6"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"flex justify-center md:justify-start"[31m
+        [36m>[31m
+          [36m<a[31m
+            [33mclass[31m=[32m"flex items-center gap-3"[31m
+            [33mhref[31m=[32m"/"[31m
+          [36m>[31m
+            [36m<img[31m
+              [33malt[31m=[32m"Meoww Games"[31m
+              [33mclass[31m=[32m"h-12 w-auto"[31m
+              [33msrc[31m=[32m"/assets/meoow/logo.png"[31m
+            [36m/>[31m
+          [36m</a>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"flex w-full items-center gap-3 rounded-full border border-meow-red/20 bg-meow-cream/80 px-4 py-2 shadow-[0_10px_24px_rgba(216,107,149,0.12)]"[31m
+        [36m>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"flex h-4 w-4 items-center justify-center"[31m
+          [36m>[31m
+            [36m<svg[31m
+              [33maria-hidden[31m=[32m"true"[31m
+              [33mclass[31m=[32m"lucide lucide-search text-meow-deep"[31m
+              [33mfill[31m=[32m"none"[31m
+              [33mheight[31m=[32m"16"[31m
+              [33mstroke[31m=[32m"currentColor"[31m
+              [33mstroke-linecap[31m=[32m"round"[31m
+              [33mstroke-linejoin[31m=[32m"round"[31m
+              [33mstroke-width[31m=[32m"2"[31m
+              [33mviewBox[31m=[32m"0 0 24 24"[31m
+              [33mwidth[31m=[32m"16"[31m
+              [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+            [36m>[31m
+              [36m<path[31m
+                [33md[31m=[32m"m21 21-4.34-4.34"[31m
+              [36m/>[31m
+              [36m<circle[31m
+                [33mcx[31m=[32m"11"[31m
+                [33mcy[31m=[32m"11"[31m
+                [33mr[31m=[32m"8"[31m
+              [36m/>[31m
+            [36m</svg>[31m
+          [36m</div>[31m
+          [36m<input[31m
+            [33mclass[31m=[32m"flex-1 bg-transparent text-sm text-meow-charcoal outline-none placeholder:text-meow-muted"[31m
+            [33mplaceholder[31m=[32m"Anúncio, usuário ou categoria"[31m
+            [33mtype[31m=[32m"text"[31m
+            [33mvalue[31m=[32m""[31m
+          [36m/>[31m
+          [36m<span[31m
+            [33mclass[31m=[32m"flex h-5 items-center justify-center rounded-full bg-white px-3 text-xs font-bold text-meow-deep"[31m
+          [36m>[31m
+            [0mP[0m
+          [36m</span>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"ml-auto flex w-full flex-wrap items-center justify-center gap-3 md:w-auto md:justify-end md:gap-4"[31m
+        [36m>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"relative"[31m
+          [36m>[31m
+            [36m<button[31m
+              [33mclass[31m=[32m"inline-flex items-center gap-1 text-sm font-semibold text-meow-charcoal"[31m
+              [33mtype[31m=[32m"button"[31m
+            [36m>[31m
+              [0mCategorias[0m
+              [36m<svg[31m
+                [33maria-hidden[31m=[32m"true"[31m
+                [33mclass[31m=[32m"lucide lucide-chevron-down"[31m
+                [33mfill[31m=[32m"none"[31m
+                [33mheight[31m=[32m"16"[31m
+                [33mstroke[31m=[32m"currentColor"[31m
+                [33mstroke-linecap[31m=[32m"round"[31m
+                [33mstroke-linejoin[31m=[32m"round"[31m
+                [33mstroke-width[31m=[32m"2"[31m
+                [33mviewBox[31m=[32m"0 0 24 24"[31m
+                [33mwidth[31m=[32m"16"[31m
+                [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+              [36m>[31m
+                [36m<path[31m
+                  [33md[31m=[32m"m6 9 6 6 6-6"[31m
+                [36m/>[31m
+              [36m</svg>[31m
+            [36m</button>[31m
+          [36m</div>[31m
+          [36m<a[31m
+            [33mclass[31m=[32m"rounded-full bg-meow-linear px-5 py-2 text-sm font-bold text-white shadow-[0_14px_28px_rgba(216,107,149,0.35)]"[31m
+            [33mhref[31m=[32m"/anunciar"[31m
+          [36m>[31m
+            [0mCriar anúncio[0m
+          [36m</a>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"relative"[31m
+          [36m>[31m
+            [36m<button[31m
+              [33maria-label[31m=[32m"Carrinho"[31m
+              [33mclass[31m=[32m"relative flex h-10 w-10 items-center justify-center rounded-full border border-meow-red/20 bg-white text-meow-deep"[31m
+              [33mtype[31m=[32m"button"[31m
+            [36m>[31m
+              [36m<svg[31m
+                [33maria-hidden[31m=[32m"true"[31m
+                [33mclass[31m=[32m"lucide lucide-shopping-cart"[31m
+                [33mfill[31m=[32m"none"[31m
+                [33mheight[31m=[32m"18"[31m
+                [33mstroke[31m=[32m"currentColor"[31m
+                [33mstroke-linecap[31m=[32m"round"[31m
+                [33mstroke-linejoin[31m=[32m"round"[31m
+                [33mstroke-width[31m=[32m"2"[31m
+                [33mviewBox[31m=[32m"0 0 24 24"[31m
+                [33mwidth[31m=[32m"18"[31m
+                [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+              [36m>[31m
+                [36m<circle[31m
+                  [33mcx[31m=[32m"8"[31m
+                  [33mcy[31m=[32m"21"[31m
+                  [33mr[31m=[32m"1"[31m
+                [36m/>[31m
+                [36m<circle[31m
+                  [33mcx[31m=[32m"19"[31m
+                  [33mcy[31m=[32m"21"[31m
+                  [33mr[31m=[32m"1"[31m
+                [36m/>[31m
+                [36m<path[31m
+                  [33md[31m=[32m"M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"[31m
+                [36m/>[31m
+              [36m</svg>[31m
+            [36m</button>[31m
+          [36m</div>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"flex items-center gap-2 sm:gap-3"[31m
+          [36m>[31m
+            [36m...[39m
+[31m   [31m×[31m SiteHeader[2m > [22mLogged In State (Admin)[2m > [22mrenders admin menu item[39m[32m 11[2mms[22m[39m
+[31m     → Found multiple elements with the text of: /menu do usuário/i
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<button[31m
+  [33maria-label[31m=[32m"Menu do usuário"[31m
+  [33mclass[31m=[32m"flex h-10 w-10 items-center justify-center rounded-full border border-meow-red/20 bg-white text-meow-deep"[31m
+  [33mtype[31m=[32m"button"[31m
+[36m>[31m
+  [36m<svg[31m
+    [33maria-hidden[31m=[32m"true"[31m
+    [33mclass[31m=[32m"lucide lucide-menu"[31m
+    [33mfill[31m=[32m"none"[31m
+    [33mheight[31m=[32m"18"[31m
+    [33mstroke[31m=[32m"currentColor"[31m
+    [33mstroke-linecap[31m=[32m"round"[31m
+    [33mstroke-linejoin[31m=[32m"round"[31m
+    [33mstroke-width[31m=[32m"2"[31m
+    [33mviewBox[31m=[32m"0 0 24 24"[31m
+    [33mwidth[31m=[32m"18"[31m
+    [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+  [36m>[31m
+    [36m<path[31m
+      [33md[31m=[32m"M4 12h16"[31m
+    [36m/>[31m
+    [36m<path[31m
+      [33md[31m=[32m"M4 18h16"[31m
+    [36m/>[31m
+    [36m<path[31m
+      [33md[31m=[32m"M4 6h16"[31m
+    [36m/>[31m
+  [36m</svg>[31m
+[36m</button>[31m
+
+Ignored nodes: comments, script, style
+[36m<button[31m
+  [33maria-label[31m=[32m"Menu do usuário"[31m
+  [33mclass[31m=[32m"flex h-10 w-10 items-center justify-center rounded-full border border-meow-red/20 bg-white text-meow-deep"[31m
+  [33mtype[31m=[32m"button"[31m
+[36m>[31m
+  [36m<svg[31m
+    [33maria-hidden[31m=[32m"true"[31m
+    [33mclass[31m=[32m"lucide lucide-menu"[31m
+    [33mfill[31m=[32m"none"[31m
+    [33mheight[31m=[32m"18"[31m
+    [33mstroke[31m=[32m"currentColor"[31m
+    [33mstroke-linecap[31m=[32m"round"[31m
+    [33mstroke-linejoin[31m=[32m"round"[31m
+    [33mstroke-width[31m=[32m"2"[31m
+    [33mviewBox[31m=[32m"0 0 24 24"[31m
+    [33mwidth[31m=[32m"18"[31m
+    [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+  [36m>[31m
+    [36m<path[31m
+      [33md[31m=[32m"M4 12h16"[31m
+    [36m/>[31m
+    [36m<path[31m
+      [33md[31m=[32m"M4 18h16"[31m
+    [36m/>[31m
+    [36m<path[31m
+      [33md[31m=[32m"M4 6h16"[31m
+    [36m/>[31m
+  [36m</svg>[31m
+[36m</button>[31m
+
+Ignored nodes: comments, script, style
+[36m<button[31m
+  [33maria-label[31m=[32m"Menu do usuário"[31m
+  [33mclass[31m=[32m"flex h-10 w-10 items-center justify-center rounded-full border border-meow-red/20 bg-white text-meow-deep"[31m
+  [33mtype[31m=[32m"button"[31m
+[36m>[31m
+  [36m<svg[31m
+    [33maria-hidden[31m=[32m"true"[31m
+    [33mclass[31m=[32m"lucide lucide-menu"[31m
+    [33mfill[31m=[32m"none"[31m
+    [33mheight[31m=[32m"18"[31m
+    [33mstroke[31m=[32m"currentColor"[31m
+    [33mstroke-linecap[31m=[32m"round"[31m
+    [33mstroke-linejoin[31m=[32m"round"[31m
+    [33mstroke-width[31m=[32m"2"[31m
+    [33mviewBox[31m=[32m"0 0 24 24"[31m
+    [33mwidth[31m=[32m"18"[31m
+    [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+  [36m>[31m
+    [36m<path[31m
+      [33md[31m=[32m"M4 12h16"[31m
+    [36m/>[31m
+    [36m<path[31m
+      [33md[31m=[32m"M4 18h16"[31m
+    [36m/>[31m
+    [36m<path[31m
+      [33md[31m=[32m"M4 6h16"[31m
+    [36m/>[31m
+  [36m</svg>[31m
+[36m</button>[31m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m"bg-gradient-to-r from-[#f2a4c3] via-[#f7b8d1] to-[#f2a4c3] text-white"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"relative mx-auto w-full max-w-[1280px] px-6 py-2 text-[11px] font-bold uppercase tracking-[0.6px] flex flex-col items-center gap-2 text-center sm:block"[31m
+      [36m>[31m
+        [36m<span />[31m
+      [36m</div>[31m
+    [36m</div>[31m
+    [36m<header[31m
+      [33mclass[31m=[32m"site-header relative z-40 border-b border-meow-deep/10 bg-white/95 shadow-[0_12px_30px_rgba(240,98,146,0.08)] backdrop-blur"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"mx-auto grid w-full max-w-[1280px] grid-cols-1 items-center gap-4 px-6 py-4 md:grid-cols-[auto_minmax(280px,1fr)_auto] md:gap-6"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"flex justify-center md:justify-start"[31m
+        [36m>[31m
+          [36m<a[31m
+            [33mclass[31m=[32m"flex items-center gap-3"[31m
+            [33mhref[31m=[32m"/"[31m
+          [36m>[31m
+            [36m<img[31m
+              [33malt[31m=[32m"Meoww Games"[31m
+              [33mclass[31m=[32m"h-12 w-auto"[31m
+              [33msrc[31m=[32m"/assets/meoow/logo.png"[31m
+            [36m/>[31m
+          [36m</a>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"flex w-full items-center gap-3 rounded-full border border-meow-red/20 bg-meow-cream/80 px-4 py-2 shadow-[0_10px_24px_rgba(216,107,149,0.12)]"[31m
+        [36m>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"flex h-4 w-4 items-center justify-center"[31m
+          [36m>[31m
+            [36m<svg[31m
+              [33maria-hidden[31m=[32m"true"[31m
+              [33mclass[31m=[32m"lucide lucide-search text-meow-deep"[31m
+              [33mfill[31m=[32m"none"[31m
+              [33mheight[31m=[32m"16"[31m
+              [33mstroke[31m=[32m"currentColor"[31m
+              [33mstroke-linecap[31m=[32m"round"[31m
+              [33mstroke-linejoin[31m=[32m"round"[31m
+              [33mstroke-width[31m=[32m"2"[31m
+              [33mviewBox[31m=[32m"0 0 24 24"[31m
+              [33mwidth[31m=[32m"16"[31m
+              [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+            [36m>[31m
+              [36m<path[31m
+                [33md[31m=[32m"m21 21-4.34-4.34"[31m
+              [36m/>[31m
+              [36m<circle[31m
+                [33mcx[31m=[32m"11"[31m
+                [33mcy[31m=[32m"11"[31m
+                [33mr[31m=[32m"8"[31m
+              [36m/>[31m
+            [36m</svg>[31m
+          [36m</div>[31m
+          [36m<input[31m
+            [33mclass[31m=[32m"flex-1 bg-transparent text-sm text-meow-charcoal outline-none placeholder:text-meow-muted"[31m
+            [33mplaceholder[31m=[32m"Anúncio, usuário ou categoria"[31m
+            [33mtype[31m=[32m"text"[31m
+            [33mvalue[31m=[32m""[31m
+          [36m/>[31m
+          [36m<span[31m
+            [33mclass[31m=[32m"flex h-5 items-center justify-center rounded-full bg-white px-3 text-xs font-bold text-meow-deep"[31m
+          [36m>[31m
+            [0mP[0m
+          [36m</span>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"ml-auto flex w-full flex-wrap items-center justify-center gap-3 md:w-auto md:justify-end md:gap-4"[31m
+        [36m>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"relative"[31m
+          [36m>[31m
+            [36m<button[31m
+              [33mclass[31m=[32m"inline-flex items-center gap-1 text-sm font-semibold text-meow-charcoal"[31m
+              [33mtype[31m=[32m"button"[31m
+            [36m>[31m
+              [0mCategorias[0m
+              [36m<svg[31m
+                [33maria-hidden[31m=[32m"true"[31m
+                [33mclass[31m=[32m"lucide lucide-chevron-down"[31m
+                [33mfill[31m=[32m"none"[31m
+                [33mheight[31m=[32m"16"[31m
+                [33mstroke[31m=[32m"currentColor"[31m
+                [33mstroke-linecap[31m=[32m"round"[31m
+                [33mstroke-linejoin[31m=[32m"round"[31m
+                [33mstroke-width[31m=[32m"2"[31m
+                [33mviewBox[31m=[32m"0 0 24 24"[31m
+                [33mwidth[31m=[32m"16"[31m
+                [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+              [36m>[31m
+                [36m<path[31m
+                  [33md[31m=[32m"m6 9 6 6 6-6"[31m
+                [36m/>[31m
+              [36m</svg>[31m
+            [36m</button>[31m
+          [36m</div>[31m
+          [36m<a[31m
+            [33mclass[31m=[32m"rounded-full bg-meow-linear px-5 py-2 text-sm font-bold text-white shadow-[0_14px_28px_rgba(216,107,149,0.35)]"[31m
+            [33mhref[31m=[32m"/anunciar"[31m
+          [36m>[31m
+            [0mCriar anúncio[0m
+          [36m</a>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"relative"[31m
+          [36m>[31m
+            [36m<button[31m
+              [33maria-label[31m=[32m"Carrinho"[31m
+              [33mclass[31m=[32m"relative flex h-10 w-10 items-center justify-center rounded-full border border-meow-red/20 bg-white text-meow-deep"[31m
+              [33mtype[31m=[32m"button"[31m
+            [36m>[31m
+              [36m<svg[31m
+                [33maria-hidden[31m=[32m"true"[31m
+                [33mclass[31m=[32m"lucide lucide-shopping-cart"[31m
+                [33mfill[31m=[32m"none"[31m
+                [33mheight[31m=[32m"18"[31m
+                [33mstroke[31m=[32m"currentColor"[31m
+                [33mstroke-linecap[31m=[32m"round"[31m
+                [33mstroke-linejoin[31m=[32m"round"[31m
+                [33mstroke-width[31m=[32m"2"[31m
+                [33mviewBox[31m=[32m"0 0 24 24"[31m
+                [33mwidth[31m=[32m"18"[31m
+                [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+              [36m>[31m
+                [36m<circle[31m
+                  [33mcx[31m=[32m"8"[31m
+                  [33mcy[31m=[32m"21"[31m
+                  [33mr[31m=[32m"1"[31m
+                [36m/>[31m
+                [36m<circle[31m
+                  [33mcx[31m=[32m"19"[31m
+                  [33mcy[31m=[32m"21"[31m
+                  [33mr[31m=[32m"1"[31m
+                [36m/>[31m
+                [36m<path[31m
+                  [33md[31m=[32m"M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"[31m
+                [36m/>[31m
+              [36m</svg>[31m
+            [36m</button>[31m
+          [36m</div>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"flex items-center gap-2 sm:gap-3"[31m
+          [36m>[31m
+            [36m...[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 4 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/components/layout/site-header.spec.tsx[2m > [22mSiteHeader[2m > [22mLogged Out State[2m > [22mrenders search bar
+[31m[1mTestingLibraryElementError[22m[39m: Found multiple elements with the placeholder text of: /anúncio, usuário ou categoria/i
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<input[39m
+  [33mclass[39m=[32m"flex-1 bg-transparent text-sm text-meow-charcoal outline-none placeholder:text-meow-muted"[39m
+  [33mplaceholder[39m=[32m"Anúncio, usuário ou categoria"[39m
+  [33mtype[39m=[32m"text"[39m
+  [33mvalue[39m=[32m""[39m
+[36m/>[39m
+
+Ignored nodes: comments, script, style
+[36m<input[39m
+  [33mclass[39m=[32m"flex-1 bg-transparent text-sm text-meow-charcoal outline-none placeholder:text-meow-muted"[39m
+  [33mplaceholder[39m=[32m"Anúncio, usuário ou categoria"[39m
+  [33mtype[39m=[32m"text"[39m
+  [33mvalue[39m=[32m""[39m
+[36m/>[39m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"bg-gradient-to-r from-[#f2a4c3] via-[#f7b8d1] to-[#f2a4c3] text-white"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"relative mx-auto w-full max-w-[1280px] px-6 py-2 text-[11px] font-bold uppercase tracking-[0.6px] flex flex-col items-center gap-2 text-center sm:block"[39m
+      [36m>[39m
+        [36m<span />[39m
+      [36m</div>[39m
+    [36m</div>[39m
+    [36m<header[39m
+      [33mclass[39m=[32m"site-header relative z-40 border-b border-meow-deep/10 bg-white/95 shadow-[0_12px_30px_rgba(240,98,146,0.08)] backdrop-blur"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"mx-auto grid w-full max-w-[1280px] grid-cols-1 items-center gap-4 px-6 py-4 md:grid-cols-[auto_minmax(280px,1fr)_auto] md:gap-6"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex justify-center md:justify-start"[39m
+        [36m>[39m
+          [36m<a[39m
+            [33mclass[39m=[32m"flex items-center gap-3"[39m
+            [33mhref[39m=[32m"/"[39m
+          [36m>[39m
+            [36m<img[39m
+              [33malt[39m=[32m"Meoww Games"[39m
+              [33mclass[39m=[32m"h-12 w-auto"[39m
+              [33msrc[39m=[32m"/assets/meoow/logo.png"[39m
+            [36m/>[39m
+          [36m</a>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex w-full items-center gap-3 rounded-full border border-meow-red/20 bg-meow-cream/80 px-4 py-2 shadow-[0_10px_24px_rgba(216,107,149,0.12)]"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex h-4 w-4 items-center justify-center"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mclass[39m=[32m"lucide lucide-search text-meow-deep"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"16"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"16"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"m21 21-4.34-4.34"[39m
+              [36m/>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"11"[39m
+                [33mcy[39m=[32m"11"[39m
+                [33mr[39m=[32m"8"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</div>[39m
+          [36m<input[39m
+            [33mclass[39m=[32m"flex-1 bg-transparent text-sm text-meow-charcoal outline-none placeholder:text-meow-muted"[39m
+            [33mplaceholder[39m=[32m"Anúncio, usuário ou categoria"[39m
+            [33mtype[39m=[32m"text"[39m
+            [33mvalue[39m=[32m""[39m
+          [36m/>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"flex h-5 items-center justify-center rounded-full bg-white px-3 text-xs font-bold text-meow-deep"[39m
+          [36m>[39m
+            [0mP[0m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"ml-auto flex w-full flex-wrap items-center justify-center gap-3 md:w-auto md:justify-end md:gap-4"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"relative"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"inline-flex items-center gap-1 text-sm font-semibold text-meow-charcoal"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mCategorias[0m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"lucide lucide-chevron-down"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"16"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"16"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"m6 9 6 6 6-6"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<a[39m
+            [33mclass[39m=[32m"rounded-full bg-meow-linear px-5 py-2 text-sm font-bold text-white shadow-[0_14px_28px_rgba(216,107,149,0.35)]"[39m
+            [33mhref[39m=[32m"/anunciar"[39m
+          [36m>[39m
+            [0mCriar anúncio[0m
+          [36m</a>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"relative"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-label[39m=[32m"Carrinho"[39m
+              [33mclass[39m=[32m"relative flex h-10 w-10 items-center justify-center rounded-full border border-meow-red/20 bg-white text-meow-deep"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"lucide lucide-shopping-cart"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"18"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"18"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<circle[39m
+                  [33mcx[39m=[32m"8"[39m
+                  [33mcy[39m=[32m"21"[39m
+                  [33mr[39m=[32m"1"[39m
+                [36m/>[39m
+                [36m<circle[39m
+                  [33mcx[39m=[32m"19"[39m
+                  [33mcy[39m=[32m"21"[39m
+                  [33mr[39m=[32m"1"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-center gap-2 sm:gap-3"[39m
+          [36m>[39m
+            [36m<a[39m
+              [33mclass[39m=[32m"rounded-full px-3 py-2 text-xs font-bold text-meow-deep hover:bg-meow-red/10 sm:px-4 sm:text-sm"[39m
+              [33mhref[39m=[32m"/login"[39m
+            [36m>[39m
+              [0mEntrar[0m
+            [36m</a>[39m
+            [36m<a[39m
+              [33mclass[39m=[32m"rounded-full bg-meow-linear px-3 py-2 text-xs font-bold text-white shadow-[0_14px_28px_rgba(216,107,149,0.35)] sm:px-5 sm:text-sm"[39m
+              [33mhref[39m=[32m"/register"[39m
+            [36m>[39m
+              [0mCriar conta[0m
+            [36m</a>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</header>[39m
+  [36m</div>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"bg-gradient-to-r from-[#f2a4c3] via-[#f7b8d1] to-[#f2a4c3] text-white"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"relative mx-auto w-full max-w-[1280px] px-6 py-2 text-[11px] font-bold uppercase tracking-[0.6px] flex flex-col items-center gap-2 text-center sm:block"[39m
+      [36m>[39m
+        [36m<span />[39m
+      [36m</div>[39m
+    [36m</div>[39m
+    [36m<header[39m
+      [33mclass[39m=[32m"site-header relative z-40 border-b border-meow-deep/10 bg-white/95 shadow-[0_12px_30px_rgba(240,98,146,0.08)] backdrop-blur"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"mx-auto grid w-full max-w-[1280px] grid-cols-1 items-center gap-4 px-6 py-4 md:grid-cols-[auto_minmax(280px,1fr)_auto] md:gap-6"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex justify-center md:justify-start"[39m
+        [36m>[39m
+          [36m<a[39m
+            [33mclass[39m=[32m"flex items-center gap-3"[39m
+            [33mhref[39m=[32m"/"[39m
+          [36m>[39m
+            [36m<img[39m
+              [33malt[39m=[32m"Meoww Games"[39m
+              [33mclass[39m=[32m"h-12 w-auto"[39m
+              [33msrc[39m=[32m"/assets/meoow/logo.png"[39m
+            [36m/>[39m
+          [36m</a>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex w-full items-center gap-3 rounded-full border border-meow-red/20 bg-meow-cream/80 px-4 py-2 shadow-[0_10px_24px_rgba(216,107,149,0.12)]"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex h-4 w-4 items-center justify-center"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mclass[39m=[32m"lucide lucide-search text-meow-deep"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"16"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"16"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"m21 21-4.34-4.34"[39m
+              [36m/>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"11"[39m
+                [33mcy[39m=[32m"11"[39m
+                [33mr[39m=[32m"8"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</div>[39m
+          [36m<input[39m
+            [33mclass[39m=[32m"flex-1 bg-transparent text-sm text-meow-charcoal outline-none placeholder:text-meow-muted"[39m
+            [33mplaceholder[39m=[32m"Anúncio, usuário ou categoria"[39m
+            [33mtype[39m=[32m"text"[39m
+            [33mvalue[39m=[32m""[39m
+          [36m/>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"flex h-5 items-center justify-center rounded-full bg-white px-3 text-xs font-bold text-meow-deep"[39m
+          [36m>[39m
+            [0mP[0m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"ml-auto flex w-full flex-wrap items-center justify-center gap-3 md:w-auto md:justify-end md:gap-4"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"relative"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"inline-flex items-center gap-1 text-sm font-semibold text-meow-charcoal"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mCategorias[0m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"lucide lucide-chevron-down"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"16"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"16"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"m6 9 6 6 6-6"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<a[39m
+            [33mclass[39m=[32m"rounded-full bg-meow-linear px-5 py-2 text-sm font-bold text-white shadow-[0_14px_28px_rgba(216,107,149,0.35)]"[39m
+            [33mhref[39m=[32m"/anunciar"[39m
+          [36m>[39m
+            [0mCriar anúncio[0m
+          [36m</a>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"relative"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-label[39m=[32m"Carrinho"[39m
+              [33mclass[39m=[32m"relative flex h-10 w-10 items-center justify-center rounded-full border border-meow-red/20 bg-white text-meow-deep"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"lucide lucide-shopping-cart"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"18"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"18"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<circle[39m
+                  [33mcx[39m=[32m"8"[39m
+                  [33mcy[39m=[32m"21"[39m
+                  [33mr[39m=[32m"1"[39m
+                [36m/>[39m
+                [36m<circle[39m
+                  [33mcx[39m=[32m"19"[39m
+                  [33mcy[39m=[32m"21"[39m
+                  [33mr[39m=[32m"1"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-center gap-2 sm:gap-3"[39m
+          [36m>[39m
+            [36m<a[39m
+              [33mclass[39m=[32m"rounded-full px-3 py-2 text-xs font-bold text-meow-deep hover:bg-meow-red/10 sm:px-4 sm:text-sm"[39m
+              [33mhref[39m=[32m"/login"[39m
+            [36m>[39m
+              [0mEntrar[0m
+            [36m</a>[39m
+            [36m<a[39m
+              [33mclass[39m=[32m"rounded-full bg-meow-linear px-3 py-2 text-xs font-bold text-white shadow-[0_14px_28px_rgba(216,107,149,0.35)] sm:px-5 sm:text-sm"[39m
+              [33mhref[39m=[32m"/register"[39m
+            [36m>[39m
+              [0mCriar conta[0m
+            [36m</a>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</header>[39m
+  [36m</div>[39m
+[36m</body>[39m
+[90m [2m❯[22m Object.getElementError ../../node_modules/@testing-library/dom/dist/config.js:[2m37:19[22m[39m
+[90m [2m❯[22m getElementError ../../node_modules/@testing-library/dom/dist/query-helpers.js:[2m20:35[22m[39m
+[90m [2m❯[22m getMultipleElementsFoundError ../../node_modules/@testing-library/dom/dist/query-helpers.js:[2m23:10[22m[39m
+[90m [2m❯[22m ../../node_modules/@testing-library/dom/dist/query-helpers.js:[2m55:13[22m[39m
+[90m [2m❯[22m ../../node_modules/@testing-library/dom/dist/query-helpers.js:[2m95:19[22m[39m
+[36m [2m❯[22m src/components/layout/site-header.spec.tsx:[2m68:27[22m[39m
+    [90m 66| [39m        [34mit[39m([32m'renders search bar'[39m[33m,[39m () [33m=>[39m {
+    [90m 67| [39m            [34mrender[39m([33m<[39m[33mSiteHeader[39m [33m/[39m[33m>[39m)[33m;[39m
+    [90m 68| [39m            expect(screen.getByPlaceholderText(/anúncio, usuário ou ca…
+    [90m   | [39m                          [31m^[39m
+    [90m 69| [39m        })[33m;[39m
+    [90m 70| [39m    })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/components/layout/site-header.spec.tsx[2m > [22mSiteHeader[2m > [22mLogged In State (User)[2m > [22mrenders user menu and notifications bell
+[31m[1mTestingLibraryElementError[22m[39m: Found multiple elements with the text: /entrar/i
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<a[39m
+  [33mclass[39m=[32m"rounded-full px-3 py-2 text-xs font-bold text-meow-deep hover:bg-meow-red/10 sm:px-4 sm:text-sm"[39m
+  [33mhref[39m=[32m"/login"[39m
+[36m>[39m
+  [0mEntrar[0m
+[36m</a>[39m
+
+Ignored nodes: comments, script, style
+[36m<a[39m
+  [33mclass[39m=[32m"rounded-full px-3 py-2 text-xs font-bold text-meow-deep hover:bg-meow-red/10 sm:px-4 sm:text-sm"[39m
+  [33mhref[39m=[32m"/login"[39m
+[36m>[39m
+  [0mEntrar[0m
+[36m</a>[39m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"bg-gradient-to-r from-[#f2a4c3] via-[#f7b8d1] to-[#f2a4c3] text-white"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"relative mx-auto w-full max-w-[1280px] px-6 py-2 text-[11px] font-bold uppercase tracking-[0.6px] flex flex-col items-center gap-2 text-center sm:block"[39m
+      [36m>[39m
+        [36m<span />[39m
+      [36m</div>[39m
+    [36m</div>[39m
+    [36m<header[39m
+      [33mclass[39m=[32m"site-header relative z-40 border-b border-meow-deep/10 bg-white/95 shadow-[0_12px_30px_rgba(240,98,146,0.08)] backdrop-blur"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"mx-auto grid w-full max-w-[1280px] grid-cols-1 items-center gap-4 px-6 py-4 md:grid-cols-[auto_minmax(280px,1fr)_auto] md:gap-6"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex justify-center md:justify-start"[39m
+        [36m>[39m
+          [36m<a[39m
+            [33mclass[39m=[32m"flex items-center gap-3"[39m
+            [33mhref[39m=[32m"/"[39m
+          [36m>[39m
+            [36m<img[39m
+              [33malt[39m=[32m"Meoww Games"[39m
+              [33mclass[39m=[32m"h-12 w-auto"[39m
+              [33msrc[39m=[32m"/assets/meoow/logo.png"[39m
+            [36m/>[39m
+          [36m</a>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex w-full items-center gap-3 rounded-full border border-meow-red/20 bg-meow-cream/80 px-4 py-2 shadow-[0_10px_24px_rgba(216,107,149,0.12)]"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex h-4 w-4 items-center justify-center"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mclass[39m=[32m"lucide lucide-search text-meow-deep"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"16"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"16"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"m21 21-4.34-4.34"[39m
+              [36m/>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"11"[39m
+                [33mcy[39m=[32m"11"[39m
+                [33mr[39m=[32m"8"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</div>[39m
+          [36m<input[39m
+            [33mclass[39m=[32m"flex-1 bg-transparent text-sm text-meow-charcoal outline-none placeholder:text-meow-muted"[39m
+            [33mplaceholder[39m=[32m"Anúncio, usuário ou categoria"[39m
+            [33mtype[39m=[32m"text"[39m
+            [33mvalue[39m=[32m""[39m
+          [36m/>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"flex h-5 items-center justify-center rounded-full bg-white px-3 text-xs font-bold text-meow-deep"[39m
+          [36m>[39m
+            [0mP[0m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"ml-auto flex w-full flex-wrap items-center justify-center gap-3 md:w-auto md:justify-end md:gap-4"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"relative"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"inline-flex items-center gap-1 text-sm font-semibold text-meow-charcoal"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mCategorias[0m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"lucide lucide-chevron-down"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"16"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"16"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"m6 9 6 6 6-6"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<a[39m
+            [33mclass[39m=[32m"rounded-full bg-meow-linear px-5 py-2 text-sm font-bold text-white shadow-[0_14px_28px_rgba(216,107,149,0.35)]"[39m
+            [33mhref[39m=[32m"/anunciar"[39m
+          [36m>[39m
+            [0mCriar anúncio[0m
+          [36m</a>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"relative"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-label[39m=[32m"Carrinho"[39m
+              [33mclass[39m=[32m"relative flex h-10 w-10 items-center justify-center rounded-full border border-meow-red/20 bg-white text-meow-deep"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"lucide lucide-shopping-cart"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"18"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"18"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<circle[39m
+                  [33mcx[39m=[32m"8"[39m
+                  [33mcy[39m=[32m"21"[39m
+                  [33mr[39m=[32m"1"[39m
+                [36m/>[39m
+                [36m<circle[39m
+                  [33mcx[39m=[32m"19"[39m
+                  [33mcy[39m=[32m"21"[39m
+                  [33mr[39m=[32m"1"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-center gap-2 sm:gap-3"[39m
+          [36m>[39m
+            [36m...
+[90m [2m❯[22m Object.getElementError ../../node_modules/@testing-library/dom/dist/config.js:[2m37:19[22m[39m
+[90m [2m❯[22m getElementError ../../node_modules/@testing-library/dom/dist/query-helpers.js:[2m20:35[22m[39m
+[90m [2m❯[22m getMultipleElementsFoundError ../../node_modules/@testing-library/dom/dist/query-helpers.js:[2m23:10[22m[39m
+[90m [2m❯[22m ../../node_modules/@testing-library/dom/dist/query-helpers.js:[2m55:13[22m[39m
+[90m [2m❯[22m ../../node_modules/@testing-library/dom/dist/query-helpers.js:[2m95:19[22m[39m
+[36m [2m❯[22m src/components/layout/site-header.spec.tsx:[2m86:27[22m[39m
+    [90m 84| [39m            expect(screen.getByLabelText(/menu do usuário/i)).toBeInTh…
+    [90m 85| [39m            expect(screen.getByLabelText(/notificacoes/i)).toBeInTheDo…
+    [90m 86| [39m            expect(screen.queryByText(/entrar/i)).not.toBeInTheDocumen…
+    [90m   | [39m                          [31m^[39m
+    [90m 87| [39m        })[33m;[39m
+    [90m 88| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/components/layout/site-header.spec.tsx[2m > [22mSiteHeader[2m > [22mLogged In State (User)[2m > [22mopens user menu on click
+[31m[1mTestingLibraryElementError[22m[39m: Found multiple elements with the text of: /menu do usuário/i
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33maria-label[39m=[32m"Menu do usuário"[39m
+  [33mclass[39m=[32m"flex h-10 w-10 items-center justify-center rounded-full border border-meow-red/20 bg-white text-meow-deep"[39m
+  [33mtype[39m=[32m"button"[39m
+[36m>[39m
+  [36m<svg[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"lucide lucide-menu"[39m
+    [33mfill[39m=[32m"none"[39m
+    [33mheight[39m=[32m"18"[39m
+    [33mstroke[39m=[32m"currentColor"[39m
+    [33mstroke-linecap[39m=[32m"round"[39m
+    [33mstroke-linejoin[39m=[32m"round"[39m
+    [33mstroke-width[39m=[32m"2"[39m
+    [33mviewBox[39m=[32m"0 0 24 24"[39m
+    [33mwidth[39m=[32m"18"[39m
+    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+  [36m>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M4 12h16"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M4 18h16"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M4 6h16"[39m
+    [36m/>[39m
+  [36m</svg>[39m
+[36m</button>[39m
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33maria-label[39m=[32m"Menu do usuário"[39m
+  [33mclass[39m=[32m"flex h-10 w-10 items-center justify-center rounded-full border border-meow-red/20 bg-white text-meow-deep"[39m
+  [33mtype[39m=[32m"button"[39m
+[36m>[39m
+  [36m<svg[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"lucide lucide-menu"[39m
+    [33mfill[39m=[32m"none"[39m
+    [33mheight[39m=[32m"18"[39m
+    [33mstroke[39m=[32m"currentColor"[39m
+    [33mstroke-linecap[39m=[32m"round"[39m
+    [33mstroke-linejoin[39m=[32m"round"[39m
+    [33mstroke-width[39m=[32m"2"[39m
+    [33mviewBox[39m=[32m"0 0 24 24"[39m
+    [33mwidth[39m=[32m"18"[39m
+    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+  [36m>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M4 12h16"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M4 18h16"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M4 6h16"[39m
+    [36m/>[39m
+  [36m</svg>[39m
+[36m</button>[39m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"bg-gradient-to-r from-[#f2a4c3] via-[#f7b8d1] to-[#f2a4c3] text-white"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"relative mx-auto w-full max-w-[1280px] px-6 py-2 text-[11px] font-bold uppercase tracking-[0.6px] flex flex-col items-center gap-2 text-center sm:block"[39m
+      [36m>[39m
+        [36m<span />[39m
+      [36m</div>[39m
+    [36m</div>[39m
+    [36m<header[39m
+      [33mclass[39m=[32m"site-header relative z-40 border-b border-meow-deep/10 bg-white/95 shadow-[0_12px_30px_rgba(240,98,146,0.08)] backdrop-blur"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"mx-auto grid w-full max-w-[1280px] grid-cols-1 items-center gap-4 px-6 py-4 md:grid-cols-[auto_minmax(280px,1fr)_auto] md:gap-6"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex justify-center md:justify-start"[39m
+        [36m>[39m
+          [36m<a[39m
+            [33mclass[39m=[32m"flex items-center gap-3"[39m
+            [33mhref[39m=[32m"/"[39m
+          [36m>[39m
+            [36m<img[39m
+              [33malt[39m=[32m"Meoww Games"[39m
+              [33mclass[39m=[32m"h-12 w-auto"[39m
+              [33msrc[39m=[32m"/assets/meoow/logo.png"[39m
+            [36m/>[39m
+          [36m</a>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex w-full items-center gap-3 rounded-full border border-meow-red/20 bg-meow-cream/80 px-4 py-2 shadow-[0_10px_24px_rgba(216,107,149,0.12)]"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex h-4 w-4 items-center justify-center"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mclass[39m=[32m"lucide lucide-search text-meow-deep"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"16"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"16"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"m21 21-4.34-4.34"[39m
+              [36m/>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"11"[39m
+                [33mcy[39m=[32m"11"[39m
+                [33mr[39m=[32m"8"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</div>[39m
+          [36m<input[39m
+            [33mclass[39m=[32m"flex-1 bg-transparent text-sm text-meow-charcoal outline-none placeholder:text-meow-muted"[39m
+            [33mplaceholder[39m=[32m"Anúncio, usuário ou categoria"[39m
+            [33mtype[39m=[32m"text"[39m
+            [33mvalue[39m=[32m""[39m
+          [36m/>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"flex h-5 items-center justify-center rounded-full bg-white px-3 text-xs font-bold text-meow-deep"[39m
+          [36m>[39m
+            [0mP[0m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"ml-auto flex w-full flex-wrap items-center justify-center gap-3 md:w-auto md:justify-end md:gap-4"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"relative"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"inline-flex items-center gap-1 text-sm font-semibold text-meow-charcoal"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mCategorias[0m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"lucide lucide-chevron-down"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"16"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"16"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"m6 9 6 6 6-6"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<a[39m
+            [33mclass[39m=[32m"rounded-full bg-meow-linear px-5 py-2 text-sm font-bold text-white shadow-[0_14px_28px_rgba(216,107,149,0.35)]"[39m
+            [33mhref[39m=[32m"/anunciar"[39m
+          [36m>[39m
+            [0mCriar anúncio[0m
+          [36m</a>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"relative"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-label[39m=[32m"Carrinho"[39m
+              [33mclass[39m=[32m"relative flex h-10 w-10 items-center justify-center rounded-full border border-meow-red/20 bg-white text-meow-deep"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"lucide lucide-shopping-cart"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"18"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"18"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<circle[39m
+                  [33mcx[39m=[32m"8"[39m
+                  [33mcy[39m=[32m"21"[39m
+                  [33mr[39m=[32m"1"[39m
+                [36m/>[39m
+                [36m<circle[39m
+                  [33mcx[39m=[32m"19"[39m
+                  [33mcy[39m=[32m"21"[39m
+                  [33mr[39m=[32m"1"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-center gap-2 sm:gap-3"[39m
+          [36m>[39m
+            [36m...
+[90m [2m❯[22m Object.getElementError ../../node_modules/@testing-library/dom/dist/config.js:[2m37:19[22m[39m
+[90m [2m❯[22m getElementError ../../node_modules/@testing-library/dom/dist/query-helpers.js:[2m20:35[22m[39m
+[90m [2m❯[22m getMultipleElementsFoundError ../../node_modules/@testing-library/dom/dist/query-helpers.js:[2m23:10[22m[39m
+[90m [2m❯[22m ../../node_modules/@testing-library/dom/dist/query-helpers.js:[2m55:13[22m[39m
+[90m [2m❯[22m ../../node_modules/@testing-library/dom/dist/query-helpers.js:[2m95:19[22m[39m
+[36m [2m❯[22m src/components/layout/site-header.spec.tsx:[2m92:39[22m[39m
+    [90m 90| [39m            [34mrender[39m([33m<[39m[33mSiteHeader[39m [33m/[39m[33m>[39m)[33m;[39m
+    [90m 91| [39m
+    [90m 92| [39m            const menuButton = screen.getByLabelText(/menu do usuário/…
+    [90m   | [39m                                      [31m^[39m
+    [90m 93| [39m            fireEvent[33m.[39m[34mclick[39m(menuButton)[33m;[39m
+    [90m 94| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/components/layout/site-header.spec.tsx[2m > [22mSiteHeader[2m > [22mLogged In State (Admin)[2m > [22mrenders admin menu item
+[31m[1mTestingLibraryElementError[22m[39m: Found multiple elements with the text of: /menu do usuário/i
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33maria-label[39m=[32m"Menu do usuário"[39m
+  [33mclass[39m=[32m"flex h-10 w-10 items-center justify-center rounded-full border border-meow-red/20 bg-white text-meow-deep"[39m
+  [33mtype[39m=[32m"button"[39m
+[36m>[39m
+  [36m<svg[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"lucide lucide-menu"[39m
+    [33mfill[39m=[32m"none"[39m
+    [33mheight[39m=[32m"18"[39m
+    [33mstroke[39m=[32m"currentColor"[39m
+    [33mstroke-linecap[39m=[32m"round"[39m
+    [33mstroke-linejoin[39m=[32m"round"[39m
+    [33mstroke-width[39m=[32m"2"[39m
+    [33mviewBox[39m=[32m"0 0 24 24"[39m
+    [33mwidth[39m=[32m"18"[39m
+    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+  [36m>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M4 12h16"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M4 18h16"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M4 6h16"[39m
+    [36m/>[39m
+  [36m</svg>[39m
+[36m</button>[39m
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33maria-label[39m=[32m"Menu do usuário"[39m
+  [33mclass[39m=[32m"flex h-10 w-10 items-center justify-center rounded-full border border-meow-red/20 bg-white text-meow-deep"[39m
+  [33mtype[39m=[32m"button"[39m
+[36m>[39m
+  [36m<svg[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"lucide lucide-menu"[39m
+    [33mfill[39m=[32m"none"[39m
+    [33mheight[39m=[32m"18"[39m
+    [33mstroke[39m=[32m"currentColor"[39m
+    [33mstroke-linecap[39m=[32m"round"[39m
+    [33mstroke-linejoin[39m=[32m"round"[39m
+    [33mstroke-width[39m=[32m"2"[39m
+    [33mviewBox[39m=[32m"0 0 24 24"[39m
+    [33mwidth[39m=[32m"18"[39m
+    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+  [36m>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M4 12h16"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M4 18h16"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M4 6h16"[39m
+    [36m/>[39m
+  [36m</svg>[39m
+[36m</button>[39m
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33maria-label[39m=[32m"Menu do usuário"[39m
+  [33mclass[39m=[32m"flex h-10 w-10 items-center justify-center rounded-full border border-meow-red/20 bg-white text-meow-deep"[39m
+  [33mtype[39m=[32m"button"[39m
+[36m>[39m
+  [36m<svg[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"lucide lucide-menu"[39m
+    [33mfill[39m=[32m"none"[39m
+    [33mheight[39m=[32m"18"[39m
+    [33mstroke[39m=[32m"currentColor"[39m
+    [33mstroke-linecap[39m=[32m"round"[39m
+    [33mstroke-linejoin[39m=[32m"round"[39m
+    [33mstroke-width[39m=[32m"2"[39m
+    [33mviewBox[39m=[32m"0 0 24 24"[39m
+    [33mwidth[39m=[32m"18"[39m
+    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+  [36m>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M4 12h16"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M4 18h16"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M4 6h16"[39m
+    [36m/>[39m
+  [36m</svg>[39m
+[36m</button>[39m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"bg-gradient-to-r from-[#f2a4c3] via-[#f7b8d1] to-[#f2a4c3] text-white"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"relative mx-auto w-full max-w-[1280px] px-6 py-2 text-[11px] font-bold uppercase tracking-[0.6px] flex flex-col items-center gap-2 text-center sm:block"[39m
+      [36m>[39m
+        [36m<span />[39m
+      [36m</div>[39m
+    [36m</div>[39m
+    [36m<header[39m
+      [33mclass[39m=[32m"site-header relative z-40 border-b border-meow-deep/10 bg-white/95 shadow-[0_12px_30px_rgba(240,98,146,0.08)] backdrop-blur"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"mx-auto grid w-full max-w-[1280px] grid-cols-1 items-center gap-4 px-6 py-4 md:grid-cols-[auto_minmax(280px,1fr)_auto] md:gap-6"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex justify-center md:justify-start"[39m
+        [36m>[39m
+          [36m<a[39m
+            [33mclass[39m=[32m"flex items-center gap-3"[39m
+            [33mhref[39m=[32m"/"[39m
+          [36m>[39m
+            [36m<img[39m
+              [33malt[39m=[32m"Meoww Games"[39m
+              [33mclass[39m=[32m"h-12 w-auto"[39m
+              [33msrc[39m=[32m"/assets/meoow/logo.png"[39m
+            [36m/>[39m
+          [36m</a>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex w-full items-center gap-3 rounded-full border border-meow-red/20 bg-meow-cream/80 px-4 py-2 shadow-[0_10px_24px_rgba(216,107,149,0.12)]"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex h-4 w-4 items-center justify-center"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mclass[39m=[32m"lucide lucide-search text-meow-deep"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"16"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"16"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"m21 21-4.34-4.34"[39m
+              [36m/>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"11"[39m
+                [33mcy[39m=[32m"11"[39m
+                [33mr[39m=[32m"8"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</div>[39m
+          [36m<input[39m
+            [33mclass[39m=[32m"flex-1 bg-transparent text-sm text-meow-charcoal outline-none placeholder:text-meow-muted"[39m
+            [33mplaceholder[39m=[32m"Anúncio, usuário ou categoria"[39m
+            [33mtype[39m=[32m"text"[39m
+            [33mvalue[39m=[32m""[39m
+          [36m/>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"flex h-5 items-center justify-center rounded-full bg-white px-3 text-xs font-bold text-meow-deep"[39m
+          [36m>[39m
+            [0mP[0m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"ml-auto flex w-full flex-wrap items-center justify-center gap-3 md:w-auto md:justify-end md:gap-4"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"relative"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"inline-flex items-center gap-1 text-sm font-semibold text-meow-charcoal"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mCategorias[0m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"lucide lucide-chevron-down"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"16"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"16"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"m6 9 6 6 6-6"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<a[39m
+            [33mclass[39m=[32m"rounded-full bg-meow-linear px-5 py-2 text-sm font-bold text-white shadow-[0_14px_28px_rgba(216,107,149,0.35)]"[39m
+            [33mhref[39m=[32m"/anunciar"[39m
+          [36m>[39m
+            [0mCriar anúncio[0m
+          [36m</a>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"relative"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-label[39m=[32m"Carrinho"[39m
+              [33mclass[39m=[32m"relative flex h-10 w-10 items-center justify-center rounded-full border border-meow-red/20 bg-white text-meow-deep"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"lucide lucide-shopping-cart"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"18"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"18"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<circle[39m
+                  [33mcx[39m=[32m"8"[39m
+                  [33mcy[39m=[32m"21"[39m
+                  [33mr[39m=[32m"1"[39m
+                [36m/>[39m
+                [36m<circle[39m
+                  [33mcx[39m=[32m"19"[39m
+                  [33mcy[39m=[32m"21"[39m
+                  [33mr[39m=[32m"1"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-center gap-2 sm:gap-3"[39m
+          [36m>[39m
+            [36m...
+[90m [2m❯[22m Object.getElementError ../../node_modules/@testing-library/dom/dist/config.js:[2m37:19[22m[39m
+[90m [2m❯[22m getElementError ../../node_modules/@testing-library/dom/dist/query-helpers.js:[2m20:35[22m[39m
+[90m [2m❯[22m getMultipleElementsFoundError ../../node_modules/@testing-library/dom/dist/query-helpers.js:[2m23:10[22m[39m
+[90m [2m❯[22m ../../node_modules/@testing-library/dom/dist/query-helpers.js:[2m55:13[22m[39m
+[90m [2m❯[22m ../../node_modules/@testing-library/dom/dist/query-helpers.js:[2m95:19[22m[39m
+[36m [2m❯[22m src/components/layout/site-header.spec.tsx:[2m116:39[22m[39m
+    [90m114| [39m            [34mrender[39m([33m<[39m[33mSiteHeader[39m [33m/[39m[33m>[39m)[33m;[39m
+    [90m115| [39m
+    [90m116| [39m            const menuButton = screen.getByLabelText(/menu do usuário/…
+    [90m   | [39m                                      [31m^[39m
+    [90m117| [39m            fireEvent[33m.[39m[34mclick[39m(menuButton)[33m;[39m
+    [90m118| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m4 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (5)[39m
+[2m   Start at [22m 07:41:57
+[2m   Duration [22m 1.59s[2m (transform 91ms, setup 93ms, collect 275ms, tests 84ms, environment 494ms, prepare 89ms)[22m
+
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path C:\projetos\projeto-g2g\apps\web
+npm error workspace web@0.1.0
+npm error location C:\projetos\projeto-g2g\apps\web
+npm error command failed
+npm error command C:\Windows\system32\cmd.exe /d /s /c vitest run site-header.spec.tsx
