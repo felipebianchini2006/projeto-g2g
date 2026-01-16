@@ -42,11 +42,25 @@ const formatCurrency = (value: number, currency = 'BRL') =>
     maximumFractionDigits: 2,
   }).format(value / 100);
 
-export const AdminListingsContent = () => {
+type AdminListingsContentProps = {
+  initialStatusFilter?: AdminListingStatus | 'all';
+  lockedStatusFilter?: boolean;
+  pageTitle?: string;
+  pageDescription?: string;
+  hideCreateForm?: boolean;
+};
+
+export const AdminListingsContent = ({
+  initialStatusFilter = 'PENDING',
+  lockedStatusFilter = false,
+  pageTitle = 'Moderação de Anúncios',
+  pageDescription = 'Gerencie anúncios: aprovar, rejeitar e suspender.',
+  hideCreateForm = false,
+}: AdminListingsContentProps) => {
   const { user, accessToken, loading } = useAuth();
   const [listings, setListings] = useState<AdminListing[]>([]);
   const [selectedListing, setSelectedListing] = useState<AdminListing | null>(null);
-  const [statusFilter, setStatusFilter] = useState<AdminListingStatus | 'all'>('PENDING');
+  const [statusFilter, setStatusFilter] = useState<AdminListingStatus | 'all'>(initialStatusFilter);
   const [actionReason, setActionReason] = useState('');
   const [reserveQty, setReserveQty] = useState(1);
   const [categories, setCategories] = useState<CatalogCategory[]>([]);
@@ -593,9 +607,9 @@ export const AdminListingsContent = () => {
       <div className="rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-xl font-black text-meow-charcoal">Moderação de anúncios</h1>
+            <h1 className="text-xl font-black text-meow-charcoal">{pageTitle}</h1>
             <p className="mt-2 text-sm text-meow-muted">
-              Avalie anúncios pendentes e aplique ajustes.
+              {pageDescription}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -613,7 +627,7 @@ export const AdminListingsContent = () => {
       {error ? <div className="state-card error">{error}</div> : null}
       {notice ? <div className="state-card success">{notice}</div> : null}
 
-      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
+      {!hideCreateForm ? (<div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
         <div className="panel-header">
           <h2>Criar anúncio (admin)</h2>
         </div>
@@ -861,7 +875,7 @@ export const AdminListingsContent = () => {
             {busyAction === 'create' ? 'Criando...' : 'Criar anúncio'}
           </button>
         </div>
-      </div>
+      </div>) : null}
 
       <div className="admin-listings-grid">
         <div className="order-card">
@@ -875,6 +889,7 @@ export const AdminListingsContent = () => {
                 onChange={(event) =>
                   setStatusFilter(event.target.value as AdminListingStatus | 'all')
                 }
+                disabled={lockedStatusFilter}
               >
                 <option value="all">Todos</option>
                 <option value="PENDING">Pendentes</option>
