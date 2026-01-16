@@ -120,7 +120,7 @@ export const NotificationsBell = () => {
   }
 
   return (
-    <div className="notifications-bell" ref={panelRef}>
+    <div className="notifications-bell" ref={panelRef} data-testid="notifications-bell">
       <button
         className="notifications-trigger"
         type="button"

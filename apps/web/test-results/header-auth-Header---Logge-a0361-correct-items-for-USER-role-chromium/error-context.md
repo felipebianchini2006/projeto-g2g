@@ -1,0 +1,190 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - link "Meoww Games" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img "Meoww Games" [ref=e8]
+      - generic [ref=e9]:
+        - img [ref=e11]
+        - textbox "Anúncio, usuário ou categoria" [ref=e14]
+        - generic [ref=e15]: P
+      - generic [ref=e16]:
+        - button "Categorias" [ref=e18] [cursor=pointer]:
+          - text: Categorias
+          - img [ref=e19]
+        - link "Criar anúncio" [ref=e21] [cursor=pointer]:
+          - /url: /anunciar
+        - button "Carrinho" [ref=e23] [cursor=pointer]:
+          - img [ref=e24]
+        - generic [ref=e28]:
+          - link "Entrar" [ref=e29] [cursor=pointer]:
+            - /url: /login
+          - link "Criar conta" [ref=e30] [cursor=pointer]:
+            - /url: /register
+  - main [ref=e31]:
+    - generic [ref=e32]:
+      - img "Personagens em destaque" [ref=e37]
+      - generic [ref=e41]:
+        - generic [ref=e42]:
+          - img [ref=e44]
+          - generic [ref=e49]:
+            - paragraph [ref=e50]: Entrega garantida ou seu dinheiro de volta
+            - paragraph [ref=e51]: Sua compra protegida do início ao fim
+        - generic [ref=e52]:
+          - img [ref=e54]
+          - generic [ref=e57]:
+            - paragraph [ref=e58]: "Segurança: site totalmente seguro"
+            - paragraph [ref=e59]: Ambiente certificado e dados protegidos
+        - generic [ref=e60]:
+          - img [ref=e62]
+          - generic [ref=e66]:
+            - paragraph [ref=e67]: "Entrega virtual: receba sem sair de casa"
+            - paragraph [ref=e68]: Mais comodidade para você
+        - generic [ref=e69]:
+          - img [ref=e71]
+          - generic [ref=e73]:
+            - paragraph [ref=e74]: Pague com cartão em até 12x sem juros
+            - paragraph [ref=e75]: Parcelamento fácil
+      - generic [ref=e77]:
+        - generic [ref=e78]:
+          - heading "Qual deles tem o seu coracao?" [level=2] [ref=e79]
+          - generic [ref=e80]:
+            - button "Voltar" [ref=e81] [cursor=pointer]:
+              - img [ref=e82]
+            - button "Avancar" [ref=e84] [cursor=pointer]:
+              - img [ref=e85]
+        - generic [ref=e87]:
+          - generic [ref=e88]:
+            - generic [ref=e89]: C
+            - generic [ref=e90]: Colecionaveis
+          - generic [ref=e91]:
+            - generic [ref=e92]: C
+            - generic [ref=e93]: Consoles
+          - generic [ref=e94]:
+            - generic [ref=e95]: "N"
+            - generic [ref=e96]: NINTENDO
+          - generic [ref=e97]:
+            - generic [ref=e98]: P
+            - generic [ref=e99]: Perifericos
+      - generic [ref=e101]:
+        - generic [ref=e102]:
+          - heading "Destaques" [level=2] [ref=e103]
+          - generic [ref=e104]:
+            - button "Voltar" [ref=e105] [cursor=pointer]:
+              - img [ref=e106]
+            - button "Avancar" [ref=e108] [cursor=pointer]:
+              - img [ref=e109]
+        - generic [ref=e111]: Nenhum destaque disponivel no momento.
+      - generic [ref=e116]:
+        - generic [ref=e117]:
+          - heading "Imperdiveis" [level=2] [ref=e118]
+          - generic [ref=e119]:
+            - button "Voltar" [ref=e120] [cursor=pointer]:
+              - img [ref=e121]
+            - button "Avancar" [ref=e123] [cursor=pointer]:
+              - img [ref=e124]
+        - generic [ref=e126]: Nenhum item imperdivel no momento.
+      - generic [ref=e129]:
+        - link "Categoria Xbox Ver ofertas" [ref=e130] [cursor=pointer]:
+          - /url: /produtos?category=xbox
+          - generic [ref=e132]:
+            - text: Categoria
+            - heading "Xbox" [level=3] [ref=e133]
+          - generic [ref=e134]: Ver ofertas
+        - link "Categoria PlayStation Ver ofertas" [ref=e135] [cursor=pointer]:
+          - /url: /produtos?category=playstation
+          - generic [ref=e137]:
+            - text: Categoria
+            - heading "PlayStation" [level=3] [ref=e138]
+          - generic [ref=e139]: Ver ofertas
+        - link "Categoria Nintendo Ver ofertas" [ref=e140] [cursor=pointer]:
+          - /url: /produtos?category=nintendo
+          - generic [ref=e142]:
+            - text: Categoria
+            - heading "Nintendo" [level=3] [ref=e143]
+          - generic [ref=e144]: Ver ofertas
+        - link "Categoria WhatsApp Ver ofertas" [ref=e145] [cursor=pointer]:
+          - /url: /conta/ajuda
+          - generic [ref=e147]:
+            - text: Categoria
+            - heading "WhatsApp" [level=3] [ref=e148]
+          - generic [ref=e149]: Ver ofertas
+  - contentinfo [ref=e150]:
+    - generic [ref=e151]:
+      - generic [ref=e152]:
+        - generic [ref=e153]:
+          - generic [ref=e154]:
+            - img "Meoww" [ref=e156]
+            - generic [ref=e157]:
+              - generic [ref=e158]: Meoww Games
+              - text: A casa gamer dos gatinhos
+          - paragraph [ref=e159]: A loja gamer com curadoria felina. Consoles, jogos e colecionaveis com entrega rápida e segura.
+          - generic [ref=e160]:
+            - link "Facebook" [ref=e161] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e162]
+            - link "Instagram" [ref=e164] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e165]
+            - link "YouTube" [ref=e168] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e169]
+            - link "TikTok" [ref=e172] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e173]
+        - generic [ref=e176]:
+          - heading "Institucional" [level=4] [ref=e177]
+          - list [ref=e178]:
+            - listitem [ref=e179]:
+              - link "Sobre nos" [ref=e180] [cursor=pointer]:
+                - /url: /institucional/sobre
+            - listitem [ref=e181]:
+              - link "Contato" [ref=e182] [cursor=pointer]:
+                - /url: /institucional/contato
+            - listitem [ref=e183]:
+              - link "Politica de privacidade" [ref=e184] [cursor=pointer]:
+                - /url: /institucional/privacidade
+            - listitem [ref=e185]:
+              - link "Termos de uso" [ref=e186] [cursor=pointer]:
+                - /url: /institucional/termos
+        - generic [ref=e187]:
+          - heading "Categorias" [level=4] [ref=e188]
+          - list [ref=e189]:
+            - listitem [ref=e190]:
+              - link "Consoles" [ref=e191] [cursor=pointer]:
+                - /url: /categoria/consoles
+            - listitem [ref=e192]:
+              - link "Perifericos" [ref=e193] [cursor=pointer]:
+                - /url: /categoria/perifericos
+            - listitem [ref=e194]:
+              - link "Colecionaveis" [ref=e195] [cursor=pointer]:
+                - /url: /categoria/colecionaveis
+            - listitem [ref=e196]:
+              - link "Gift Cards" [ref=e197] [cursor=pointer]:
+                - /url: /categoria/gift-cards
+        - generic [ref=e198]:
+          - heading "Ajuda" [level=4] [ref=e199]
+          - list [ref=e200]:
+            - listitem [ref=e201]:
+              - link "Central de ajuda" [ref=e202] [cursor=pointer]:
+                - /url: /ajuda/central
+            - listitem [ref=e203]:
+              - link "Como comprar" [ref=e204] [cursor=pointer]:
+                - /url: /ajuda/como-comprar
+            - listitem [ref=e205]:
+              - link "Formas de pagamento" [ref=e206] [cursor=pointer]:
+                - /url: /ajuda/pagamentos
+            - listitem [ref=e207]:
+              - link "Trocas e devolucoes" [ref=e208] [cursor=pointer]:
+                - /url: /ajuda/trocas
+      - generic [ref=e209]: © 2025 Meoww Games. Todos os direitos reservados.
+  - link "Abrir chat de suporte" [ref=e210] [cursor=pointer]:
+    - /url: /conta/ajuda/chat
+    - img [ref=e211]
+  - button "Open Next.js Dev Tools" [ref=e218] [cursor=pointer]:
+    - img [ref=e219]
+  - alert [ref=e222]
+```

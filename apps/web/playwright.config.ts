@@ -17,17 +17,39 @@ export default defineConfig({
     video: 'retain-on-failure',
   },
   projects: [
+    // Auth setup projects
+    {
+      name: 'setup-admin',
+      testMatch: /auth\.setup\.ts/,
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'setup-seller',
+      testMatch: /seller\.setup\.ts/,
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'setup-user',
+      testMatch: /user\.setup\.ts/,
+      use: { ...devices['Desktop Chrome'] },
+    },
+    // Main test projects
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+      },
+      dependencies: ['setup-admin', 'setup-seller', 'setup-user'],
     },
     {
       name: 'Mobile Chrome',
       use: { ...devices['Pixel 5'] },
+      dependencies: ['setup-admin', 'setup-seller', 'setup-user'],
     },
     {
       name: 'Mobile Safari',
       use: { ...devices['iPhone 13'] },
+      dependencies: ['setup-admin', 'setup-seller', 'setup-user'],
     },
   ],
 });

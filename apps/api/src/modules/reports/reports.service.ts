@@ -117,14 +117,14 @@ export class ReportsService {
         };
 
         if (dto.status !== undefined) {
-            data.status = dto.status;
+            data['status'] = dto.status;
             if (dto.status === ReportStatus.RESOLVED || dto.status === ReportStatus.REJECTED) {
-                data.resolvedAt = new Date();
+                data['resolvedAt'] = new Date();
             }
         }
 
         if (dto.adminNote !== undefined) {
-            data.adminNote = dto.adminNote;
+            data['adminNote'] = dto.adminNote;
         }
 
         return this.prisma.listingReport.update({
