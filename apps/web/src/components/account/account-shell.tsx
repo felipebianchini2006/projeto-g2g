@@ -104,9 +104,9 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
     sections.push({
       title: 'Conta',
       items: [
-        { label: 'Configuracoes', href: '/conta/config' },
+        { label: 'Configurações', href: '/conta/config' },
         { label: 'Meus dados', href: '/conta/meus-dados' },
-        { label: 'Seguranca', href: '/conta/seguranca' },
+        { label: 'Segurança', href: '/conta/seguranca' },
         { label: 'Sessões', href: '/conta/sessoes' },
         {
           label: 'Sair da conta',
@@ -295,11 +295,11 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
                           'Minhas perguntas': <MessageCircle size={16} aria-hidden />,
                           'Perguntas recebidas': <MessageCircle size={16} aria-hidden />,
                           'Meus dados': <UserRound size={16} aria-hidden />,
-                          Configuracoes: <Settings size={16} aria-hidden />,
+                          Configurações: <Settings size={16} aria-hidden />,
                           'Painel do vendedor': <Store size={16} aria-hidden />,
                           'Meus anúncios': <Megaphone size={16} aria-hidden />,
                           'Minhas vendas': <BadgeDollarSign size={16} aria-hidden />,
-                          Seguranca: <ShieldCheck size={16} aria-hidden />,
+                          Segurança: <ShieldCheck size={16} aria-hidden />,
                           Sessões: <Monitor size={16} aria-hidden />,
                           'Sair da conta': <LogOut size={16} aria-hidden />,
                           'Menu admin': <Crown size={16} aria-hidden />,

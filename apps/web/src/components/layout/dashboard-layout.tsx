@@ -140,9 +140,9 @@ const accountNav = (
   sections.push({
     title: 'Conta',
     items: [
-      { label: 'Configuracoes', href: '/conta/config' },
+      { label: 'Configurações', href: '/conta/config' },
       { label: 'Meus dados', href: '/conta/meus-dados' },
-      { label: 'Seguranca', href: '/conta/seguranca' },
+      { label: 'Segurança', href: '/conta/seguranca' },
       { label: 'Sessões', href: '/conta/sessoes' },
       {
         label: 'Sair da conta',
@@ -213,11 +213,11 @@ const iconMap: Record<string, React.ReactNode> = {
   'Painel do vendedor': <Store size={16} aria-hidden />,
   'Minha conta': <UserRound size={16} aria-hidden />,
   'Meus dados': <UserRound size={16} aria-hidden />,
-  Seguranca: <ShieldCheck size={16} aria-hidden />,
+  Segurança: <ShieldCheck size={16} aria-hidden />,
   Sessões: <Settings size={16} aria-hidden />,
   'Central de ajuda': <LifeBuoy size={16} aria-hidden />,
   Notificacoes: <Bell size={16} aria-hidden />,
-  Configuracoes: <Settings size={16} aria-hidden />,
+  Configurações: <Settings size={16} aria-hidden />,
   'Sair da conta': <LogOut size={16} aria-hidden />,
   Atendimento: <Headset size={16} aria-hidden />,
   Disputas: <Gavel size={16} aria-hidden />,

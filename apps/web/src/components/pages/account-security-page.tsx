@@ -116,12 +116,12 @@ export const AccountSecurityContent = () => {
       breadcrumbs={[
         { label: 'Inicio', href: '/' },
         { label: 'Conta', href: '/conta' },
-        { label: 'Seguranca' },
+        { label: 'Segurança' },
       ]}
     >
       <div className="rounded-2xl border border-meow-red/20 bg-white p-6 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
         <div>
-          <h1 className="text-xl font-black text-meow-charcoal">Seguranca</h1>
+          <h1 className="text-xl font-black text-meow-charcoal">Segurança</h1>
           <p className="mt-2 text-sm text-meow-muted">
             Atualize sua senha para manter sua conta segura.
           </p>
