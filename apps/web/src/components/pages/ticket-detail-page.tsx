@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { ArrowLeft, Paperclip, Send } from 'lucide-react';
 
 import { ApiClientError } from '../../lib/api-client';
 import {
@@ -14,7 +15,8 @@ import { useAuth } from '../auth/auth-provider';
 import { AccountShell } from '../account/account-shell';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
-import { Textarea } from '../ui/textarea';
+import { Input } from '../ui/input';
+import { Badge } from '../ui/badge';
 import { ChatBubble } from '../chat/chat-bubble';
 
 type TicketDetailContentProps = {
@@ -28,16 +30,30 @@ const statusLabel: Record<TicketStatus, string> = {
   CLOSED: 'Fechado',
 };
 
+const statusBadge: Record<TicketStatus, 'warning' | 'info' | 'success' | 'danger' | 'neutral'> = {
+  OPEN: 'danger',
+  IN_PROGRESS: 'warning',
+  RESOLVED: 'success',
+  CLOSED: 'neutral',
+};
+
 export const TicketDetailContent = ({ ticketId }: TicketDetailContentProps) => {
   const { user, accessToken, loading } = useAuth();
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [messages, setMessages] = useState<TicketMessage[]>([]);
   const [draft, setDraft] = useState('');
   const [attachmentsInput, setAttachmentsInput] = useState('');
+  const [showAttachments, setShowAttachments] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
   const ticketCode = ticketId ? ticketId.slice(0, 8) : '--';
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   const loadTicket = async () => {
     if (!accessToken) {
@@ -65,14 +81,11 @@ export const TicketDetailContent = ({ ticketId }: TicketDetailContentProps) => {
     }
   }, [accessToken, ticketId]);
 
-  const summaryText = useMemo(() => {
-    if (!ticket) {
-      return 'Carregando ticket...';
-    }
-    return `${messages.length} mensagens registradas.`;
-  }, [ticket, messages.length]);
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
-  const handleSendMessage = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSendMessage = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!accessToken || !ticket) {
       return;
@@ -94,6 +107,7 @@ export const TicketDetailContent = ({ ticketId }: TicketDetailContentProps) => {
       setMessages((prev) => [...prev, message]);
       setDraft('');
       setAttachmentsInput('');
+      setShowAttachments(false);
     } catch (error) {
       const message =
         error instanceof ApiClientError
@@ -143,57 +157,58 @@ export const TicketDetailContent = ({ ticketId }: TicketDetailContentProps) => {
         { label: `Ticket #${ticketCode}` },
       ]}
     >
-      <Card className="rounded-2xl border border-meow-red/20 p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
-        <h1 className="text-xl font-black text-meow-charcoal">Ticket #{ticketCode}</h1>
-        <p className="mt-2 text-sm text-meow-muted">{summaryText}</p>
-      </Card>
-
-      {error ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
-      ) : null}
-      {notice ? (
-        <div className="rounded-xl border border-meow-red/20 bg-meow-cream/60 px-4 py-3 text-sm text-meow-muted">
-          {notice}
-        </div>
-      ) : null}
-
-      {!ticket ? (
-        <div className="rounded-xl border border-meow-red/20 bg-white px-4 py-3 text-sm text-meow-muted">
-          Carregando ticket...
-        </div>
-      ) : (
-        <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-          <Card className="rounded-2xl border border-meow-red/20 p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
-            <div className="flex flex-wrap items-center gap-6 text-sm text-meow-muted">
-              <div>
-                <span className="text-xs font-semibold uppercase tracking-[0.4px]">Status</span>
-                <p className="text-base font-bold text-meow-charcoal">
-                  {statusLabel[ticket.status]}
-                </p>
-              </div>
-              <div>
-                <span className="text-xs font-semibold uppercase tracking-[0.4px]">Criado</span>
-                <p className="text-base font-bold text-meow-charcoal">
-                  {new Date(ticket.createdAt).toLocaleString('pt-BR')}
-                </p>
-              </div>
-              <div>
-                <span className="text-xs font-semibold uppercase tracking-[0.4px]">Pedido</span>
-                <p className="text-base font-bold text-meow-charcoal">
-                  {ticket.orderId ? ticket.orderId.slice(0, 8) : 'N/A'}
-                </p>
-              </div>
+      <div className="mx-auto max-w-5xl">
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link
+              href="/conta/tickets"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-400 shadow-[0_4px_12px_rgba(0,0,0,0.05)] transition hover:text-meow-deep hover:shadow-md"
+            >
+              <ArrowLeft size={20} />
+            </Link>
+            <div>
+              <h1 className="text-2xl font-black text-meow-charcoal">Ticket #{ticketCode}</h1>
+              <p className="text-xs font-semibold text-meow-muted">
+                {ticket
+                  ? `Pedido ${ticket.orderId ? '#' + ticket.orderId.slice(0, 8) : 'N/A'} • ${new Date(
+                    ticket.createdAt,
+                  ).toLocaleDateString('pt-BR')}`
+                  : 'Carregando...'}
+              </p>
             </div>
+          </div>
+          {ticket ? (
+            <Badge variant={statusBadge[ticket.status]} size="md" className="px-4 py-1.5 text-xs">
+              {statusLabel[ticket.status]}
+            </Badge>
+          ) : null}
+        </div>
 
-            <div className="mt-4 grid gap-3">
-              {messages.length === 0 ? (
-                <div className="rounded-xl border border-meow-red/20 bg-white px-4 py-3 text-sm text-meow-muted">
-                  Nenhuma mensagem ainda.
+        {error ? (
+          <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-sm">
+            {error}
+          </div>
+        ) : null}
+
+        <Card className="flex h-[75vh] flex-col overflow-hidden border-0 bg-white shadow-[0_20px_40px_-12px_rgba(0,0,0,0.1)] ring-1 ring-slate-100">
+          <div className="scrollbar-thin flex-1 overflow-y-auto bg-slate-50/50 p-6">
+            {!ticket ? (
+              <div className="flex h-full items-center justify-center text-sm font-medium text-meow-muted">
+                Carregando conversa...
+              </div>
+            ) : messages.length === 0 ? (
+              <div className="flex h-full flex-col items-center justify-center text-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-meow-cream/50 text-meow-deep shadow-sm">
+                  <Paperclip size={32} />
                 </div>
-              ) : (
-                messages.map((message) => (
+                <p className="mt-4 font-bold text-meow-charcoal">Nenhuma mensagem</p>
+                <p className="text-sm text-meow-muted">
+                  Envie a primeira mensagem para iniciar o atendimento.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {messages.map((message) => (
                   <ChatBubble
                     key={message.id}
                     text={message.message}
@@ -201,43 +216,66 @@ export const TicketDetailContent = ({ ticketId }: TicketDetailContentProps) => {
                     senderInitials={message.senderId === user.id ? 'EU' : 'SU'}
                     timestamp={message.createdAt}
                   />
-                ))
-              )}
-            </div>
-          </Card>
+                ))}
+                <div ref={messagesEndRef} />
+              </div>
+            )}
+          </div>
 
-          <Card className="rounded-2xl border border-meow-red/20 p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
-            <h3 className="text-base font-bold text-meow-charcoal">Nova mensagem</h3>
-            <p className="mt-2 text-xs text-meow-muted">Anexos são opcionais (MVP).</p>
-            <form className="mt-4 grid gap-3" onSubmit={handleSendMessage}>
-              <label className="grid gap-1 text-xs font-semibold text-meow-muted">
-                Mensagem
-                <Textarea
-                  className="rounded-xl border-meow-red/20 bg-white text-sm text-meow-charcoal"
-                  rows={4}
-                  value={draft}
-                  onChange={(event) => setDraft(event.target.value)}
-                  placeholder="Escreva a atualizacao"
-                  required
-                />
-              </label>
-              <label className="grid gap-1 text-xs font-semibold text-meow-muted">
-                Anexos (links)
-                <Textarea
-                  className="rounded-xl border-meow-red/20 bg-white text-sm text-meow-charcoal"
-                  rows={2}
+          <div className="border-t border-slate-100 bg-white p-4 md:p-6">
+            {notice ? (
+              <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs text-red-700">
+                {notice}
+              </div>
+            ) : null}
+
+            {showAttachments && (
+              <div className="mb-4 animate-in slide-in-from-bottom-2 fade-in duration-200">
+                <label className="mb-2 block text-xs font-bold text-meow-muted">
+                  Anexar Links (URLs)
+                </label>
+                <Input
                   value={attachmentsInput}
-                  onChange={(event) => setAttachmentsInput(event.target.value)}
-                  placeholder="Opcional: URLs separadas por virgula"
+                  onChange={(e) => setAttachmentsInput(e.target.value)}
+                  placeholder="https://exemplo.com/imagem.png, https://..."
+                  className="bg-slate-50 text-xs"
                 />
-              </label>
-              <Button type="submit" size="sm" disabled={busy}>
-                {busy ? 'Enviando...' : 'Enviar mensagem'}
+                <p className="mt-1 text-[10px] text-slate-400">
+                  Separe múltiplos links por vírgula.
+                </p>
+              </div>
+            )}
+
+            <form onSubmit={handleSendMessage} className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowAttachments(!showAttachments)}
+                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border transition-all ${showAttachments
+                    ? 'border-meow-red/30 bg-meow-red/10 text-meow-deep'
+                    : 'border-slate-200 text-slate-400 hover:border-meow-red/30 hover:bg-meow-cream hover:text-meow-deep'
+                  }`}
+                aria-label="Anexar arquivos"
+              >
+                <Paperclip size={20} />
+              </button>
+              <Input
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                placeholder="Digite sua mensagem..."
+                className="h-12 flex-1 rounded-xl border-slate-200 bg-slate-50 px-4 text-sm font-medium transition-all focus:border-meow-red/30 focus:bg-white focus:ring-4 focus:ring-meow-red/10"
+                autoFocus
+              />
+              <Button
+                type="submit"
+                disabled={busy || !draft.trim()}
+                className="h-12 w-12 shrink-0 rounded-xl bg-meow-linear p-0 shadow-lg shadow-meow-red/20 transition-all hover:scale-105 hover:shadow-meow-red/30 active:scale-95 disabled:opacity-50"
+              >
+                <Send size={20} className="ml-0.5" />
               </Button>
             </form>
-          </Card>
-        </div>
-      )}
+          </div>
+        </Card>
+      </div>
     </AccountShell>
   );
 };

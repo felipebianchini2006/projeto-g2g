@@ -9,7 +9,7 @@ import { disputesApi, type Dispute } from '../../lib/disputes-api';
 import { ordersApi, type Order } from '../../lib/orders-api';
 import { useAuth } from '../auth/auth-provider';
 import { AdminShell } from '../admin/admin-shell';
-import { NotificationsBell } from '../notifications/notifications-bell';
+
 import { Badge } from '../ui/badge';
 import { buttonVariants } from '../ui/button';
 import { Card } from '../ui/card';
@@ -198,7 +198,7 @@ export const AdminDisputeDetailContent = ({ disputeId }: AdminDisputeDetailConte
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <NotificationsBell />
+
             <Link
               className={buttonVariants({ variant: 'secondary', size: 'sm' })}
               href="/admin/atendimento"

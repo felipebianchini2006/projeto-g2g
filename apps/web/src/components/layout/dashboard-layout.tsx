@@ -181,7 +181,6 @@ const adminNav = (logout: () => Promise<void>, goHome: () => void): MenuSection[
     title: 'Cadastros',
     items: [
       { label: 'Cadastros', href: '/admin/cadastros' },
-      { label: 'Anúncios', href: '/admin/anuncios' },
     ],
   },
   {

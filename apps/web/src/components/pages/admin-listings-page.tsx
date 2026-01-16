@@ -21,7 +21,6 @@ import {
 import { marketplaceApi } from '../../lib/marketplace-api';
 import { useAuth } from '../auth/auth-provider';
 import { AdminShell } from '../admin/admin-shell';
-import { NotificationsBell } from '../notifications/notifications-bell';
 
 const statusLabel: Record<AdminListingStatus, string> = {
   DRAFT: 'Rascunho',
@@ -613,7 +612,6 @@ export const AdminListingsContent = ({
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <NotificationsBell />
             <Link
               className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
               href="/conta"

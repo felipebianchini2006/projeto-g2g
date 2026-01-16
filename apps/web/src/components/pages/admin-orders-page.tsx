@@ -8,7 +8,6 @@ import { adminOrdersApi } from '../../lib/admin-orders-api';
 import { ordersApi, type Order } from '../../lib/orders-api';
 import { useAuth } from '../auth/auth-provider';
 import { AdminShell } from '../admin/admin-shell';
-import { NotificationsBell } from '../notifications/notifications-bell';
 import { Badge } from '../ui/badge';
 
 export const AdminOrdersContent = () => {
@@ -129,7 +128,6 @@ export const AdminOrdersContent = () => {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <NotificationsBell />
             <Link
               className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
               href="/conta"
@@ -175,9 +173,9 @@ export const AdminOrdersContent = () => {
           </div>
         </div>
 
-      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
-        <h2 className="text-base font-bold text-meow-charcoal">Resumo</h2>
-        {!order ? (
+        <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
+          <h2 className="text-base font-bold text-meow-charcoal">Resumo</h2>
+          {!order ? (
             <div className="mt-4 rounded-xl border border-slate-100 bg-meow-50 px-4 py-3 text-sm text-meow-muted">
               Nenhum pedido carregado.
             </div>

@@ -12,7 +12,6 @@ import {
 } from '../../lib/admin-users-api';
 import { useAuth } from '../auth/auth-provider';
 import { AdminShell } from '../admin/admin-shell';
-import { NotificationsBell } from '../notifications/notifications-bell';
 
 const roleLabel: Record<AdminUserRole, string> = {
   USER: 'Buyer',
@@ -245,7 +244,6 @@ export const AdminUsersContent = () => {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <NotificationsBell />
             <Link
               className="rounded-full border border-meow-red/30 px-4 py-2 text-xs font-bold text-meow-deep"
               href="/conta"
