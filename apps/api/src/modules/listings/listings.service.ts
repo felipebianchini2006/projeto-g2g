@@ -35,6 +35,7 @@ type PublicCategory = {
   slug: string;
   name: string;
   description: string | null;
+  imageUrl: string | null;
   listingsCount: number;
 };
 
@@ -207,6 +208,7 @@ export class ListingsService {
       slug: category.slug,
       name: category.name,
       description: category.description,
+      imageUrl: category.imageUrl,
       listingsCount: countsByCategory.get(category.id) ?? 0,
     }));
 

@@ -263,7 +263,7 @@ export const AccountProfileContent = () => {
               <Button variant="secondary" type="button" disabled>
                 Desativar conta
               </Button>
-              <Button variant="danger" type="button" disabled>
+              <Button type="button" disabled>
                 Excluir conta permanentemente
               </Button>
               <Link

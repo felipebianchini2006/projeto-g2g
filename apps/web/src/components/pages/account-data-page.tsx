@@ -156,6 +156,10 @@ export const AccountDataContent = () => {
     (field: keyof ProfileForm) => (event: ChangeEvent<HTMLInputElement>) => {
       setForm((prev) => ({ ...prev, [field]: event.target.value }));
     };
+  const handleDigitsChange =
+    (field: keyof ProfileForm) => (event: ChangeEvent<HTMLInputElement>) => {
+      setForm((prev) => ({ ...prev, [field]: stripDigits(event.target.value) }));
+    };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -395,7 +399,9 @@ export const AccountDataContent = () => {
                       icon={<UserRound size={16} aria-hidden />}
                       placeholder="000.000.000-00"
                       value={form.cpf}
-                      onChange={handleChange('cpf')}
+                      onChange={handleDigitsChange('cpf')}
+                      inputMode="numeric"
+                      pattern="\d*"
                       disabled={status === 'saving'}
                     />
                   </label>
@@ -405,7 +411,9 @@ export const AccountDataContent = () => {
                       icon={<Calendar size={16} aria-hidden />}
                       placeholder="00/00/0000"
                       value={form.birthDate}
-                      onChange={handleChange('birthDate')}
+                      onChange={handleDigitsChange('birthDate')}
+                      inputMode="numeric"
+                      pattern="\d*"
                       disabled={status === 'saving'}
                     />
                   </label>
@@ -423,7 +431,9 @@ export const AccountDataContent = () => {
                     <Input
                       placeholder="00000-000"
                       value={form.addressZip}
-                      onChange={handleChange('addressZip')}
+                      onChange={handleDigitsChange('addressZip')}
+                      inputMode="numeric"
+                      pattern="\d*"
                       disabled={status === 'saving'}
                       className="pr-12"
                     />
@@ -478,7 +488,9 @@ export const AccountDataContent = () => {
                   <Input
                     placeholder="123"
                     value={form.addressNumber}
-                    onChange={handleChange('addressNumber')}
+                    onChange={handleDigitsChange('addressNumber')}
+                    inputMode="numeric"
+                    pattern="\d*"
                     disabled={status === 'saving' || noNumber}
                   />
                 </div>

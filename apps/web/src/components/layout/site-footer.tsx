@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { Facebook, Instagram, Youtube, Sparkles } from 'lucide-react';
 
 export const SiteFooter = () => (
   <footer className="bg-meow-linear text-white">
@@ -14,47 +13,14 @@ export const SiteFooter = () => (
             </div>
             <div>
               <span className="block font-display text-xl font-black">
-                Meoww Games
+                Meoww
               </span>
               <span className="text-xs font-semibold text-white/90">
-                A casa gamer dos gatinhos
               </span>
             </div>
           </div>
           <p className="mt-4 text-sm leading-relaxed text-white/80">
-            A loja gamer com curadoria felina. Consoles, jogos e colecionaveis com
-            entrega rápida e segura.
           </p>
-          <div className="mt-5 flex flex-wrap gap-3">
-            <a
-              href="#"
-              aria-label="Facebook"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 text-white transition hover:-translate-y-0.5"
-            >
-              <Facebook size={18} aria-hidden />
-            </a>
-            <a
-              href="#"
-              aria-label="Instagram"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 text-white transition hover:-translate-y-0.5"
-            >
-              <Instagram size={18} aria-hidden />
-            </a>
-            <a
-              href="#"
-              aria-label="YouTube"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 text-white transition hover:-translate-y-0.5"
-            >
-              <Youtube size={18} aria-hidden />
-            </a>
-            <a
-              href="#"
-              aria-label="TikTok"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 text-white transition hover:-translate-y-0.5"
-            >
-              <Sparkles size={18} aria-hidden />
-            </a>
-          </div>
         </div>
 
         <div>

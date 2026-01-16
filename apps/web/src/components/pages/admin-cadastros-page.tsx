@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
 import { ChevronLeft, RefreshCw } from 'lucide-react';
 
 import { ApiClientError } from '../../lib/api-client';
@@ -55,6 +55,8 @@ export const AdminCadastrosContent = () => {
   const [sectionFilterGroupId, setSectionFilterGroupId] = useState('');
 
   const [categoryForm, setCategoryForm] = useState<CatalogForm>(emptyForm);
+  const [categoryImageFile, setCategoryImageFile] = useState<File | null>(null);
+  const [categoryImagePreview, setCategoryImagePreview] = useState<string | null>(null);
   const [groupForm, setGroupForm] = useState<CatalogForm & { categoryId: string }>({
     ...emptyForm,
     categoryId: '',
@@ -77,6 +79,15 @@ export const AdminCadastrosContent = () => {
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!categoryImageFile) {
+      return;
+    }
+    const previewUrl = URL.createObjectURL(categoryImageFile);
+    setCategoryImagePreview(previewUrl);
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [categoryImageFile]);
 
   const handleError = (error: unknown, fallback: string) => {
     if (error instanceof ApiClientError) {
@@ -151,6 +162,16 @@ export const AdminCadastrosContent = () => {
   const resetCategoryForm = () => {
     setCategoryForm(emptyForm);
     setEditingCategoryId(null);
+    setCategoryImageFile(null);
+    setCategoryImagePreview(null);
+  };
+
+  const handleCategoryImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null;
+    setCategoryImageFile(file);
+    if (!file && !editingCategoryId) {
+      setCategoryImagePreview(null);
+    }
   };
 
   const resetGroupForm = () => {
@@ -316,6 +337,28 @@ export const AdminCadastrosContent = () => {
                     }
                   />
                 </label>
+                <label className="grid gap-1.5 text-xs font-semibold text-slate-600">
+                  Foto da categoria
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleCategoryImageChange}
+                    disabled={busyAction === 'category-save'}
+                  />
+                  {categoryImagePreview ? (
+                    <span className="mt-1 flex items-center gap-2 text-[11px] text-slate-500">
+                      <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-white">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={categoryImagePreview}
+                          alt="Preview da categoria"
+                          className="h-full w-full object-cover"
+                        />
+                      </span>
+                      Preview da categoria
+                    </span>
+                  ) : null}
+                </label>
               </div>
               <div className="flex flex-col gap-2">
                 <Button
@@ -326,10 +369,19 @@ export const AdminCadastrosContent = () => {
                         slug: categoryForm.slug || undefined,
                         description: categoryForm.description || undefined,
                       };
-                      if (editingCategoryId) {
-                        await adminCatalogApi.updateCategory(accessToken, editingCategoryId, payload);
-                      } else {
-                        await adminCatalogApi.createCategory(accessToken, payload);
+                      const savedCategory = editingCategoryId
+                        ? await adminCatalogApi.updateCategory(
+                          accessToken,
+                          editingCategoryId,
+                          payload,
+                        )
+                        : await adminCatalogApi.createCategory(accessToken, payload);
+                      if (categoryImageFile) {
+                        await adminCatalogApi.uploadCategoryImage(
+                          accessToken,
+                          savedCategory.id,
+                          categoryImageFile,
+                        );
                       }
                       resetCategoryForm();
                     })
@@ -358,9 +410,23 @@ export const AdminCadastrosContent = () => {
               ) : (
                 categories.map((item) => (
                   <div key={item.id} className={itemRowClass(editingCategoryId === item.id)}>
-                    <div>
-                      <p className="text-sm font-bold text-meow-charcoal">{item.name}</p>
-                      {item.slug ? <p className="text-xs text-slate-400">{item.slug}</p> : null}
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-white text-xs font-bold text-slate-400">
+                        {item.imageUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={item.imageUrl}
+                            alt={`Categoria ${item.name}`}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          item.name.slice(0, 1).toUpperCase()
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-meow-charcoal">{item.name}</p>
+                        {item.slug ? <p className="text-xs text-slate-400">{item.slug}</p> : null}
+                      </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <Button
@@ -373,6 +439,8 @@ export const AdminCadastrosContent = () => {
                             slug: item.slug,
                             description: item.description ?? '',
                           });
+                          setCategoryImageFile(null);
+                          setCategoryImagePreview(item.imageUrl ?? null);
                         }}
                       >
                         Editar

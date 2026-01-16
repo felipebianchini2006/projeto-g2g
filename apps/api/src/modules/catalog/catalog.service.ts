@@ -28,6 +28,7 @@ export class CatalogService {
           name: dto.name.trim(),
           slug,
           description: dto.description?.trim() || null,
+          imageUrl: dto.imageUrl?.trim() || null,
         },
       }),
     );
@@ -45,6 +46,13 @@ export class CatalogService {
 
   async deleteCategory(id: string) {
     return this.prisma.category.delete({ where: { id } });
+  }
+
+  async updateCategoryImage(id: string, imageUrl: string) {
+    return this.prisma.category.update({
+      where: { id },
+      data: { imageUrl },
+    });
   }
 
   async listGroups(categoryId?: string) {
@@ -213,13 +221,17 @@ export class CatalogService {
     return this.prisma.recoveryOption.delete({ where: { id } });
   }
 
-  private buildUpdatePayload(dto: { name?: string; description?: string }) {
-    const payload: { name?: string; description?: string | null } = {};
+  private buildUpdatePayload(dto: { name?: string; description?: string; imageUrl?: string }) {
+    const payload: { name?: string; description?: string | null; imageUrl?: string | null } =
+      {};
     if (dto.name !== undefined) {
       payload.name = dto.name.trim();
     }
     if (dto.description !== undefined) {
       payload.description = dto.description?.trim() || null;
+    }
+    if (dto.imageUrl !== undefined) {
+      payload.imageUrl = dto.imageUrl?.trim() || null;
     }
     return payload;
   }

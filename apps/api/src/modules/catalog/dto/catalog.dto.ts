@@ -15,6 +15,11 @@ export class CreateCategoryDto {
   @IsString()
   @MaxLength(400)
   description?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  imageUrl?: string;
 }
 
 export class UpdateCategoryDto {
@@ -33,6 +38,11 @@ export class UpdateCategoryDto {
   @IsString()
   @MaxLength(400)
   description?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  imageUrl?: string;
 }
 
 export class CreateCategoryGroupDto {

@@ -1,10 +1,11 @@
-import { apiFetch } from './api-client';
+import { ApiClientError, apiFetch } from './api-client';
 
 export type CatalogCategory = {
   id: string;
   name: string;
   slug: string;
   description?: string | null;
+  imageUrl?: string | null;
 };
 
 export type CatalogGroup = {
@@ -34,6 +35,7 @@ export type CatalogPayload = {
   name: string;
   slug?: string;
   description?: string;
+  imageUrl?: string;
 };
 
 export type CatalogGroupPayload = CatalogPayload & { categoryId: string };
@@ -41,6 +43,38 @@ export type CatalogSectionPayload = CatalogPayload & { groupId: string };
 
 const authHeaders = (token: string | null) =>
   token ? { Authorization: `Bearer ${token}` } : {};
+
+const resolveBaseUrl = () => {
+  if (typeof window === 'undefined') {
+    return (
+      process.env['API_INTERNAL_URL'] ??
+      process.env['API_PROXY_TARGET'] ??
+      process.env['NEXT_PUBLIC_API_URL'] ??
+      'http://localhost:3001'
+    );
+  }
+  return process.env['NEXT_PUBLIC_API_URL'] ?? '/api/proxy';
+};
+
+const buildUrl = (path: string, baseUrl: string) => {
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    return path;
+  }
+  const normalizedBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return `${normalizedBase}${normalizedPath}`;
+};
+
+const parseResponse = async (response: Response): Promise<unknown> => {
+  const contentType = response.headers.get('content-type') ?? '';
+  if (contentType.includes('application/json')) {
+    return response.json();
+  }
+  if (contentType.includes('text/')) {
+    return response.text();
+  }
+  return null;
+};
 
 export const adminCatalogApi = {
   listCategories: (token: string | null) =>
@@ -53,6 +87,25 @@ export const adminCatalogApi = {
       headers: authHeaders(token),
       body: JSON.stringify(payload),
     }),
+  uploadCategoryImage: async (token: string | null, id: string, file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const url = buildUrl(`/admin/catalog/categories/${id}/image`, resolveBaseUrl());
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: authHeaders(token),
+      body: formData,
+    });
+    const payload = await parseResponse(response);
+    if (!response.ok) {
+      const message =
+        payload && typeof payload === 'object' && 'message' in payload
+          ? String((payload as { message?: unknown }).message ?? response.statusText)
+          : response.statusText;
+      throw new ApiClientError(message, response.status, payload);
+    }
+    return payload as CatalogCategory;
+  },
   updateCategory: (token: string | null, id: string, payload: CatalogPayload) =>
     apiFetch<CatalogCategory>(`/admin/catalog/categories/${id}`, {
       method: 'PATCH',

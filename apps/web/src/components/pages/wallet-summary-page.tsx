@@ -415,8 +415,10 @@ export const WalletSummaryContent = () => {
             Aumente suas vendas para reduzir taxas!
           </p>
           <div className="mt-6 flex items-center justify-center">
-            <div className="grid h-24 w-24 place-items-center rounded-full bg-pink-50 text-rose-500">
-              <Gem size={24} aria-hidden />
+            <div className="flex flex-col items-center">
+              <div className="grid h-24 w-24 place-items-center rounded-full bg-pink-50 text-rose-500">
+                <Gem size={24} aria-hidden />
+              </div>
               <span className="mt-2 rounded-full bg-white px-3 py-1 text-[10px] font-bold text-rose-500">
                 OURO
               </span>

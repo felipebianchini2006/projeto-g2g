@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { ApiClientError } from '../../lib/api-client';
 import { ordersApi, type Order } from '../../lib/orders-api';
+import { listingQuestionsApi, type ListingQuestion } from '../../lib/listing-questions-api';
 import { ticketsApi, type Ticket } from '../../lib/tickets-api';
 import { walletApi, type WalletSummary } from '../../lib/wallet-api';
 import { useAuth } from '../auth/auth-provider';
@@ -25,6 +26,11 @@ type WalletState = {
 type TicketsState = {
   status: 'loading' | 'ready';
   items: Ticket[];
+};
+
+type QuestionsState = {
+  status: 'loading' | 'ready';
+  items: ListingQuestion[];
 };
 
 const formatCurrency = (value: number, currency = 'BRL') =>
@@ -54,6 +60,10 @@ export const SellerDashboardContent = () => {
     summary: null,
   });
   const [ticketsState, setTicketsState] = useState<TicketsState>({
+    status: 'loading',
+    items: [],
+  });
+  const [questionsState, setQuestionsState] = useState<QuestionsState>({
     status: 'loading',
     items: [],
   });
@@ -110,9 +120,24 @@ export const SellerDashboardContent = () => {
         setTicketsState({ status: 'ready', items: [] });
       }
     };
+    const loadQuestions = async () => {
+      try {
+        const questions = await listingQuestionsApi.listReceived(accessToken);
+        if (!active) {
+          return;
+        }
+        setQuestionsState({ status: 'ready', items: questions });
+      } catch {
+        if (!active) {
+          return;
+        }
+        setQuestionsState({ status: 'ready', items: [] });
+      }
+    };
     loadOrders();
     loadWallet();
     loadTickets();
+    loadQuestions();
     return () => {
       active = false;
     };
@@ -216,10 +241,16 @@ export const SellerDashboardContent = () => {
           <p className="text-xs font-semibold uppercase tracking-[0.4px] text-meow-muted">
             Perguntas
           </p>
-          <p className="mt-3 text-lg font-black text-meow-charcoal">Em breve</p>
-          <p className="mt-1 text-xs text-meow-muted">
-            Esta funcionalidade será adicionada.
+          <p className="mt-3 text-2xl font-black text-meow-charcoal">
+            {questionsState.status === 'loading' ? '...' : questionsState.items.length}
           </p>
+          <p className="mt-1 text-xs text-meow-muted">Perguntas recebidas.</p>
+          <Link
+            href="/conta/perguntas-recebidas"
+            className="mt-3 inline-flex text-xs font-semibold text-rose-500"
+          >
+            Ver perguntas
+          </Link>
         </Card>
         <Card className="rounded-2xl border border-meow-red/20 p-5 shadow-card">
           <p className="text-xs font-semibold uppercase tracking-[0.4px] text-meow-muted">

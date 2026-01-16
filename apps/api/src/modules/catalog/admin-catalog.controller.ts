@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -8,8 +9,15 @@ import {
   Post,
   Query,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { UserRole } from '@prisma/client';
+import { randomUUID } from 'crypto';
+import { extname, join } from 'path';
+import { diskStorage } from 'multer';
+import fs from 'fs';
 
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -25,6 +33,8 @@ import {
   UpdateCategoryGroupDto,
   UpdateCategorySectionDto,
 } from './dto/catalog.dto';
+
+const uploadRoot = join(process.cwd(), 'uploads', 'categories');
 
 @Controller('admin/catalog')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -45,6 +55,54 @@ export class AdminCatalogController {
   @Patch('categories/:id')
   updateCategory(@Param('id') id: string, @Body() dto: UpdateCategoryDto) {
     return this.catalogService.updateCategory(id, dto);
+  }
+
+  @Post('categories/:id/image')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: (
+          _req: unknown,
+          _file: Express.Multer.File,
+          cb: (error: Error | null, destination: string) => void,
+        ) => {
+          fs.mkdirSync(uploadRoot, { recursive: true });
+          cb(null, uploadRoot);
+        },
+        filename: (
+          _req: unknown,
+          file: Express.Multer.File,
+          cb: (error: Error | null, filename: string) => void,
+        ) => {
+          const ext = extname(file.originalname);
+          cb(null, `${randomUUID()}${ext}`);
+        },
+      }),
+      fileFilter: (
+        _req: unknown,
+        file: Express.Multer.File,
+        cb: (error: Error | null, acceptFile: boolean) => void,
+      ) => {
+        if (file.mimetype.startsWith('image/')) {
+          cb(null, true);
+          return;
+        }
+        cb(new BadRequestException('Unsupported media type.'), false);
+      },
+      limits: { fileSize: 5 * 1024 * 1024 },
+    }),
+  )
+  uploadCategoryImage(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('File is required.');
+    }
+    return this.catalogService.updateCategoryImage(
+      id,
+      `/uploads/categories/${file.filename}`,
+    );
   }
 
   @Delete('categories/:id')

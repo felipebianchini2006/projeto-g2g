@@ -175,9 +175,6 @@ export const AccountOverviewContent = () => {
     >
       <div className="rounded-2xl border border-pink-100 bg-gradient-to-r from-[#f2a4c3] via-[#f7b8d1] to-[#f2a4c3] p-6 text-white shadow-[0_18px_40px_rgba(255,107,154,0.25)]">
         <div className="flex flex-wrap items-center gap-4">
-          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white/20 text-xl">
-            👋
-          </div>
           <div>
             <h1 className="text-2xl font-black">Olá, {user.email}!</h1>
             <p className="mt-1 text-sm text-white/80">
