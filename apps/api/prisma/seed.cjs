@@ -67,6 +67,81 @@ async function main() {
     },
   ];
 
+  const salesModels = [
+    {
+      id: 'aac45330-7455-4a7b-a010-449e37603c46',
+      name: 'Normal',
+      slug: 'normal',
+      description: 'O item vendido será exatamente o do título do anúncio cadastrado neste formulário.',
+    },
+    {
+      id: '1ba05634-916c-4866-b256-4299b8032743',
+      name: 'Dinâmico',
+      slug: 'dinamico',
+      description: 'Anuncie vários itens; dando opções para que o cliente escolha qual item ele deseja.',
+    },
+    {
+      id: 'b0a1e04d-520c-4573-82a1-30954e7d00f9',
+      name: 'Serviço',
+      slug: 'servico',
+      description: 'Anuncie um serviço no qual o preço não é fixo e que dependem de orçamentos.',
+    },
+  ];
+
+  const originOptions = [
+    {
+      id: 'origin-1',
+      name: 'Primeiro dono',
+      slug: 'primeiro-dono',
+      description: 'Voce e o criador original da conta/item.',
+    },
+    {
+      id: 'origin-2',
+      name: 'Não sou primeiro dono',
+      slug: 'nao-sou-primeiro-dono',
+      description: 'Item adquirido de terceiros.',
+    },
+  ];
+
+  const recoveryOptions = [
+    {
+      id: 'recovery-1',
+      name: 'Tem os dados de recuperação',
+      slug: 'tem-dados',
+      description: 'Possui email de criacao ou chaves de recuperacao.',
+    },
+    {
+      id: 'recovery-2',
+      name: 'Não tem os dados de recuperação',
+      slug: 'nao-tem-dados',
+      description: 'Nao possui dados para recuperacao do acesso.',
+    },
+  ];
+
+  for (const model of salesModels) {
+    await prisma.salesModel.upsert({
+      where: { slug: model.slug },
+      update: { name: model.name, description: model.description },
+      create: model,
+    });
+  }
+
+  for (const option of originOptions) {
+    await prisma.originOption.upsert({
+      where: { slug: option.slug },
+      update: { name: option.name, description: option.description },
+      create: option,
+    });
+  }
+
+  for (const option of recoveryOptions) {
+    await prisma.recoveryOption.upsert({
+      where: { slug: option.slug },
+      update: { name: option.name, description: option.description },
+      create: option,
+    });
+  }
+
   for (const category of categories) {
     await prisma.category.upsert({
       where: { slug: category.slug },

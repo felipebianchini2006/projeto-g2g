@@ -49,6 +49,7 @@ export type ListingInput = {
   deliveryType: DeliveryType;
   deliverySlaHours: number;
   refundPolicy: string;
+  platformFeeBps?: number;
 };
 
 export type ListingUpdateInput = Partial<ListingInput>;

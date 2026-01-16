@@ -60,6 +60,11 @@ export class CreateListingDto {
   @IsEnum(DeliveryType)
   deliveryType!: DeliveryType;
 
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  platformFeeBps?: number;
+
   @Type(() => Number)
   @IsInt()
   @Min(1)

@@ -577,6 +577,7 @@ model Listing {
   priceCents   Int
   currency     String        @default("BRL")
   status       ListingStatus @default(DRAFT)
+  platformFeeBps Int?
   featuredAt   DateTime?
   mustHaveAt   DateTime?
   deliveryType DeliveryType

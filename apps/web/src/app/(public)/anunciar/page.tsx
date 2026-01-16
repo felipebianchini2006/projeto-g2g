@@ -30,6 +30,7 @@ import {
 import {
   catalogPublicApi,
   type CatalogGroup,
+  type CatalogSection,
   type CatalogOption,
 } from '../../../lib/catalog-public-api';
 import {
@@ -50,6 +51,7 @@ import { ActionBar } from '../../../components/forms/action-bar';
 const emptyListing: ListingInput = {
   categoryId: '',
   categoryGroupId: '',
+  categorySectionId: '',
   salesModelId: '',
   originId: '',
   recoveryOptionId: '',
@@ -82,6 +84,16 @@ const DEFAULT_SALES_MODELS: CatalogOption[] = [
   { id: 'aac45330-7455-4a7b-a010-449e37603c46', slug: 'normal', name: 'Normal', description: 'O item vendido será exatamente o do título do anúncio cadastrado neste formulário.' },
   { id: '1ba05634-916c-4866-b256-4299b8032743', slug: 'dinamico', name: 'Dinâmico', description: 'Anuncie vários itens; dando opções para que o cliente escolha qual item ele deseja.' },
   { id: 'b0a1e04d-520c-4573-82a1-30954e7d00f9', slug: 'servico', name: 'Serviço', description: 'Anuncie um serviço no qual o preço não é fixo e que dependem de orçamentos.' },
+];
+
+const DEFAULT_ORIGINS: CatalogOption[] = [
+  { id: 'origin-1', slug: 'primeiro-dono', name: 'Primeiro dono', description: 'Você é o criador original da conta/item.' },
+  { id: 'origin-2', slug: 'nao-sou-primeiro-dono', name: 'Não sou primeiro dono', description: 'Item adquirido de terceiros.' },
+];
+
+const DEFAULT_RECOVERY: CatalogOption[] = [
+  { id: 'recovery-1', slug: 'tem-dados', name: 'Tem os dados de recuperação', description: 'Possui email de criação ou chaves de recuperação.' },
+  { id: 'recovery-2', slug: 'nao-tem-dados', name: 'Não tem os dados de recuperação', description: 'Não possui dados para recuperação do acesso.' },
 ];
 
 // --- Components ---
@@ -123,6 +135,7 @@ export default function Page() {
   const [origins, setOrigins] = useState<CatalogOption[]>([]);
   const [recoveryOptions, setRecoveryOptions] = useState<CatalogOption[]>([]);
   const [groups, setGroups] = useState<CatalogGroup[]>([]);
+  const [sections, setSections] = useState<CatalogSection[]>([]);
 
   // UI State
   const [error, setError] = useState<string | null>(null);
@@ -162,8 +175,17 @@ export default function Page() {
         setSalesModels(DEFAULT_SALES_MODELS);
       }
 
-      if (originsRes.status === 'fulfilled') setOrigins(originsRes.value);
-      if (recoveryRes.status === 'fulfilled') setRecoveryOptions(recoveryRes.value);
+      if (originsRes.status === 'fulfilled' && originsRes.value.length > 0) {
+        setOrigins(originsRes.value);
+      } else {
+        setOrigins(DEFAULT_ORIGINS);
+      }
+
+      if (recoveryRes.status === 'fulfilled' && recoveryRes.value.length > 0) {
+        setRecoveryOptions(recoveryRes.value);
+      } else {
+        setRecoveryOptions(DEFAULT_RECOVERY);
+      }
     };
     loadGlobals();
     return () => { active = false; };
@@ -183,6 +205,21 @@ export default function Page() {
     loadGroups().catch(() => active && setGroups([]));
     return () => { active = false; };
   }, [formState.categoryId]);
+
+  // Load Category Sections
+  useEffect(() => {
+    if (!formState.categoryGroupId) {
+      setSections([]);
+      return;
+    }
+    let active = true;
+    const loadSections = async () => {
+      const sectsRes = await catalogPublicApi.listSections(formState.categoryGroupId);
+      if (active) setSections(sectsRes);
+    };
+    loadSections().catch(() => active && setSections([]));
+    return () => { active = false; };
+  }, [formState.categoryGroupId]);
 
   // Defaults
   useEffect(() => {
@@ -224,9 +261,17 @@ export default function Page() {
 
     try {
       // 1. Create/Update Listing
+      const feeMap: Record<string, number> = {
+        prata: 1000,
+        ouro: 1200,
+        diamante: 1800,
+      };
+      const platformFeeBps = feeMap[listingType] || 1000;
+
       const payload = {
         ...formState,
         description: formState.description?.trim(),
+        platformFeeBps,
       };
 
       const saved = listing?.id
@@ -277,9 +322,9 @@ export default function Page() {
   });
 
   const tierOptions: Tier[] = [
-    { id: 'prata', name: 'Prata', rate: 'Taxa de 9,99%', benefits: ['Anúncio Padrão', 'Taxa reduzida'] },
-    { id: 'ouro', name: 'Ouro', rate: 'Taxa de 11,99%', benefits: ['Destaque na Home', 'Mais Visibilidade'] },
-    { id: 'diamante', name: 'Diamante', rate: 'Taxa de 12,99%', benefits: ['Anúncio Diamante', 'Destaque na página principal', 'Destaque nas pesquisas', 'Máxima visibilidade'] },
+    { id: 'prata', name: 'Prata', rate: 'Taxa de 10%', benefits: ['Anúncio Padrão', 'Taxa reduzida'] },
+    { id: 'ouro', name: 'Ouro', rate: 'Taxa de 12%', benefits: ['Destaque na Home', 'Mais Visibilidade'] },
+    { id: 'diamante', name: 'Diamante', rate: 'Taxa de 18%', benefits: ['Anúncio Diamante', 'Destaque na página principal', 'Destaque nas pesquisas', 'Máxima visibilidade'] },
   ];
 
   const selectedModel = salesModels.find(m => m.id === formState.salesModelId);
@@ -414,20 +459,21 @@ export default function Page() {
             )}
           </div>
 
-          {/* 5. Categorization */}
-          <FormSection title="Categorização" icon={Gamepad2}>
-            <div className="grid gap-6 md:grid-cols-3">
+          {/* 5. Tipo de Anúncio */}
+          <FormSection title="Tipo de Anúncio" icon={Box}>
+            <div className="space-y-6">
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wide text-slate-400">Tipo de Anúncio</label>
+                <label className="text-xs font-bold uppercase tracking-wide text-slate-400">Qual o tipo do anúncio?</label>
                 <Select
                   value={formState.categoryId}
-                  onChange={(e) => setFormState(prev => ({ ...prev, categoryId: e.target.value }))}
+                  onChange={(e) => setFormState(prev => ({ ...prev, categoryId: e.target.value, categoryGroupId: '', categorySectionId: '' }))}
                   className="h-12 rounded-xl border-slate-200 bg-slate-50 font-medium text-slate-700 hover:bg-slate-100 focus:border-meow-300"
                 >
                   <option value="">Selecione</option>
                   {categories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
                 </Select>
               </div>
+
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-wide text-slate-400">Procedência</label>
                 <Select
@@ -439,8 +485,9 @@ export default function Page() {
                   {origins.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
                 </Select>
               </div>
+
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wide text-slate-400">Info. da Conta</label>
+                <label className="text-xs font-bold uppercase tracking-wide text-slate-400">Informações da conta</label>
                 <Select
                   value={formState.recoveryOptionId}
                   onChange={(e) => setFormState(prev => ({ ...prev, recoveryOptionId: e.target.value }))}
@@ -451,41 +498,62 @@ export default function Page() {
                 </Select>
               </div>
             </div>
+          </FormSection>
 
-            <div className="mt-6 grid gap-6 md:grid-cols-2">
+          {/* 6. Categoria */}
+          <FormSection title="Categoria" icon={Gamepad2}>
+            <div className="space-y-6">
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-wide text-slate-400">Categoria</label>
-                <Select className="h-12 rounded-xl border-slate-200 bg-slate-50 font-medium text-slate-700" disabled>
-                  <option>{categories.find(c => c.id === formState.categoryId)?.label || 'Selecione acima'}</option>
+                <Select
+                  value={formState.categoryId}
+                  onChange={(e) => setFormState(prev => ({ ...prev, categoryId: e.target.value, categoryGroupId: '', categorySectionId: '' }))}
+                  className="h-12 rounded-xl border-slate-200 bg-slate-50 font-medium text-slate-700 hover:bg-slate-100 focus:border-meow-300"
+                >
+                  <option value="">Selecione</option>
+                  {categories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
                 </Select>
               </div>
+
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-wide text-slate-400">Subcategoria</label>
                 <Select
                   value={formState.categoryGroupId}
-                  onChange={(e) => setFormState(prev => ({ ...prev, categoryGroupId: e.target.value }))}
+                  onChange={(e) => setFormState(prev => ({ ...prev, categoryGroupId: e.target.value, categorySectionId: '' }))}
                   className="h-12 rounded-xl border-slate-200 bg-slate-50 font-medium text-slate-700 hover:bg-slate-100 focus:border-meow-300"
                 >
-                  <option value="">Selecione a Categoria</option>
+                  <option value="">Selecione</option>
                   {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wide text-slate-400">Seção</label>
+                <Select
+                  value={formState.categorySectionId}
+                  onChange={(e) => setFormState(prev => ({ ...prev, categorySectionId: e.target.value }))}
+                  className="h-12 rounded-xl border-slate-200 bg-slate-50 font-medium text-slate-700 hover:bg-slate-100 focus:border-meow-300"
+                >
+                  <option value="">Selecione</option>
+                  {sections.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </Select>
               </div>
             </div>
           </FormSection>
 
-          {/* 6. Description */}
+          {/* 7. Description */}
           <ListingDescriptionField
             value={formState.description}
             onChange={val => setFormState(prev => ({ ...prev, description: val }))}
           />
 
-          {/* 7. Images */}
+          {/* 8. Images */}
           <ImageUploader
             files={mediaFiles}
             onFilesChange={setMediaFiles}
           />
 
-          {/* 8. Ad Tier */}
+          {/* 9. Ad Tier */}
           <AdTierSelector
             tiers={tierOptions}
             selected={listingType}
@@ -523,7 +591,16 @@ export default function Page() {
             <div className="flex flex-col">
               <span className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Total à receber (aprox.)</span>
               <span className="text-xl font-black text-meow-deep">
-                {formatCurrency(formState.priceCents * 0.9)}
+                {(() => {
+                  const feeMap: Record<string, number> = {
+                    prata: 0.10,
+                    ouro: 0.12,
+                    diamante: 0.18,
+                  };
+                  const fee = feeMap[listingType] || 0.10;
+                  const total = formState.priceCents * (1 - fee);
+                  return formatCurrency(total);
+                })()}
                 <span className="ml-2 text-xs font-bold text-slate-300 line-through opacity-70">
                   {formatCurrency(formState.priceCents)}
                 </span>

@@ -69,7 +69,7 @@ export class OrdersService {
     private readonly settingsService: SettingsService,
     private readonly couponsService: CouponsService,
     private readonly partnersService: PartnersService,
-  ) {}
+  ) { }
 
   async createOrder(buyerId: string, dto: CreateOrderDto, meta: AuthRequestMeta) {
     const quantity = dto.quantity ?? 1;
@@ -125,7 +125,7 @@ export class OrdersService {
 
       const totals = calculateAttributionTotals({
         originalTotalCents,
-        platformFeeBps: settings.platformFeeBps,
+        platformFeeBps: listing.platformFeeBps ?? settings.platformFeeBps,
         discountBps: coupon?.discountBps ?? null,
         discountCents: coupon?.discountCents ?? null,
         partnerCommissionBps: partner?.commissionBps ?? null,

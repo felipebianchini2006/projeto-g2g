@@ -241,6 +241,7 @@ export class ListingsService {
         description: dto.description,
         priceCents: dto.priceCents,
         currency: dto.currency,
+        platformFeeBps: dto.platformFeeBps,
         deliveryType: dto.deliveryType,
         deliverySlaHours: dto.deliverySlaHours,
         refundPolicy: dto.refundPolicy,
