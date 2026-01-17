@@ -443,3 +443,29 @@ export const fetchPublicListing = async (id: string): Promise<PublicListingDetai
     };
   }
 };
+
+export type CouponValidationResponse = {
+  code: string;
+  discountBps: number | null;
+  discountCents: number | null;
+  error?: string;
+};
+
+export const validateCoupon = async (code: string): Promise<CouponValidationResponse> => {
+  try {
+    const data = await fetchPublicApi<{
+      code: string;
+      discountBps: number | null;
+      discountCents: number | null;
+    }>(`/public/coupons/${code}`);
+    return { ...data };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Cupom inválido';
+    return {
+      code,
+      discountBps: null,
+      discountCents: null,
+      error: message,
+    };
+  }
+};

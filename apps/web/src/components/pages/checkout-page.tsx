@@ -13,10 +13,16 @@ import {
   Lock,
   Package,
   QrCode,
+  Star,
 } from 'lucide-react';
 
 import { ApiClientError } from '../../lib/api-client';
-import { fetchPublicListing, type PublicListing } from '../../lib/marketplace-public';
+import {
+  fetchPublicListing,
+  type PublicListing,
+  validateCoupon,
+  type CouponValidationResponse,
+} from '../../lib/marketplace-public';
 import { ordersApi, type CheckoutResponse, type Order } from '../../lib/orders-api';
 import { paymentsApi, type PixPayment } from '../../lib/payments-api';
 import { useAuth } from '../auth/auth-provider';
@@ -86,21 +92,14 @@ const packageOptions: PackageOption[] = [
   {
     id: 'standard',
     label: 'Padrão',
-    description: 'Acesso completo ao pacote base.',
+    description: 'Preço normal',
     deltaCents: 0,
   },
   {
     id: 'premium',
     label: 'Premium',
-    description: 'Mais recursos e suporte prioritario.',
-    deltaCents: 2000,
-    highlight: 'MAIS VENDIDO',
-  },
-  {
-    id: 'ultimate',
-    label: 'Ultimate',
-    description: 'Tudo liberado + bonus exclusivos.',
-    deltaCents: 4000,
+    description: 'Suporte prioritário',
+    deltaCents: 0,
   },
 ];
 
@@ -124,8 +123,9 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
   const [couponCode, setCouponCode] = useState('');
   const [couponError, setCouponError] = useState<string | null>(null);
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
+  const [couponData, setCouponData] = useState<CouponValidationResponse | null>(null);
   const [selectedPackage, setSelectedPackage] = useState<PackageOption>(
-    packageOptions[1],
+    packageOptions[1] ?? packageOptions[0],
   );
   const [referralSlug, setReferralSlug] = useState<string | null>(null);
   const [order, setOrder] = useState<Order | null>(null);
@@ -251,10 +251,24 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
       ? Math.round((1 - selectedPriceCents / oldPriceCents) * 100)
       : null;
 
-  const serviceFeeCents = 1500;
+  const serviceFeeCents =
+    selectedPackage.id === 'premium'
+      ? Math.round((listing?.priceCents ?? 0) * 0.2)
+      : 1500;
   const subtotalCents = selectedPriceCents * quantity + serviceFeeCents;
-  const pixDiscountCents = Math.round(subtotalCents * 0.05);
-  const estimatedTotalCents = Math.max(subtotalCents - pixDiscountCents, 0);
+
+  let couponDiscountValue = 0;
+  if (couponData) {
+    if (couponData.discountBps) {
+      couponDiscountValue = Math.round(subtotalCents * (couponData.discountBps / 10000));
+    } else if (couponData.discountCents) {
+      couponDiscountValue = couponData.discountCents;
+    }
+  }
+
+  const subtotalAfterCoupon = Math.max(subtotalCents - couponDiscountValue, 0);
+  const pixDiscountCents = Math.round(subtotalAfterCoupon * 0.05);
+  const estimatedTotalCents = Math.max(subtotalAfterCoupon - pixDiscountCents, 0);
 
   const checkoutBlockedReason = useMemo(() => {
     if (!listing) {
@@ -272,13 +286,21 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
   const activePayment = paymentState.data?.payment ?? pixPayment;
   const qrImage = resolveQrImage(activePayment?.qrCode ?? null);
 
-  const handleApplyCoupon = () => {
+  const handleApplyCoupon = async () => {
     const code = couponCode.trim();
     if (!code) {
       setCouponError('Digite um cupom valido.');
       return;
     }
-    setAppliedCoupon(code);
+    const result = await validateCoupon(code);
+    if (result.error || (!result.discountBps && !result.discountCents)) {
+      setCouponError(result.error ?? 'Cupom inválido');
+      setAppliedCoupon(null);
+      setCouponData(null);
+      return;
+    }
+    setAppliedCoupon(result.code);
+    setCouponData(result);
     setCouponError(null);
   };
 
@@ -383,11 +405,10 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
               return (
                 <div key={item.id} className="relative z-10 flex flex-1 flex-col items-center gap-2">
                   <span
-                    className={`flex h-10 w-10 items-center justify-center rounded-full border-2 text-sm font-bold ${
-                      isActive
-                        ? 'border-meow-300 bg-meow-300 text-white'
-                        : 'border-slate-200 bg-white text-slate-400'
-                    }`}
+                    className={`flex h-10 w-10 items-center justify-center rounded-full border-2 text-sm font-bold ${isActive
+                      ? 'border-meow-300 bg-meow-300 text-white'
+                      : 'border-slate-200 bg-white text-slate-400'
+                      }`}
                   >
                     <Icon size={18} aria-hidden />
                   </span>
@@ -467,28 +488,22 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                           optionOldPrice && optionOldPrice > optionPrice
                             ? Math.round((1 - optionPrice / optionOldPrice) * 100)
                             : null;
-                        const optionIcon =
-                          option.id === 'premium'
-                            ? Crown
-                            : option.id === 'ultimate'
-                              ? Gem
-                              : Package;
-                        const OptionIcon = optionIcon;
+                        const isPremium = option.id === 'premium';
+                        const starColorClass = isPremium ? 'text-yellow-400' : 'text-blue-500';
 
                         return (
                           <button
                             key={option.id}
                             type="button"
                             onClick={() => setSelectedPackage(option)}
-                            className={`rounded-2xl border p-4 text-left transition ${
-                              isActive
-                                ? 'border-meow-300 bg-meow-100/60 shadow-cute'
-                                : 'border-slate-100 bg-white hover:border-meow-200'
-                            }`}
+                            className={`rounded-2xl border p-4 text-left transition ${isActive
+                              ? 'border-meow-300 bg-meow-100/60 shadow-cute'
+                              : 'border-slate-100 bg-white hover:border-meow-200'
+                              }`}
                           >
                             <div className="flex items-center justify-between">
-                              <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-500">
-                                <OptionIcon size={18} aria-hidden />
+                              <span className={`inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 ${starColorClass}`}>
+                                <Star size={18} fill="currentColor" />
                               </span>
                             </div>
                             <div className="mt-3 flex items-center justify-between">
@@ -553,32 +568,32 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                       ].map((method) => {
                         const Icon = method.icon;
                         return (
-                        <div
-                          key={method.id}
-                          className={`rounded-2xl border px-4 py-3 text-sm font-semibold ${
-                            method.active
+                          <div
+                            key={method.id}
+                            className={`rounded-2xl border px-4 py-3 text-sm font-semibold ${method.active
                               ? 'border-meow-300 bg-meow-100/60 text-meow-deep'
                               : 'border-slate-100 bg-slate-50 text-slate-400'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="flex items-center gap-2">
-                              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-slate-500">
-                                <Icon size={16} aria-hidden />
+                              }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="flex items-center gap-2">
+                                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-slate-500">
+                                  <Icon size={16} aria-hidden />
+                                </span>
+                                {method.label}
                               </span>
-                              {method.label}
-                            </span>
-                            {method.active ? (
-                              <Badge variant="success" className="text-[9px]">
-                                {method.helper}
-                              </Badge>
-                            ) : (
-                              <span className="text-[10px] font-bold uppercase">Em breve</span>
-                            )}
+                              {method.active ? (
+                                <Badge variant="success" className="text-[9px]">
+                                  {method.helper}
+                                </Badge>
+                              ) : (
+                                <span className="text-[10px] font-bold uppercase">Em breve</span>
+                              )}
+                            </div>
+                            <p className="mt-2 text-xs text-slate-500">{method.helper}</p>
                           </div>
-                          <p className="mt-2 text-xs text-slate-500">{method.helper}</p>
-                        </div>
-                      )})}
+                        )
+                      })}
                     </div>
                   </Card>
 
@@ -767,6 +782,11 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                   {appliedCoupon ? (
                     <p className="mt-2 text-xs text-emerald-600">
                       Cupom {appliedCoupon} aplicado.
+                    </p>
+                  ) : null}
+                  {couponDiscountValue > 0 ? (
+                    <p className="mt-1 text-xs text-emerald-600 font-bold">
+                      Desconto: -{formatCurrency(couponDiscountValue, listing.currency)}
                     </p>
                   ) : null}
                 </div>

@@ -25,23 +25,28 @@ import { HomeListingCard } from '../listings/home-listing-card';
 const benefits = [
   {
     icon: Truck,
-    title: 'Entrega garantida ou seu dinheiro de volta',
-    description: 'Sua compra protegida do início ao fim',
+    title: 'Frete Grátis',
+    description: 'acima de R$349',
   },
   {
-    icon: ShieldCheck,
-    title: 'Segurança: site totalmente seguro',
-    description: 'Ambiente certificado e dados protegidos',
+    icon: BadgePercent,
+    title: 'Descontos',
+    description: 'em pagamentos a vista',
   },
   {
     icon: Package,
-    title: 'Entrega virtual: receba sem sair de casa',
-    description: 'Mais comodidade para você',
+    title: 'Entrega local',
+    description: 'receba hoje',
   },
   {
     icon: CreditCard,
-    title: 'Pague com cartão em até 12x sem juros',
-    description: 'Parcelamento fácil',
+    title: 'Pague com cartão',
+    description: 'em ate 12x s/ juros',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Segurança',
+    description: 'Loja oficial',
   },
 ];
 
@@ -187,7 +192,7 @@ export const HomeContent = () => {
 
       <section className="px-6 pb-10">
         <div className="mx-auto w-full max-w-[1280px]">
-          <div className="grid gap-5 rounded-2xl border border-meow-red/10 bg-white px-6 py-8 shadow-[0_14px_34px_rgba(216,107,149,0.12)] sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-5 rounded-2xl border border-meow-red/10 bg-white px-6 py-8 shadow-[0_14px_34px_rgba(216,107,149,0.12)] sm:grid-cols-2 lg:grid-cols-5">
             {benefits.map((item) => (
               <div key={item.title} className="flex items-start gap-4">
                 <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-meow-cream/70 text-meow-deep">

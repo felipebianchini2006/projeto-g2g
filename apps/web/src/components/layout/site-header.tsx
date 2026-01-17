@@ -349,7 +349,7 @@ export const SiteHeader = () => {
               <input
                 className="flex-1 bg-transparent text-sm text-meow-charcoal outline-none placeholder:text-meow-muted"
                 type="text"
-                placeholder="An?ncio, usu?rio ou categoria"
+                placeholder="Anúncio, usuário ou categoria"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 onKeyDown={(event) => {

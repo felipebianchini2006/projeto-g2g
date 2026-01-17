@@ -3,7 +3,7 @@
 import Link from 'next/link';
 
 export const SiteFooter = () => (
-  <footer className="bg-meow-linear text-white">
+  <footer className="bg-meow-linear text-white dark:bg-none dark:bg-slate-950">
     <div className="mx-auto w-full max-w-[1280px] px-6 py-14">
       <div className="grid gap-10 lg:grid-cols-[2fr_1fr_1fr_1fr]">
         <div>
