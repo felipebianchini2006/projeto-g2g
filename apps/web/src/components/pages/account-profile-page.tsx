@@ -254,10 +254,10 @@ export const AccountProfileContent = () => {
           </Card>
 
           <Card className="rounded-2xl border border-slate-100 p-6 shadow-card">
-            <h2 className="text-lg font-black text-meow-charcoal">Desativacao</h2>
+            <h2 className="text-lg font-black text-meow-charcoal">Desativação</h2>
             <p className="mt-2 text-sm text-meow-muted">
               Para desativar ou excluir sua conta, vamos validar pedidos em andamento
-              antes de concluir a solicitacao.
+              antes de concluir a solicitação.
             </p>
             <div className="mt-6 grid gap-3">
               <Button variant="secondary" type="button" disabled>

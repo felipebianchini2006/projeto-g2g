@@ -96,6 +96,18 @@ const SectionTitle = ({ icon, label }: SectionTitleProps) => (
 );
 
 const stripDigits = (value: string) => value.replace(/\D/g, '');
+const clampDigits = (value: string, maxLength: number) =>
+  stripDigits(value).slice(0, maxLength);
+const formatRg = (value: string) => {
+  const digits = stripDigits(value).slice(0, 10);
+  if (!digits) return '';
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 5) return `${digits.slice(0, 2)}.${digits.slice(2)}`;
+  if (digits.length <= 8) {
+    return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5)}`;
+  }
+  return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}-${digits.slice(8)}`;
+};
 
 export const AccountDataContent = () => {
   const { user, loading, accessToken } = useAuth();
@@ -262,6 +274,9 @@ export const AccountDataContent = () => {
     const reader = new FileReader();
     reader.onload = () => setRgPreview(reader.result as string);
     reader.readAsDataURL(file);
+  };
+  const handleRgNumberChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setRgNumber(clampDigits(event.target.value, 10));
   };
 
   const handleRgSubmit = async () => {
@@ -629,8 +644,11 @@ export const AccountDataContent = () => {
                           Número do RG
                           <Input
                             placeholder="Ex: 12.345.678-9"
-                            value={rgNumber}
-                            onChange={(e) => setRgNumber(e.target.value)}
+                            value={formatRg(rgNumber)}
+                            onChange={handleRgNumberChange}
+                            inputMode="numeric"
+                            pattern="\d*"
+                            maxLength={10}
                             disabled={rgSubmitting}
                           />
                         </label>

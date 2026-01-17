@@ -23,6 +23,8 @@ import { Select } from '../ui/select';
 import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
 import { Textarea } from '../ui/textarea';
 
+import { ImageUploader } from '../forms/image-uploader';
+
 type TicketsListContentProps = {
   initialOrderId?: string;
 };
@@ -110,6 +112,7 @@ export const TicketsListContent = ({ initialOrderId }: TicketsListContentProps) 
     attachments: [],
   });
   const [attachmentsInput, setAttachmentsInput] = useState('');
+  const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
   const formRef = useRef<HTMLDivElement | null>(null);
 
@@ -437,11 +440,10 @@ export const TicketsListContent = ({ initialOrderId }: TicketsListContentProps) 
                     key={ticket.id}
                     type="button"
                     onClick={() => setSelectedTicketId(ticket.id)}
-                    className={`w-full rounded-2xl border px-4 py-3 text-left transition ${
-                      selectedTicketId === ticket.id
-                        ? 'border-meow-200 bg-meow-50'
-                        : 'border-slate-100 bg-white hover:border-meow-100'
-                    }`}
+                    className={`w-full rounded-2xl border px-4 py-3 text-left transition ${selectedTicketId === ticket.id
+                      ? 'border-meow-200 bg-meow-50'
+                      : 'border-slate-100 bg-white hover:border-meow-100'
+                      }`}
                   >
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <Badge variant={statusTone[ticket.status]}>{statusLabel[ticket.status]}</Badge>
@@ -566,7 +568,17 @@ export const TicketsListContent = ({ initialOrderId }: TicketsListContentProps) 
                 />
               </label>
               <label className="grid gap-1 text-xs font-semibold text-meow-muted">
-                Anexos (links)
+                Imagens (opcional)
+                <ImageUploader
+                  files={mediaFiles}
+                  onFilesChange={setMediaFiles}
+                  maxFiles={3}
+                  className="mt-1"
+                />
+              </label>
+
+              <label className="grid gap-1 text-xs font-semibold text-meow-muted">
+                Links externos (opcional)
                 <Textarea
                   className="rounded-xl border-slate-200 bg-white text-sm text-meow-charcoal"
                   rows={2}

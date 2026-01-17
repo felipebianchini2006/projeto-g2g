@@ -241,11 +241,10 @@ const ProfileTabs = ({ activeTab, onChange, communityCount = 2 }: ProfileTabsPro
           key={tab.key}
           type="button"
           onClick={() => onChange(tab.key)}
-          className={`flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-xs font-bold transition ${
-            activeTab === tab.key
-              ? 'border border-rose-200 bg-rose-50 text-rose-600'
-              : 'border border-transparent bg-slate-50 text-meow-muted hover:bg-slate-100'
-          }`}
+          className={`flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-xs font-bold transition ${activeTab === tab.key
+            ? 'border border-rose-200 bg-rose-50 text-rose-600'
+            : 'border border-transparent bg-slate-50 text-meow-muted hover:bg-slate-100'
+            }`}
         >
           {tab.label}
           {tab.badge ? (
@@ -292,7 +291,7 @@ const TrustSealsCard = ({ trustSeals }: TrustSealsCardProps) => (
   </Card>
 );
 
-const PerformanceCard = ({}: PerformanceCardProps) => (
+const PerformanceCard = ({ }: PerformanceCardProps) => (
   <Card className="rounded-[24px] border border-slate-100 p-5 shadow-card">
     <div className="flex items-center justify-between">
       <h2 className="text-sm font-bold uppercase text-meow-muted">Performance</h2>
@@ -321,7 +320,7 @@ const PerformanceCard = ({}: PerformanceCardProps) => (
   </Card>
 );
 
-const MedalsCard = ({}: MedalsCardProps) => (
+const MedalsCard = ({ }: MedalsCardProps) => (
   <Card className="rounded-[24px] border border-slate-100 p-5 shadow-card">
     <h2 className="text-sm font-bold uppercase text-meow-muted">Medalhas</h2>
     <div className="mt-4 grid grid-cols-4 gap-3">
@@ -358,6 +357,32 @@ const SkeletonProfile = ({ sidebarOnly }: SkeletonProfileProps) => (
     ) : null}
   </div>
 );
+const getDominantColor = (imageUrl: string): Promise<string | null> => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'Anonymous';
+    img.src = imageUrl;
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1;
+        canvas.height = 1;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(null);
+          return;
+        }
+        ctx.drawImage(img, 0, 0, 1, 1);
+        const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+        resolve(`rgb(${r}, ${g}, ${b})`);
+      } catch (e) {
+        resolve(null);
+      }
+    };
+    img.onerror = () => resolve(null);
+  });
+};
+
 export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
   const { user, accessToken } = useAuth();
   const router = useRouter();
@@ -399,10 +424,24 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
     following: boolean;
   }>({ status: 'idle', following: false });
   const [chatLoading, setChatLoading] = useState(false);
+  const [brandColor, setBrandColor] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (profileState.profile?.avatarUrl) {
+      getDominantColor(profileState.profile.avatarUrl).then((color) => {
+        if (color) {
+          setBrandColor(color);
+        }
+      });
+    } else {
+      setBrandColor(null);
+    }
+  }, [profileState.profile?.avatarUrl]);
 
   useEffect(() => {
     let active = true;
     setProfileState({ status: 'loading', profile: null });
+    // ... existing code ...
     publicProfilesApi
       .getProfile(profileId)
       .then((profile) => {
@@ -421,164 +460,6 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
       active = false;
     };
   }, [profileId]);
-
-  useEffect(() => {
-    if (profileState.profile?.role === 'USER' || !profileState.profile?.id) {
-      return;
-    }
-    let active = true;
-    setListingsStatus('loading');
-    const categoryFilter = activeCategory === 'todos' ? undefined : activeCategory;
-    fetchPublicListings({
-      take: 9,
-      seller: profileState.profile.id,
-      category: categoryFilter,
-    })
-      .then((response) => {
-        if (!active) return;
-        if (response.source !== 'api') {
-          setListings([]);
-          setListingsStatus('ready');
-          return;
-        }
-        const normalized = categoryFilter
-          ? response.listings.filter((listing) => {
-              const slug = listing.categorySlug ?? '';
-              const label = listing.categoryLabel ?? '';
-              const normalizedLabel = label.toLowerCase().replace(/\s+/g, '-');
-              return slug === categoryFilter || normalizedLabel === categoryFilter;
-            })
-          : response.listings;
-        setListings(normalized);
-        setListingsStatus('ready');
-      })
-      .catch(() => {
-        if (!active) return;
-        setListings([]);
-        setListingsStatus('ready');
-      });
-    return () => {
-      active = false;
-    };
-  }, [activeCategory, profileState.profile?.id, profileState.profile?.role]);
-
-  useEffect(() => {
-    if (activeTab !== 'avaliacoes' || profileState.profile?.role === 'USER') {
-      return;
-    }
-    if (!profileState.profile?.id) {
-      return;
-    }
-    let active = true;
-    setReviewsState((prev) => ({ ...prev, status: 'loading', error: undefined }));
-    publicReviewsApi
-      .listSellerReviews(profileState.profile.id, 0, 10)
-      .then((response) => {
-        if (!active) return;
-        setReviewsState({
-          status: 'ready',
-          items: response.items,
-          total: response.total,
-          ratingAverage: response.ratingAverage,
-          distribution: response.distribution,
-        });
-      })
-      .catch((error: Error) => {
-        if (!active) return;
-        setReviewsState({
-          status: 'error',
-          items: [],
-          total: 0,
-          ratingAverage: 0,
-          distribution: null,
-          error: error.message || 'Não foi possível carregar as avaliações.',
-        });
-      });
-    return () => {
-      active = false;
-    };
-  }, [activeTab, profileState.profile?.id, profileState.profile?.role]);
-
-  useEffect(() => {
-    if (activeTab !== 'comunidade' || !profileState.profile?.id) {
-      return;
-    }
-    let active = true;
-    setPostsState({ status: 'loading', items: [], total: 0 });
-    publicCommunityApi
-      .listUserPosts(profileState.profile.id, { take: 10 })
-      .then((response) => {
-        if (!active) return;
-        setPostsState({ status: 'ready', items: response.items, total: response.total });
-      })
-      .catch((error: Error) => {
-        if (!active) return;
-        setPostsState({
-          status: 'error',
-          items: [],
-          total: 0,
-          error: error.message || 'Não foi possível carregar os posts.',
-        });
-      });
-    return () => {
-      active = false;
-    };
-  }, [activeTab, profileState.profile?.id]);
-
-  useEffect(() => {
-    if (activeTab !== 'comunidade') {
-      setActivePostId(null);
-    }
-  }, [activeTab]);
-
-  useEffect(() => {
-    if (!activePostId) {
-      setCommentsState({ status: 'idle', items: [], total: 0 });
-      return;
-    }
-    let active = true;
-    setCommentsState((prev) => ({ ...prev, status: 'loading', error: undefined }));
-    publicCommunityApi
-      .listPostComments(activePostId, { take: 20 })
-      .then((response) => {
-        if (!active) return;
-        setCommentsState({ status: 'ready', items: response.items, total: response.total });
-      })
-      .catch((error: Error) => {
-        if (!active) return;
-        setCommentsState({
-          status: 'error',
-          items: [],
-          total: 0,
-          error: error.message || 'Não foi possível carregar os comentários.',
-        });
-      });
-    return () => {
-      active = false;
-    };
-  }, [activePostId]);
-
-  useEffect(() => {
-    if (!accessToken || !user || user.id === profileId) {
-      setFollowState({ status: 'idle', following: false });
-      return;
-    }
-    let active = true;
-    setFollowState((prev) => ({ ...prev, status: 'loading' }));
-    usersApi
-      .getFollowStatus(accessToken, profileId)
-      .then((response) => {
-        if (!active) return;
-        setFollowState({ status: 'ready', following: response.following });
-      })
-      .catch(() => {
-        if (!active) return;
-        setFollowState({ status: 'ready', following: false });
-      });
-    return () => {
-      active = false;
-    };
-  }, [accessToken, profileId, user]);
 
   const showTabs = profileState.profile?.role !== 'USER';
 
@@ -609,7 +490,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
     );
   }
 
-  const profile = profileState.profile;
+  const profile = profileState.profile!;
   const yearLabel = new Date(profile.createdAt).getFullYear().toString();
   const ratingLabel = profile.stats.ratingAverage.toFixed(1);
   const formatCompact = (value: number) =>
@@ -641,11 +522,16 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
     activePostId ? postsState.items.find((post) => post.id === activePostId) ?? null : null;
   const communityCount = postsState.status === 'ready' ? postsState.total : 0;
 
+
+
   return (
     <section className="bg-gradient-to-b from-rose-100/60 via-white to-white px-6 py-12">
       <div className="mx-auto w-full max-w-[1200px] space-y-6">
         <div className="relative">
-          <div className="h-32 rounded-3xl bg-gradient-to-r from-rose-500 to-fuchsia-500">
+          <div
+            className={`h-32 rounded-3xl transition-colors duration-200 ${brandColor ? '' : 'bg-[#ff6b95]'}`}
+            style={brandColor ? { backgroundColor: brandColor } : undefined}
+          >
             <div className="h-full w-full rounded-3xl bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.4),_transparent_60%)]" />
           </div>
           <ProfileHeaderCard
@@ -747,11 +633,10 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
                         key={pill.value}
                         type="button"
                         onClick={() => setActiveCategory(pill.value)}
-                        className={`rounded-full px-4 py-2 text-xs font-bold transition ${
-                          isActive
-                            ? 'bg-rose-500 text-white shadow-cute'
-                            : 'border border-slate-200 bg-white text-meow-muted hover:border-slate-300'
-                        }`}
+                        className={`rounded-full px-4 py-2 text-xs font-bold transition ${isActive
+                          ? 'bg-rose-500 text-white shadow-cute'
+                          : 'border border-slate-200 bg-white text-meow-muted hover:border-slate-300'
+                          }`}
                       >
                         {pill.label}
                       </button>
@@ -894,112 +779,112 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
 
                 {postsState.status === 'ready'
                   ? postsState.items.map((post) => (
-                      <Card
-                        key={post.id}
-                        className="relative overflow-hidden rounded-[24px] border border-slate-100 p-5 shadow-card"
-                      >
-                        <span className="absolute left-0 top-0 h-full w-1 bg-rose-500" />
-                        <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 overflow-hidden rounded-full bg-meow-100">
-                            {post.author.avatarUrl ? (
-                              <img
-                                src={post.author.avatarUrl}
-                                alt={post.author.displayName}
-                                className="h-full w-full object-cover"
-                              />
-                            ) : (
-                              <div className="grid h-full w-full place-items-center text-sm font-bold text-slate-400">
-                                {post.author.displayName.slice(0, 2).toUpperCase()}
-                              </div>
-                            )}
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2 text-sm font-semibold text-meow-charcoal">
-                              {post.author.displayName}
-                              {post.pinned ? (
-                                <span className="rounded-full bg-pink-100 px-2 py-0.5 text-[10px] font-bold text-pink-600">
-                                  FIXADO
-                                </span>
-                              ) : null}
+                    <Card
+                      key={post.id}
+                      className="relative overflow-hidden rounded-[24px] border border-slate-100 p-5 shadow-card"
+                    >
+                      <span className="absolute left-0 top-0 h-full w-1 bg-rose-500" />
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 overflow-hidden rounded-full bg-meow-100">
+                          {post.author.avatarUrl ? (
+                            <img
+                              src={post.author.avatarUrl}
+                              alt={post.author.displayName}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="grid h-full w-full place-items-center text-sm font-bold text-slate-400">
+                              {post.author.displayName.slice(0, 2).toUpperCase()}
                             </div>
-                            <p className="text-xs text-meow-muted">
-                              {formatRelativeTime(post.createdAt)}
-                            </p>
+                          )}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 text-sm font-semibold text-meow-charcoal">
+                            {post.author.displayName}
+                            {post.pinned ? (
+                              <span className="rounded-full bg-pink-100 px-2 py-0.5 text-[10px] font-bold text-pink-600">
+                                FIXADO
+                              </span>
+                            ) : null}
                           </div>
+                          <p className="text-xs text-meow-muted">
+                            {formatRelativeTime(post.createdAt)}
+                          </p>
                         </div>
-                        {post.title ? (
-                          <h3 className="mt-4 text-sm font-bold text-pink-600">{post.title}</h3>
-                        ) : null}
-                        <p className="mt-2 text-sm text-meow-muted">{post.content}</p>
-                        {post.couponCode ? (
-                          <Card className="mt-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 shadow-none">
-                            <div className="flex items-center justify-between text-sm">
-                              <div>
-                                <p className="text-xs text-meow-muted">CUPOM ATIVO</p>
-                                <p className="text-base font-bold text-meow-charcoal">
-                                  {post.couponCode}
-                                </p>
-                              </div>
-                              <button
-                                type="button"
-                                className="inline-flex items-center gap-2 text-xs font-bold text-pink-500"
-                                onClick={() => {
-                                  navigator.clipboard?.writeText(post.couponCode ?? '');
-                                  setCopiedPostId(post.id);
-                                  setTimeout(() => setCopiedPostId(null), 2000);
-                                }}
-                              >
-                                <Copy size={14} aria-hidden />
-                                {copiedPostId === post.id ? 'Copiado' : 'Copiar'}
-                              </button>
+                      </div>
+                      {post.title ? (
+                        <h3 className="mt-4 text-sm font-bold text-pink-600">{post.title}</h3>
+                      ) : null}
+                      <p className="mt-2 text-sm text-meow-muted">{post.content}</p>
+                      {post.couponCode ? (
+                        <Card className="mt-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 shadow-none">
+                          <div className="flex items-center justify-between text-sm">
+                            <div>
+                              <p className="text-xs text-meow-muted">CUPOM ATIVO</p>
+                              <p className="text-base font-bold text-meow-charcoal">
+                                {post.couponCode}
+                              </p>
                             </div>
-                          </Card>
-                        ) : null}
-                        <div className="mt-4 flex flex-wrap items-center gap-6 text-xs text-meow-muted">
-                          <button
-                            type="button"
-                            className="inline-flex items-center gap-1"
-                            disabled={!canInteract || likeLoading[post.id]}
-                            onClick={async () => {
-                              if (!accessToken) return;
-                              if (likeLoading[post.id]) return;
-                              setLikeLoading((prev) => ({ ...prev, [post.id]: true }));
-                              try {
-                                const response = await communityApi.toggleLike(accessToken, post.id);
-                                setPostsState((prev) => ({
-                                  ...prev,
-                                  items: prev.items.map((item) =>
-                                    item.id === post.id
-                                      ? {
-                                          ...item,
-                                          stats: { ...item.stats, likes: response.likes },
-                                        }
-                                      : item,
-                                  ),
-                                }));
-                              } finally {
-                                setLikeLoading((prev) => ({ ...prev, [post.id]: false }));
-                              }
-                            }}
-                          >
-                            <Heart size={12} aria-hidden />
-                            {post.stats.likes}
-                          </button>
-                          <button
-                            type="button"
-                            className="inline-flex items-center gap-1"
-                            onClick={() => setActivePostId(post.id)}
-                          >
-                            <MessageSquare size={12} aria-hidden />
-                            {post.stats.comments}
-                          </button>
-                          <span className="inline-flex items-center gap-1">
-                            <Zap size={12} aria-hidden />
-                            0
-                          </span>
-                        </div>
-                      </Card>
-                    ))
+                            <button
+                              type="button"
+                              className="inline-flex items-center gap-2 text-xs font-bold text-pink-500"
+                              onClick={() => {
+                                navigator.clipboard?.writeText(post.couponCode ?? '');
+                                setCopiedPostId(post.id);
+                                setTimeout(() => setCopiedPostId(null), 2000);
+                              }}
+                            >
+                              <Copy size={14} aria-hidden />
+                              {copiedPostId === post.id ? 'Copiado' : 'Copiar'}
+                            </button>
+                          </div>
+                        </Card>
+                      ) : null}
+                      <div className="mt-4 flex flex-wrap items-center gap-6 text-xs text-meow-muted">
+                        <button
+                          type="button"
+                          className="inline-flex items-center gap-1"
+                          disabled={!canInteract || likeLoading[post.id]}
+                          onClick={async () => {
+                            if (!accessToken) return;
+                            if (likeLoading[post.id]) return;
+                            setLikeLoading((prev) => ({ ...prev, [post.id]: true }));
+                            try {
+                              const response = await communityApi.toggleLike(accessToken, post.id);
+                              setPostsState((prev) => ({
+                                ...prev,
+                                items: prev.items.map((item) =>
+                                  item.id === post.id
+                                    ? {
+                                      ...item,
+                                      stats: { ...item.stats, likes: response.likes },
+                                    }
+                                    : item,
+                                ),
+                              }));
+                            } finally {
+                              setLikeLoading((prev) => ({ ...prev, [post.id]: false }));
+                            }
+                          }}
+                        >
+                          <Heart size={12} aria-hidden />
+                          {post.stats.likes}
+                        </button>
+                        <button
+                          type="button"
+                          className="inline-flex items-center gap-1"
+                          onClick={() => setActivePostId(post.id)}
+                        >
+                          <MessageSquare size={12} aria-hidden />
+                          {post.stats.comments}
+                        </button>
+                        <span className="inline-flex items-center gap-1">
+                          <Zap size={12} aria-hidden />
+                          0
+                        </span>
+                      </div>
+                    </Card>
+                  ))
                   : null}
 
                 {activePost ? (
@@ -1052,31 +937,31 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
 
                         {commentsState.status === 'ready'
                           ? commentsState.items.map((comment) => (
-                              <div
-                                key={comment.id}
-                                className="flex items-start gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-3 py-3"
-                              >
-                                <div className="h-8 w-8 overflow-hidden rounded-full bg-white">
-                                  {comment.user.avatarUrl ? (
-                                    <img
-                                      src={comment.user.avatarUrl}
-                                      alt={comment.user.displayName}
-                                      className="h-full w-full object-cover"
-                                    />
-                                  ) : (
-                                    <div className="grid h-full w-full place-items-center text-[10px] font-bold text-slate-400">
-                                      {comment.user.displayName.slice(0, 2).toUpperCase()}
-                                    </div>
-                                  )}
-                                </div>
-                                <div>
-                                  <p className="text-xs font-semibold text-meow-charcoal">
-                                    {comment.user.displayName}
-                                  </p>
-                                  <p className="text-xs text-meow-muted">{comment.content}</p>
-                                </div>
+                            <div
+                              key={comment.id}
+                              className="flex items-start gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-3 py-3"
+                            >
+                              <div className="h-8 w-8 overflow-hidden rounded-full bg-white">
+                                {comment.user.avatarUrl ? (
+                                  <img
+                                    src={comment.user.avatarUrl}
+                                    alt={comment.user.displayName}
+                                    className="h-full w-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="grid h-full w-full place-items-center text-[10px] font-bold text-slate-400">
+                                    {comment.user.displayName.slice(0, 2).toUpperCase()}
+                                  </div>
+                                )}
                               </div>
-                            ))
+                              <div>
+                                <p className="text-xs font-semibold text-meow-charcoal">
+                                  {comment.user.displayName}
+                                </p>
+                                <p className="text-xs text-meow-muted">{comment.content}</p>
+                              </div>
+                            </div>
+                          ))
                           : null}
                       </div>
 
@@ -1115,9 +1000,9 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
                                     items: prev.items.map((item) =>
                                       item.id === activePostId
                                         ? {
-                                            ...item,
-                                            stats: { ...item.stats, comments: response.comments },
-                                          }
+                                          ...item,
+                                          stats: { ...item.stats, comments: response.comments },
+                                        }
                                         : item,
                                     ),
                                   }));

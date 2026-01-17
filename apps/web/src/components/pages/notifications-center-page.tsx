@@ -234,12 +234,12 @@ export const NotificationsCenterContent = () => {
           </div>
 
           <div className="mt-5 flex flex-wrap items-center gap-3">
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
               <TabsList className="gap-2">
                 {tabs.map((tab) => {
                   const Icon = tab.icon;
                   return (
-                    <TabsTrigger key={tab.id} value={tab.id}>
+                    <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-2">
                       <Icon size={14} aria-hidden />
                       {tab.label}
                     </TabsTrigger>
@@ -268,19 +268,17 @@ export const NotificationsCenterContent = () => {
               return (
                 <div
                   key={notification.id}
-                  className={`flex flex-wrap items-start justify-between gap-4 rounded-xl border px-4 py-4 ${
-                    isRead
-                      ? 'border-slate-100 bg-white'
-                      : 'border-meow-red/30 bg-meow-red/5'
-                  }`}
+                  className={`flex flex-wrap items-start justify-between gap-4 rounded-xl border px-4 py-4 ${isRead
+                    ? 'border-slate-100 bg-white'
+                    : 'border-meow-red/30 bg-meow-red/5'
+                    }`}
                 >
                   <div className="flex flex-1 items-start gap-3">
                     <div
-                      className={`mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl ${
-                        isRead
-                          ? 'bg-slate-100 text-slate-500'
-                          : 'bg-meow-red/15 text-meow-deep'
-                      }`}
+                      className={`mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl ${isRead
+                        ? 'bg-slate-100 text-slate-500'
+                        : 'bg-meow-red/15 text-meow-deep'
+                        }`}
                     >
                       <Icon size={18} aria-hidden />
                     </div>

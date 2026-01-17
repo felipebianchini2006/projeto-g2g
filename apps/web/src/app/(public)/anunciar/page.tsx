@@ -466,13 +466,11 @@ export default function Page() {
 
                     {/* Stock */}
                     <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <label className="text-xs font-bold uppercase tracking-wide text-slate-400">ESTOQUE</label>
-                      </div>
+                      <label className="text-xs font-bold uppercase tracking-wide text-slate-400">ESTOQUE</label>
                       <Input
                         value={autoDelivery ? (isDynamic ? inventoryCount : 1) : 1}
                         readOnly
-                        className="h-14 rounded-xl border-slate-200 bg-slate-50 font-bold text-slate-700"
+                        className="h-14 rounded-xl border-slate-200 bg-slate-50 pl-4 text-xl font-bold text-slate-800"
                       />
                     </div>
                   </div>
@@ -507,7 +505,7 @@ export default function Page() {
                       <Select
                         value={formState.recoveryOptionId || ''}
                         onChange={(e) => setFormState(prev => ({ ...prev, recoveryOptionId: e.target.value }))}
-                        className="h-12 rounded-xl border-slate-200 bg-slate-50 font-bold text-slate-700 hover:bg-slate-100 focus:border-meow-300"
+                        className="h-12 rounded-xl border-slate-200 bg-slate-50 font-bold text-slate-700 hover:bg-slate-100 focus:border-meow-300 truncate pr-8"
                       >
                         {recoveryOptions.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
                       </Select>

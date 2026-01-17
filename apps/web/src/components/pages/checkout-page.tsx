@@ -125,7 +125,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const [couponData, setCouponData] = useState<CouponValidationResponse | null>(null);
   const [selectedPackage, setSelectedPackage] = useState<PackageOption>(
-    packageOptions[1] ?? packageOptions[0],
+    packageOptions[1] ?? packageOptions[0]!,
   );
   const [referralSlug, setReferralSlug] = useState<string | null>(null);
   const [order, setOrder] = useState<Order | null>(null);
@@ -445,8 +445,8 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
               {step === 'produto' ? (
                 <>
                   <Card className="rounded-2xl border border-slate-100 p-6 shadow-card">
-                    <div className="flex items-start gap-4">
-                      <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
                         <Download size={20} aria-hidden />
                       </span>
                       <div>
@@ -463,7 +463,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
 
                   <Card className="rounded-2xl border border-slate-100 p-6 shadow-card">
                     <div className="flex items-center gap-3">
-                      <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-100 text-amber-600">
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-600">
                         <Crown size={20} aria-hidden />
                       </span>
                       <div>
@@ -476,7 +476,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                       </div>
                     </div>
 
-                    <div className="mt-5 grid gap-4 md:grid-cols-3">
+                    <div className="mt-5 grid gap-4 md:grid-cols-2">
                       {packageOptions.map((option) => {
                         const isActive = selectedPackage.id === option.id;
                         const optionPrice = (listing.priceCents ?? 0) + option.deltaCents;
@@ -498,42 +498,50 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                             onClick={() => setSelectedPackage(option)}
                             className={`rounded-2xl border p-4 text-left transition ${isActive
                               ? 'border-meow-300 bg-meow-100/60 shadow-cute'
-                              : 'border-slate-100 bg-white hover:border-meow-200'
+                              : 'border-transparent bg-white hover:border-meow-200'
                               }`}
                           >
-                            <div className="flex items-center justify-between">
-                              <span className={`inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 ${starColorClass}`}>
-                                <Star size={18} fill="currentColor" />
-                              </span>
-                            </div>
-                            <div className="mt-3 flex items-center justify-between">
-                              <h3 className="text-sm font-bold text-meow-charcoal">
-                                {option.label}
-                              </h3>
-                              {option.highlight ? (
-                                <Badge variant="warning" className="text-[9px]">
-                                  {option.highlight}
-                                </Badge>
-                              ) : null}
-                            </div>
-                            <p className="mt-2 text-xs text-meow-muted">
-                              {option.description}
-                            </p>
-                            <div className="mt-3 flex flex-wrap items-center gap-2">
-                              {optionOldPrice ? (
-                                <span className="text-[11px] text-slate-400 line-through">
-                                  {formatCurrency(optionOldPrice, listing.currency)}
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-center gap-3">
+                                <span className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 ${starColorClass}`}>
+                                  <Star size={18} fill="currentColor" />
                                 </span>
-                              ) : null}
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <h3 className="text-sm font-bold text-meow-charcoal">
+                                      {option.label}
+                                    </h3>
+                                    {option.highlight ? (
+                                      <Badge variant="warning" className="text-[9px]">
+                                        {option.highlight}
+                                      </Badge>
+                                    ) : null}
+                                  </div>
+                                  <p className="text-xs text-meow-muted">
+                                    {option.description}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3">
+                              <div className="flex flex-col">
+                                {optionOldPrice ? (
+                                  <span className="text-[10px] text-slate-400 line-through">
+                                    {formatCurrency(optionOldPrice, listing.currency)}
+                                  </span>
+                                ) : null}
+                                <p className="text-lg font-black text-meow-300">
+                                  {formatCurrency(optionPrice, listing.currency)}
+                                </p>
+                              </div>
+
                               {optionDiscount ? (
                                 <Badge variant="success" className="text-[9px]">
                                   -{optionDiscount}%
                                 </Badge>
                               ) : null}
                             </div>
-                            <p className="mt-2 text-lg font-black text-meow-300">
-                              {formatCurrency(optionPrice, listing.currency)}
-                            </p>
                           </button>
                         );
                       })}

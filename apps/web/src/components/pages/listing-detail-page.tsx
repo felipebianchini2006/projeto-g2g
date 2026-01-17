@@ -296,11 +296,11 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
   const listing = state.listing;
   const categoryLabel = listing.categoryLabel ?? listing.categorySlug ?? 'Marketplace';
   const favoriteActive = isFavorite(listing.id);
-  const reviewsLabel = `Avaliacoes (${reviewsState.total})`;
+  const reviewsLabel = `Avaliações (${reviewsState.total})`;
   const tabs = [
     { id: 'descricao', label: 'Descrição' },
     { id: 'avaliacoes', label: reviewsLabel },
-    { id: 'duvidas', label: 'Duvidas' },
+    { id: 'duvidas', label: 'Dúvidas' },
   ] as const;
   const fallbackImage = '/assets/meoow/highlight-01.webp';
   const mediaItems =
@@ -500,7 +500,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
             <button
               type="button"
               onClick={handleOpenReportModal}
-              className="flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+              className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-500 hover:border-red-200 hover:bg-red-50 hover:text-red-600"
             >
               <Flag size={12} />
               Denunciar
@@ -967,7 +967,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
               <div className="space-y-6">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <h3 className="text-lg font-black text-meow-charcoal">Duvidas</h3>
+                    <h3 className="text-lg font-black text-meow-charcoal">Dúvidas</h3>
                     <p className="text-xs text-slate-400">
                       {questionCount} pergunta{questionCount === 1 ? '' : 's'}
                     </p>
@@ -1010,7 +1010,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
 
                 {questionsState.status === 'ready' && questionsState.items.length === 0 ? (
                   <div className="rounded-2xl border border-slate-100 bg-meow-50 px-5 py-4 text-sm text-meow-muted">
-                    <p>Nenhuma duvida ainda. Seja o primeiro a perguntar.</p>
+                    <p>Nenhuma dúvida ainda. Seja o primeiro a perguntar.</p>
                     {canAskQuestion ? (
                       <Button
                         type="button"
@@ -1110,7 +1110,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
                       <Textarea
                         ref={questionRef}
                         rows={4}
-                        placeholder="Escreva sua duvida..."
+                        placeholder="Escreva sua dúvida..."
                         value={questionDraft}
                         onChange={(event) => setQuestionDraft(event.target.value)}
                       />

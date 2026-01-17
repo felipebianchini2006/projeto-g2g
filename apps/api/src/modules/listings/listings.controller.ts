@@ -27,9 +27,9 @@ type AuthenticatedRequest = Request & { user?: JwtPayload };
 
 @Controller('listings')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.SELLER)
+@Roles(UserRole.SELLER, UserRole.ADMIN, UserRole.USER)
 export class ListingsController {
-  constructor(private readonly listingsService: ListingsService) {}
+  constructor(private readonly listingsService: ListingsService) { }
 
   @Post()
   create(@Req() req: AuthenticatedRequest, @Body() dto: CreateListingDto) {

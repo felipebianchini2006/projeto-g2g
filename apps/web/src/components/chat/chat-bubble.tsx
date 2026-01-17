@@ -26,37 +26,40 @@ export const ChatBubble = ({
 }: ChatBubbleProps) => {
     return (
         <div
-            className={`flex w-full ${isOwn ? 'justify-end' : 'justify-start'} ${className}`}
+            className={`flex w-full flex-col ${isOwn ? 'items-end' : 'items-start'} ${className}`}
         >
-            {!isOwn ? (
-                <div className="mr-2 mt-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[10px] font-bold text-slate-500">
-                    {(senderInitials).slice(0, 2).toUpperCase()}
-                </div>
-            ) : null}
-            <div className="max-w-[85%]">
+            <div className={`flex items-center gap-2 max-w-[85%]`}>
+                {!isOwn ? (
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[10px] font-bold text-slate-500">
+                        {(senderInitials).slice(0, 2).toUpperCase()}
+                    </div>
+                ) : null}
+
                 <div
                     className={`rounded-2xl px-4 py-2 text-sm shadow-sm ${isDeleted
-                            ? 'bg-slate-100 text-slate-400'
-                            : isOwn
-                                ? 'bg-meow-linear text-white'
-                                : 'bg-white text-meow-charcoal'
+                        ? 'bg-slate-100 text-slate-400'
+                        : isOwn
+                            ? 'bg-meow-linear text-white'
+                            : 'bg-white text-meow-charcoal'
                         }`}
                 >
                     <p className="whitespace-pre-wrap break-words">{isDeleted ? 'Mensagem apagada' : text}</p>
                 </div>
-                <div
-                    className={`mt-1 flex items-center justify-between gap-2 text-[10px] ${isOwn ? 'text-pink-400' : 'text-slate-400'
-                        }`}
-                >
-                    <span>{formatTime(timestamp)}</span>
-                    {status ? <span>{status}</span> : null}
-                </div>
+
+                {isOwn ? (
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-900 text-[10px] font-bold text-white">
+                        EU
+                    </div>
+                ) : null}
             </div>
-            {isOwn ? (
-                <div className="ml-2 mt-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-900 text-[10px] font-bold text-white">
-                    EU
-                </div>
-            ) : null}
+
+            <div
+                className={`mt-1 flex items-center gap-2 text-[10px] ${isOwn ? 'mr-10 flex-row-reverse text-pink-400' : 'ml-10 text-slate-400'
+                    }`}
+            >
+                <span>{formatTime(timestamp)}</span>
+                {status ? <span>{status}</span> : null}
+            </div>
         </div>
     );
 };

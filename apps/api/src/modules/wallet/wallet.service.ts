@@ -1,5 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { LedgerEntrySource, LedgerEntryState, LedgerEntryType, Prisma } from '@prisma/client';
+import {
+  LedgerEntrySource,
+  LedgerEntryState,
+  LedgerEntryType,
+  OrderStatus,
+  Prisma,
+  UserRole,
+} from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { PaymentsService } from '../payments/payments.service';
@@ -7,9 +14,14 @@ import { OrdersQueueService } from '../orders/orders.queue.service';
 import { WalletEntriesQueryDto } from './dto/wallet-entries-query.dto';
 import { TopupWalletDto } from './dto/topup-wallet.dto';
 import { buildWalletSummary, type WalletSummaryRow } from './wallet.utils';
-import { OrderStatus } from '@prisma/client';
-
 const DEFAULT_TAKE = 20;
+
+type AdminWalletSummary = {
+  pendingCents: number;
+  sellersAvailableCents: number;
+  platformFeeCents: number;
+  reversedCents: number;
+};
 
 type WalletEntryItem = {
   id: string;
@@ -114,5 +126,49 @@ export class WalletService {
       skip,
       take,
     };
+  }
+
+  async getAdminSummary(): Promise<AdminWalletSummary> {
+    const entries = await this.prisma.ledgerEntry.findMany({
+      where: {
+        user: {
+          role: UserRole.SELLER,
+        },
+      },
+      select: {
+        type: true,
+        state: true,
+        source: true,
+        amountCents: true,
+      },
+    });
+
+    const sumSigned = (amountCents: number, type: LedgerEntryType) =>
+      type === LedgerEntryType.DEBIT ? -amountCents : amountCents;
+
+    const summary: AdminWalletSummary = {
+      pendingCents: 0,
+      sellersAvailableCents: 0,
+      platformFeeCents: 0,
+      reversedCents: 0,
+    };
+
+    for (const entry of entries) {
+      const signed = sumSigned(entry.amountCents, entry.type);
+      if (entry.state === LedgerEntryState.HELD) {
+        summary.pendingCents += signed;
+      }
+      if (entry.state === LedgerEntryState.AVAILABLE) {
+        summary.sellersAvailableCents += signed;
+      }
+      if (entry.state === LedgerEntryState.REVERSED) {
+        summary.reversedCents += signed;
+      }
+      if (entry.source === LedgerEntrySource.FEE) {
+        summary.platformFeeCents += entry.amountCents;
+      }
+    }
+
+    return summary;
   }
 }

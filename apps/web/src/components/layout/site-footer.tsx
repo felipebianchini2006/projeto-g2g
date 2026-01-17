@@ -7,20 +7,11 @@ export const SiteFooter = () => (
     <div className="mx-auto w-full max-w-[1280px] px-6 py-14">
       <div className="grid gap-10 lg:grid-cols-[2fr_1fr_1fr_1fr]">
         <div>
-          <div className="flex items-center gap-3">
-            <div className="h-12 w-12 overflow-hidden rounded-xl shadow-meow">
-              <img src="/assets/meoow/logo.png" alt="Meoww" />
-            </div>
-            <div>
-              <span className="block font-display text-xl font-black">
-                Meoww
-              </span>
-              <span className="text-xs font-semibold text-white/90">
-              </span>
+          <div>
+            <div className="flex items-center gap-3">
+              <img src="/assets/meoow/logo.png" alt="Meoww" className="h-28 w-auto object-contain" />
             </div>
           </div>
-          <p className="mt-4 text-sm leading-relaxed text-white/80">
-          </p>
         </div>
 
         <div>

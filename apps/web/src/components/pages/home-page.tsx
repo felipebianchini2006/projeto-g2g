@@ -185,7 +185,7 @@ export const HomeContent = () => {
 
       <section className="px-6 pb-10">
         <div className="mx-auto w-full max-w-[1280px]">
-          <div className="grid gap-5 rounded-2xl border border-meow-red/10 bg-white px-6 py-8 shadow-[0_14px_34px_rgba(216,107,149,0.12)] sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 rounded-2xl border border-meow-red/10 bg-white px-6 py-5 shadow-[0_14px_34px_rgba(216,107,149,0.12)] sm:grid-cols-2 lg:grid-cols-4">
             {benefits.map((item) => (
               <div key={item.title} className="flex flex-col items-center gap-3 text-center">
                 <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-meow-cream/70 text-meow-deep">

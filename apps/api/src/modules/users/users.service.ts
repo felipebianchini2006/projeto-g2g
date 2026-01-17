@@ -115,7 +115,23 @@ export class UsersService {
       data.fullName = normalizeText(dto.fullName);
     }
     if (dto.cpf !== undefined) {
-      data.cpf = normalizeDigits(dto.cpf);
+      const normalizedCpf = normalizeDigits(dto.cpf);
+      if (normalizedCpf) {
+        const existingCpfUser = await this.prisma.user.findFirst({
+          where: {
+            cpf: normalizedCpf,
+            NOT: { id: userId },
+          },
+          select: { id: true, blockedAt: true },
+        });
+        if (existingCpfUser) {
+          if (existingCpfUser.blockedAt) {
+            throw new BadRequestException('CPF vinculado a uma conta bloqueada.');
+          }
+          throw new BadRequestException('CPF ja cadastrado.');
+        }
+      }
+      data.cpf = normalizedCpf;
     }
     if (dto.birthDate !== undefined) {
       data.birthDate = normalizeText(dto.birthDate);
@@ -156,11 +172,16 @@ export class UsersService {
         select: USER_PROFILE_SELECT,
       });
     } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2025'
-      ) {
-        throw new NotFoundException('User not found.');
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new NotFoundException('User not found.');
+        }
+        if (error.code === 'P2002') {
+          const target = Array.isArray(error.meta?.target) ? error.meta?.target : [];
+          if (target.includes('cpf')) {
+            throw new BadRequestException('CPF ja cadastrado.');
+          }
+        }
       }
       throw error;
     }

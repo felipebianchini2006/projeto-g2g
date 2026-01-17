@@ -337,7 +337,7 @@ export const SiteHeader = () => {
                 <img
                   src="/assets/meoow/logo.png"
                   alt="Meoww Games"
-                  className="h-10 w-auto md:h-12"
+                  className="h-14 w-auto md:h-20"
                 />
               </Link>
             </div>

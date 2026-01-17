@@ -155,7 +155,7 @@ export default function Page() {
                   </div>
                 </Link>
                 <Button
-                  className="mt-4 w-full"
+                  className="mt-4 w-full justify-start gap-2 pl-4"
                   size="sm"
                   onClick={() =>
                     addToCart({

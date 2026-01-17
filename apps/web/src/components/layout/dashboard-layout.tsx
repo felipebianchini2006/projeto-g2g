@@ -172,6 +172,7 @@ const adminNav = (logout: () => Promise<void>, goHome: () => void): MenuSection[
       { label: 'Parceiros', href: '/admin/parceiros' },
       { label: 'Cupons', href: '/admin/cupons' },
       { label: 'Pedidos', href: '/admin/pedidos' },
+      { label: 'Carteira', href: '/admin/carteira' },
       { label: 'Webhooks', href: '/admin/webhooks' },
       { label: 'Sistema', href: '/admin/sistema' },
       { label: 'Parametros', href: '/admin/parametros' },
