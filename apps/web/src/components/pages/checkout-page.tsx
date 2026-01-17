@@ -762,6 +762,9 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                         : formatCurrency(estimatedTotalCents, listing.currency)}
                     </span>
                   </div>
+                  <p className="mt-2 text-[10px] text-center text-meow-muted">
+                    O valor do produto e somado a uma taxa operacional de 0,95 centavos
+                  </p>
                 </div>
 
                 <div className="mt-5">
