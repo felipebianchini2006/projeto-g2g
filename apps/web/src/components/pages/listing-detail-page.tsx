@@ -10,7 +10,11 @@ import {
   listingQuestionsApi,
   type ListingQuestion,
 } from '../../lib/listing-questions-api';
-import { fetchPublicListing, type PublicListing } from '../../lib/marketplace-public';
+import {
+  fetchPublicListing,
+  fetchPublicListings,
+  type PublicListing,
+} from '../../lib/marketplace-public';
 import {
   publicReviewsApi,
   type PublicReview,
@@ -26,6 +30,7 @@ import { Button, buttonVariants } from '../ui/button';
 import { Skeleton } from '../ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Textarea } from '../ui/textarea';
+import { HomeListingCard } from '../listings/home-listing-card';
 
 type ListingDetailState = {
   status: 'loading' | 'ready';
@@ -72,6 +77,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
     listing: null,
     source: 'api',
   });
+  const [relatedListings, setRelatedListings] = useState<PublicListing[]>([]);
   const [questionsState, setQuestionsState] = useState<ListingQuestionsState>({
     status: 'loading',
     items: [],
@@ -132,6 +138,16 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
           .catch(() => {
             // Silently fail for seller profile if needed, or log
           });
+      }
+
+      if (response.listing?.categorySlug) {
+        fetchPublicListings({ category: response.listing.categorySlug, take: 5 })
+          .then((res) => {
+            if (!active) return;
+            const filtered = res.listings.filter((item) => item.id !== listingId).slice(0, 4);
+            setRelatedListings(filtered);
+          })
+          .catch(() => { });
       }
     };
     loadListing().catch(() => {
@@ -1124,6 +1140,22 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
           </Tabs>
         </div>
       </div>
+
+      {relatedListings.length > 0 ? (
+        <div className="mx-auto mt-12 w-full max-w-[1200px] px-6">
+          <h2 className="text-2xl font-black text-meow-charcoal mb-6">Produtos Relacionados</h2>
+          <div className="flex flex-wrap gap-6 justify-center lg:justify-start">
+            {relatedListings.map((item) => (
+              <HomeListingCard
+                key={item.id}
+                listing={item}
+                image={item.media?.[0]?.url ?? '/assets/meoow/highlight-01.webp'}
+                href={`/anuncios/${item.id}`}
+              />
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       {/* Report Modal */}
       {reportModalOpen ? (

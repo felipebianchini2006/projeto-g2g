@@ -13,16 +13,17 @@ vi.mock('../../lib/marketplace-public', () => ({
 // though usually they render fine. 
 
 describe('HomeContent', () => {
-    it('renders the 4 new benefit texts correctly', async () => {
-        const { container } = render(<HomeContent />);
+    it('renders the benefit texts correctly', async () => {
+        render(<HomeContent />);
 
-        // Check for the new texts
-        expect(screen.getByText('Entrega garantida ou seu dinheiro de volta')).toBeInTheDocument();
-        expect(screen.getByText('Segurança: site totalmente seguro')).toBeInTheDocument();
-        expect(screen.getByText('Entrega virtual: receba sem sair de casa')).toBeInTheDocument();
-
-        // Check for the one that remains
-        expect(screen.getByText(/Pague com cartão/)).toBeInTheDocument();
+        expect(screen.getByText('Frete Gratis')).toBeInTheDocument();
+        expect(screen.getByText('acima de R$349')).toBeInTheDocument();
+        expect(screen.getByText('Descontos')).toBeInTheDocument();
+        expect(screen.getByText('em pagamentos a vista')).toBeInTheDocument();
+        expect(screen.getByText('Entrega local')).toBeInTheDocument();
+        expect(screen.getByText('rapido')).toBeInTheDocument();
+        expect(screen.getByText('Seguranca')).toBeInTheDocument();
+        expect(screen.getByText('Loja oficial')).toBeInTheDocument();
     });
 
     it('renders highlights centered and major categories', async () => {

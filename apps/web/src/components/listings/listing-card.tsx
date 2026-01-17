@@ -97,7 +97,7 @@ export const ListingCard = ({
         </div>
         <Link
           href={href}
-          className="mt-auto inline-flex w-full items-center justify-center rounded-full bg-meow-indigo px-5 py-3 text-sm font-bold text-white shadow-cute transition hover:bg-meow-indigoDark"
+          className="mt-auto inline-flex w-full items-center justify-center rounded-full bg-meow-linear px-5 py-3 text-sm font-bold text-white shadow-cute transition hover:-translate-y-0.5 hover:shadow-meow"
         >
           Ver detalhes
         </Link>

@@ -28,11 +28,11 @@ export const HomeListingCard = ({ listing, image, href }: HomeListingCardProps) 
     typeof listing.oldPriceCents === 'number' && listing.oldPriceCents > listing.priceCents;
   const discount = hasOldPrice
     ? Math.max(
-        1,
-        Math.round(
-          (1 - listing.priceCents / Math.max(1, listing.oldPriceCents ?? 1)) * 100,
-        ),
-      )
+      1,
+      Math.round(
+        (1 - listing.priceCents / Math.max(1, listing.oldPriceCents ?? 1)) * 100,
+      ),
+    )
     : null;
 
   return (
@@ -100,7 +100,7 @@ export const HomeListingCard = ({ listing, image, href }: HomeListingCardProps) 
           className={buttonVariants({
             variant: 'primary',
             className:
-              'mt-auto h-10 w-full rounded-full bg-meow-indigo text-xs font-bold text-white hover:bg-meow-indigoDark',
+              'mt-auto h-10 w-full rounded-full text-xs font-bold',
           })}
         >
           Ver detalhes

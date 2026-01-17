@@ -724,8 +724,8 @@ export const AdminListingsContent = ({
                           key={item.id}
                           onClick={() => { setSelectedListing(item); setIsCreating(false); }}
                           className={`cursor-pointer rounded-xl border p-4 transition-all hover:shadow-md ${isSelected
-                              ? 'border-meow-red/30 bg-meow-red/5 ring-1 ring-meow-red/20'
-                              : 'border-slate-100 bg-white hover:border-meow-red/20'
+                            ? 'border-meow-red/30 bg-meow-red/5 ring-1 ring-meow-red/20'
+                            : 'border-slate-100 bg-white hover:border-meow-red/20'
                             }`}
                         >
                           <div className="flex items-start justify-between gap-3">
@@ -789,9 +789,9 @@ export const AdminListingsContent = ({
                 <Tabs defaultValue="details" className="w-full">
                   <div className="border-b border-slate-100 px-6">
                     <TabsList className="justify-start -mb-px bg-transparent p-0 gap-6">
-                      <TabsTrigger value="details" className="rounded-none border-b-2 border-transparent px-0 py-3 data-[state=active]:border-meow-red data-[state=active]:bg-transparent data-[state=active]:text-meow-deep">Detalhes</TabsTrigger>
-                      <TabsTrigger value="moderation" className="rounded-none border-b-2 border-transparent px-0 py-3 data-[state=active]:border-meow-red data-[state=active]:bg-transparent data-[state=active]:text-meow-deep">Moderação</TabsTrigger>
-                      <TabsTrigger value="inventory" className="rounded-none border-b-2 border-transparent px-0 py-3 data-[state=active]:border-meow-red data-[state=active]:bg-transparent data-[state=active]:text-meow-deep">Estoque & Mídia</TabsTrigger>
+                      <TabsTrigger value="details" className="bg-transparent rounded-none border-b-2 border-transparent px-0 py-3 data-[state=active]:border-meow-red data-[state=active]:bg-transparent data-[state=active]:text-meow-deep hover:bg-transparent">Detalhes</TabsTrigger>
+                      <TabsTrigger value="moderation" className="bg-transparent rounded-none border-b-2 border-transparent px-0 py-3 data-[state=active]:border-meow-red data-[state=active]:bg-transparent data-[state=active]:text-meow-deep hover:bg-transparent">Moderação</TabsTrigger>
+                      <TabsTrigger value="inventory" className="bg-transparent rounded-none border-b-2 border-transparent px-0 py-3 data-[state=active]:border-meow-red data-[state=active]:bg-transparent data-[state=active]:text-meow-deep hover:bg-transparent">Estoque & Mídia</TabsTrigger>
                     </TabsList>
                   </div>
 
