@@ -14,6 +14,7 @@ import {
   Wrench,
   AlertCircle,
   Zap,
+  Image as ImageIcon,
 } from 'lucide-react';
 
 import { useAuth } from '../../../components/auth/auth-provider';
@@ -45,6 +46,7 @@ import { ImageUploader } from '../../../components/forms/image-uploader';
 import { AdTierSelector, type Tier } from '../../../components/forms/ad-tier-selector';
 import { ListingDescriptionField } from '../../../components/forms/listing-description-field';
 import { ActionBar } from '../../../components/forms/action-bar';
+import { ListingCard } from '../../../components/listings/listing-card';
 
 // --- Types & Constants ---
 
@@ -97,16 +99,17 @@ const DEFAULT_RECOVERY: CatalogOption[] = [
 ];
 
 // --- Components ---
-function FormSection({ title, icon: Icon, children, className = '' }: { title: string, icon?: React.ElementType, children: React.ReactNode, className?: string }) {
+// --- Components ---
+function FormSection({ step, title, icon: Icon, children, className = '' }: { step?: string, title: string, icon?: React.ElementType, children: React.ReactNode, className?: string }) {
   return (
-    <div className={`rounded-[24px] border border-slate-100 bg-white p-6 shadow-sm transition-all hover:shadow-md md:p-8 ${className}`}>
-      <div className="mb-6 flex items-center gap-3 border-b border-slate-100 pb-4">
-        {Icon && (
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-slate-700">
-            <Icon size={20} />
+    <div className={`rounded-[32px] border border-slate-100 bg-white p-6 shadow-sm transition-all hover:shadow-md md:p-8 ${className}`}>
+      <div className="mb-8 flex items-center gap-4 border-b border-slate-50 pb-6">
+        {step && (
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-lg font-black text-meow-600 shadow-sm">
+            {step}
           </div>
         )}
-        <h2 className="text-lg font-bold text-slate-800">{title}</h2>
+        <h2 className="text-xl font-bold text-slate-800">{title}</h2>
       </div>
       <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
         {children}
@@ -141,7 +144,7 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [listingType, setListingType] = useState('diamante');
+  const [listingType, setListingType] = useState('premium');
 
   // --- Effects ---
 
@@ -229,18 +232,24 @@ export default function Page() {
   useEffect(() => {
     if (salesModels.length > 0 && !formState.salesModelId) {
       const normal = salesModels.find(m => m.slug === 'normal') || salesModels[0];
-      setFormState(prev => ({ ...prev, salesModelId: normal.id }));
+      if (normal) {
+        setFormState(prev => ({ ...prev, salesModelId: normal.id }));
+      }
     }
   }, [salesModels, formState.salesModelId]);
 
   useEffect(() => {
-    if (origins.length > 0 && !formState.originId) setFormState(prev => ({ ...prev, originId: origins[0].id }));
-    if (recoveryOptions.length > 0 && !formState.recoveryOptionId) setFormState(prev => ({ ...prev, recoveryOptionId: recoveryOptions[0].id }));
+    if (origins.length > 0 && !formState.originId && origins[0]) {
+      setFormState(prev => ({ ...prev, originId: origins[0]!.id }));
+    }
+    if (recoveryOptions.length > 0 && !formState.recoveryOptionId && recoveryOptions[0]) {
+      setFormState(prev => ({ ...prev, recoveryOptionId: recoveryOptions[0]!.id }));
+    }
   }, [origins, recoveryOptions, formState.originId, formState.recoveryOptionId]);
 
   useEffect(() => {
-    if (groups.length > 0 && !groups.some(g => g.id === formState.categoryGroupId)) {
-      setFormState(prev => ({ ...prev, categoryGroupId: groups[0].id }));
+    if (groups.length > 0 && !groups.some(g => g.id === formState.categoryGroupId) && groups[0]) {
+      setFormState(prev => ({ ...prev, categoryGroupId: groups[0]!.id }));
     }
   }, [groups, formState.categoryGroupId]);
 
@@ -262,9 +271,9 @@ export default function Page() {
     try {
       // 1. Create/Update Listing
       const feeMap: Record<string, number> = {
-        prata: 1000,
-        ouro: 1200,
-        diamante: 1800,
+        padrao: 1000,
+        premium: 1150,
+        deluxe: 1250,
       };
       const platformFeeBps = feeMap[listingType] || 1000;
 
@@ -296,7 +305,7 @@ export default function Page() {
       // 4. Submit
       await marketplaceApi.submitListing(accessToken!, saved.id);
 
-      router.push('/conta/anuncios');
+      router.push(`/anunciar/sucesso?id=${saved.id}`);
     } catch (err: any) {
       setError(err.message || 'Erro ao publicar anúncio.');
     } finally {
@@ -322,9 +331,25 @@ export default function Page() {
   });
 
   const tierOptions: Tier[] = [
-    { id: 'prata', name: 'Prata', rate: 'Taxa de 10%', benefits: ['Anúncio Padrão', 'Taxa reduzida'] },
-    { id: 'ouro', name: 'Ouro', rate: 'Taxa de 12%', benefits: ['Destaque na Home', 'Mais Visibilidade'] },
-    { id: 'diamante', name: 'Diamante', rate: 'Taxa de 18%', benefits: ['Anúncio Diamante', 'Destaque na página principal', 'Destaque nas pesquisas', 'Máxima visibilidade'] },
+    {
+      id: 'padrao',
+      name: 'Padrão',
+      rate: '10% taxa',
+      benefits: ['Exposição padrão', 'Suporte padrão']
+    },
+    {
+      id: 'premium',
+      name: 'Premium',
+      rate: '11.50% taxa',
+      recommended: true,
+      benefits: ['Exposição Alta', 'Destaque na Home', 'Suporte Prioritário']
+    },
+    {
+      id: 'deluxe',
+      name: 'Deluxe',
+      rate: '12.50% taxa',
+      benefits: ['Exposição Máxima', 'Topo da Categoria', 'Email Marketing']
+    },
   ];
 
   const selectedModel = salesModels.find(m => m.id === formState.salesModelId);
@@ -335,279 +360,334 @@ export default function Page() {
 
   return (
     <div className="min-h-screen bg-slate-50/50 pb-32 pt-6 antialiased">
-      <div className="mx-auto max-w-[1000px] px-4 lg:px-6">
+      <div className="mx-auto max-w-[1280px] px-4 lg:px-6">
 
         {/* Header */}
         <header className="mb-8 flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2 text-slate-800">
-              <Box size={24} />
-              <h1 className="text-2xl font-black tracking-tight">Anúncio</h1>
+              <h1 className="text-3xl font-black tracking-tight text-slate-900">Anúncio</h1>
             </div>
-            <p className="mt-1 text-sm font-medium text-slate-500">Status atual: <span className="text-slate-400">Rascunho</span></p>
+            <p className="mt-1 text-base font-medium text-meow-500">Criar novo anúncio</p>
           </div>
-          {error && (
-            <div className="hidden items-center gap-2 rounded-xl bg-red-50 px-4 py-2 text-sm font-bold text-red-600 md:flex animate-in fade-in slide-in-from-right-4">
-              <AlertCircle size={16} /> {error}
-            </div>
-          )}
+
         </header>
 
-        <form className="space-y-6" onSubmit={e => e.preventDefault()}>
+        {error && (
+          <div className="mb-8 flex items-center gap-2 rounded-2xl bg-red-50 px-6 py-4 text-sm font-bold text-red-600 animate-in fade-in slide-in-from-top-4">
+            <AlertCircle size={20} /> {error}
+          </div>
+        )}
 
-          {/* 1. Title */}
-          <FormTitleSection
-            value={formState.title}
-            onChange={val => setFormState(prev => ({ ...prev, title: val }))}
-          />
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 items-start">
 
-          {/* 2. Model */}
-          {modelOptions.length > 0 ? (
-            <ModelSelector
-              options={modelOptions}
-              selected={formState.salesModelId}
-              onChange={id => setFormState(prev => ({ ...prev, salesModelId: id }))}
-            />
-          ) : (
-            <div className="h-32 rounded-2xl border border-slate-100 bg-white p-6 text-center text-slate-400">Carregando modelos...</div>
-          )}
+          {/* LEFT COLUMN - FORM */}
+          <div className="lg:col-span-8 space-y-6">
+            <form className="space-y-6" onSubmit={e => e.preventDefault()}>
 
-          {/* 3. Items / Inventory (Dynamic or Manual) */}
-          {isDynamic && (
-            <div className="rounded-[24px] border border-meow-200 bg-meow-50/30 p-6 md:p-8">
-              <div className="mb-4 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Sparkles size={20} className="text-meow-500" />
-                  <h3 className="text-lg font-bold text-slate-800">Itens do anúncio dinâmico</h3>
+              {/* 1. Categorias */}
+              <FormSection step="1" title="O que vamos vender?">
+                <div className="grid gap-6 md:grid-cols-3">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wide text-slate-400">CATEGORIA</label>
+                    <Select
+                      value={formState.categoryId || ''}
+                      onChange={(e) => setFormState(prev => ({ ...prev, categoryId: e.target.value, categoryGroupId: '', categorySectionId: '' }))}
+                      className="h-14 rounded-2xl border-slate-200 bg-slate-50 font-bold text-slate-700 hover:bg-slate-100 focus:border-meow-300"
+                    >
+                      <option value="">Selecione...</option>
+                      {categories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wide text-slate-400">JOGO / SUBCATEGORIA</label>
+                    <Select
+                      value={formState.categoryGroupId || ''}
+                      onChange={(e) => setFormState(prev => ({ ...prev, categoryGroupId: e.target.value, categorySectionId: '' }))}
+                      className="h-14 rounded-2xl border-slate-200 bg-slate-50 font-bold text-slate-700 hover:bg-slate-100 focus:border-meow-300"
+                    >
+                      <option value="">Selecione...</option>
+                      {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wide text-slate-400">SEÇÃO</label>
+                    <Select
+                      value={formState.categorySectionId || ''}
+                      onChange={(e) => setFormState(prev => ({ ...prev, categorySectionId: e.target.value }))}
+                      className="h-14 rounded-2xl border-slate-200 bg-slate-50 font-bold text-slate-700 hover:bg-slate-100 focus:border-meow-300"
+                    >
+                      <option value="">Selecione...</option>
+                      {sections.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                    </Select>
+                  </div>
                 </div>
-              </div>
+              </FormSection>
 
-              {/* Simplified Dynamic Item Input (using textarea for payload as requested/compatible) */}
-              <div className="relative">
-                <p className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">Lista de Itens (Um por linha)</p>
-                <Textarea
-                  value={inventoryPayload}
-                  onChange={(e) => setInventoryPayload(e.target.value)}
-                  placeholder="Item #1 | Descrição do item&#10;Item #2 | Descrição do item"
-                  className="min-h-[160px] rounded-2xl border-slate-200 bg-white font-mono text-sm shadow-sm focus:border-meow-300"
-                />
-                <div className="mt-2 flex justify-end">
-                  <span className="rounded-lg bg-white px-2 py-1 text-[10px] font-bold text-slate-500 shadow-sm border border-slate-100">
-                    {inventoryCount} itens detectados
-                  </span>
+              {/* 2. Detalhes */}
+              <FormSection step="2" title="Detalhes do Produto">
+                <div className="space-y-8">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wide text-slate-400">TÍTULO DO ANÚNCIO <span className="text-red-500">*</span></label>
+                    <FormTitleSection
+                      value={formState.title || ''}
+                      onChange={val => setFormState(prev => ({ ...prev, title: val }))}
+                    />
+                  </div>
+
+                  {modelOptions.length > 0 ? (
+                    <ModelSelector
+                      options={modelOptions}
+                      selected={formState.salesModelId}
+                      onChange={id => setFormState(prev => ({ ...prev, salesModelId: id }))}
+                    />
+                  ) : (
+                    <div className="h-20 rounded-2xl bg-slate-50 animate-pulse" />
+                  )}
+
+                  <div className="grid gap-8 md:grid-cols-2">
+                    {/* Price */}
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold uppercase tracking-wide text-slate-400">VALOR (BRL)</label>
+                      <div className="relative">
+                        <Input
+                          value={priceInput}
+                          onChange={(e) => {
+                            setPriceInput(e.target.value);
+                            setFormState(prev => ({ ...prev, priceCents: parsePriceToCents(e.target.value) }));
+                          }}
+                          placeholder="R$ 0,00"
+                          className="h-14 rounded-xl border-slate-200 bg-slate-50 pl-4 text-xl font-bold text-slate-800 focus:border-meow-300 focus:ring-4 focus:ring-meow-red/10"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Stock */}
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <label className="text-xs font-bold uppercase tracking-wide text-slate-400">ESTOQUE</label>
+                      </div>
+                      <Input
+                        value={autoDelivery ? (isDynamic ? inventoryCount : 1) : 1}
+                        readOnly
+                        className="h-14 rounded-xl border-slate-200 bg-slate-50 font-bold text-slate-700"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Extra Fields based on Model */}
+                  <div className="grid gap-6 md:grid-cols-3">
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold uppercase tracking-wide text-slate-400">TIPO</label>
+                      <Select
+                        value={formState.categoryId || ''} // NOTE: This seems redundant, maybe intended for specific type? reusing category for now as per original
+                        disabled
+                        className="h-12 rounded-xl border-slate-200 bg-slate-50 font-bold text-slate-700"
+                      >
+                        <option>Conta</option>
+                        <option>Item</option>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold uppercase tracking-wide text-slate-400">PROCEDÊNCIA</label>
+                      <Select
+                        value={formState.originId || ''}
+                        onChange={(e) => setFormState(prev => ({ ...prev, originId: e.target.value }))}
+                        className="h-12 rounded-xl border-slate-200 bg-slate-50 font-bold text-slate-700 hover:bg-slate-100 focus:border-meow-300"
+                      >
+                        {origins.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold uppercase tracking-wide text-slate-400">DADOS DE RECUPERAÇÃO</label>
+                      <Select
+                        value={formState.recoveryOptionId || ''}
+                        onChange={(e) => setFormState(prev => ({ ...prev, recoveryOptionId: e.target.value }))}
+                        className="h-12 rounded-xl border-slate-200 bg-slate-50 font-bold text-slate-700 hover:bg-slate-100 focus:border-meow-300"
+                      >
+                        {recoveryOptions.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Auto Delivery Input */}
+                  <div className="rounded-2xl bg-emerald-50/50 border border-emerald-100 p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white shadow-sm">
+                          <Zap size={16} fill="currentColor" />
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-slate-800">Entrega Automática</h4>
+                          <p className="text-xs text-slate-500 font-bold">O sistema entrega o produto assim que o pagamento for aprovado.</p>
+                        </div>
+                      </div>
+                      <Toggle
+                        checked={autoDelivery}
+                        onCheckedChange={setAutoDelivery}
+                        className="data-[state=on]:bg-meow-500"
+                      />
+                    </div>
+
+                    {autoDelivery && (
+                      <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                        <label className="text-xs font-bold uppercase tracking-wide text-emerald-700">DADOS PARA ENTREGA (FICA OCULTO ATÉ A VENDA)</label>
+                        <Textarea
+                          value={inventoryPayload}
+                          onChange={e => setInventoryPayload(e.target.value)}
+                          placeholder={isDynamic ? "Item #1 | Acesso...\nItem #2 | Acesso..." : "Ex: Login: usuario123 | Senha: senha123\nOu Cole aqui a Key do jogo..."}
+                          className="min-h-[120px] rounded-xl border-emerald-200 bg-white font-mono text-sm focus:border-emerald-400 focus:ring-emerald-500/10"
+                        />
+                        <p className="text-[10px] font-bold text-emerald-600 flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 block"></span>
+                          Esses dados são criptografados e enviados apenas para o comprador após o pagamento.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
                 </div>
-              </div>
-            </div>
-          )}
+              </FormSection>
 
-          {/* 4. Price & Stock & Details */}
-          <div className="bg-white p-6 shadow-sm rounded-[24px] border border-slate-100 md:p-8">
-            <div className="grid gap-8 md:grid-cols-2">
+              {/* 3. Descrição e Imagens */}
+              <FormSection step="3" title="Descrição e Imagens">
+                <div className="space-y-8">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wide text-slate-400">DESCRIÇÃO DETALHADA</label>
+                    <ListingDescriptionField
+                      value={formState.description || ''}
+                      onChange={val => setFormState(prev => ({ ...prev, description: val }))}
+                    />
+                  </div>
 
-              {/* Price */}
-              <div className="space-y-3">
-                <label className="text-sm font-bold text-slate-700">Valor do anúncio</label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">R$</span>
-                  <Input
-                    value={priceInput}
-                    onChange={(e) => {
-                      setPriceInput(e.target.value);
-                      setFormState(prev => ({ ...prev, priceCents: parsePriceToCents(e.target.value) }));
-                    }}
-                    placeholder="0,00"
-                    className="h-12 rounded-xl border-slate-200 bg-slate-50 pl-10 text-lg font-bold text-slate-800 focus:border-meow-300 focus:ring-4 focus:ring-meow-red/10"
-                  />
-                </div>
-              </div>
-
-              {/* Stock */}
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <label className="text-sm font-bold text-slate-700">Quantidade em estoque</label>
-                  <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-2 py-1">
-                    <span className="text-[10px] font-bold text-slate-400">ENTREGA AUTO</span>
-                    <Toggle
-                      checked={autoDelivery}
-                      onCheckedChange={setAutoDelivery}
-                      disabled={false}
-                      className="h-5 w-9 data-[state=on]:bg-meow-500"
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wide text-slate-400">IMAGENS DO PRODUTO (MAX 5MB)</label>
+                    <ImageUploader
+                      files={mediaFiles}
+                      onFilesChange={setMediaFiles}
                     />
                   </div>
                 </div>
-                <Input
-                  value={autoDelivery ? inventoryCount : 'Estoque Manual'}
-                  readOnly
-                  className="h-12 rounded-xl border-slate-200 bg-slate-100 font-bold text-slate-500"
-                />
-              </div>
-            </div>
+              </FormSection>
 
-            {!isDynamic && autoDelivery && (
-              <div className="mt-6 border-t border-slate-100 pt-6">
-                <div className="flex items-center gap-2 mb-2 text-emerald-600">
-                  <Zap size={16} fill="currentColor" />
-                  <span className="text-xs font-bold uppercase">Conteúdo para Entrega Automática</span>
-                </div>
-                <Textarea
-                  value={inventoryPayload}
-                  onChange={e => setInventoryPayload(e.target.value)}
-                  placeholder="Cole aqui o conteúdo que será entregue (login:senha, keys, links)..."
-                  className="min-h-[100px] rounded-xl border-slate-200 bg-slate-50 font-mono text-sm"
-                />
-              </div>
-            )}
-          </div>
+              {/* 4. Destaque (Separated) */}
+              <AdTierSelector
+                tiers={tierOptions}
+                selected={listingType}
+                onChange={setListingType}
+                className="bg-white"
+              />
 
-          {/* 5. Tipo de Anúncio */}
-          <FormSection title="Tipo de Anúncio" icon={Box}>
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wide text-slate-400">Qual o tipo do anúncio?</label>
-                <Select
-                  value={formState.categoryId}
-                  onChange={(e) => setFormState(prev => ({ ...prev, categoryId: e.target.value, categoryGroupId: '', categorySectionId: '' }))}
-                  className="h-12 rounded-xl border-slate-200 bg-slate-50 font-medium text-slate-700 hover:bg-slate-100 focus:border-meow-300"
-                >
-                  <option value="">Selecione</option>
-                  {categories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wide text-slate-400">Procedência</label>
-                <Select
-                  value={formState.originId}
-                  onChange={(e) => setFormState(prev => ({ ...prev, originId: e.target.value }))}
-                  className="h-12 rounded-xl border-slate-200 bg-slate-50 font-medium text-slate-700 hover:bg-slate-100 focus:border-meow-300"
-                >
-                  <option value="">Selecione</option>
-                  {origins.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wide text-slate-400">Informações da conta</label>
-                <Select
-                  value={formState.recoveryOptionId}
-                  onChange={(e) => setFormState(prev => ({ ...prev, recoveryOptionId: e.target.value }))}
-                  className="h-12 rounded-xl border-slate-200 bg-slate-50 font-medium text-slate-700 hover:bg-slate-100 focus:border-meow-300"
-                >
-                  <option value="">Selecione</option>
-                  {recoveryOptions.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
-                </Select>
-              </div>
-            </div>
-          </FormSection>
-
-          {/* 6. Categoria */}
-          <FormSection title="Categoria" icon={Gamepad2}>
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wide text-slate-400">Categoria</label>
-                <Select
-                  value={formState.categoryId}
-                  onChange={(e) => setFormState(prev => ({ ...prev, categoryId: e.target.value, categoryGroupId: '', categorySectionId: '' }))}
-                  className="h-12 rounded-xl border-slate-200 bg-slate-50 font-medium text-slate-700 hover:bg-slate-100 focus:border-meow-300"
-                >
-                  <option value="">Selecione</option>
-                  {categories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wide text-slate-400">Subcategoria</label>
-                <Select
-                  value={formState.categoryGroupId}
-                  onChange={(e) => setFormState(prev => ({ ...prev, categoryGroupId: e.target.value, categorySectionId: '' }))}
-                  className="h-12 rounded-xl border-slate-200 bg-slate-50 font-medium text-slate-700 hover:bg-slate-100 focus:border-meow-300"
-                >
-                  <option value="">Selecione</option>
-                  {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wide text-slate-400">Seção</label>
-                <Select
-                  value={formState.categorySectionId}
-                  onChange={(e) => setFormState(prev => ({ ...prev, categorySectionId: e.target.value }))}
-                  className="h-12 rounded-xl border-slate-200 bg-slate-50 font-medium text-slate-700 hover:bg-slate-100 focus:border-meow-300"
-                >
-                  <option value="">Selecione</option>
-                  {sections.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                </Select>
-              </div>
-            </div>
-          </FormSection>
-
-          {/* 7. Description */}
-          <ListingDescriptionField
-            value={formState.description}
-            onChange={val => setFormState(prev => ({ ...prev, description: val }))}
-          />
-
-          {/* 8. Images */}
-          <ImageUploader
-            files={mediaFiles}
-            onFilesChange={setMediaFiles}
-          />
-
-          {/* 9. Ad Tier */}
-          <AdTierSelector
-            tiers={tierOptions}
-            selected={listingType}
-            onChange={setListingType}
-          />
-
-          {/* Terms Checkbox */}
-          <div className="rounded-2xl border border-slate-100 bg-white p-6">
-            <div className="flex items-start gap-4">
-              <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded bg-meow-50">
-                <input
-                  type="checkbox"
-                  id="terms"
-                  checked={termsAccepted}
-                  onChange={e => setTermsAccepted(e.target.checked)}
-                  className="peer h-5 w-5 cursor-pointer appearance-none rounded border-2 border-slate-300 bg-white checked:border-meow-500 checked:bg-meow-500 transition-all"
-                />
-                <div className="pointer-events-none absolute h-5 w-5 opacity-0 peer-checked:opacity-100 text-white flex items-center justify-center">
-                  <Box size={14} fill="currentColor" />
+              {/* Security Guarantee Box */}
+              <div className="rounded-2xl border border-slate-100 bg-slate-50 p-6">
+                <div className="flex gap-4">
+                  <div className="shrink-0 text-meow-500">
+                    <div className="w-10 h-10 rounded-full bg-white border border-meow-100 flex items-center justify-center">
+                      <Trophy size={20} className="text-meow-500" />
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-800 flex items-center gap-2">
+                      Segurança Garantida
+                    </h4>
+                    <p className="mt-1 text-sm text-slate-600 leading-relaxed">
+                      A <span className="font-bold">Meoww</span> atua como intermediadora. O valor pago pelo comprador fica retido conosco até você entregar o produto. Isso garante proteção total para ambas as partes.
+                    </p>
+                  </div>
                 </div>
               </div>
-              <label htmlFor="terms" className="cursor-pointer text-sm text-slate-600 leading-relaxed">
-                Declaro que li e estou de acordo com os <Link href="/termos" className="font-bold text-meow-600 hover:underline">Termos de Uso</Link> e a <Link href="/politica" className="font-bold text-meow-600 hover:underline">Política de Anúncios</Link> da Meoww. Entendo que meu anúncio passará por uma análise de qualidade.
-              </label>
+
+              {/* Terms */}
+              <div className="rounded-2xl border border-slate-100 bg-white p-6">
+                <div className="flex items-center gap-4">
+                  <input
+                    type="checkbox"
+                    id="terms"
+                    checked={termsAccepted}
+                    onChange={e => setTermsAccepted(e.target.checked)}
+                    className="h-5 w-5 rounded border-slate-300 text-meow-600 focus:ring-meow-500"
+                  />
+                  <label htmlFor="terms" className="cursor-pointer text-sm text-slate-600">
+                    Declaro que li e concordo com os <Link href="/institucional/termos" className="font-bold text-meow-600 hover:underline">Termos de Uso</Link> e a <Link href="/institucional/privacidade" className="font-bold text-meow-600 hover:underline">Política de Publicação</Link>.
+                  </label>
+                </div>
+              </div>
+
+            </form>
+
+            <ActionBar
+              onNext={handlePublish}
+              nextLabel="Publicar Anúncio"
+              loading={busyAction === 'publish'}
+              className="relative translate-y-0" // Reset fixed pos if needed, but ActionBar handles it
+              leftContent={
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Total à receber (aprox.)</span>
+                  <span className="text-xl font-black text-meow-deep">
+                    {(() => {
+                      const feeMap: Record<string, number> = {
+                        padrao: 0.10,
+                        premium: 0.115,
+                        deluxe: 0.125,
+                      };
+                      const fee = feeMap[listingType] || 0.10;
+                      const total = formState.priceCents * (1 - fee);
+                      return formatCurrency(total);
+                    })()}
+                    <span className="ml-2 text-xs font-bold text-slate-300 line-through opacity-70">
+                      {formatCurrency(formState.priceCents)}
+                    </span>
+                  </span>
+                </div>
+              }
+            />
+          </div>
+
+          {/* RIGHT COLUMN - PREVIEW */}
+          <div className="hidden lg:block lg:col-span-4 pl-4 sticky top-6">
+            <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-slate-800">PRÉ-VISUALIZAÇÃO</h3>
+            <div className="space-y-6">
+              <ListingCard
+                id="preview"
+                title={formState.title || 'Seu Título Aparece Aqui...'}
+                priceCents={formState.priceCents > 0 ? formState.priceCents : 0}
+                currency="BRL"
+                image={mediaFiles.length > 0 && mediaFiles[0] ? URL.createObjectURL(mediaFiles[0]) : '/assets/meoow/cat-01.png'}
+                href="#"
+                description={formState.description}
+                variant={listingType === 'deluxe' ? 'red' : 'dark'}
+                isAuto={autoDelivery}
+              />
+
+              {/* Guidance Box */}
+              <div className="rounded-2xl bg-white p-6 border border-slate-100 shadow-sm space-y-4">
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
+                    <Sparkles size={16} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-800 text-sm">Título chamativo</h4>
+                    <p className="text-xs text-slate-500 mt-1">Use palavras-chave como "Diamante", "Full Acesso", "Entrega Rápida".</p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0">
+                    <ImageIcon size={16} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-800 text-sm">Boas Imagens</h4>
+                    <p className="text-xs text-slate-500 mt-1">Mostre o inventário, skins raras ou o nível da conta. Oculte nicks!</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </form>
 
-        {/* Floating Action Bar */}
-        <ActionBar
-          onNext={handlePublish}
-          nextLabel="Publicar Anúncio"
-          loading={busyAction === 'publish'}
-          leftContent={
-            <div className="flex flex-col">
-              <span className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Total à receber (aprox.)</span>
-              <span className="text-xl font-black text-meow-deep">
-                {(() => {
-                  const feeMap: Record<string, number> = {
-                    prata: 0.10,
-                    ouro: 0.12,
-                    diamante: 0.18,
-                  };
-                  const fee = feeMap[listingType] || 0.10;
-                  const total = formState.priceCents * (1 - fee);
-                  return formatCurrency(total);
-                })()}
-                <span className="ml-2 text-xs font-bold text-slate-300 line-through opacity-70">
-                  {formatCurrency(formState.priceCents)}
-                </span>
-              </span>
-            </div>
-          }
-        />
+        </div>
       </div>
     </div>
   );

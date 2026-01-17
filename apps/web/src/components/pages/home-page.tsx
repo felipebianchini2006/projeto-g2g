@@ -169,17 +169,16 @@ export const HomeContent = () => {
 
   return (
     <div className="pb-16">
-      <section className="px-6 pb-10 pt-8">
-        <div className="mx-auto w-full max-w-[1280px]">
-          <div className="relative overflow-hidden rounded-3xl border border-meow-red/15 bg-[#f5d6e5] shadow-[0_30px_60px_rgba(216,107,149,0.28)]">
-            <div className="flex min-h-[220px] items-center justify-center sm:min-h-[340px] lg:min-h-[420px]">
+      <section className="pb-10 pt-6">
+        <div className="w-full">
+          <div className="relative overflow-hidden bg-[#f5d6e5]">
+            <div className="flex h-[52vw] min-h-[180px] max-h-[560px] items-center justify-center sm:h-[38vw] lg:h-[28vw]">
               <img
                 src="/assets/meoow/banner.png"
                 alt="Personagens em destaque"
                 className="h-full w-full object-cover"
               />
             </div>
-            <div className="absolute inset-0 bg-gradient-to-r from-[#b22b58]/70 via-transparent to-transparent" />
           </div>
         </div>
       </section>
