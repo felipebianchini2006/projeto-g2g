@@ -17,6 +17,11 @@ export class CreateCommunityPostDto {
   couponCode?: string;
 
   @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  imageUrl?: string;
+
+  @IsOptional()
   @IsBoolean()
   pinned?: boolean;
 }

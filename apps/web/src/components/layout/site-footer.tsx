@@ -5,15 +5,7 @@ import Link from 'next/link';
 export const SiteFooter = () => (
   <footer className="bg-meow-linear text-white dark:bg-none dark:bg-slate-950">
     <div className="mx-auto w-full max-w-[1280px] px-6 py-14">
-      <div className="grid gap-10 lg:grid-cols-[2fr_1fr_1fr_1fr]">
-        <div>
-          <div>
-            <div className="flex items-center gap-3">
-              <img src="/assets/meoow/logo.png" alt="Meoww" className="h-28 w-auto object-contain" />
-            </div>
-          </div>
-        </div>
-
+      <div className="flex flex-wrap justify-center gap-10 lg:gap-24 text-center">
         <div>
           <h4 className="mb-4 text-sm font-extrabold uppercase tracking-[0.6px]">
             Institucional

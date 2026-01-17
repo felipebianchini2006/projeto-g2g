@@ -636,7 +636,7 @@ export const AccountDataContent = () => {
                   {(!rgStatus || rgStatus.status === 'NOT_SUBMITTED' || rgStatus.status === 'REJECTED') ? (
                     <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4">
                       <p className="text-sm text-meow-muted mb-4">
-                        Envie uma foto do seu RG para verificar sua identidade. Isso aumenta a confiança nas transações.
+                        Envie uma foto do seu RG segurando um papel com o nome "Meoww" para verificar a autenticidade. Isso aumenta a confiança nas transações.
                       </p>
 
                       <div className="grid gap-4 md:grid-cols-2">
@@ -728,7 +728,7 @@ export const AccountDataContent = () => {
             </Button>
           </div>
         </div>
-      </form>
-    </AccountShell>
+      </form >
+    </AccountShell >
   );
 };

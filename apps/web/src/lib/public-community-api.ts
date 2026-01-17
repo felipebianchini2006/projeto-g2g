@@ -11,6 +11,7 @@ export type CommunityPostPublic = {
   title?: string | null;
   content: string;
   couponCode?: string | null;
+  imageUrl?: string | null;
   pinned: boolean;
   createdAt: string;
   author: CommunityAuthor;

@@ -5,6 +5,7 @@ export type CreateCommunityPostPayload = {
   content: string;
   couponCode?: string;
   pinned?: boolean;
+  imageUrl?: string;
 };
 
 export type ToggleLikeResponse = {
@@ -32,6 +33,15 @@ export const communityApi = {
       headers: authHeaders(token),
       body: JSON.stringify(payload),
     }),
+  uploadPostImage: async (token: string | null, file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiFetch<{ url: string }>('/community/posts/upload', {
+      method: 'POST',
+      headers: authHeaders(token),
+      body: formData,
+    });
+  },
   setPinned: (token: string | null, postId: string, pinned: boolean) =>
     apiFetch(`/community/posts/${postId}/pin`, {
       method: 'PATCH',
@@ -54,5 +64,11 @@ export const communityApi = {
       method: 'POST',
       headers: authHeaders(token),
       body: JSON.stringify({ content }),
+    }),
+  reportPost: (token: string | null, postId: string, reason: string) =>
+    apiFetch(`/community/posts/${postId}/report`, {
+      method: 'POST',
+      headers: authHeaders(token),
+      body: JSON.stringify({ reason }),
     }),
 };

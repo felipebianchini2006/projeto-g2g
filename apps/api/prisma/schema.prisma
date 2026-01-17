@@ -818,6 +818,7 @@ model CommunityPost {
   title      String?
   content    String
   couponCode String?
+  imageUrl   String?
   pinned     Boolean  @default(false)
   pinnedAt   DateTime?
   createdAt  DateTime @default(now())

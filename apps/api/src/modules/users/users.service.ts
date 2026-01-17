@@ -43,7 +43,7 @@ const USER_PROFILE_SELECT = {
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async listUsers(query: UsersQueryDto) {
     const where: Prisma.UserWhereInput = {};
@@ -177,7 +177,9 @@ export class UsersService {
           throw new NotFoundException('User not found.');
         }
         if (error.code === 'P2002') {
-          const target = Array.isArray(error.meta?.target) ? error.meta?.target : [];
+          const target = Array.isArray(error.meta?.['target'])
+            ? (error.meta?.['target'] as string[])
+            : [];
           if (target.includes('cpf')) {
             throw new BadRequestException('CPF ja cadastrado.');
           }

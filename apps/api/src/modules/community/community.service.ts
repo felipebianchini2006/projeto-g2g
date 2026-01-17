@@ -52,6 +52,7 @@ export class CommunityService {
         title: post.title,
         content: post.content,
         couponCode: post.couponCode,
+        imageUrl: post.imageUrl,
         pinned: post.pinned,
         createdAt: post.createdAt,
         author: {
@@ -128,6 +129,7 @@ export class CommunityService {
           title: dto.title,
           content: dto.content,
           couponCode: dto.couponCode,
+          imageUrl: dto.imageUrl ?? null,
           pinned: dto.pinned ?? false,
           pinnedAt: dto.pinned ? now : null,
         },

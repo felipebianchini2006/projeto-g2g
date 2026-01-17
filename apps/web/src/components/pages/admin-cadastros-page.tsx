@@ -344,6 +344,7 @@ export const AdminCadastrosContent = () => {
                     accept="image/*"
                     onChange={handleCategoryImageChange}
                     disabled={busyAction === 'category-save'}
+                    className="text-center file:mx-auto file:mr-3 file:h-8 file:my-[6px]"
                   />
                   {categoryImagePreview ? (
                     <span className="mt-1 flex items-center gap-2 text-[11px] text-slate-500">

@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import {
   Copy,
   Image as ImageIcon,
@@ -13,7 +13,6 @@ import {
   MessageSquare,
   MessageCircle,
   MoreHorizontal,
-  Smile,
   ShieldCheck,
   Star,
   Trophy,
@@ -21,6 +20,8 @@ import {
   Zap,
   BadgeCheck,
   X,
+  Trash2,
+  Flag,
 } from 'lucide-react';
 
 import { communityApi } from '../../lib/community-api';
@@ -385,6 +386,36 @@ const getDominantColor = (imageUrl: string): Promise<string | null> => {
 
 export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
   const { user, accessToken } = useAuth();
+
+  const handleDeletePost = async (postId: string) => {
+    if (!accessToken) return;
+    if (!confirm('Tem certeza que deseja apagar este post?')) return;
+    try {
+      await communityApi.deletePost(accessToken, postId);
+      setPostsState(prev => ({
+        ...prev,
+        items: prev.items.filter(p => p.id !== postId)
+      }));
+    } catch (err) {
+      alert('Erro ao apagar post');
+    }
+  };
+
+  const handleReportPost = async (postId: string) => {
+    if (!accessToken) {
+      alert('Faça login para denunciar.');
+      return;
+    }
+    const reason = prompt('Qual o motivo da denúncia?');
+    if (!reason) return;
+    try {
+      await communityApi.reportPost(accessToken, postId, reason);
+      alert('Post denunciado com sucesso. Obrigado por ajudar a manter a comunidade segura.');
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao denunciar.');
+    }
+  };
   const router = useRouter();
   const [profileState, setProfileState] = useState<{
     status: 'loading' | 'ready' | 'error';
@@ -397,6 +428,10 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
   const [listingsStatus, setListingsStatus] = useState<'loading' | 'ready'>('loading');
   const [composerText, setComposerText] = useState('');
   const [composerLoading, setComposerLoading] = useState(false);
+  const [composerImageUrl, setComposerImageUrl] = useState<string | null>(null);
+  const [composerImageUploading, setComposerImageUploading] = useState(false);
+  const [composerImageError, setComposerImageError] = useState<string | null>(null);
+  const composerImageInputRef = useRef<HTMLInputElement | null>(null);
   const [postsState, setPostsState] = useState<PostsState>({
     status: 'idle',
     items: [],
@@ -521,6 +556,26 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
   const activePost =
     activePostId ? postsState.items.find((post) => post.id === activePostId) ?? null : null;
   const communityCount = postsState.status === 'ready' ? postsState.total : 0;
+
+  const handleComposerImageChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !accessToken) {
+      return;
+    }
+    setComposerImageUploading(true);
+    setComposerImageError(null);
+    try {
+      const response = await communityApi.uploadPostImage(accessToken, file);
+      setComposerImageUrl(response.url);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Nao foi possivel enviar a imagem.';
+      setComposerImageError(message);
+    } finally {
+      setComposerImageUploading(false);
+      event.target.value = '';
+    }
+  };
 
 
 
@@ -703,26 +758,44 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
                         />
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2 text-meow-muted">
-                            <button type="button" className="rounded-full bg-slate-100 p-2">
+                            <button
+                              type="button"
+                              className="rounded-full bg-slate-100 p-2"
+                              onClick={() => composerImageInputRef.current?.click()}
+                              disabled={composerImageUploading}
+                              aria-label="Adicionar imagem"
+                            >
                               <ImageIcon size={16} aria-hidden />
                             </button>
-                            <button type="button" className="rounded-full bg-slate-100 p-2">
-                              <Smile size={16} aria-hidden />
-                            </button>
+                            <input
+                              ref={composerImageInputRef}
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={handleComposerImageChange}
+                            />
                           </div>
                           <Button
                             size="sm"
                             className="rounded-full"
                             type="button"
-                            disabled={composerLoading || !composerText.trim()}
+                            disabled={
+                              composerLoading ||
+                              composerImageUploading ||
+                              !composerText.trim()
+                            }
                             onClick={async () => {
                               if (!accessToken) return;
                               const content = composerText.trim();
                               if (!content) return;
                               try {
                                 setComposerLoading(true);
-                                await communityApi.createPost(accessToken, { content });
+                                await communityApi.createPost(accessToken, {
+                                  content,
+                                  imageUrl: composerImageUrl ?? undefined,
+                                });
                                 setComposerText('');
+                                setComposerImageUrl(null);
                                 const response = await publicCommunityApi.listUserPosts(profileId, {
                                   take: 10,
                                 });
@@ -749,6 +822,31 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
                             {composerLoading ? 'Publicando...' : 'Postar'}
                           </Button>
                         </div>
+                        {composerImageUploading ? (
+                          <p className="text-xs text-meow-muted">Enviando imagem...</p>
+                        ) : null}
+                        {composerImageError ? (
+                          <p className="text-xs font-semibold text-rose-500">
+                            {composerImageError}
+                          </p>
+                        ) : null}
+                        {composerImageUrl ? (
+                          <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+                            <img
+                              src={composerImageUrl}
+                              alt="Preview da imagem do post"
+                              className="h-48 w-full object-cover"
+                            />
+                            <button
+                              type="button"
+                              className="absolute right-2 top-2 rounded-full bg-white/90 p-1 text-slate-500 shadow-sm"
+                              onClick={() => setComposerImageUrl(null)}
+                              aria-label="Remover imagem"
+                            >
+                              <X size={14} aria-hidden />
+                            </button>
+                          </div>
+                        ) : null}
                       </div>
                     </div>
                   </Card>
@@ -784,38 +882,69 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
                       className="relative overflow-hidden rounded-[24px] border border-slate-100 p-5 shadow-card"
                     >
                       <span className="absolute left-0 top-0 h-full w-1 bg-rose-500" />
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 overflow-hidden rounded-full bg-meow-100">
-                          {post.author.avatarUrl ? (
-                            <img
-                              src={post.author.avatarUrl}
-                              alt={post.author.displayName}
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <div className="grid h-full w-full place-items-center text-sm font-bold text-slate-400">
-                              {post.author.displayName.slice(0, 2).toUpperCase()}
-                            </div>
-                          )}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2 text-sm font-semibold text-meow-charcoal">
-                            {post.author.displayName}
-                            {post.pinned ? (
-                              <span className="rounded-full bg-pink-100 px-2 py-0.5 text-[10px] font-bold text-pink-600">
-                                FIXADO
-                              </span>
-                            ) : null}
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 overflow-hidden rounded-full bg-meow-100">
+                            {post.author.avatarUrl ? (
+                              <img
+                                src={post.author.avatarUrl}
+                                alt={post.author.displayName}
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <div className="grid h-full w-full place-items-center text-sm font-bold text-slate-400">
+                                {post.author.displayName.slice(0, 2).toUpperCase()}
+                              </div>
+                            )}
                           </div>
-                          <p className="text-xs text-meow-muted">
-                            {formatRelativeTime(post.createdAt)}
-                          </p>
+                          <div>
+                            <div className="flex items-center gap-2 text-sm font-semibold text-meow-charcoal">
+                              {post.author.displayName}
+                              {post.pinned ? (
+                                <span className="rounded-full bg-pink-100 px-2 py-0.5 text-[10px] font-bold text-pink-600">
+                                  FIXADO
+                                </span>
+                              ) : null}
+                            </div>
+                            <p className="text-xs text-meow-muted">
+                              {formatRelativeTime(post.createdAt)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {(user?.role === 'ADMIN' || user?.id === post.author.id) && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeletePost(post.id)}
+                              className="rounded-full p-2 text-slate-400 hover:bg-slate-50 hover:text-red-500"
+                              title="Excluir"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleReportPost(post.id)}
+                            className="rounded-full p-2 text-slate-400 hover:bg-slate-50 hover:text-yellow-500"
+                            title="Denunciar"
+                          >
+                            <Flag size={16} />
+                          </button>
                         </div>
                       </div>
                       {post.title ? (
                         <h3 className="mt-4 text-sm font-bold text-pink-600">{post.title}</h3>
                       ) : null}
                       <p className="mt-2 text-sm text-meow-muted">{post.content}</p>
+                      {post.imageUrl ? (
+                        <div className="mt-4 overflow-hidden rounded-2xl border border-slate-100 bg-slate-50">
+                          <img
+                            src={post.imageUrl}
+                            alt="Imagem do post"
+                            className="h-64 w-full object-cover"
+                          />
+                        </div>
+                      ) : null}
                       {post.couponCode ? (
                         <Card className="mt-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 shadow-none">
                           <div className="flex items-center justify-between text-sm">
