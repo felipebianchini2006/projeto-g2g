@@ -16,6 +16,7 @@ export type CommunityPostPublic = {
   createdAt: string;
   author: CommunityAuthor;
   stats: { likes: number; comments: number };
+  likedByMe?: boolean;
 };
 
 export type CommunityCommentPublic = {
@@ -53,10 +54,11 @@ const buildQuery = (params?: CommunityListParams) => {
 };
 
 export const publicCommunityApi = {
-  listUserPosts: (userId: string, params?: CommunityListParams) => {
+  listUserPosts: (userId: string, params?: CommunityListParams, token?: string | null) => {
     const query = buildQuery(params);
     const path = query ? `/public/users/${userId}/posts?${query}` : `/public/users/${userId}/posts`;
-    return apiFetch<CommunityPostsResponse>(path);
+    const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
+    return apiFetch<CommunityPostsResponse>(path, { headers });
   },
   listPostComments: (postId: string, params?: CommunityListParams) => {
     const query = buildQuery(params);

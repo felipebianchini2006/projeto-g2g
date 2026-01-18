@@ -24,22 +24,22 @@ import { HomeListingCard } from '../listings/home-listing-card';
 const benefits = [
   {
     icon: Truck,
-    title: 'Frete Gratis',
-    description: 'acima de R$349',
-  },
-  {
-    icon: BadgePercent,
-    title: 'Descontos',
-    description: 'em pagamentos a vista',
-  },
-  {
-    icon: Package,
-    title: 'Entrega local',
-    description: 'rapido',
+    title: 'Entrega garantida',
+    description: '',
   },
   {
     icon: ShieldCheck,
-    title: 'Seguranca',
+    title: 'Segurança: site seguro',
+    description: '',
+  },
+  {
+    icon: Package,
+    title: 'Entrega rapida',
+    description: 'receba rapidamente',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Segurança',
     description: 'Loja oficial',
   },
 ];

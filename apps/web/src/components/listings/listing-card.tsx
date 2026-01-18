@@ -84,8 +84,12 @@ export const ListingCard = ({
       </div>
       <div className="flex flex-1 flex-col gap-4 px-6 pb-6">
         <div>
-          <h3 className="text-lg font-extrabold text-meow-charcoal">{title}</h3>
-          <p className="mt-2 text-sm text-slate-500">{fallbackDescription}</p>
+          <h3 className="text-lg font-extrabold text-meow-charcoal line-clamp-1" title={title}>
+            {title}
+          </h3>
+          <p className="mt-2 text-sm text-slate-500 line-clamp-2" title={fallbackDescription}>
+            {fallbackDescription}
+          </p>
         </div>
         {showOldPrice ? (
           <div className="text-xs text-slate-400 line-through">

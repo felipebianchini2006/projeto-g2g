@@ -226,8 +226,11 @@ export class WalletService {
     if (!beneficiaryName) {
       throw new BadRequestException('Nome do favorecido obrigatorio.');
     }
-    if (dto.amountCents > summary.availableCents) {
-      throw new BadRequestException('Saldo insuficiente para saque.');
+    const isInstant = dto.payoutSpeed === 'INSTANT';
+    const feeCents = isInstant ? 100 : 0;
+
+    if (dto.amountCents + feeCents > summary.availableCents) {
+      throw new BadRequestException('Saldo insuficiente para saque (incluindo taxas).');
     }
 
     const payoutId = randomUUID();
@@ -237,7 +240,7 @@ export class WalletService {
       const response = await this.paymentsService.cashOutPix({
         orderId: payoutId,
         payoutPixKey: pixKey,
-        amountCents: dto.amountCents,
+        amountCents: dto.amountCents, // Send the requested amount, not including fee
         currency: summary.currency,
       });
 
@@ -273,6 +276,20 @@ export class WalletService {
           },
         });
 
+        if (feeCents > 0) {
+          await tx.ledgerEntry.create({
+            data: {
+              userId,
+              type: LedgerEntryType.DEBIT,
+              state: LedgerEntryState.AVAILABLE,
+              source: LedgerEntrySource.FEE,
+              amountCents: feeCents,
+              currency: summary.currency,
+              description: `Taxa de saque imediato #${payoutId.slice(0, 8)}`,
+            },
+          });
+        }
+
         return payout;
       });
     } catch (error) {
@@ -283,13 +300,13 @@ export class WalletService {
           status: PayoutStatus.FAILED,
           userId,
           requestedById: userId,
-            amountCents: dto.amountCents,
-            currency: summary.currency,
-            pixKey,
-            pixKeyType: dto.pixKeyType,
-            beneficiaryName,
-            beneficiaryType: dto.beneficiaryType,
-            payoutSpeed: dto.payoutSpeed,
+          amountCents: dto.amountCents,
+          currency: summary.currency,
+          pixKey,
+          pixKeyType: dto.pixKeyType,
+          beneficiaryName,
+          beneficiaryType: dto.beneficiaryType,
+          payoutSpeed: dto.payoutSpeed,
           providerStatus: error instanceof Error ? error.message : null,
         },
       });

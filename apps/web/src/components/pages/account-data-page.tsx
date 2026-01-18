@@ -98,6 +98,31 @@ const SectionTitle = ({ icon, label }: SectionTitleProps) => (
 const stripDigits = (value: string) => value.replace(/\D/g, '');
 const clampDigits = (value: string, maxLength: number) =>
   stripDigits(value).slice(0, maxLength);
+
+const formatCpf = (value: string) => {
+  return stripDigits(value)
+    .slice(0, 11)
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d{1,2})/, '$1-$2')
+    .replace(/(-\d{2})\d+?$/, '$1');
+};
+
+const formatCep = (value: string) => {
+  return stripDigits(value)
+    .slice(0, 8)
+    .replace(/(\d{5})(\d)/, '$1-$2')
+    .replace(/(-\d{3})\d+?$/, '$1');
+};
+
+const formatDate = (value: string) => {
+  return stripDigits(value)
+    .slice(0, 8)
+    .replace(/(\d{2})(\d)/, '$1/$2')
+    .replace(/(\d{2})(\d)/, '$1/$2')
+    .replace(/(\/\d{4})\d+?$/, '$1');
+};
+
 const formatRg = (value: string) => {
   const digits = stripDigits(value).slice(0, 10);
   if (!digits) return '';
@@ -173,6 +198,18 @@ export const AccountDataContent = () => {
       setForm((prev) => ({ ...prev, [field]: stripDigits(event.target.value) }));
     };
 
+  const handleCpfChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setForm((prev) => ({ ...prev, cpf: formatCpf(event.target.value) }));
+  };
+
+  const handleDateChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setForm((prev) => ({ ...prev, birthDate: formatDate(event.target.value) }));
+  };
+
+  const handleCepChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setForm((prev) => ({ ...prev, addressZip: formatCep(event.target.value) }));
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!accessToken) {
@@ -185,9 +222,9 @@ export const AccountDataContent = () => {
     try {
       const updated = await usersApi.updateProfile(accessToken, {
         fullName: form.fullName,
-        cpf: form.cpf,
+        cpf: stripDigits(form.cpf),
         birthDate: form.birthDate,
-        addressZip: form.addressZip,
+        addressZip: stripDigits(form.addressZip),
         addressStreet: form.addressStreet,
         addressNumber: form.addressNumber,
         addressComplement: form.addressComplement,
@@ -414,7 +451,8 @@ export const AccountDataContent = () => {
                       icon={<UserRound size={16} aria-hidden />}
                       placeholder="000.000.000-00"
                       value={form.cpf}
-                      onChange={handleDigitsChange('cpf')}
+                      onChange={handleCpfChange}
+                      maxLength={14}
                       inputMode="numeric"
                       pattern="\d*"
                       disabled={status === 'saving'}
@@ -426,7 +464,8 @@ export const AccountDataContent = () => {
                       icon={<Calendar size={16} aria-hidden />}
                       placeholder="00/00/0000"
                       value={form.birthDate}
-                      onChange={handleDigitsChange('birthDate')}
+                      onChange={handleDateChange}
+                      maxLength={10}
                       inputMode="numeric"
                       pattern="\d*"
                       disabled={status === 'saving'}
@@ -446,7 +485,8 @@ export const AccountDataContent = () => {
                     <Input
                       placeholder="00000-000"
                       value={form.addressZip}
-                      onChange={handleDigitsChange('addressZip')}
+                      onChange={handleCepChange}
+                      maxLength={9}
                       inputMode="numeric"
                       pattern="\d*"
                       disabled={status === 'saving'}
@@ -636,7 +676,7 @@ export const AccountDataContent = () => {
                   {(!rgStatus || rgStatus.status === 'NOT_SUBMITTED' || rgStatus.status === 'REJECTED') ? (
                     <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4">
                       <p className="text-sm text-meow-muted mb-4">
-                        Envie uma foto do seu RG segurando um papel com o nome "Meoww" para verificar a autenticidade. Isso aumenta a confiança nas transações.
+                        Envie uma foto sua segurando seu RG com um papel com o nome ‘Meoww’ para verificação de autenticidade. Esse procedimento aumenta a segurança das transações e fortalece sua reputação.
                       </p>
 
                       <div className="grid gap-4 md:grid-cols-2">

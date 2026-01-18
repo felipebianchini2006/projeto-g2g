@@ -70,7 +70,7 @@ const formatCurrency = (value: number, currency = 'BRL') =>
 
 export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
   const { addToCart, isFavorite, toggleFavorite } = useSite();
-  const { accessToken } = useAuth();
+  const { accessToken, user } = useAuth();
   const [sellerProfile, setSellerProfile] = useState<PublicProfile | null>(null);
   const [state, setState] = useState<ListingDetailState>({
     status: 'loading',
@@ -114,6 +114,13 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
   const [reportSending, setReportSending] = useState(false);
   const [reportSuccess, setReportSuccess] = useState(false);
   const [reportError, setReportError] = useState<string | null>(null);
+
+
+  // Resposta do vendedor
+  const [answeringId, setAnsweringId] = useState<string | null>(null);
+  const [answerText, setAnswerText] = useState('');
+  const [answerBusy, setAnswerBusy] = useState(false);
+
   const router = useRouter();
   useEffect(() => {
     let active = true;
@@ -481,6 +488,27 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
     { value: 'DUPLICATE', label: 'Anúncio Duplicado' },
     { value: 'OTHER', label: 'Outro' },
   ];
+
+  const isSeller = state.listing && user?.id === state.listing.sellerId;
+
+  const handleSendAnswer = async (questionId: string) => {
+    if (!accessToken || !answerText.trim()) return;
+    setAnswerBusy(true);
+    try {
+      const updated = await listingQuestionsApi.answerQuestion(accessToken, questionId, answerText);
+      setQuestionsState((prev) => ({
+        ...prev,
+        items: prev.items.map((q) => (q.id === questionId ? updated : q)),
+      }));
+      setAnsweringId(null);
+      setAnswerText('');
+    } catch (error) {
+      // Opcional: tratar erro global ou toast
+      console.error(error);
+    } finally {
+      setAnswerBusy(false);
+    }
+  };
 
   return (
     <section className="bg-meow-50/60 pb-16 pt-10">
@@ -1069,21 +1097,67 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
                           </p>
 
                           {question.answer ? (
-                            <div className="mt-4 rounded-2xl border border-pink-100 bg-gradient-to-r from-[#f78fb3]/15 to-[#f04f7a]/15 px-4 py-3 text-sm text-meow-charcoal">
-                              <p className="text-[11px] font-bold uppercase text-pink-500">
-                                Resposta do vendedor
-                              </p>
-                              <p className="mt-2">{question.answer}</p>
-                              {question.answeredAt ? (
-                                <p className="mt-2 text-[11px] font-semibold text-pink-400">
-                                  {formatDateTime(question.answeredAt)}
-                                </p>
-                              ) : null}
+                            <div className="mt-3 rounded-xl border border-slate-100 bg-slate-50 p-3 text-sm text-slate-600">
+                              <div className="mb-1 flex items-center gap-2 text-xs font-bold text-meow-deep">
+                                <span>Resposta do Vendedor</span>
+                                <span className="text-[10px] font-normal text-slate-400">
+                                  • {formatDateTime(question.answeredAt)}
+                                </span>
+                              </div>
+                              <p>{question.answer}</p>
                             </div>
                           ) : (
-                            <p className="mt-4 text-xs font-semibold text-amber-500">
-                              Aguardando resposta do vendedor...
-                            </p>
+                            <div className="mt-2">
+                              {isSeller ? (
+                                <>
+                                  {answeringId === question.id ? (
+                                    <div className="mt-3 space-y-2 rounded-xl border border-slate-100 bg-slate-50 p-3">
+                                      <Textarea
+                                        value={answerText}
+                                        onChange={(e) => setAnswerText(e.target.value)}
+                                        placeholder="Digite sua resposta..."
+                                        rows={2}
+                                        className="bg-white"
+                                      />
+                                      <div className="flex gap-2">
+                                        <Button
+                                          size="sm"
+                                          onClick={() => handleSendAnswer(question.id)}
+                                          disabled={answerBusy || !answerText.trim()}
+                                        >
+                                          {answerBusy ? 'Enviando...' : 'Enviar Resposta'}
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          onClick={() => {
+                                            setAnsweringId(null);
+                                            setAnswerText('');
+                                          }}
+                                          disabled={answerBusy}
+                                        >
+                                          Cancelar
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      onClick={() => {
+                                        setAnsweringId(question.id);
+                                        setAnswerText('');
+                                      }}
+                                      className="text-xs font-bold text-meow-deep hover:underline"
+                                    >
+                                      Responder pergunta
+                                    </button>
+                                  )}
+                                </>
+                              ) : (
+                                <p className="mt-4 text-xs font-semibold text-amber-500">
+                                  Aguardando resposta do vendedor...
+                                </p>
+                              )}
+                            </div>
                           )}
                         </div>
                       </div>
@@ -1141,114 +1215,118 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
         </div>
       </div>
 
-      {relatedListings.length > 0 ? (
-        <div className="mx-auto mt-12 w-full max-w-[1200px] px-6">
-          <h2 className="text-2xl font-black text-meow-charcoal mb-6">Produtos Relacionados</h2>
-          <div className="flex flex-wrap gap-6 justify-center lg:justify-start">
-            {relatedListings.map((item) => (
-              <HomeListingCard
-                key={item.id}
-                listing={item}
-                image={item.media?.[0]?.url ?? '/assets/meoow/highlight-01.webp'}
-                href={`/anuncios/${item.id}`}
-              />
-            ))}
+      {
+        relatedListings.length > 0 ? (
+          <div className="mx-auto mt-12 w-full max-w-[1200px] px-6">
+            <h2 className="text-2xl font-black text-meow-charcoal mb-6">Produtos Relacionados</h2>
+            <div className="flex flex-wrap gap-6 justify-center lg:justify-start">
+              {relatedListings.map((item) => (
+                <HomeListingCard
+                  key={item.id}
+                  listing={item}
+                  image={item.media?.[0]?.url ?? '/assets/meoow/highlight-01.webp'}
+                  href={`/anuncios/${item.id}`}
+                />
+              ))}
+            </div>
           </div>
-        </div>
-      ) : null}
+        ) : null
+      }
 
       {/* Report Modal */}
-      {reportModalOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-meow-charcoal">Denunciar Anúncio</h3>
-              <button
-                type="button"
-                onClick={() => setReportModalOpen(false)}
-                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {reportSuccess ? (
-              <div className="mt-4">
-                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-700">
-                  Denúncia enviada com sucesso! Nossa equipe irá analisar.
-                </div>
+      {
+        reportModalOpen ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+            <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-meow-charcoal">Denunciar Anúncio</h3>
                 <button
                   type="button"
                   onClick={() => setReportModalOpen(false)}
-                  className="mt-4 w-full rounded-full bg-meow-linear px-4 py-2 text-sm font-bold text-white"
+                  className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
                 >
-                  Fechar
+                  <X size={18} />
                 </button>
               </div>
-            ) : (
-              <>
-                <p className="mt-2 text-sm text-slate-500">
-                  Informe o motivo da denúncia. Analisaremos e tomaremos as medidas necessárias.
-                </p>
 
-                <div className="mt-4 space-y-4">
-                  <label className="block">
-                    <span className="text-sm font-semibold text-meow-charcoal">Motivo</span>
-                    <select
-                      className="mt-1 block w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
-                      value={reportReason}
-                      onChange={(e) => setReportReason(e.target.value as ReportReason)}
-                    >
-                      {reasonOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-
-                  <label className="block">
-                    <span className="text-sm font-semibold text-meow-charcoal">
-                      Detalhes (opcional)
-                    </span>
-                    <Textarea
-                      rows={4}
-                      placeholder="Descreva o problema com mais detalhes..."
-                      value={reportMessage}
-                      onChange={(e) => setReportMessage(e.target.value)}
-                      className="mt-1"
-                    />
-                  </label>
-
-                  {reportError ? (
-                    <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
-                      {reportError}
-                    </div>
-                  ) : null}
-
-                  <div className="flex gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setReportModalOpen(false)}
-                      className="flex-1 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50"
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleSubmitReport}
-                      disabled={reportSending}
-                      className="flex-1 rounded-full bg-red-500 px-4 py-2 text-sm font-bold text-white hover:bg-red-600 disabled:opacity-50"
-                    >
-                      {reportSending ? 'Enviando...' : 'Enviar Denúncia'}
-                    </button>
+              {reportSuccess ? (
+                <div className="mt-4">
+                  <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-700">
+                    Denúncia enviada com sucesso! Nossa equipe irá analisar.
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => setReportModalOpen(false)}
+                    className="mt-4 w-full rounded-full bg-meow-linear px-4 py-2 text-sm font-bold text-white"
+                  >
+                    Fechar
+                  </button>
                 </div>
-              </>
-            )}
+              ) : (
+                <>
+                  <p className="mt-2 text-sm text-slate-500">
+                    Informe o motivo da denúncia. Analisaremos e tomaremos as medidas necessárias.
+                  </p>
+
+                  <div className="mt-4 space-y-4">
+                    <label className="block">
+                      <span className="text-sm font-semibold text-meow-charcoal">Motivo</span>
+                      <select
+                        className="mt-1 block w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+                        value={reportReason}
+                        onChange={(e) => setReportReason(e.target.value as ReportReason)}
+                      >
+                        {reasonOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label className="block">
+                      <span className="text-sm font-semibold text-meow-charcoal">
+                        Detalhes (opcional)
+                      </span>
+                      <Textarea
+                        rows={4}
+                        placeholder="Descreva o problema com mais detalhes..."
+                        value={reportMessage}
+                        onChange={(e) => setReportMessage(e.target.value)}
+                        className="mt-1"
+                      />
+                    </label>
+
+                    {reportError ? (
+                      <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                        {reportError}
+                      </div>
+                    ) : null}
+
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setReportModalOpen(false)}
+                        className="flex-1 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSubmitReport}
+                        disabled={reportSending}
+                        className="flex-1 rounded-full bg-red-500 px-4 py-2 text-sm font-bold text-white hover:bg-red-600 disabled:opacity-50"
+                      >
+                        {reportSending ? 'Enviando...' : 'Enviar Denúncia'}
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
-        </div>
-      ) : null}
-    </section>
+        ) : null
+      }
+    </section >
   );
 };

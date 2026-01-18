@@ -53,16 +53,16 @@ export const ProdutosContent = () => {
     const knownCategory = categories.some((item) => item.slug === tag);
     const delivery = searchParams.get('delivery') ?? 'all';
     const sortParam = searchParams.get('sort') ?? 'recent';
-    const min = searchParams.get('minPriceCents') ?? '';
-    const max = searchParams.get('maxPriceCents') ?? '';
+    const min = searchParams.get('minPriceCents');
+    const max = searchParams.get('maxPriceCents');
     const pageParam = Number(searchParams.get('page') ?? '1');
     const nextPage = Number.isNaN(pageParam) ? 1 : Math.max(1, pageParam);
     setQuery(q || (!knownCategory && tag ? tag : ''));
     setCategory(knownCategory && tag ? tag : 'all');
     setDeliveryType(delivery);
     setSort(sortParam);
-    setMinPrice(min);
-    setMaxPrice(max);
+    setMinPrice(min ? String(Number(min) / 100) : '');
+    setMaxPrice(max ? String(Number(max) / 100) : '');
     setPage(nextPage);
   }, [categories, searchParams]);
 
@@ -141,10 +141,10 @@ export const ProdutosContent = () => {
       params.set('sort', sort);
     }
     if (minPrice) {
-      params.set('minPriceCents', minPrice);
+      params.set('minPriceCents', String(Math.round(Number(minPrice) * 100)));
     }
     if (maxPrice) {
-      params.set('maxPriceCents', maxPrice);
+      params.set('maxPriceCents', String(Math.round(Number(maxPrice) * 100)));
     }
     if (targetPage > 1) {
       params.set('page', `${targetPage}`);
@@ -244,28 +244,30 @@ export const ProdutosContent = () => {
             </div>
             <div>
               <span className="text-[11px] font-bold uppercase tracking-[0.4px] text-meow-muted">
-                Preço minimo (centavos)
+                Preço Mínimo (R$)
               </span>
               <Input
                 className="mt-2 rounded-xl border-slate-200 bg-slate-50"
                 type="number"
                 min={0}
+                step="0.01"
                 value={minPrice}
                 onChange={(event) => setMinPrice(event.target.value)}
-                placeholder="Min"
+                placeholder="0,00"
               />
             </div>
             <div>
               <span className="text-[11px] font-bold uppercase tracking-[0.4px] text-meow-muted">
-                Preço maximo (centavos)
+                Preço Máximo (R$)
               </span>
               <Input
                 className="mt-2 rounded-xl border-slate-200 bg-slate-50"
                 type="number"
                 min={0}
+                step="0.01"
                 value={maxPrice}
                 onChange={(event) => setMaxPrice(event.target.value)}
-                placeholder="Max"
+                placeholder="0,00"
               />
             </div>
           </div>

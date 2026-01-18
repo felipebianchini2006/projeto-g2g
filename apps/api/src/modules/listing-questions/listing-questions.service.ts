@@ -23,7 +23,7 @@ const userSelect = {
 
 @Injectable()
 export class ListingQuestionsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async listPublicQuestions(listingId: string, query: ListingQuestionsQueryDto) {
     const listing = await this.prisma.listing.findUnique({
@@ -87,6 +87,7 @@ export class ListingQuestionsService {
           type: NotificationType.SYSTEM,
           title: 'Nova pergunta no seu anuncio',
           body: `Voce recebeu uma nova pergunta no anuncio "${listing.title}".`,
+          metadata: { link: '/conta/perguntas' },
         },
       });
 
@@ -144,6 +145,7 @@ export class ListingQuestionsService {
           type: NotificationType.SYSTEM,
           title: 'Sua pergunta foi respondida',
           body: `O vendedor respondeu sua pergunta no anuncio "${question.listing.title}".`,
+          metadata: { link: '/conta/perguntas' },
         },
       });
 

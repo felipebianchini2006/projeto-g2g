@@ -5,6 +5,7 @@ export type Notification = {
   type: string;
   title: string;
   body: string;
+  metadata?: any;
   readAt?: string | null;
   createdAt: string;
 };

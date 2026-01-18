@@ -48,6 +48,7 @@ export type OrderItem = {
 export type OrderParty = {
   id: string;
   email: string;
+  displayName: string;
 };
 
 export type PaymentSummary = {
@@ -136,10 +137,10 @@ export const ordersApi = {
   ) => {
     const payload: Record<string, unknown> = { listingId, quantity };
     if (options?.couponCode) {
-      payload.couponCode = options.couponCode;
+      payload['couponCode'] = options.couponCode;
     }
     if (options?.referralSlug) {
-      payload.referralSlug = options.referralSlug;
+      payload['referralSlug'] = options.referralSlug;
     }
     return apiFetch<CheckoutResponse>('/checkout', {
       method: 'POST',
@@ -156,10 +157,10 @@ export const ordersApi = {
   ) => {
     const payload: Record<string, unknown> = { listingId, quantity };
     if (options?.couponCode) {
-      payload.couponCode = options.couponCode;
+      payload['couponCode'] = options.couponCode;
     }
     if (options?.referralSlug) {
-      payload.referralSlug = options.referralSlug;
+      payload['referralSlug'] = options.referralSlug;
     }
     return apiFetch<Order>('/orders', {
       method: 'POST',

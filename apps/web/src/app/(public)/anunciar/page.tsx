@@ -145,6 +145,7 @@ export default function Page() {
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [listingType, setListingType] = useState('premium');
+  const [productKind, setProductKind] = useState('Conta');
 
   // --- Effects ---
 
@@ -385,8 +386,47 @@ export default function Page() {
           <div className="lg:col-span-8 space-y-6">
             <form className="space-y-6" onSubmit={e => e.preventDefault()}>
 
-              {/* 1. Categorias */}
-              <FormSection step="1" title="O que vamos vender?">
+              {/* 1. Configuração Inicial */}
+              <FormSection step="1" title="Configuração Inicial">
+                <div className="grid gap-6 md:grid-cols-3">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wide text-slate-400">TIPO DE PRODUTO</label>
+                    <Select
+                      value={productKind}
+                      onChange={(e) => setProductKind(e.target.value)}
+                      className="h-14 rounded-2xl border-slate-200 bg-slate-50 font-bold text-slate-700 hover:bg-slate-100 focus:border-meow-300"
+                    >
+                      <option value="Conta">Conta</option>
+                      <option value="Item">Item</option>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wide text-slate-400">PROCEDÊNCIA</label>
+                    <Select
+                      value={formState.originId || ''}
+                      onChange={(e) => setFormState(prev => ({ ...prev, originId: e.target.value }))}
+                      className="h-14 rounded-2xl border-slate-200 bg-slate-50 font-bold text-slate-700 hover:bg-slate-100 focus:border-meow-300"
+                    >
+                      {origins.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wide text-slate-400">DADOS DE RECUPERAÇÃO</label>
+                    <Select
+                      value={formState.recoveryOptionId || ''}
+                      onChange={(e) => setFormState(prev => ({ ...prev, recoveryOptionId: e.target.value }))}
+                      className="h-14 rounded-2xl border-slate-200 bg-slate-50 font-bold text-slate-700 hover:bg-slate-100 focus:border-meow-300 truncate pr-8"
+                    >
+                      {recoveryOptions.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                    </Select>
+                  </div>
+                </div>
+              </FormSection>
+
+              {/* 2. Categorias */}
+              <FormSection step="2" title="O que vamos vender?">
                 <div className="grid gap-6 md:grid-cols-3">
                   <div className="space-y-2">
                     <label className="text-xs font-bold uppercase tracking-wide text-slate-400">CATEGORIA</label>
@@ -426,8 +466,8 @@ export default function Page() {
                 </div>
               </FormSection>
 
-              {/* 2. Detalhes */}
-              <FormSection step="2" title="Detalhes do Produto">
+              {/* 3. Detalhes */}
+              <FormSection step="3" title="Detalhes do Produto">
                 <div className="space-y-8">
                   <div className="space-y-2">
                     <label className="text-xs font-bold uppercase tracking-wide text-slate-400">TÍTULO DO ANÚNCIO <span className="text-red-500">*</span></label>
@@ -475,43 +515,6 @@ export default function Page() {
                     </div>
                   </div>
 
-                  {/* Extra Fields based on Model */}
-                  <div className="grid gap-6 md:grid-cols-3">
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold uppercase tracking-wide text-slate-400">TIPO</label>
-                      <Select
-                        value={formState.categoryId || ''} // NOTE: This seems redundant, maybe intended for specific type? reusing category for now as per original
-                        disabled
-                        className="h-12 rounded-xl border-slate-200 bg-slate-50 font-bold text-slate-700"
-                      >
-                        <option>Conta</option>
-                        <option>Item</option>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold uppercase tracking-wide text-slate-400">PROCEDÊNCIA</label>
-                      <Select
-                        value={formState.originId || ''}
-                        onChange={(e) => setFormState(prev => ({ ...prev, originId: e.target.value }))}
-                        className="h-12 rounded-xl border-slate-200 bg-slate-50 font-bold text-slate-700 hover:bg-slate-100 focus:border-meow-300"
-                      >
-                        {origins.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold uppercase tracking-wide text-slate-400">DADOS DE RECUPERAÇÃO</label>
-                      <Select
-                        value={formState.recoveryOptionId || ''}
-                        onChange={(e) => setFormState(prev => ({ ...prev, recoveryOptionId: e.target.value }))}
-                        className="h-12 rounded-xl border-slate-200 bg-slate-50 font-bold text-slate-700 hover:bg-slate-100 focus:border-meow-300 truncate pr-8"
-                      >
-                        {recoveryOptions.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
-                      </Select>
-                    </div>
-                  </div>
-
                   {/* Auto Delivery Input */}
                   <div className="rounded-2xl bg-emerald-50/50 border border-emerald-100 p-6">
                     <div className="flex items-center justify-between mb-4">
@@ -547,12 +550,11 @@ export default function Page() {
                       </div>
                     )}
                   </div>
-
                 </div>
               </FormSection>
 
-              {/* 3. Descrição e Imagens */}
-              <FormSection step="3" title="Descrição e Imagens">
+              {/* 4. Descrição e Imagens */}
+              <FormSection step="4" title="Descrição e Imagens">
                 <div className="space-y-8">
                   <div className="space-y-2">
                     <label className="text-xs font-bold uppercase tracking-wide text-slate-400">DESCRIÇÃO DETALHADA</label>
@@ -572,7 +574,7 @@ export default function Page() {
                 </div>
               </FormSection>
 
-              {/* 4. Destaque (Separated) */}
+              {/* 5. Destaque (Separated) */}
               <AdTierSelector
                 tiers={tierOptions}
                 selected={listingType}
@@ -645,6 +647,7 @@ export default function Page() {
             />
           </div>
 
+
           {/* RIGHT COLUMN - PREVIEW */}
           <div className="hidden lg:block lg:col-span-4 pl-4 sticky top-6">
             <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-slate-800">PRÉ-VISUALIZAÇÃO</h3>
@@ -688,5 +691,6 @@ export default function Page() {
         </div>
       </div>
     </div>
+
   );
 }

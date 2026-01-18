@@ -190,45 +190,56 @@ export const AccountOverviewContent = () => {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card className="rounded-[26px] border border-slate-100 bg-white p-5 shadow-card">
-          <div className="flex items-start justify-between gap-3">
-            <div className="grid h-11 w-11 place-items-center rounded-2xl bg-rose-50 text-meow-deep">
-              <ShoppingCart size={18} aria-hidden />
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {[
+          {
+            label: 'VENDAS HOJE',
+            value: 'R$ 0,00',
+            desc: 'Pedidos do dia.',
+            className: 'from-emerald-500 to-emerald-600',
+            icon: <ShoppingCart size={18} aria-hidden />,
+          },
+          {
+            label: 'SALDO TOTAL',
+            value: formatCurrency(summaryState.summary?.availableCents ?? 0),
+            desc: 'Disponível + a receber.',
+            className: 'from-blue-500 to-blue-600',
+            icon: <Wallet size={18} aria-hidden />,
+          },
+          {
+            label: 'PERGUNTAS',
+            value: '0',
+            desc: 'Perguntas recebidas.',
+            className: 'from-rose-500 to-rose-600',
+            icon: <Bot size={18} aria-hidden />,
+            link: 'Ver perguntas',
+            href: '/conta/perguntas',
+          },
+          {
+            label: 'TICKET ABERTO',
+            value: '0',
+            desc: 'Tickets em andamento.',
+            className: 'from-purple-500 to-purple-600',
+            icon: <LifeBuoy size={18} aria-hidden />,
+          },
+        ].map((card) => (
+          <Card
+            key={card.label}
+            className={`relative overflow-hidden rounded-[22px] border border-slate-100 bg-gradient-to-br ${card.className} p-5 text-white shadow-[0_16px_30px_rgba(15,23,42,0.18)]`}
+          >
+            <span className="absolute right-[-10px] top-[-10px] h-16 w-16 rounded-full bg-white/15" />
+            <div className="flex items-center justify-between">
+              <div className="grid h-10 w-10 place-items-center rounded-2xl border border-white/30 bg-white/10">
+                {card.icon}
+              </div>
             </div>
-            <Badge variant="neutral" className="rounded-full px-3 py-1 text-[10px] font-bold">
-              VITALÍCIO
-            </Badge>
-          </div>
-          <p className="mt-4 text-xs font-semibold uppercase text-meow-muted">
-            Total comprado
-          </p>
-          <p className="mt-2 text-2xl font-black text-meow-charcoal">
-            {formatCurrency(totalBought)}
-          </p>
-          <div className="mt-2 flex items-center gap-2 text-xs font-semibold text-emerald-600">
-            <ArrowUpRight size={14} aria-hidden />
-            + R$ 450,00 esta semana
-          </div>
-        </Card>
-
-        <Card className="rounded-[26px] border border-slate-100 bg-white p-5 shadow-card">
-          <div className="flex items-start justify-between gap-3">
-            <div className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-50 text-emerald-600">
-              <Wallet size={18} aria-hidden />
-            </div>
-            <Link href="/conta/carteira" className="text-xs font-semibold text-rose-500">
-              + Adicionar
-            </Link>
-          </div>
-          <p className="mt-4 text-xs font-semibold uppercase text-meow-muted">
-            Saldo disponível
-          </p>
-          <p className="mt-2 text-2xl font-black text-meow-charcoal">
-            {formatCurrency(summaryState.summary?.availableCents ?? 0)}
-          </p>
-          <p className="mt-2 text-xs text-meow-muted">Pronto para uso imediato</p>
-        </Card>
+            <p className="mt-6 text-xs font-semibold uppercase tracking-[0.4px] text-white/80">
+              {card.label}
+            </p>
+            <div className="mt-2 text-2xl font-black">{card.value}</div>
+            <p className="mt-1 text-[10px] font-medium text-white/70">{card.desc}</p>
+          </Card>
+        ))}
       </div>
 
       {summaryState.error ? (

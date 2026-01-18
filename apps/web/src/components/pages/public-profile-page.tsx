@@ -401,19 +401,43 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
     }
   };
 
-  const handleReportPost = async (postId: string) => {
+  // Report Modal State
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [reportPostId, setReportPostId] = useState<string | null>(null);
+  const [reportReasonText, setReportReasonText] = useState('');
+  const [reportLoading, setReportLoading] = useState(false);
+  const [reportSuccess, setReportSuccess] = useState(false);
+  const [reportError, setReportError] = useState<string | null>(null);
+
+  const handleReportPost = (postId: string) => {
     if (!accessToken) {
-      alert('Faça login para denunciar.');
+      router.push(`/login?redirect=/perfil/${profileId}`);
       return;
     }
-    const reason = prompt('Qual o motivo da denúncia?');
-    if (!reason) return;
+    setReportPostId(postId);
+    setReportReasonText('');
+    setReportSuccess(false);
+    setReportError(null);
+    setReportModalOpen(true);
+  };
+
+  const submitReport = async () => {
+    if (!accessToken || !reportPostId) return;
+    if (reportReasonText.trim().length < 3) {
+      setReportError('Motivo muito curto.');
+      return;
+    }
+
+    setReportLoading(true);
+    setReportError(null);
     try {
-      await communityApi.reportPost(accessToken, postId, reason);
-      alert('Post denunciado com sucesso. Obrigado por ajudar a manter a comunidade segura.');
+      await communityApi.reportPost(accessToken, reportPostId, reportReasonText);
+      setReportSuccess(true);
+      setReportReasonText('');
     } catch (err) {
-      console.error(err);
-      alert('Erro ao denunciar.');
+      setReportError('Ocorreu um erro ao enviar sua denúncia.');
+    } finally {
+      setReportLoading(false);
     }
   };
   const router = useRouter();
@@ -495,6 +519,26 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
       active = false;
     };
   }, [profileId]);
+
+  // Load Community Posts
+  useEffect(() => {
+    if (activeTab === 'comunidade' && postsState.status === 'idle') {
+      let active = true;
+      setPostsState(prev => ({ ...prev, status: 'loading' }));
+      publicCommunityApi.listUserPosts(profileId, { take: 10 }, accessToken)
+        .then(res => {
+          if (active) {
+            setPostsState({ status: 'ready', items: res.items, total: res.total });
+          }
+        })
+        .catch(err => {
+          if (active) {
+            setPostsState(prev => ({ ...prev, status: 'error', error: err.message || 'Erro ao carregar posts.' }));
+          }
+        });
+      return () => { active = false; };
+    }
+  }, [activeTab, profileId, accessToken, postsState.status]);
 
   const showTabs = profileState.profile?.role !== 'USER';
 
@@ -798,7 +842,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
                                 setComposerImageUrl(null);
                                 const response = await publicCommunityApi.listUserPosts(profileId, {
                                   take: 10,
-                                });
+                                }, accessToken);
                                 setPostsState({
                                   status: 'ready',
                                   items: response.items,
@@ -972,7 +1016,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
                       <div className="mt-4 flex flex-wrap items-center gap-6 text-xs text-meow-muted">
                         <button
                           type="button"
-                          className="inline-flex items-center gap-1"
+                          className={`inline-flex items-center gap-1 transition-colors ${post.likedByMe ? 'text-rose-500 font-bold' : 'hover:text-rose-500'}`}
                           disabled={!canInteract || likeLoading[post.id]}
                           onClick={async () => {
                             if (!accessToken) return;
@@ -986,6 +1030,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
                                   item.id === post.id
                                     ? {
                                       ...item,
+                                      likedByMe: response.liked,
                                       stats: { ...item.stats, likes: response.likes },
                                     }
                                     : item,
@@ -996,7 +1041,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
                             }
                           }}
                         >
-                          <Heart size={12} aria-hidden />
+                          <Heart size={12} className={post.likedByMe ? 'fill-current' : ''} />
                           {post.stats.likes}
                         </button>
                         <button
@@ -1294,6 +1339,83 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
           </Link>
         </div>
       </div>
-    </section>
+
+      {/* Report Modal */}
+      {reportModalOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-md rounded-[24px] bg-white p-6 shadow-xl animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold text-meow-charcoal">Denunciar Publicação</h3>
+              <button
+                type="button"
+                onClick={() => setReportModalOpen(false)}
+                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {reportSuccess ? (
+              <div className="mt-6 text-center">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-500">
+                  <CheckCircle size={32} />
+                </div>
+                <h4 className="text-lg font-bold text-meow-charcoal">Denúncia Enviada!</h4>
+                <p className="mt-2 text-sm text-meow-muted">
+                  Nossa equipe ir verificar a publicacao. Obrigado por ajudar a manter a comunidade segura.
+                </p>
+                <Button
+                  className="mt-6 w-full rounded-full"
+                  onClick={() => setReportModalOpen(false)}
+                >
+                  Fechar
+                </Button>
+              </div>
+            ) : (
+              <>
+                <p className="mt-2 text-sm text-meow-muted">
+                  Descreva o motivo da denúncia (spam, conteúdo ofensivo, golpe, etc).
+                </p>
+
+                <div className="mt-4 space-y-4">
+                  <textarea
+                    rows={4}
+                    placeholder="Descreva o problema..."
+                    value={reportReasonText}
+                    onChange={(e) => setReportReasonText(e.target.value)}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-meow-charcoal outline-none focus:border-meow-300 focus:ring-4 focus:ring-meow-100"
+                  />
+
+                  {reportError ? (
+                    <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-600">
+                      {reportError}
+                    </div>
+                  ) : null}
+
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setReportModalOpen(false)}
+                      className="flex-1 rounded-full border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-50"
+                    >
+                      Cancelar
+                    </button>
+                    <Button
+                      type="button"
+                      disabled={reportLoading}
+                      onClick={submitReport}
+                      className="flex-1 rounded-full bg-rose-500 hover:bg-rose-600 text-white font-bold"
+                    >
+                      {reportLoading ? 'Enviando...' : 'Enviar Denúncia'}
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      ) : null
+      }
+    </section >
   );
 };

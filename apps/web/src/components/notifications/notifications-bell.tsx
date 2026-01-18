@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import { ApiClientError } from '../../lib/api-client';
 import {
@@ -20,6 +21,7 @@ const typeIcon: Record<string, string> = {
 
 export const NotificationsBell = () => {
   const { user, accessToken } = useAuth();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<Notification[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -115,6 +117,16 @@ export const NotificationsBell = () => {
     setItems((prev) => prev.map((item) => ({ ...item, readAt: now })));
   };
 
+  const handleNotificationClick = async (item: Notification) => {
+    if (item.metadata?.link) {
+      if (!item.readAt) {
+        handleMarkRead(item.id).catch(() => { });
+      }
+      setOpen(false);
+      router.push(item.metadata.link);
+    }
+  };
+
   if (!user) {
     return null;
   }
@@ -169,7 +181,9 @@ export const NotificationsBell = () => {
               {items.map((item) => (
                 <div
                   key={item.id}
-                  className={`notification-row${item.readAt ? '' : ' unread'}`}
+                  className={`notification-row${item.readAt ? '' : ' unread'} ${item.metadata?.link ? 'cursor-pointer hover:bg-slate-50' : ''
+                    }`}
+                  onClick={() => handleNotificationClick(item)}
                 >
                   <div className="notification-icon">
                     <i className={`fas ${typeIcon[item.type] ?? 'fa-bell'}`} aria-hidden="true" />
@@ -183,7 +197,10 @@ export const NotificationsBell = () => {
                     <button
                       className="ghost-button"
                       type="button"
-                      onClick={() => handleMarkRead(item.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleMarkRead(item.id);
+                      }}
                     >
                       Lida
                     </button>

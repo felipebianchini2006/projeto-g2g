@@ -1,4 +1,4 @@
-'use client';
+ï»¿'use client';
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
@@ -110,14 +110,14 @@ type PackageOption = {
 const packageOptions: PackageOption[] = [
   {
     id: 'standard',
-    label: 'Padrão',
-    description: 'Preço normal',
+    label: 'PadrÃ£o',
+    description: 'PreÃ§o normal',
     deltaCents: 0,
   },
   {
     id: 'premium',
     label: 'Premium',
-    description: 'Suporte prioritário',
+    description: 'Suporte prioritÃ¡rio',
     deltaCents: 0,
   },
 ];
@@ -125,7 +125,7 @@ const packageOptions: PackageOption[] = [
 const stepConfig = [
   { id: 'produto', label: 'PRODUTO', icon: Package },
   { id: 'pagamento', label: 'PAGAMENTO', icon: CreditCard },
-  { id: 'confirmacao', label: 'CONFIRMAÇÃO', icon: CheckCircle2 },
+  { id: 'confirmacao', label: 'CONFIRMAÃ‡ÃƒO', icon: CheckCircle2 },
 ] as const;
 
 export const CheckoutContent = ({ listingId }: { listingId: string }) => {
@@ -218,7 +218,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
       setListingState((prev) => ({
         ...prev,
         status: 'ready',
-        error: 'Não foi possível carregar o anúncio.',
+        error: 'NÃ£o foi possÃ­vel carregar o anÃºncio.',
       }));
     });
     return () => {
@@ -315,18 +315,18 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
   }
 
   const subtotalAfterCoupon = Math.max(subtotalCents - couponDiscountValue, 0);
-  const pixDiscountCents = Math.round(subtotalAfterCoupon * 0.05);
+  const pixDiscountCents = 0; // Desconto de PIX removido.
   const estimatedTotalCents = Math.max(subtotalAfterCoupon - pixDiscountCents, 0);
 
   const checkoutBlockedReason = useMemo(() => {
     if (!listing) {
-      return 'Anúncio indisponivel.';
+      return 'AnÃºncio indisponivel.';
     }
     if (listingState.source === 'fallback') {
       return 'Checkout indisponivel no modo offline.';
     }
     if (listing.status !== 'PUBLISHED') {
-      return 'Anúncio não esta publicado.';
+      return 'AnÃºncio nÃ£o esta publicado.';
     }
     return null;
   }, [listing, listingState.source]);
@@ -342,7 +342,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
     }
     const result = await validateCoupon(code);
     if (result.error || (!result.discountBps && !result.discountCents)) {
-      setCouponError(result.error ?? 'Cupom inválido');
+      setCouponError(result.error ?? 'Cupom invÃ¡lido');
       setAppliedCoupon(null);
       setCouponData(null);
       return;
@@ -350,10 +350,14 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
     setAppliedCoupon(result.code);
     setCouponData(result);
     setCouponError(null);
-  };\r\n  const isBuyerInfoMissing = useMemo(() => {
+  };
+
+  const isBuyerInfoMissing = useMemo(() => {
     const cpfDigits = stripDigits(buyerCpf);
     return !buyerFullName.trim() || cpfDigits.length !== 11;
-  }, [buyerCpf, buyerFullName]);\r\n  const handleCheckout = async () => {
+  }, [buyerCpf, buyerFullName]);
+
+  const handleCheckout = async () => {
     if (!accessToken || !listing || checkoutBlockedReason) {
       return;
     }
@@ -441,7 +445,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
       await navigator.clipboard.writeText(activePayment.copyPaste);
       setCopyStatus('Copiado!');
     } catch {
-      setCopyStatus('Não foi possível copiar.');
+      setCopyStatus('NÃ£o foi possÃ­vel copiar.');
     }
   };
 
@@ -458,7 +462,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
           ? error.message
           : error instanceof Error
             ? error.message
-            : 'Não foi possível gerar o Pix.';
+            : 'NÃ£o foi possÃ­vel gerar o Pix.';
       setPaymentState({ status: 'ready', error: message });
     }
   };
@@ -479,7 +483,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
             className={buttonVariants({ variant: 'secondary', size: 'sm' })}
             href={`/anuncios/${listingId}`}
           >
-            Voltar ao anúncio
+            Voltar ao anÃºncio
           </Link>
         </div>
 
@@ -510,7 +514,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
 
         {listingState.status === 'loading' ? (
           <div className="mt-6 rounded-2xl border border-meow-red/20 bg-white px-4 py-3 text-sm text-meow-muted">
-            Carregando anúncio...
+            Carregando anÃºncio...
           </div>
         ) : null}
 
@@ -522,7 +526,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
 
         {!listing && listingState.status === 'ready' ? (
           <div className="mt-6 rounded-2xl border border-meow-red/20 bg-white px-4 py-3 text-sm text-meow-muted">
-            Anúncio não encontrado.
+            AnÃºncio nÃ£o encontrado.
           </div>
         ) : null}
 
@@ -541,8 +545,8 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                           Produto Digital
                         </h2>
                         <p className="mt-1 text-sm text-meow-muted">
-                          Você recebera os dados de acesso (Email/Senha) imediatamente
-                          após a confirmação do pagamento. Entrega automática 24/7.
+                          VocÃª recebera os dados de acesso (Email/Senha) imediatamente
+                          apÃ³s a confirmaÃ§Ã£o do pagamento. Entrega automÃ¡tica 24/7.
                         </p>
                       </div>
                     </div>
@@ -558,7 +562,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                           Escolha seu Pacote
                         </h2>
                         <p className="text-sm text-meow-muted">
-                          Selecione a edição ideal para você.
+                          Selecione a ediÃ§Ã£o ideal para vocÃª.
                         </p>
                       </div>
                     </div>
@@ -641,11 +645,11 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                 <>
                   <Card className="rounded-2xl border border-slate-100 p-6 shadow-card">
                     <h2 className="text-base font-bold text-meow-charcoal">
-                      Método de pagamento
+                      MÃ©todo de pagamento
                     </h2>
                     <div className="mt-4 grid gap-3 sm:grid-cols-3">
                       {[
-                        { id: 'pix', label: 'Pix', helper: '-5% OFF', active: true, icon: QrCode },
+                        { id: 'pix', label: 'Pix', helper: 'InstantÃ¢neo', active: true, icon: QrCode },
                         {
                           id: 'card',
                           label: 'Cartao',
@@ -699,10 +703,10 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                       </span>
                       <div>
                         <h2 className="text-base font-bold text-meow-charcoal">
-                          Pix - Pagamento rápido
+                          Pix - Pagamento rÃ¡pido
                         </h2>
                         <p className="text-sm text-meow-muted">
-                          5% de desconto aplicado no Pix.
+                          Pague com Pix e receba seu produto na hora.
                         </p>
                       </div>
                     </div>
@@ -729,10 +733,8 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                             ? formatCurrency(order.totalAmountCents, order.currency)
                             : formatCurrency(estimatedTotalCents, listing.currency)}
                         </p>
-                        <span className="text-[11px] font-bold uppercase text-emerald-600">
-                          5% de desconto aplicado
-                        </span>
                       </div>
+
                       <button
                         type="button"
                         className={buttonVariants({
@@ -782,7 +784,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                     Pagamento confirmado!
                   </h2>
                   <p className="mt-2 text-sm text-meow-muted">
-                    Você pode acompanhar a entrega em Minhas Compras.
+                    VocÃª pode acompanhar a entrega em Minhas Compras.
                   </p>
                   <div className="mt-6 flex flex-wrap justify-center gap-3">
                     {order ? (
@@ -835,12 +837,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                       {formatCurrency(serviceFeeCents, listing.currency)}
                     </strong>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span>Desconto Pix (5%)</span>
-                    <strong className="text-emerald-600">
-                      -{formatCurrency(pixDiscountCents, listing.currency)}
-                    </strong>
-                  </div>
+
                   <div className="flex items-center justify-between text-base font-bold text-meow-300">
                     <span>Total a pagar</span>
                     <span>
@@ -889,28 +886,29 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                   ) : null}
                 </div>
 
-                {isBuyerInfoMissing ? (
-                  <div className="mt-5 space-y-2">
+                <div className="mt-5 space-y-2">
+                  <div className="flex items-center justify-between">
                     <label className="text-xs font-semibold uppercase text-meow-muted">
                       Dados do comprador
                     </label>
-                    <Input
-                      placeholder="Nome completo"
-                      value={buyerFullName}
-                      onChange={(event) => setBuyerFullName(event.target.value)}
-                      disabled={buyerBusy}
-                    />
-                    <Input
-                      placeholder="CPF (11 digitos)"
-                      value={formatCpf(buyerCpf)}
-                      onChange={(event) => setBuyerCpf(stripDigits(event.target.value).slice(0, 11))}
-                      disabled={buyerBusy}
-                    />
-                    {buyerError ? (
-                      <p className="text-xs text-red-500">{buyerError}</p>
-                    ) : null}
+                    <span className="text-[10px] text-slate-400">NecessÃ¡rio para NF</span>
                   </div>
-                ) : null}
+                  <Input
+                    placeholder="Nome completo"
+                    value={buyerFullName}
+                    onChange={(event) => setBuyerFullName(event.target.value)}
+                    disabled={buyerBusy || step !== 'produto'}
+                  />
+                  <Input
+                    placeholder="CPF (11 digitos)"
+                    value={formatCpf(buyerCpf)}
+                    onChange={(event) => setBuyerCpf(stripDigits(event.target.value).slice(0, 11))}
+                    disabled={buyerBusy || step !== 'produto'}
+                  />
+                  {buyerError ? (
+                    <p className="text-xs text-red-500">{buyerError}</p>
+                  ) : null}
+                </div>
 
                 {checkoutBlockedReason ? (
                   <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
@@ -954,7 +952,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
           </div>
         ) : null}
       </div>
-    </section>
+    </section >
   );
 };
 

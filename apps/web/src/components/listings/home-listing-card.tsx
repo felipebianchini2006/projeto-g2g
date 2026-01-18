@@ -100,10 +100,10 @@ export const HomeListingCard = ({ listing, image, href }: HomeListingCardProps) 
           className={buttonVariants({
             variant: 'primary',
             className:
-              'mt-auto h-10 w-full rounded-full text-xs font-bold',
+              'mt-auto h-10 w-full rounded-full text-xs font-bold justify-center',
           })}
         >
-          Ver detalhes
+          Adicionar ao carrinho
         </Link>
       </div>
     </article>

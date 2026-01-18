@@ -79,7 +79,11 @@ export const AccountSalesContent = () => {
   const [period, setPeriod] = useState<PeriodOption>('month');
   const [tab, setTab] = useState<OrdersTab>('recent');
   const [searchTerm, setSearchTerm] = useState('');
-  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+  const [menuState, setMenuState] = useState<{
+    id: string;
+    top: number;
+    left: number;
+  } | null>(null);
 
   const accessAllowed = user?.role === 'SELLER' || user?.role === 'ADMIN';
 
@@ -158,7 +162,7 @@ export const AccountSalesContent = () => {
       return filteredByTab;
     }
     return filteredByTab.filter((order) => {
-      const buyer = order.buyer?.email ?? order.buyerId ?? '';
+      const buyer = order.buyer?.displayName ?? order.buyer?.email ?? order.buyerId ?? '';
       const product = order.items[0]?.title ?? '';
       return (
         order.id.toLowerCase().includes(search) ||
@@ -197,7 +201,7 @@ export const AccountSalesContent = () => {
     const rows = filteredOrders.map((order) => [
       order.id,
       order.items[0]?.title ?? 'Venda',
-      order.buyer?.email ?? order.buyerId ?? '',
+      order.buyer?.displayName ?? order.buyer?.email ?? order.buyerId ?? '',
       formatDate(order.createdAt),
       formatCurrency(order.totalAmountCents, order.currency),
       statusLabel[order.status] ?? order.status,
@@ -292,6 +296,42 @@ export const AccountSalesContent = () => {
           </div>
         </div>
 
+        {menuState ? (
+          <>
+            <div
+              className="fixed inset-0 z-40"
+              onClick={() => setMenuState(null)}
+            />
+            <div
+              className="fixed z-50 w-40 rounded-xl border border-slate-100 bg-white p-2 text-sm shadow-[0_10px_38px_-10px_rgba(22,23,24,0.35),0_10px_20px_-15px_rgba(22,23,24,0.2)]"
+              style={{
+                top: menuState.top,
+                left: menuState.left,
+              }}
+            >
+              <Link
+                href={`/conta/vendas/${menuState.id}`}
+                className="block rounded-lg px-3 py-2 text-sm font-semibold text-meow-charcoal hover:bg-meow-50"
+                onClick={() => setMenuState(null)}
+              >
+                Ver detalhes
+              </Link>
+              <button
+                type="button"
+                className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-meow-charcoal hover:bg-meow-50"
+                onClick={() => {
+                  setMenuState(null);
+                  if (navigator?.clipboard) {
+                    navigator.clipboard.writeText(menuState.id).catch(() => { });
+                  }
+                }}
+              >
+                Copiar ID
+              </button>
+            </div>
+          </>
+        ) : null}
+
         <div className="grid gap-4 md:grid-cols-3">
           <Card className="rounded-[26px] border border-slate-100 p-5 shadow-card">
             <p className="text-xs font-semibold uppercase tracking-[0.3px] text-slate-400">
@@ -382,7 +422,7 @@ export const AccountSalesContent = () => {
               </thead>
               <tbody>
                 {filteredOrders.map((order) => {
-                  const buyer = order.buyer?.email ?? order.buyerId ?? 'Comprador';
+                  const buyer = order.buyer?.displayName ?? order.buyer?.email ?? 'Comprador';
                   const product = order.items[0]?.title ?? 'Venda';
                   const tone = statusTone[order.status] ?? 'neutral';
                   return (
@@ -411,37 +451,19 @@ export const AccountSalesContent = () => {
                         <div className="relative inline-flex">
                           <button
                             type="button"
-                            className="grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:border-meow-200 hover:text-meow-deep"
-                            onClick={() =>
-                              setMenuOpenId((prev) => (prev === order.id ? null : order.id))
-                            }
+                            className="grid h-8 w-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:border-meow-200 hover:text-meow-deep"
+                            onClick={(e) => {
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              setMenuState({
+                                id: order.id,
+                                top: rect.bottom + window.scrollY + 5,
+                                left: rect.left + window.scrollX - 120, // Ajuste para alinhar à esquerda
+                              });
+                            }}
                             aria-label="Acoes"
                           >
                             <MoreHorizontal size={16} aria-hidden />
                           </button>
-                          {menuOpenId === order.id ? (
-                            <div className="absolute right-0 top-11 z-10 w-40 rounded-2xl border border-slate-100 bg-white p-2 text-sm shadow-[0_18px_32px_rgba(15,23,42,0.12)]">
-                              <Link
-                                href={`/conta/vendas/${order.id}`}
-                                className="block rounded-xl px-3 py-2 text-sm font-semibold text-meow-charcoal hover:bg-meow-50"
-                                onClick={() => setMenuOpenId(null)}
-                              >
-                                Ver detalhes
-                              </Link>
-                              <button
-                                type="button"
-                                className="w-full rounded-xl px-3 py-2 text-left text-sm font-semibold text-meow-charcoal hover:bg-meow-50"
-                                onClick={() => {
-                                  setMenuOpenId(null);
-                                  if (navigator?.clipboard) {
-                                    navigator.clipboard.writeText(order.id).catch(() => {});
-                                  }
-                                }}
-                              >
-                                Copiar ID
-                              </button>
-                            </div>
-                          ) : null}
                         </div>
                       </td>
                     </tr>

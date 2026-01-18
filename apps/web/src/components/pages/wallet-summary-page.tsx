@@ -419,7 +419,7 @@ export const WalletSummaryContent = () => {
         </div>
       ) : null}
 
-      <div className="grid gap-4 lg:grid-cols-[1.7fr_1fr]">
+      <div className="grid gap-4 lg:grid-cols-[1.7fr_1fr] pb-24">
         <Card className="rounded-2xl border border-slate-100 p-6 shadow-card">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-base font-black text-meow-charcoal">Fluxo de caixa</h2>
@@ -427,13 +427,13 @@ export const WalletSummaryContent = () => {
               <option value="7">Ultimos 7 dias</option>
             </Select>
           </div>
-          <div className="mt-6 grid gap-4 sm:grid-cols-[auto_1fr]">
-            <div className="flex flex-col justify-between text-xs text-meow-muted">
+          <div className="mt-6 grid grid-cols-[auto_1fr] gap-4">
+            <div className="flex flex-col justify-between text-[10px] sm:text-xs text-meow-muted whitespace-nowrap">
               {yAxisLabels.map((value) => (
                 <span key={value}>R$ {value.toFixed(0)}</span>
               ))}
             </div>
-            <div className="h-52 w-full rounded-2xl bg-gradient-to-b from-pink-50 to-white p-4">
+            <div className="h-40 sm:h-52 w-full rounded-2xl bg-gradient-to-b from-pink-50 to-white p-4">
               <AreaLineChart data={chartState.data} />
             </div>
           </div>
@@ -570,7 +570,7 @@ export const WalletSummaryContent = () => {
 
       {isWithdrawOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-[520px] rounded-2xl bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95">
+          <div className="max-h-[85vh] w-full max-w-[420px] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95 scrollbar-thin scrollbar-thumb-meow-200 scrollbar-track-transparent">
             <h2 className="text-lg font-black text-meow-charcoal">Preencha</h2>
             <p className="mt-2 text-sm text-meow-muted">
               Solicite seu saque via Pix. Saldo disponivel:{' '}
@@ -591,8 +591,14 @@ export const WalletSummaryContent = () => {
                   return;
                 }
                 const amountCents = Math.round(value * 100);
-                if (state.summary && amountCents > state.summary.availableCents) {
-                  setWithdrawError('Saldo insuficiente para esse saque.');
+                const feeCents = withdrawSpeed === 'INSTANT' ? 100 : 0;
+
+                if (state.summary && amountCents + feeCents > state.summary.availableCents) {
+                  setWithdrawError(
+                    feeCents > 0
+                      ? 'Saldo insuficiente (considere a taxa de R$ 1,00 para saque imediato).'
+                      : 'Saldo insuficiente para esse saque.'
+                  );
                   return;
                 }
                 if (!withdrawPixKey.trim() || !withdrawBeneficiaryName.trim()) {
@@ -757,6 +763,9 @@ export const WalletSummaryContent = () => {
                     onClick={() => setWithdrawSpeed('NORMAL')}
                   >
                     Retirada normal
+                    <span className="block text-[10px] font-normal opacity-70">
+                      Receba em 1 dia
+                    </span>
                   </button>
                   <button
                     type="button"
@@ -767,6 +776,9 @@ export const WalletSummaryContent = () => {
                     onClick={() => setWithdrawSpeed('INSTANT')}
                   >
                     Retirada imediata
+                    <span className="block text-[10px] font-normal opacity-70">
+                      Taxa: R$ 1,00
+                    </span>
                   </button>
                 </div>
               </div>
