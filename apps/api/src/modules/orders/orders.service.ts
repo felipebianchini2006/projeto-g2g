@@ -214,8 +214,8 @@ export class OrdersService {
     return this.prisma.order.findMany({
       where,
       include: {
-        buyer: { select: { id: true, email: true, displayName: true } },
-        seller: { select: { id: true, email: true, displayName: true } },
+        buyer: { select: { id: true, email: true, fullName: true } },
+        seller: { select: { id: true, email: true, fullName: true } },
         items: true,
       },
       orderBy: { createdAt: 'desc' },
@@ -228,8 +228,8 @@ export class OrdersService {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
       include: {
-        buyer: { select: { id: true, email: true, displayName: true } },
-        seller: { select: { id: true, email: true, displayName: true } },
+        buyer: { select: { id: true, email: true, fullName: true } },
+        seller: { select: { id: true, email: true, fullName: true } },
         items: {
           include: {
             inventoryItems: true,

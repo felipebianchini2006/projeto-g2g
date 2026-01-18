@@ -48,7 +48,7 @@ export type OrderItem = {
 export type OrderParty = {
   id: string;
   email: string;
-  displayName: string;
+  fullName: string;
 };
 
 export type PaymentSummary = {

@@ -162,7 +162,7 @@ export const AccountSalesContent = () => {
       return filteredByTab;
     }
     return filteredByTab.filter((order) => {
-      const buyer = order.buyer?.displayName ?? order.buyer?.email ?? order.buyerId ?? '';
+      const buyer = order.buyer?.fullName ?? order.buyer?.email ?? order.buyerId ?? '';
       const product = order.items[0]?.title ?? '';
       return (
         order.id.toLowerCase().includes(search) ||
@@ -201,7 +201,7 @@ export const AccountSalesContent = () => {
     const rows = filteredOrders.map((order) => [
       order.id,
       order.items[0]?.title ?? 'Venda',
-      order.buyer?.displayName ?? order.buyer?.email ?? order.buyerId ?? '',
+      order.buyer?.fullName ?? order.buyer?.email ?? order.buyerId ?? '',
       formatDate(order.createdAt),
       formatCurrency(order.totalAmountCents, order.currency),
       statusLabel[order.status] ?? order.status,
@@ -422,7 +422,7 @@ export const AccountSalesContent = () => {
               </thead>
               <tbody>
                 {filteredOrders.map((order) => {
-                  const buyer = order.buyer?.displayName ?? order.buyer?.email ?? 'Comprador';
+                  const buyer = order.buyer?.fullName ?? order.buyer?.email ?? 'Comprador';
                   const product = order.items[0]?.title ?? 'Venda';
                   const tone = statusTone[order.status] ?? 'neutral';
                   return (

@@ -126,6 +126,33 @@ const AreaLineChart = ({ data }: AreaLineChartProps) => {
   );
 };
 
+const maskCpf = (value: string) => {
+  return value
+    .replace(/\D/g, '')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d{1,2})/, '$1-$2')
+    .replace(/(-\d{2})\d+?$/, '$1');
+};
+
+const maskCnpj = (value: string) => {
+  return value
+    .replace(/\D/g, '')
+    .replace(/(\d{2})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1/$2')
+    .replace(/(\d{4})(\d)/, '$1-$2')
+    .replace(/(-\d{2})\d+?$/, '$1');
+};
+
+const maskPhone = (value: string) => {
+  return value
+    .replace(/\D/g, '')
+    .replace(/(\d{2})(\d)/, '($1) $2')
+    .replace(/(\d{5})(\d)/, '$1-$2')
+    .replace(/(-\d{4})\d+?$/, '$1');
+};
+
 export const WalletSummaryContent = () => {
   const { user, accessToken, loading } = useAuth();
   const [state, setState] = useState<WalletState>({
@@ -163,6 +190,48 @@ export const WalletSummaryContent = () => {
       return () => clearTimeout(timer);
     }
   }, [copied]);
+
+  const handlePixKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value;
+    if (withdrawPixKeyType === 'CPF') {
+      value = maskCpf(value);
+    } else if (withdrawPixKeyType === 'CNPJ') {
+      value = maskCnpj(value);
+    } else if (withdrawPixKeyType === 'PHONE') {
+      value = maskPhone(value);
+    }
+    setWithdrawPixKey(value);
+  };
+
+  const getPixKeyPlaceholder = () => {
+    switch (withdrawPixKeyType) {
+      case 'CPF':
+        return '000.000.000-00';
+      case 'CNPJ':
+        return '00.000.000/0000-00';
+      case 'EMAIL':
+        return 'seu@email.com';
+      case 'PHONE':
+        return '(11) 99999-9999';
+      case 'EVP':
+        return 'Chave aleatoria';
+      default:
+        return 'Chave Pix';
+    }
+  };
+
+  const getMaxLength = () => {
+    switch (withdrawPixKeyType) {
+      case 'CPF':
+        return 14;
+      case 'CNPJ':
+        return 18;
+      case 'PHONE':
+        return 15;
+      default:
+        return 100;
+    }
+  };
 
   const handleCreateTopup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -713,11 +782,10 @@ export const WalletSummaryContent = () => {
                 <Select
                   className="h-11 rounded-xl border-slate-200 bg-white px-4 text-sm font-semibold text-meow-charcoal"
                   value={withdrawPixKeyType}
-                  onChange={(event) =>
-                    setWithdrawPixKeyType(
-                      event.target.value as CreatePayoutPayload['pixKeyType'],
-                    )
-                  }
+                  onChange={(event) => {
+                    setWithdrawPixKeyType(event.target.value as CreatePayoutPayload['pixKeyType']);
+                    setWithdrawPixKey('');
+                  }}
                 >
                   <option value="CPF">CPF</option>
                   <option value="CNPJ">CNPJ</option>
@@ -732,9 +800,10 @@ export const WalletSummaryContent = () => {
                 <input
                   type="text"
                   className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-meow-charcoal outline-none focus:border-meow-red/60 focus:ring-4 focus:ring-meow-red/10"
-                  placeholder="CPF da sua chave Pix"
+                  placeholder={getPixKeyPlaceholder()}
+                  maxLength={getMaxLength()}
                   value={withdrawPixKey}
-                  onChange={(event) => setWithdrawPixKey(event.target.value)}
+                  onChange={handlePixKeyChange}
                   required
                 />
               </label>

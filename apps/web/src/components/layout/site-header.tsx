@@ -30,6 +30,35 @@ const formatCurrency = (value: number, currency = 'BRL') =>
     maximumFractionDigits: 2,
   }).format(value / 100);
 
+const getNotificationLink = (item: Notification): string | null => {
+  if (item.metadata && typeof item.metadata === 'object' && 'link' in item.metadata) {
+    return (item.metadata as { link?: string }).link ?? null;
+  }
+
+  const text = `${item.title} ${item.body}`
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+  if (text.includes('pergunta')) {
+    return '/conta/perguntas';
+  }
+
+  if (text.includes('venda')) {
+    return '/conta/vendas';
+  }
+
+  if (text.includes('compra') || text.includes('pedido')) {
+    return '/conta/compras';
+  }
+
+  if (text.includes('disputa')) {
+    return '/conta/compras';
+  }
+
+  return null;
+};
+
 export const SiteHeader = () => {
   const { cartCount, cartItems, notify, removeFromCart } = useSite();
   const { user, accessToken, logout } = useAuth();
@@ -137,6 +166,25 @@ export const SiteHeader = () => {
     }
     notify(`Buscando por: "${query}"`);
     router.push(`/produtos?q=${encodeURIComponent(query)}`);
+  };
+
+  const handleNotificationClick = async (notification: Notification) => {
+    if (!accessToken) {
+      return;
+    }
+    if (!notification.readAt) {
+      try {
+        await notificationsApi.markRead(accessToken, notification.id);
+        setNotifications((prev) =>
+          prev.map((item) =>
+            item.id === notification.id ? { ...item, readAt: new Date().toISOString() } : item,
+          ),
+        );
+      } catch {
+        // Ignore mark read failures on redirect.
+      }
+    }
+    setNotificationsOpen(false);
   };
 
   useEffect(() => {
@@ -531,22 +579,29 @@ export const SiteHeader = () => {
                           ) : null}
                           {notifications.length ? (
                             <ul className="grid gap-3">
-                              {notifications.map((notification) => (
-                                <li
-                                  key={notification.id}
-                                  className="rounded-xl border border-meow-red/10 bg-meow-cream/40 px-3 py-2"
-                                >
-                                  <p className="text-xs font-semibold text-meow-charcoal">
-                                    {notification.title}
-                                  </p>
-                                  <p className="mt-1 text-[11px] text-meow-muted">
-                                    {notification.body}
-                                  </p>
-                                  <span className="mt-1 block text-[10px] text-meow-muted">
-                                    {new Date(notification.createdAt).toLocaleString('pt-BR')}
-                                  </span>
-                                </li>
-                              ))}
+                              {notifications.map((notification) => {
+                                const link =
+                                  getNotificationLink(notification) ?? '/central-de-notificacoes';
+                                return (
+                                  <li key={notification.id}>
+                                    <Link
+                                      href={link}
+                                      className="block rounded-xl border border-meow-red/10 bg-meow-cream/40 px-3 py-2 transition hover:bg-meow-cream/70"
+                                      onClick={() => handleNotificationClick(notification)}
+                                    >
+                                      <p className="text-xs font-semibold text-meow-charcoal">
+                                        {notification.title}
+                                      </p>
+                                      <p className="mt-1 text-[11px] text-meow-muted">
+                                        {notification.body}
+                                      </p>
+                                      <span className="mt-1 block text-[10px] text-meow-muted">
+                                        {new Date(notification.createdAt).toLocaleString('pt-BR')}
+                                      </span>
+                                    </Link>
+                                  </li>
+                                );
+                              })}
                             </ul>
                           ) : null}
                         </div>

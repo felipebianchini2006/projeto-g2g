@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 import { ApiClientError } from '../../lib/api-client';
@@ -17,6 +18,32 @@ const typeIcon: Record<string, string> = {
   ORDER: 'fa-box',
   CHAT: 'fa-comment-dots',
   SYSTEM: 'fa-bell',
+};
+
+const getNotificationLink = (item: Notification): string | null => {
+  if (item.metadata && typeof item.metadata === 'object' && 'link' in item.metadata) {
+    return (item.metadata as any).link;
+  }
+
+  const text = (item.title + ' ' + item.body).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+  if (text.includes('pergunta')) {
+    return '/conta/perguntas';
+  }
+
+  if (text.includes('venda')) {
+    return '/conta/vendas';
+  }
+
+  if (text.includes('compra') || text.includes('pedido')) {
+    return '/conta/compras';
+  }
+
+  if (text.includes('disputa')) {
+    return '/conta/compras'; // Usually buying related, but could be sales. Defaults to purchases for now.
+  }
+
+  return null;
 };
 
 export const NotificationsBell = () => {
@@ -118,12 +145,13 @@ export const NotificationsBell = () => {
   };
 
   const handleNotificationClick = async (item: Notification) => {
-    if (item.metadata?.link) {
+    const link = getNotificationLink(item);
+    if (link) {
       if (!item.readAt) {
         handleMarkRead(item.id).catch(() => { });
       }
       setOpen(false);
-      router.push(item.metadata.link);
+      router.push(link);
     }
   };
 
@@ -178,35 +206,58 @@ export const NotificationsBell = () => {
             ) : null}
 
             <div className="notifications-list">
-              {items.map((item) => (
-                <div
-                  key={item.id}
-                  className={`notification-row${item.readAt ? '' : ' unread'} ${item.metadata?.link ? 'cursor-pointer hover:bg-slate-50' : ''
-                    }`}
-                  onClick={() => handleNotificationClick(item)}
-                >
-                  <div className="notification-icon">
-                    <i className={`fas ${typeIcon[item.type] ?? 'fa-bell'}`} aria-hidden="true" />
-                  </div>
-                  <div className="notification-body">
-                    <strong>{item.title}</strong>
-                    <span>{item.body}</span>
-                    <small>{new Date(item.createdAt).toLocaleString('pt-BR')}</small>
-                  </div>
-                  {!item.readAt ? (
-                    <button
-                      className="ghost-button"
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleMarkRead(item.id);
+              {items.map((item) => {
+                const link = getNotificationLink(item);
+                const content = (
+                  <>
+                    <div className="notification-icon">
+                      <i className={`fas ${typeIcon[item.type] ?? 'fa-bell'}`} aria-hidden="true" />
+                    </div>
+                    <div className="notification-body">
+                      <strong>{item.title}</strong>
+                      <span>{item.body}</span>
+                      <small>{new Date(item.createdAt).toLocaleString('pt-BR')}</small>
+                    </div>
+                    {!item.readAt ? (
+                      <button
+                        className="ghost-button"
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleMarkRead(item.id);
+                        }}
+                      >
+                        Lida
+                      </button>
+                    ) : null}
+                  </>
+                );
+
+                const baseClass = `notification-row${item.readAt ? '' : ' unread'}`;
+
+                if (link) {
+                  return (
+                    <Link
+                      key={item.id}
+                      href={link}
+                      className={`${baseClass} cursor-pointer hover:bg-slate-50`}
+                      onClick={() => {
+                        setOpen(false);
+                        if (!item.readAt) handleMarkRead(item.id);
                       }}
                     >
-                      Lida
-                    </button>
-                  ) : null}
-                </div>
-              ))}
+                      {content}
+                    </Link>
+                  );
+                }
+
+                return (
+                  <div key={item.id} className={baseClass}>
+                    {content}
+                  </div>
+                );
+              })}
             </div>
 
             {hasMore ? (

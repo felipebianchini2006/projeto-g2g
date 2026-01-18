@@ -155,7 +155,7 @@ export default function Page() {
                   </div>
                 </Link>
                 <Button
-                  className="mt-4 w-full justify-start gap-2 pl-4"
+                  className="mt-4 w-full justify-center"
                   size="sm"
                   onClick={() =>
                     addToCart({
@@ -167,7 +167,6 @@ export default function Page() {
                     })
                   }
                 >
-                  <ShoppingCart size={16} aria-hidden />
                   Adicionar ao carrinho
                 </Button>
               </article>
