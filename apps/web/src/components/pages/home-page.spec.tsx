@@ -30,7 +30,7 @@ describe('HomeContent', () => {
         render(<HomeContent />);
 
         // Check for "Destaques" header
-        expect(screen.getByText('Destaques')).toBeVisible();
+        expect(screen.getAllByText('Destaques')[0]).toBeVisible();
 
         // Check for centralized highlights container (mx-auto on the div wrapper)
         // We look for the div that contains the "Destaques" functionality
@@ -39,6 +39,6 @@ describe('HomeContent', () => {
         // Since we can't easily query by className without test-id, we'll try to find the container near the header or use querySelector in container
         // However, a simple check is to verify if the text is present and if we can find the Heart Categories which are "Categorias maiores" (text-3xl)
 
-        expect(screen.getByText('Qual deles tem o seu coracao?')).toBeVisible();
+        expect(screen.getAllByText('Qual deles tem o seu coracao?')[0]).toBeVisible();
     });
 });

@@ -8,6 +8,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { WalletEntriesQueryDto } from './dto/wallet-entries-query.dto';
 import { TopupWalletDto } from './dto/topup-wallet.dto';
+import { CreatePayoutDto } from './dto/create-payout.dto';
 import { WalletService } from './wallet.service';
 
 type AuthenticatedRequest = Request & { user?: JwtPayload };
@@ -34,6 +35,13 @@ export class WalletController {
   topupPix(@Req() req: AuthenticatedRequest, @Body() dto: TopupWalletDto) {
     const userId = this.getUserId(req);
     return this.walletService.createTopupPix(userId, dto);
+  }
+
+  @Post('payouts')
+  @Roles(UserRole.SELLER, UserRole.ADMIN)
+  createPayout(@Req() req: AuthenticatedRequest, @Body() dto: CreatePayoutDto) {
+    const userId = this.getUserId(req);
+    return this.walletService.createUserPayout(userId, dto);
   }
 
   private getUserId(request: AuthenticatedRequest) {

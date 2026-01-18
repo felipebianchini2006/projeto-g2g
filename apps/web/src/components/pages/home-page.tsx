@@ -35,7 +35,7 @@ const benefits = [
   {
     icon: Package,
     title: 'Entrega local',
-    description: 'Entrega rápida',
+    description: 'rapido',
   },
   {
     icon: ShieldCheck,

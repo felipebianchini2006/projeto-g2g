@@ -1,5 +1,11 @@
 
-import { LedgerEntrySource, LedgerEntryState, LedgerEntryType } from '@prisma/client';
+import {
+  LedgerEntrySource,
+  LedgerEntryState,
+  LedgerEntryType,
+  PayoutScope,
+  PayoutStatus,
+} from '@prisma/client';
 import { Test, TestingModule } from '@nestjs/testing';
 import { WalletService } from './wallet.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -24,17 +30,32 @@ describe('WalletService', () => {
               groupBy: jest.fn(),
               findMany: jest.fn(),
               count: jest.fn(),
+              create: jest.fn(),
+              aggregate: jest.fn(),
             },
             order: {
               create: jest.fn(),
             },
-            $transaction: jest.fn((calls) => Promise.all(calls)),
+            user: {
+              findUnique: jest.fn(),
+            },
+            payout: {
+              create: jest.fn(),
+              aggregate: jest.fn(),
+            },
+            $transaction: jest.fn((input) => {
+              if (typeof input === 'function') {
+                return input(prismaService);
+              }
+              return Promise.all(input);
+            }),
           },
         },
         {
           provide: PaymentsService,
           useValue: {
             createPixCharge: jest.fn(),
+            cashOutPix: jest.fn(),
           },
         },
         {
@@ -101,5 +122,106 @@ describe('WalletService', () => {
       orderId: 'order-1',
       payment: paymentResult,
     });
+  });
+
+  it('creates a user payout and records ledger entry', async () => {
+    const userId = 'user-1';
+
+    (prismaService.user.findUnique as jest.Mock).mockResolvedValue({
+      id: userId,
+      payoutBlockedAt: null,
+      payoutBlockedReason: null,
+    });
+
+    (prismaService.ledgerEntry.groupBy as jest.Mock).mockResolvedValue([
+      { state: 'AVAILABLE', type: 'CREDIT', currency: 'BRL', _sum: { amountCents: 12000 } },
+    ]);
+
+    (paymentsService.cashOutPix as jest.Mock).mockResolvedValue({
+      status: 'success',
+      id: 'payout-efi',
+    });
+
+    (prismaService.payout.create as jest.Mock).mockResolvedValue({
+      id: 'payout-id',
+      status: PayoutStatus.SENT,
+    });
+
+    const result = await service.createUserPayout(userId, {
+      amountCents: 8000,
+      pixKey: 'user-pix',
+      pixKeyType: 'CPF',
+      beneficiaryName: 'User Seller',
+      beneficiaryType: 'PF',
+      payoutSpeed: 'NORMAL',
+    });
+
+    expect(paymentsService.cashOutPix).toHaveBeenCalled();
+    expect(prismaService.ledgerEntry.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          userId,
+          source: LedgerEntrySource.PAYOUT,
+          state: LedgerEntryState.AVAILABLE,
+          type: LedgerEntryType.DEBIT,
+          amountCents: 8000,
+        }),
+      }),
+    );
+    expect(result).toEqual(expect.objectContaining({ status: PayoutStatus.SENT }));
+  });
+
+  it('rejects payout when user is blocked', async () => {
+    (prismaService.user.findUnique as jest.Mock).mockResolvedValue({
+      id: 'user-1',
+      payoutBlockedAt: new Date(),
+      payoutBlockedReason: 'Bloqueado',
+    });
+
+    await expect(
+      service.createUserPayout('user-1', {
+        amountCents: 5000,
+        pixKey: 'user-pix',
+        beneficiaryName: 'User Seller',
+      }),
+    ).rejects.toThrow('Bloqueado');
+  });
+
+  it('creates a platform payout for admin', async () => {
+    (prismaService.ledgerEntry.aggregate as jest.Mock).mockResolvedValue({
+      _sum: { amountCents: 20000 },
+    });
+    (prismaService.payout.aggregate as jest.Mock).mockResolvedValue({
+      _sum: { amountCents: 5000 },
+    });
+    (paymentsService.cashOutPix as jest.Mock).mockResolvedValue({
+      status: 'success',
+      id: 'payout-efi',
+    });
+    (prismaService.payout.create as jest.Mock).mockResolvedValue({
+      id: 'payout-id',
+      status: PayoutStatus.SENT,
+      scope: PayoutScope.PLATFORM,
+    });
+
+    const result = await service.createPlatformPayout('admin-1', {
+      amountCents: 10000,
+      pixKey: 'admin-pix',
+      pixKeyType: 'CPF',
+      beneficiaryName: 'Admin',
+      beneficiaryType: 'PF',
+      payoutSpeed: 'INSTANT',
+    });
+
+    expect(paymentsService.cashOutPix).toHaveBeenCalled();
+    expect(prismaService.payout.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          scope: PayoutScope.PLATFORM,
+          amountCents: 10000,
+        }),
+      }),
+    );
+    expect(result).toEqual(expect.objectContaining({ scope: PayoutScope.PLATFORM }));
   });
 });

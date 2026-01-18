@@ -11,6 +11,7 @@ import { RequestContextService } from '../request-context/request-context.servic
 import type { SettlementService } from '../settlement/settlement.service';
 import { WebhookMetricsService } from './webhooks.metrics';
 import { WebhooksProcessor } from './webhooks.processor';
+import { WebhooksJobName } from './webhooks.queue';
 
 describe('WebhooksProcessor (Wallet Top-up)', () => {
   let processor: WebhooksProcessor;
@@ -76,6 +77,7 @@ describe('WebhooksProcessor (Wallet Top-up)', () => {
     );
 
     prismaService = prismaMock as unknown as PrismaService;
+    (prismaService.emailOutbox.create as jest.Mock).mockResolvedValue({ id: 'outbox-1' });
   });
 
   it('credits wallet and completes top-up order on webhook', async () => {
@@ -113,7 +115,7 @@ describe('WebhooksProcessor (Wallet Top-up)', () => {
     (prismaService.ledgerEntry.findFirst as jest.Mock).mockResolvedValue(null);
 
     const job = {
-      name: 'ProcessEfi',
+      name: WebhooksJobName.ProcessEfi,
       data: { webhookEventId: 'event-1' },
       id: 'job-1',
     } as unknown as Job;
@@ -181,7 +183,7 @@ describe('WebhooksProcessor (Wallet Top-up)', () => {
     (prismaService.ledgerEntry.findFirst as jest.Mock).mockResolvedValue({ id: 'existing-entry' });
 
     const job = {
-      name: 'ProcessEfi',
+      name: WebhooksJobName.ProcessEfi,
       data: { webhookEventId: 'event-1' },
       id: 'job-1',
     } as unknown as Job;

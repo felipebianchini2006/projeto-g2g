@@ -1,6 +1,6 @@
 
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { TicketDetailContent } from './ticket-detail-page';
 
 // Mock dependencies
@@ -47,6 +47,12 @@ vi.mock('next/navigation', () => ({
 }));
 
 describe('TicketDetailContent', () => {
+    beforeEach(() => {
+        if (!Element.prototype.scrollIntoView) {
+            Element.prototype.scrollIntoView = vi.fn();
+        }
+    });
+
     it('renders messages using ChatBubble layout', async () => {
         render(<TicketDetailContent ticketId="ticket-1" />);
 

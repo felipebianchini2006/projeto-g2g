@@ -1,12 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
 import {
   LedgerEntrySource,
   LedgerEntryState,
   LedgerEntryType,
   OrderStatus,
+  PayoutScope,
+  PayoutStatus,
   Prisma,
   UserRole,
 } from '@prisma/client';
+import { randomUUID } from 'crypto';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { PaymentsService } from '../payments/payments.service';
@@ -14,6 +17,7 @@ import { OrdersQueueService } from '../orders/orders.queue.service';
 import { WalletEntriesQueryDto } from './dto/wallet-entries-query.dto';
 import { TopupWalletDto } from './dto/topup-wallet.dto';
 import { buildWalletSummary, type WalletSummaryRow } from './wallet.utils';
+import { CreatePayoutDto } from './dto/create-payout.dto';
 const DEFAULT_TAKE = 20;
 
 type AdminWalletSummary = {
@@ -129,6 +133,12 @@ export class WalletService {
   }
 
   async getAdminSummary(): Promise<AdminWalletSummary> {
+    const platformPayouts = await this.prisma.payout.aggregate({
+      where: { scope: PayoutScope.PLATFORM, status: PayoutStatus.SENT },
+      _sum: { amountCents: true },
+    });
+    const platformPaidCents = platformPayouts._sum.amountCents ?? 0;
+
     const entries = await this.prisma.ledgerEntry.findMany({
       where: {
         user: {
@@ -169,6 +179,174 @@ export class WalletService {
       }
     }
 
+    summary.platformFeeCents = Math.max(summary.platformFeeCents - platformPaidCents, 0);
+
     return summary;
+  }
+
+  async createUserPayout(userId: string, dto: CreatePayoutDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, payoutBlockedAt: true, payoutBlockedReason: true },
+    });
+    if (!user) {
+      throw new BadRequestException('User not found.');
+    }
+    if (user.payoutBlockedAt) {
+      throw new ForbiddenException(
+        user.payoutBlockedReason || 'Payout is blocked for this account.',
+      );
+    }
+
+    const summary = await this.getSummary(userId);
+    const pixKey = dto.pixKey.trim();
+    const beneficiaryName = dto.beneficiaryName.trim();
+    if (!pixKey) {
+      throw new BadRequestException('Chave Pix obrigatoria.');
+    }
+    if (!beneficiaryName) {
+      throw new BadRequestException('Nome do favorecido obrigatorio.');
+    }
+    if (dto.amountCents > summary.availableCents) {
+      throw new BadRequestException('Saldo insuficiente para saque.');
+    }
+
+    const payoutId = randomUUID();
+    const description = `Saque carteira #${payoutId.slice(0, 8)}`;
+
+    try {
+      const response = await this.paymentsService.cashOutPix({
+        orderId: payoutId,
+        payoutPixKey: pixKey,
+        amountCents: dto.amountCents,
+        currency: summary.currency,
+      });
+
+      return await this.prisma.$transaction(async (tx) => {
+        const payout = await tx.payout.create({
+          data: {
+            id: payoutId,
+            scope: PayoutScope.USER,
+            status: PayoutStatus.SENT,
+            userId,
+            requestedById: userId,
+            amountCents: dto.amountCents,
+            currency: summary.currency,
+            pixKey,
+            pixKeyType: dto.pixKeyType,
+            beneficiaryName,
+            beneficiaryType: dto.beneficiaryType,
+            payoutSpeed: dto.payoutSpeed,
+            providerStatus: response?.status ?? null,
+            providerRef: response?.endToEndId ?? response?.id ?? null,
+          },
+        });
+
+        await tx.ledgerEntry.create({
+          data: {
+            userId,
+            type: LedgerEntryType.DEBIT,
+            state: LedgerEntryState.AVAILABLE,
+            source: LedgerEntrySource.PAYOUT,
+            amountCents: dto.amountCents,
+            currency: summary.currency,
+            description,
+          },
+        });
+
+        return payout;
+      });
+    } catch (error) {
+      await this.prisma.payout.create({
+        data: {
+          id: payoutId,
+          scope: PayoutScope.USER,
+          status: PayoutStatus.FAILED,
+          userId,
+          requestedById: userId,
+            amountCents: dto.amountCents,
+            currency: summary.currency,
+            pixKey,
+            pixKeyType: dto.pixKeyType,
+            beneficiaryName,
+            beneficiaryType: dto.beneficiaryType,
+            payoutSpeed: dto.payoutSpeed,
+          providerStatus: error instanceof Error ? error.message : null,
+        },
+      });
+      throw error;
+    }
+  }
+
+  async createPlatformPayout(adminId: string, dto: CreatePayoutDto) {
+    const pixKey = dto.pixKey.trim();
+    const beneficiaryName = dto.beneficiaryName.trim();
+    if (!pixKey) {
+      throw new BadRequestException('Chave Pix obrigatoria.');
+    }
+    if (!beneficiaryName) {
+      throw new BadRequestException('Nome do favorecido obrigatorio.');
+    }
+    const feeTotals = await this.prisma.ledgerEntry.aggregate({
+      where: { source: LedgerEntrySource.FEE, state: LedgerEntryState.AVAILABLE },
+      _sum: { amountCents: true },
+    });
+    const totalFees = feeTotals._sum.amountCents ?? 0;
+    const paidTotals = await this.prisma.payout.aggregate({
+      where: { scope: PayoutScope.PLATFORM, status: PayoutStatus.SENT },
+      _sum: { amountCents: true },
+    });
+    const paid = paidTotals._sum.amountCents ?? 0;
+    const available = Math.max(totalFees - paid, 0);
+
+    if (dto.amountCents > available) {
+      throw new BadRequestException('Saldo insuficiente para saque do site.');
+    }
+
+    const payoutId = randomUUID();
+    try {
+      const response = await this.paymentsService.cashOutPix({
+        orderId: payoutId,
+        payoutPixKey: pixKey,
+        amountCents: dto.amountCents,
+        currency: 'BRL',
+      });
+
+      return await this.prisma.payout.create({
+        data: {
+          id: payoutId,
+          scope: PayoutScope.PLATFORM,
+          status: PayoutStatus.SENT,
+          requestedById: adminId,
+          amountCents: dto.amountCents,
+          currency: 'BRL',
+          pixKey,
+          pixKeyType: dto.pixKeyType,
+          beneficiaryName,
+          beneficiaryType: dto.beneficiaryType,
+          payoutSpeed: dto.payoutSpeed,
+          providerStatus: response?.status ?? null,
+          providerRef: response?.endToEndId ?? response?.id ?? null,
+        },
+      });
+    } catch (error) {
+      await this.prisma.payout.create({
+        data: {
+          id: payoutId,
+          scope: PayoutScope.PLATFORM,
+          status: PayoutStatus.FAILED,
+          requestedById: adminId,
+          amountCents: dto.amountCents,
+          currency: 'BRL',
+          pixKey,
+          pixKeyType: dto.pixKeyType,
+          beneficiaryName,
+          beneficiaryType: dto.beneficiaryType,
+          payoutSpeed: dto.payoutSpeed,
+          providerStatus: error instanceof Error ? error.message : null,
+        },
+      });
+      throw error;
+    }
   }
 }

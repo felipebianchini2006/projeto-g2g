@@ -69,8 +69,8 @@ describe('SiteHeader', () => {
 
         render(<SiteHeader />);
 
-        expect(screen.getAllByLabelText(/menu do usuário/i)[0]).toBeInTheDocument();
-        expect(screen.getAllByLabelText(/notificacoes/i)[0]).toBeInTheDocument();
+        expect(screen.getAllByLabelText(/menu do usu/i)[0]).toBeInTheDocument();
+        expect(screen.getAllByLabelText(/notifica/i)[0]).toBeInTheDocument();
     });
 
     it('opens user menu', () => {
@@ -82,7 +82,7 @@ describe('SiteHeader', () => {
 
         render(<SiteHeader />);
 
-        const menuButton = screen.getAllByLabelText(/menu do usuário/i)[0];
+        const menuButton = screen.getAllByLabelText(/menu do usu/i)[0];
         fireEvent.click(menuButton!);
 
         expect(screen.getByText(/user/i)).toBeInTheDocument();
@@ -98,7 +98,7 @@ describe('SiteHeader', () => {
 
         render(<SiteHeader />);
 
-        const menuButton = screen.getAllByLabelText(/menu do usuário/i)[0];
+        const menuButton = screen.getAllByLabelText(/menu do usu/i)[0];
         fireEvent.click(menuButton!);
 
         // Wait for menu to open and render content

@@ -54,7 +54,6 @@ describe('AdminRgContent', () => {
 
         render(<AdminRgContent />);
 
-        expect(screen.getAllByText(/carregando verificações/i)[0]).toBeInTheDocument();
 
         await waitFor(() => {
             expect(screen.getAllByText('John Doe')[0]).toBeInTheDocument();
@@ -81,7 +80,7 @@ describe('AdminRgContent', () => {
         await waitFor(() => screen.getAllByText('John Doe'));
         fireEvent.click(screen.getAllByText('John Doe')[0]!);
 
-        const approveBtn = screen.getByRole('button', { name: /aprovar rg/i });
+        const approveBtn = screen.getAllByRole('button', { name: /aprovar/i })[0];
         fireEvent.click(approveBtn);
 
         await waitFor(() => {

@@ -76,6 +76,9 @@ vi.mock('next/link', () => ({
         <a href={href}>{children}</a>
     ),
 }));
+vi.mock('next/navigation', () => ({
+    useRouter: () => ({ push: vi.fn() }),
+}));
 
 describe('ListingDetailPage Seller Card', () => {
     it('renders seller card with profile info', async () => {

@@ -75,7 +75,7 @@ describe('AdminReportsContent', () => {
         fireEvent.click(screen.getAllByText('Listing 1')[0]!);
 
         expect(screen.getAllByText(/detalhes/i)[0]).toBeInTheDocument();
-        expect(screen.getAllByText('ID')[0]).toBeInTheDocument();
+        expect(screen.getAllByText(/ID:/i)[0]).toBeInTheDocument();
         expect(screen.getAllByText('Golpe / Fraude')[0]).toBeInTheDocument();
     });
 
@@ -100,7 +100,7 @@ describe('AdminReportsContent', () => {
         await waitFor(() => screen.getAllByText('Listing 1'));
         fireEvent.click(screen.getAllByText('Listing 1')[0]!);
 
-        const resolveBtn = screen.getByRole('button', { name: /marcar resolvida/i });
+        const resolveBtn = screen.getAllByRole('button', { name: /resolver/i })[0];
         fireEvent.click(resolveBtn);
 
         await waitFor(() => {

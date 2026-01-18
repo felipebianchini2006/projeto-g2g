@@ -64,6 +64,7 @@ describe('DisputesService', () => {
         service = module.get<DisputesService>(DisputesService);
         prismaService = module.get<PrismaService>(PrismaService);
         settlementService = module.get<SettlementService>(SettlementService);
+        (prismaService.emailOutbox.create as jest.Mock).mockResolvedValue({ id: 'outbox-1' });
     });
 
     describe('resolveDispute', () => {

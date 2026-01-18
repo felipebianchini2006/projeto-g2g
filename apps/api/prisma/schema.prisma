@@ -131,6 +131,34 @@ enum LedgerEntrySource {
   WALLET_TOPUP
 }
 
+enum PayoutScope {
+  USER
+  PLATFORM
+}
+
+enum PayoutStatus {
+  SENT
+  FAILED
+}
+
+enum PixKeyType {
+  CPF
+  CNPJ
+  EMAIL
+  PHONE
+  EVP
+}
+
+enum BeneficiaryType {
+  PF
+  PJ
+}
+
+enum PayoutSpeed {
+  NORMAL
+  INSTANT
+}
+
 enum ChatMessageType {
   TEXT
   SYSTEM
@@ -254,6 +282,8 @@ model User {
   listingReportsReviewed   ListingReport[]   @relation("ListingReportAdmin")
   rgVerifications          RgVerification[]  @relation("RgVerificationUser")
   rgReviewsAsAdmin         RgVerification[]  @relation("RgVerificationAdmin")
+  payoutsReceived          Payout[]          @relation("PayoutUser")
+  payoutsRequested         Payout[]          @relation("PayoutRequestedBy")
 
   @@map("users")
 }
@@ -832,6 +862,35 @@ model CommunityPost {
   @@index([pinned])
   @@index([createdAt])
   @@map("community_posts")
+}
+
+model Payout {
+  id              String           @id @default(uuid())
+  scope           PayoutScope
+  status          PayoutStatus
+  userId          String?
+  requestedById   String
+  amountCents     Int
+  currency        String           @default("BRL")
+  pixKey          String
+  pixKeyType      PixKeyType?
+  beneficiaryName String
+  beneficiaryType BeneficiaryType?
+  payoutSpeed     PayoutSpeed?
+  provider        String           @default("EFI")
+  providerStatus  String?
+  providerRef     String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  user        User? @relation("PayoutUser", fields: [userId], references: [id])
+  requestedBy User  @relation("PayoutRequestedBy", fields: [requestedById], references: [id])
+
+  @@index([userId])
+  @@index([requestedById])
+  @@index([scope])
+  @@index([status])
+  @@map("payouts")
 }
 
 model CommunityPostLike {

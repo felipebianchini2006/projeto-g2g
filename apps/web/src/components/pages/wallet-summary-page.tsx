@@ -17,7 +17,12 @@ import {
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 import { ApiClientError } from '../../lib/api-client';
-import { walletApi, type TopupResponse, type WalletSummary } from '../../lib/wallet-api';
+import {
+  walletApi,
+  type CreatePayoutPayload,
+  type TopupResponse,
+  type WalletSummary,
+} from '../../lib/wallet-api';
 import { useAuth } from '../auth/auth-provider';
 import { AccountShell } from '../account/account-shell';
 import { Badge } from '../ui/badge';
@@ -137,6 +142,20 @@ export const WalletSummaryContent = () => {
   const [topupLoading, setTopupLoading] = useState(false);
   const [topupPix, setTopupPix] = useState<TopupResponse['payment'] | null>(null);
   const [copied, setCopied] = useState(false);
+  const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState('');
+  const [withdrawPixKeyType, setWithdrawPixKeyType] =
+    useState<CreatePayoutPayload['pixKeyType']>('CPF');
+  const [withdrawPixKey, setWithdrawPixKey] = useState('');
+  const [withdrawBeneficiaryType, setWithdrawBeneficiaryType] =
+    useState<CreatePayoutPayload['beneficiaryType']>('PF');
+  const [withdrawBeneficiaryName, setWithdrawBeneficiaryName] = useState('');
+  const [withdrawSpeed, setWithdrawSpeed] =
+    useState<CreatePayoutPayload['payoutSpeed']>('NORMAL');
+  const [withdrawInfoType, setWithdrawInfoType] = useState<'PIX' | 'ACCOUNT'>('PIX');
+  const [withdrawLoading, setWithdrawLoading] = useState(false);
+  const [withdrawError, setWithdrawError] = useState<string | null>(null);
+  const [withdrawSuccess, setWithdrawSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     if (copied) {
@@ -172,7 +191,17 @@ export const WalletSummaryContent = () => {
     handleRefresh();
   };
 
+  const closeWithdraw = () => {
+    setIsWithdrawOpen(false);
+    setWithdrawAmount('');
+    setWithdrawPixKey('');
+    setWithdrawBeneficiaryName('');
+    setWithdrawError(null);
+    setWithdrawSuccess(null);
+  };
+
   const accessAllowed = user?.role === 'USER' || user?.role === 'SELLER' || user?.role === 'ADMIN';
+  const canWithdraw = user?.role === 'SELLER' || user?.role === 'ADMIN';
 
   const loadSummary = async () => {
     if (!accessToken) {
@@ -323,7 +352,13 @@ export const WalletSummaryContent = () => {
               <RefreshCw size={14} aria-hidden />
               Atualizar
             </Button>
-            <Button size="sm" type="button" className="gap-2">
+            <Button
+              size="sm"
+              type="button"
+              className="gap-2"
+              disabled={!canWithdraw}
+              onClick={() => setIsWithdrawOpen(true)}
+            >
               <ArrowUp size={14} aria-hidden />
               Sacar
             </Button>
@@ -532,6 +567,233 @@ export const WalletSummaryContent = () => {
           </div>
         )
       }
+
+      {isWithdrawOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-[520px] rounded-2xl bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95">
+            <h2 className="text-lg font-black text-meow-charcoal">Preencha</h2>
+            <p className="mt-2 text-sm text-meow-muted">
+              Solicite seu saque via Pix. Saldo disponivel:{' '}
+              {formatCurrency(state.summary?.availableCents ?? 0, state.summary?.currency ?? 'BRL')}
+            </p>
+
+            <form
+              className="mt-6 grid gap-4"
+              onSubmit={async (event) => {
+                event.preventDefault();
+                if (!accessToken) return;
+                setWithdrawError(null);
+                setWithdrawSuccess(null);
+
+                const value = Number(withdrawAmount.replace(',', '.'));
+                if (!value || Number.isNaN(value)) {
+                  setWithdrawError('Informe um valor valido.');
+                  return;
+                }
+                const amountCents = Math.round(value * 100);
+                if (state.summary && amountCents > state.summary.availableCents) {
+                  setWithdrawError('Saldo insuficiente para esse saque.');
+                  return;
+                }
+                if (!withdrawPixKey.trim() || !withdrawBeneficiaryName.trim()) {
+                  setWithdrawError('Preencha a chave Pix e o nome do favorecido.');
+                  return;
+                }
+
+                setWithdrawLoading(true);
+                try {
+                  await walletApi.createPayout(accessToken, {
+                    amountCents,
+                    pixKey: withdrawPixKey.trim(),
+                    pixKeyType: withdrawPixKeyType,
+                    beneficiaryName: withdrawBeneficiaryName.trim(),
+                    beneficiaryType: withdrawBeneficiaryType,
+                    payoutSpeed: withdrawSpeed,
+                  });
+                  setWithdrawSuccess('Saque solicitado com sucesso.');
+                  setWithdrawAmount('');
+                  setWithdrawPixKey('');
+                  setWithdrawBeneficiaryName('');
+                  handleRefresh();
+                } catch (error) {
+                  setWithdrawError(
+                    error instanceof Error
+                      ? error.message
+                      : 'Nao foi possivel solicitar o saque.',
+                  );
+                } finally {
+                  setWithdrawLoading(false);
+                }
+              }}
+            >
+              <div className="grid gap-3 md:grid-cols-2">
+                <label className="grid gap-2 text-sm text-meow-charcoal">
+                  Valor da retirada *
+                  <input
+                    type="text"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-meow-charcoal outline-none focus:border-meow-red/60 focus:ring-4 focus:ring-meow-red/10"
+                    placeholder="R$ 0,00"
+                    value={withdrawAmount}
+                    onChange={(event) => setWithdrawAmount(event.target.value)}
+                    required
+                  />
+                </label>
+                <label className="grid gap-2 text-sm text-meow-charcoal">
+                  Tipo *
+                  <Select className="h-11 rounded-xl border-slate-200 bg-white px-4 text-sm font-semibold text-meow-charcoal">
+                    <option value="PIX">Pix</option>
+                  </Select>
+                </label>
+              </div>
+
+              <label className="grid gap-2 text-sm text-meow-charcoal">
+                Conta Pix *
+                <Select className="h-11 rounded-xl border-slate-200 bg-white px-4 text-sm font-semibold text-meow-charcoal">
+                  <option value="new">Registrar uma nova chave ou dados da conta</option>
+                </Select>
+              </label>
+
+              <div className="grid gap-2 text-sm text-meow-charcoal">
+                Vou informar: *
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    className={`rounded-xl border px-4 py-2 text-sm font-semibold transition ${withdrawInfoType === 'PIX'
+                      ? 'border-meow-red/40 bg-meow-red/10 text-meow-deep'
+                      : 'border-slate-200 text-slate-500'
+                      }`}
+                    onClick={() => setWithdrawInfoType('PIX')}
+                  >
+                    A chave PIX
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-400"
+                    disabled
+                  >
+                    Os dados da conta
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid gap-2 text-sm text-meow-charcoal">
+                Tipo de Beneficiario: *
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    className={`rounded-xl border px-4 py-2 text-sm font-semibold transition ${withdrawBeneficiaryType === 'PF'
+                      ? 'border-meow-red/40 bg-meow-red/10 text-meow-deep'
+                      : 'border-slate-200 text-slate-500'
+                      }`}
+                    onClick={() => setWithdrawBeneficiaryType('PF')}
+                  >
+                    Pessoa Fisica
+                  </button>
+                  <button
+                    type="button"
+                    className={`rounded-xl border px-4 py-2 text-sm font-semibold transition ${withdrawBeneficiaryType === 'PJ'
+                      ? 'border-meow-red/40 bg-meow-red/10 text-meow-deep'
+                      : 'border-slate-200 text-slate-500'
+                      }`}
+                    onClick={() => setWithdrawBeneficiaryType('PJ')}
+                  >
+                    Pessoa Juridica
+                  </button>
+                </div>
+              </div>
+
+              <label className="grid gap-2 text-sm text-meow-charcoal">
+                Tipo de chave *
+                <Select
+                  className="h-11 rounded-xl border-slate-200 bg-white px-4 text-sm font-semibold text-meow-charcoal"
+                  value={withdrawPixKeyType}
+                  onChange={(event) =>
+                    setWithdrawPixKeyType(
+                      event.target.value as CreatePayoutPayload['pixKeyType'],
+                    )
+                  }
+                >
+                  <option value="CPF">CPF</option>
+                  <option value="CNPJ">CNPJ</option>
+                  <option value="EMAIL">Email</option>
+                  <option value="PHONE">Telefone</option>
+                  <option value="EVP">Chave aleatoria</option>
+                </Select>
+              </label>
+
+              <label className="grid gap-2 text-sm text-meow-charcoal">
+                Chave Pix *
+                <input
+                  type="text"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-meow-charcoal outline-none focus:border-meow-red/60 focus:ring-4 focus:ring-meow-red/10"
+                  placeholder="CPF da sua chave Pix"
+                  value={withdrawPixKey}
+                  onChange={(event) => setWithdrawPixKey(event.target.value)}
+                  required
+                />
+              </label>
+
+              <label className="grid gap-2 text-sm text-meow-charcoal">
+                Nome do favorecido *
+                <input
+                  type="text"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-meow-charcoal outline-none focus:border-meow-red/60 focus:ring-4 focus:ring-meow-red/10"
+                  placeholder="Nome completo do favorecido"
+                  value={withdrawBeneficiaryName}
+                  onChange={(event) => setWithdrawBeneficiaryName(event.target.value)}
+                  required
+                />
+              </label>
+
+              <div className="grid gap-2 text-sm text-meow-charcoal">
+                Tipo de saque *
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    className={`rounded-xl border px-4 py-2 text-sm font-semibold transition ${withdrawSpeed === 'NORMAL'
+                      ? 'border-meow-red/40 bg-meow-red/10 text-meow-deep'
+                      : 'border-slate-200 text-slate-500'
+                      }`}
+                    onClick={() => setWithdrawSpeed('NORMAL')}
+                  >
+                    Retirada normal
+                  </button>
+                  <button
+                    type="button"
+                    className={`rounded-xl border px-4 py-2 text-sm font-semibold transition ${withdrawSpeed === 'INSTANT'
+                      ? 'border-meow-red/40 bg-meow-red/10 text-meow-deep'
+                      : 'border-slate-200 text-slate-500'
+                      }`}
+                    onClick={() => setWithdrawSpeed('INSTANT')}
+                  >
+                    Retirada imediata
+                  </button>
+                </div>
+              </div>
+
+              {withdrawError ? (
+                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {withdrawError}
+                </div>
+              ) : null}
+              {withdrawSuccess ? (
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                  {withdrawSuccess}
+                </div>
+              ) : null}
+
+              <div className="flex justify-end gap-3 pt-2">
+                <Button variant="ghost" onClick={closeWithdraw} type="button">
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={withdrawLoading}>
+                  {withdrawLoading ? 'Enviando...' : 'Solicitar saque'}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
     </AccountShell >
   );
 };
