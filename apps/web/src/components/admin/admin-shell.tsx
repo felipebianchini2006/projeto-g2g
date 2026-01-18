@@ -12,6 +12,7 @@ import {
   House,
   Link2,
   LogOut,
+  MessageCircle,
   Receipt,
   Settings,
   Settings2,
@@ -67,6 +68,7 @@ export const AdminShell = ({ breadcrumbs, children }: AdminShellProps) => {
         title: 'Admin',
         items: [
           { label: 'Atendimento', href: '/admin/atendimento' },
+          { label: 'Chats', href: '/admin/chats' },
           { label: 'Disputas', href: '/admin/disputas' },
           { label: 'Moderação', href: '/admin/anuncios' },
           { label: 'Usuarios', href: '/admin/usuarios' },
@@ -222,6 +224,7 @@ export const AdminShell = ({ breadcrumbs, children }: AdminShellProps) => {
 
                       const iconMap: Record<string, React.ReactNode> = {
                         Atendimento: <Headset size={16} aria-hidden />,
+                        Chats: <MessageCircle size={16} aria-hidden />,
                         Disputas: <Gavel size={16} aria-hidden />,
                         Moderação: <ShieldAlert size={16} aria-hidden />,
                         Usuarios: <Users size={16} aria-hidden />,

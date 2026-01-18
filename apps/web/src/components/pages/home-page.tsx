@@ -51,24 +51,28 @@ const promoBanners = [
     href: '/produtos?category=xbox',
     image: null,
     tone: 'from-[#0b3d1f] via-[#0f5a2f] to-[#0b3d1f]',
+    categorySlug: 'xbox',
   },
   {
     title: 'PlayStation',
     href: '/produtos?category=playstation',
     image: null,
     tone: 'from-[#0a1f44] via-[#10346b] to-[#0a1f44]',
+    categorySlug: 'playstation',
   },
   {
     title: 'Nintendo',
     href: '/produtos?category=nintendo',
     image: null,
     tone: 'from-[#9b1720] via-[#d32330] to-[#9b1720]',
+    categorySlug: 'nintendo',
   },
   {
     title: 'WhatsApp',
     href: '/conta/ajuda',
     image: null,
     tone: 'from-[#0f5a2f] via-[#1f9d55] to-[#0f5a2f]',
+    categorySlug: 'whatsapp',
   },
 ];
 
@@ -166,6 +170,14 @@ export const HomeContent = () => {
       )),
     [mustHaveListings],
   );
+
+  const promoBannersToShow = useMemo(() => {
+    if (!heartCategories.length) {
+      return [];
+    }
+    const categorySlugs = new Set(heartCategories.map((category) => category.slug));
+    return promoBanners.filter((banner) => categorySlugs.has(banner.categorySlug));
+  }, [heartCategories]);
 
   return (
     <div className="pb-16">
@@ -343,41 +355,43 @@ export const HomeContent = () => {
         </div>
       </section>
 
-      <section className="px-6 pb-12">
-        <div className="mx-auto w-full max-w-[1280px]">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {promoBanners.map((item) => (
-              <Link
-                key={item.title}
-                href={item.href}
-                className={`group relative flex min-h-[160px] flex-col justify-between overflow-hidden rounded-[26px] bg-gradient-to-br ${item.tone} p-5 text-white shadow-[0_16px_32px_rgba(0,0,0,0.2)] transition hover:-translate-y-1`}
-              >
-                <div className="absolute inset-0 opacity-25">
-                  {item.image ? (
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : null}
-                </div>
-                <div className="relative z-10">
-                  <span className="text-xs uppercase tracking-[0.6px] text-white/80">
-                    Categoria
-                  </span>
-                  <h3 className="mt-2 text-2xl font-black">{item.title}</h3>
-                </div>
-                <Badge
-                  variant="neutral"
-                  className="relative z-10 w-fit bg-white/90 text-[11px] font-bold uppercase tracking-[0.4px] text-slate-800"
+      {promoBannersToShow.length ? (
+        <section className="px-6 pb-12">
+          <div className="mx-auto w-full max-w-[1280px]">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {promoBannersToShow.map((item) => (
+                <Link
+                  key={item.title}
+                  href={item.href}
+                  className={`group relative flex min-h-[160px] flex-col justify-between overflow-hidden rounded-[26px] bg-gradient-to-br ${item.tone} p-5 text-white shadow-[0_16px_32px_rgba(0,0,0,0.2)] transition hover:-translate-y-1`}
                 >
-                  Ver ofertas
-                </Badge>
-              </Link>
-            ))}
+                  <div className="absolute inset-0 opacity-25">
+                    {item.image ? (
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : null}
+                  </div>
+                  <div className="relative z-10">
+                    <span className="text-xs uppercase tracking-[0.6px] text-white/80">
+                      Categoria
+                    </span>
+                    <h3 className="mt-2 text-2xl font-black">{item.title}</h3>
+                  </div>
+                  <Badge
+                    variant="neutral"
+                    className="relative z-10 w-fit bg-white/90 text-[11px] font-bold uppercase tracking-[0.4px] text-slate-800"
+                  >
+                    Ver ofertas
+                  </Badge>
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
     </div>
   );
 };

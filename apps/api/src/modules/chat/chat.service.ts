@@ -3,6 +3,34 @@ import { UserRole } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
 
+type AdminChatRoomSummary = {
+  id: string;
+  orderId: string;
+  orderStatus: string;
+  orderCreatedAt: Date;
+  buyer: { id: string; email: string; fullName: string | null } | null;
+  seller: { id: string; email: string; fullName: string | null } | null;
+  lastMessage: {
+    id: string;
+    content: string;
+    createdAt: Date;
+    senderId: string;
+    deletedAt: Date | null;
+    type: string;
+  } | null;
+  messageCount: number;
+};
+
+type AdminChatMessage = {
+  id: string;
+  content: string;
+  createdAt: Date;
+  editedAt: Date | null;
+  deletedAt: Date | null;
+  type: string;
+  sender: { id: string; email: string; fullName: string | null; role: UserRole };
+};
+
 @Injectable()
 export class ChatService {
   constructor(private readonly prisma: PrismaService) {}
@@ -74,6 +102,99 @@ export class ChatService {
     });
 
     return { messages, readReceipts, roomId: room.id };
+  }
+
+  async listAdminRooms(take = 50, skip = 0) {
+    const safeTake = Math.max(1, Math.min(take, 200));
+    const safeSkip = Math.max(0, skip);
+
+    const [rooms, total] = await this.prisma.$transaction([
+      this.prisma.chatRoom.findMany({
+        skip: safeSkip,
+        take: safeTake,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          orderId: true,
+          createdAt: true,
+          order: {
+            select: {
+              status: true,
+              createdAt: true,
+              buyer: { select: { id: true, email: true, fullName: true } },
+              seller: { select: { id: true, email: true, fullName: true } },
+            },
+          },
+          messages: {
+            take: 1,
+            orderBy: { createdAt: 'desc' },
+            select: {
+              id: true,
+              content: true,
+              createdAt: true,
+              senderId: true,
+              deletedAt: true,
+              type: true,
+            },
+          },
+          _count: { select: { messages: true } },
+        },
+      }),
+      this.prisma.chatRoom.count(),
+    ]);
+
+    const items: AdminChatRoomSummary[] = rooms.map((room) => ({
+      id: room.id,
+      orderId: room.orderId,
+      orderStatus: room.order.status,
+      orderCreatedAt: room.order.createdAt,
+      buyer: room.order.buyer,
+      seller: room.order.seller,
+      lastMessage: room.messages[0] ?? null,
+      messageCount: room._count.messages,
+    }));
+
+    return { items, total, take: safeTake, skip: safeSkip };
+  }
+
+  async listAdminMessages(orderId: string, take = 50, cursor?: string) {
+    const room = await this.prisma.chatRoom.findUnique({
+      where: { orderId },
+      select: { id: true },
+    });
+
+    if (!room) {
+      return { roomId: null, messages: [] as AdminChatMessage[] };
+    }
+
+    const limit = Math.max(1, Math.min(take, 200));
+    const parsedCursor = cursor ? new Date(cursor) : null;
+    const isValidCursor = parsedCursor instanceof Date && !Number.isNaN(parsedCursor.getTime());
+    const where = isValidCursor
+      ? {
+          roomId: room.id,
+          createdAt: { lt: parsedCursor },
+        }
+      : { roomId: room.id };
+
+    const messages = await this.prisma.chatMessage.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      select: {
+        id: true,
+        content: true,
+        createdAt: true,
+        editedAt: true,
+        deletedAt: true,
+        type: true,
+        sender: {
+          select: { id: true, email: true, fullName: true, role: true },
+        },
+      },
+    });
+
+    return { roomId: room.id, messages };
   }
 
   async updateMessage(messageId: string, userId: string, role: UserRole, content: string) {

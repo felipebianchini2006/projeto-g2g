@@ -128,6 +128,8 @@ export const OrderChat = ({
   const socketRef = useRef<Socket | null>(null);
   const timeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const listRef = useRef<HTMLDivElement | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const audioEnabledRef = useRef(false);
   const chatUrl = useMemo(() => buildChatUrl(), []);
 
   const scrollToBottom = (behavior: ScrollBehavior = 'auto') => {
@@ -135,6 +137,39 @@ export const OrderChat = ({
       return;
     }
     listRef.current.scrollTo({ top: listRef.current.scrollHeight, behavior });
+  };
+
+  const ensureAudioContext = () => {
+    if (typeof window === 'undefined' || audioEnabledRef.current) {
+      return;
+    }
+    const AudioContextCtor = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextCtor) {
+      return;
+    }
+    if (!audioContextRef.current) {
+      audioContextRef.current = new AudioContextCtor();
+    }
+    audioEnabledRef.current = true;
+  };
+
+  const playIncomingSound = () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    const context = audioContextRef.current;
+    if (!context || context.state === 'suspended') {
+      return;
+    }
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    oscillator.type = 'sine';
+    oscillator.frequency.value = 880;
+    gain.gain.value = 0.05;
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.start();
+    oscillator.stop(context.currentTime + 0.12);
   };
 
   useEffect(() => {
@@ -331,6 +366,7 @@ export const OrderChat = ({
       });
       if (payload.userId !== userId) {
         socket.emit('markRead', { orderId });
+        playIncomingSound();
       }
       scrollToBottom('smooth');
     };
@@ -575,7 +611,10 @@ export const OrderChat = ({
   }, [readReceipts, userId]);
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-[26px] border border-slate-100 bg-white shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
+    <div
+      className="flex h-full flex-col overflow-hidden rounded-[26px] border border-slate-100 bg-white shadow-[0_18px_40px_rgba(15,23,42,0.06)]"
+      onPointerDown={ensureAudioContext}
+    >
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-4">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-meow-100 text-sm font-black text-meow-deep">

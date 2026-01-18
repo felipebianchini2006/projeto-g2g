@@ -18,6 +18,7 @@ import { WalletEntriesQueryDto } from './dto/wallet-entries-query.dto';
 import { TopupWalletDto } from './dto/topup-wallet.dto';
 import { buildWalletSummary, type WalletSummaryRow } from './wallet.utils';
 import { CreatePayoutDto } from './dto/create-payout.dto';
+import type { EfiPixSendResponse } from '../payments/efi/efi.types';
 const DEFAULT_TAKE = 20;
 
 type AdminWalletSummary = {
@@ -38,6 +39,24 @@ type WalletEntryItem = {
   orderId: string | null;
   paymentId: string | null;
   createdAt: Date;
+};
+
+type CashOutPixResponse = EfiPixSendResponse | { status: string; idempotencyKey: string };
+
+const resolveProviderRef = (response?: CashOutPixResponse | null) => {
+  if (!response) {
+    return null;
+  }
+  if ('endToEndId' in response && response.endToEndId) {
+    return response.endToEndId;
+  }
+  if ('id' in response && response.id) {
+    return response.id;
+  }
+  if ('idempotencyKey' in response && response.idempotencyKey) {
+    return response.idempotencyKey;
+  }
+  return null;
 };
 
 @Injectable()
@@ -238,7 +257,7 @@ export class WalletService {
             beneficiaryType: dto.beneficiaryType,
             payoutSpeed: dto.payoutSpeed,
             providerStatus: response?.status ?? null,
-            providerRef: response?.endToEndId ?? response?.id ?? null,
+            providerRef: resolveProviderRef(response),
           },
         });
 
@@ -326,7 +345,7 @@ export class WalletService {
           beneficiaryType: dto.beneficiaryType,
           payoutSpeed: dto.payoutSpeed,
           providerStatus: response?.status ?? null,
-          providerRef: response?.endToEndId ?? response?.id ?? null,
+          providerRef: resolveProviderRef(response),
         },
       });
     } catch (error) {

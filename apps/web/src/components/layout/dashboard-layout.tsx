@@ -163,6 +163,7 @@ const adminNav = (logout: () => Promise<void>, goHome: () => void): MenuSection[
     title: 'Admin',
     items: [
       { label: 'Atendimento', href: '/admin/atendimento' },
+      { label: 'Chats', href: '/admin/chats' },
       { label: 'Disputas', href: '/admin/disputas' },
       { label: 'Denúncias', href: '/admin/denuncias' },
       { label: 'Moderação', href: '/admin/anuncios' },
@@ -221,6 +222,7 @@ const iconMap: Record<string, React.ReactNode> = {
   Configurações: <Settings size={16} aria-hidden />,
   'Sair da conta': <LogOut size={16} aria-hidden />,
   Atendimento: <Headset size={16} aria-hidden />,
+  Chats: <MessageCircle size={16} aria-hidden />,
   Disputas: <Gavel size={16} aria-hidden />,
   Denúncias: <Flag size={16} aria-hidden />,
   Moderação: <ShieldAlert size={16} aria-hidden />,

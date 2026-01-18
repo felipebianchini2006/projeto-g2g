@@ -1,4 +1,4 @@
-ï»¿'use client';
+'use client';
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
@@ -25,6 +25,7 @@ import {
 } from '../../lib/marketplace-public';
 import { ordersApi, type CheckoutResponse, type Order } from '../../lib/orders-api';
 import { paymentsApi, type PixPayment } from '../../lib/payments-api';
+import { usersApi } from '../../lib/users-api';
 import { useAuth } from '../auth/auth-provider';
 import { useSite } from '../site-context';
 import { Badge } from '../ui/badge';
@@ -65,6 +66,24 @@ const resolveQrImage = (value?: string | null) => {
   return null;
 };
 
+const stripDigits = (value: string) => value.replace(/\D/g, '');
+const formatCpf = (value: string) => {
+  const digits = stripDigits(value).slice(0, 11);
+  if (!digits) {
+    return '';
+  }
+  if (digits.length <= 3) {
+    return digits;
+  }
+  if (digits.length <= 6) {
+    return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+  }
+  if (digits.length <= 9) {
+    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+  }
+  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+};
+
 type ListingState = {
   status: 'loading' | 'ready';
   listing: PublicListing | null;
@@ -91,14 +110,14 @@ type PackageOption = {
 const packageOptions: PackageOption[] = [
   {
     id: 'standard',
-    label: 'PadrÃ£o',
-    description: 'PreÃ§o normal',
+    label: 'Padrão',
+    description: 'Preço normal',
     deltaCents: 0,
   },
   {
     id: 'premium',
     label: 'Premium',
-    description: 'Suporte prioritÃ¡rio',
+    description: 'Suporte prioritário',
     deltaCents: 0,
   },
 ];
@@ -106,7 +125,7 @@ const packageOptions: PackageOption[] = [
 const stepConfig = [
   { id: 'produto', label: 'PRODUTO', icon: Package },
   { id: 'pagamento', label: 'PAGAMENTO', icon: CreditCard },
-  { id: 'confirmacao', label: 'CONFIRMAÃ‡ÃƒO', icon: CheckCircle2 },
+  { id: 'confirmacao', label: 'CONFIRMAÇÃO', icon: CheckCircle2 },
 ] as const;
 
 export const CheckoutContent = ({ listingId }: { listingId: string }) => {
@@ -131,6 +150,10 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
   const [order, setOrder] = useState<Order | null>(null);
   const [pixPayment, setPixPayment] = useState<PixPayment | null>(null);
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
+  const [buyerFullName, setBuyerFullName] = useState('');
+  const [buyerCpf, setBuyerCpf] = useState('');
+  const [buyerError, setBuyerError] = useState<string | null>(null);
+  const [buyerBusy, setBuyerBusy] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -195,7 +218,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
       setListingState((prev) => ({
         ...prev,
         status: 'ready',
-        error: 'NÃ£o foi possÃ­vel carregar o anÃºncio.',
+        error: 'Não foi possível carregar o anúncio.',
       }));
     });
     return () => {
@@ -210,6 +233,31 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
   useEffect(() => {
     setCouponError(null);
   }, [couponCode]);
+
+  useEffect(() => {
+    if (!accessToken) {
+      return;
+    }
+    let active = true;
+    setBuyerError(null);
+    usersApi
+      .getProfile(accessToken)
+      .then((profile) => {
+        if (!active) {
+          return;
+        }
+        setBuyerFullName(profile.fullName ?? '');
+        setBuyerCpf(stripDigits(profile.cpf ?? ''));
+      })
+      .catch(() => {
+        if (active) {
+          setBuyerError('Nao foi possivel carregar seus dados.');
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [accessToken]);
 
   useEffect(() => {
     if (!accessToken || !order || step !== 'pagamento') {
@@ -272,13 +320,13 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
 
   const checkoutBlockedReason = useMemo(() => {
     if (!listing) {
-      return 'AnÃºncio indisponivel.';
+      return 'Anúncio indisponivel.';
     }
     if (listingState.source === 'fallback') {
       return 'Checkout indisponivel no modo offline.';
     }
     if (listing.status !== 'PUBLISHED') {
-      return 'AnÃºncio nÃ£o esta publicado.';
+      return 'Anúncio não esta publicado.';
     }
     return null;
   }, [listing, listingState.source]);
@@ -294,7 +342,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
     }
     const result = await validateCoupon(code);
     if (result.error || (!result.discountBps && !result.discountCents)) {
-      setCouponError(result.error ?? 'Cupom invÃ¡lido');
+      setCouponError(result.error ?? 'Cupom inválido');
       setAppliedCoupon(null);
       setCouponData(null);
       return;
@@ -302,13 +350,50 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
     setAppliedCoupon(result.code);
     setCouponData(result);
     setCouponError(null);
-  };
-
-  const handleCheckout = async () => {
+  };\r\n  const isBuyerInfoMissing = useMemo(() => {
+    const cpfDigits = stripDigits(buyerCpf);
+    return !buyerFullName.trim() || cpfDigits.length !== 11;
+  }, [buyerCpf, buyerFullName]);\r\n  const handleCheckout = async () => {
     if (!accessToken || !listing || checkoutBlockedReason) {
       return;
     }
+    const fullName = buyerFullName.trim();
+    const cpfDigits = stripDigits(buyerCpf);
+    setBuyerError(null);
+    setBuyerBusy(true);
     setPaymentState({ status: 'loading' });
+    if (isBuyerInfoMissing) {
+      if (!fullName) {
+        setBuyerError('Informe seu nome completo para continuar.');
+        setPaymentState({ status: 'idle' });
+        setBuyerBusy(false);
+        return;
+      }
+      if (cpfDigits.length !== 11) {
+        setBuyerError('Informe um CPF valido com 11 digitos.');
+        setPaymentState({ status: 'idle' });
+        setBuyerBusy(false);
+        return;
+      }
+      try {
+        await usersApi.updateProfile(accessToken, {
+          fullName,
+          cpf: cpfDigits,
+        });
+      } catch (error) {
+        const message =
+          error instanceof ApiClientError
+            ? error.message
+            : error instanceof Error
+              ? error.message
+              : 'Nao foi possivel salvar seus dados.';
+        setBuyerError(message);
+        setPaymentState({ status: 'idle', error: message });
+        setBuyerBusy(false);
+        return;
+      }
+    }
+
     try {
       const data = await ordersApi.checkout(accessToken, listingId, quantity, {
         couponCode: appliedCoupon ?? undefined,
@@ -323,7 +408,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
           ? error.message
           : error instanceof Error
             ? error.message
-            : 'NÃ£o foi possÃ­vel iniciar o pagamento.';
+            : 'Nao foi possivel iniciar o pagamento.';
       try {
         const createdOrder = await ordersApi.createOrder(accessToken, listingId, quantity, {
           couponCode: appliedCoupon ?? undefined,
@@ -343,6 +428,8 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
               : message;
         setPaymentState({ status: 'idle', error: fallbackMessage });
       }
+    } finally {
+      setBuyerBusy(false);
     }
   };
 
@@ -354,7 +441,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
       await navigator.clipboard.writeText(activePayment.copyPaste);
       setCopyStatus('Copiado!');
     } catch {
-      setCopyStatus('NÃ£o foi possÃ­vel copiar.');
+      setCopyStatus('Não foi possível copiar.');
     }
   };
 
@@ -371,7 +458,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
           ? error.message
           : error instanceof Error
             ? error.message
-            : 'NÃ£o foi possÃ­vel gerar o Pix.';
+            : 'Não foi possível gerar o Pix.';
       setPaymentState({ status: 'ready', error: message });
     }
   };
@@ -392,7 +479,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
             className={buttonVariants({ variant: 'secondary', size: 'sm' })}
             href={`/anuncios/${listingId}`}
           >
-            Voltar ao anÃºncio
+            Voltar ao anúncio
           </Link>
         </div>
 
@@ -423,7 +510,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
 
         {listingState.status === 'loading' ? (
           <div className="mt-6 rounded-2xl border border-meow-red/20 bg-white px-4 py-3 text-sm text-meow-muted">
-            Carregando anÃºncio...
+            Carregando anúncio...
           </div>
         ) : null}
 
@@ -435,7 +522,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
 
         {!listing && listingState.status === 'ready' ? (
           <div className="mt-6 rounded-2xl border border-meow-red/20 bg-white px-4 py-3 text-sm text-meow-muted">
-            AnÃºncio nÃ£o encontrado.
+            Anúncio não encontrado.
           </div>
         ) : null}
 
@@ -454,8 +541,8 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                           Produto Digital
                         </h2>
                         <p className="mt-1 text-sm text-meow-muted">
-                          VocÃª recebera os dados de acesso (Email/Senha) imediatamente
-                          apÃ³s a confirmaÃ§Ã£o do pagamento. Entrega automÃ¡tica 24/7.
+                          Você recebera os dados de acesso (Email/Senha) imediatamente
+                          após a confirmação do pagamento. Entrega automática 24/7.
                         </p>
                       </div>
                     </div>
@@ -471,7 +558,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                           Escolha seu Pacote
                         </h2>
                         <p className="text-sm text-meow-muted">
-                          Selecione a ediÃ§Ã£o ideal para vocÃª.
+                          Selecione a edição ideal para você.
                         </p>
                       </div>
                     </div>
@@ -554,7 +641,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                 <>
                   <Card className="rounded-2xl border border-slate-100 p-6 shadow-card">
                     <h2 className="text-base font-bold text-meow-charcoal">
-                      MÃ©todo de pagamento
+                      Método de pagamento
                     </h2>
                     <div className="mt-4 grid gap-3 sm:grid-cols-3">
                       {[
@@ -612,7 +699,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                       </span>
                       <div>
                         <h2 className="text-base font-bold text-meow-charcoal">
-                          Pix - Pagamento rÃ¡pido
+                          Pix - Pagamento rápido
                         </h2>
                         <p className="text-sm text-meow-muted">
                           5% de desconto aplicado no Pix.
@@ -695,7 +782,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                     Pagamento confirmado!
                   </h2>
                   <p className="mt-2 text-sm text-meow-muted">
-                    VocÃª pode acompanhar a entrega em Minhas Compras.
+                    Você pode acompanhar a entrega em Minhas Compras.
                   </p>
                   <div className="mt-6 flex flex-wrap justify-center gap-3">
                     {order ? (
@@ -802,6 +889,29 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                   ) : null}
                 </div>
 
+                {isBuyerInfoMissing ? (
+                  <div className="mt-5 space-y-2">
+                    <label className="text-xs font-semibold uppercase text-meow-muted">
+                      Dados do comprador
+                    </label>
+                    <Input
+                      placeholder="Nome completo"
+                      value={buyerFullName}
+                      onChange={(event) => setBuyerFullName(event.target.value)}
+                      disabled={buyerBusy}
+                    />
+                    <Input
+                      placeholder="CPF (11 digitos)"
+                      value={formatCpf(buyerCpf)}
+                      onChange={(event) => setBuyerCpf(stripDigits(event.target.value).slice(0, 11))}
+                      disabled={buyerBusy}
+                    />
+                    {buyerError ? (
+                      <p className="text-xs text-red-500">{buyerError}</p>
+                    ) : null}
+                  </div>
+                ) : null}
+
                 {checkoutBlockedReason ? (
                   <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
                     {checkoutBlockedReason}
@@ -823,7 +933,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                       })}
                       type="button"
                       onClick={handleCheckout}
-                      disabled={Boolean(checkoutBlockedReason) || paymentState.status === 'loading'}
+                      disabled={Boolean(checkoutBlockedReason) || paymentState.status === 'loading' || buyerBusy}
                     >
                       <CheckCircle2 size={16} aria-hidden />
                       {paymentState.status === 'loading'
@@ -847,3 +957,17 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
     </section>
   );
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
