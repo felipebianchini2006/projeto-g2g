@@ -397,7 +397,10 @@ export default function Page() {
                       className="h-14 rounded-2xl border-slate-200 bg-slate-50 font-bold text-slate-700 hover:bg-slate-100 focus:border-meow-300"
                     >
                       <option value="Conta">Conta</option>
+                      <option value="Gold">Gold</option>
                       <option value="Item">Item</option>
+                      <option value="Serviços">Serviços</option>
+                      <option value="Outros">Outros</option>
                     </Select>
                   </div>
 

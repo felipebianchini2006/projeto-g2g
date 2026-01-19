@@ -404,31 +404,42 @@ export const AccountListingEditorContent = ({ listingId }: { listingId: string }
         ) : null}
 
         <Card className="rounded-2xl border border-slate-100 p-6 shadow-card">
-          <div className="mt-2 grid gap-4 md:grid-cols-2">
-            <label className="grid gap-2 text-xs font-semibold text-meow-muted">
-              Titulo
+          <h3 className="text-lg font-bold text-meow-charcoal">Informações do anúncio</h3>
+          <p className="mt-1 text-xs text-meow-muted">
+            Preencha os dados do seu anúncio.
+          </p>
+
+          <div className="mt-6 grid gap-5 md:grid-cols-2">
+            <label className="grid gap-2">
+              <span className="text-xs font-semibold text-meow-charcoal">Título do anúncio</span>
               <Input
                 value={editForm?.title ?? ''}
                 onChange={(event) =>
                   setEditForm((prev) => (prev ? { ...prev, title: event.target.value } : prev))
                 }
+                placeholder="Ex: Conta Valorant Imortal"
               />
             </label>
-            <label className="grid gap-2 text-xs font-semibold text-meow-muted">
-              Preco (centavos)
+            <label className="grid gap-2">
+              <span className="text-xs font-semibold text-meow-charcoal">Preço (R$)</span>
               <Input
                 type="number"
                 min={0}
-                value={editForm?.priceCents ?? 0}
+                step="0.01"
+                value={((editForm?.priceCents ?? 0) / 100).toFixed(2)}
                 onChange={(event) =>
                   setEditForm((prev) =>
-                    prev ? { ...prev, priceCents: Number(event.target.value) } : prev,
+                    prev ? { ...prev, priceCents: Math.round(Number(event.target.value) * 100) } : prev,
                   )
                 }
+                placeholder="0.00"
               />
             </label>
-            <label className="grid gap-2 text-xs font-semibold text-meow-muted">
-              Entrega
+          </div>
+
+          <div className="mt-5 grid gap-5 md:grid-cols-2">
+            <label className="grid gap-2">
+              <span className="text-xs font-semibold text-meow-charcoal">Tipo de entrega</span>
               <Select
                 value={editForm?.deliveryType ?? 'AUTO'}
                 onChange={(event) =>
@@ -437,15 +448,16 @@ export const AccountListingEditorContent = ({ listingId }: { listingId: string }
                   )
                 }
               >
-                <option value="AUTO">Entrega automatica</option>
+                <option value="AUTO">Entrega automática</option>
                 <option value="MANUAL">Entrega manual</option>
               </Select>
             </label>
-            <label className="grid gap-2 text-xs font-semibold text-meow-muted">
-              SLA (horas)
+            <label className="grid gap-2">
+              <span className="text-xs font-semibold text-meow-charcoal">Prazo de entrega (horas)</span>
               <Input
                 type="number"
                 min={1}
+                max={720}
                 value={editForm?.deliverySlaHours ?? 24}
                 onChange={(event) =>
                   setEditForm((prev) =>
@@ -458,21 +470,22 @@ export const AccountListingEditorContent = ({ listingId }: { listingId: string }
             </label>
           </div>
 
-          <label className="mt-4 grid gap-2 text-xs font-semibold text-meow-muted">
-            Descricao
+          <label className="mt-5 grid gap-2">
+            <span className="text-xs font-semibold text-meow-charcoal">Descrição</span>
             <Textarea
-              rows={4}
+              rows={5}
               value={editForm?.description ?? ''}
               onChange={(event) =>
                 setEditForm((prev) =>
                   prev ? { ...prev, description: event.target.value } : prev,
                 )
               }
+              placeholder="Descreva os detalhes do seu produto, o que está incluso, diferenciais, etc."
             />
           </label>
 
-          <label className="mt-4 grid gap-2 text-xs font-semibold text-meow-muted">
-            Politica de reembolso
+          <label className="mt-5 grid gap-2">
+            <span className="text-xs font-semibold text-meow-charcoal">Política de reembolso</span>
             <Textarea
               rows={3}
               value={editForm?.refundPolicy ?? ''}
@@ -481,12 +494,13 @@ export const AccountListingEditorContent = ({ listingId }: { listingId: string }
                   prev ? { ...prev, refundPolicy: event.target.value } : prev,
                 )
               }
+              placeholder="Descreva as condições de reembolso para este anúncio."
             />
           </label>
 
-          <div className="mt-4 flex flex-wrap gap-3">
+          <div className="mt-6 flex flex-wrap gap-3">
             <Button type="button" onClick={handleUpdateListing} disabled={actionBusy === 'update'}>
-              {actionBusy === 'update' ? 'Salvando...' : 'Salvar alteracoes'}
+              {actionBusy === 'update' ? 'Salvando...' : 'Salvar alterações'}
             </Button>
             <Button
               variant="secondary"
@@ -494,7 +508,7 @@ export const AccountListingEditorContent = ({ listingId }: { listingId: string }
               onClick={handleSubmitListing}
               disabled={actionBusy === 'submit'}
             >
-              Enviar para analise
+              Enviar para análise
             </Button>
             <Button
               variant="danger"
@@ -502,7 +516,7 @@ export const AccountListingEditorContent = ({ listingId }: { listingId: string }
               onClick={handleArchiveListing}
               disabled={actionBusy === 'archive'}
             >
-              Pausar anuncio
+              Pausar anúncio
             </Button>
           </div>
         </Card>

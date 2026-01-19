@@ -503,17 +503,7 @@ export const AccountListingsContent = () => {
                               {actionBusy === listing.id ? 'Ativando...' : 'Ativar'}
                             </button>
                           ) : null}
-                          <button
-                            type="button"
-                            className="w-full rounded-xl px-3 py-2 text-left text-sm font-semibold text-red-500 hover:bg-red-50"
-                            onClick={() => {
-                              setMenuOpenId(null);
-                              handleArchiveListing(listing.id);
-                            }}
-                            disabled={actionBusy === listing.id}
-                          >
-                            {actionBusy === listing.id ? 'Excluindo...' : 'Excluir'}
-                          </button>
+
                         </div>
                       ) : null}
                     </div>

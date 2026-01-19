@@ -34,33 +34,6 @@ export const SiteFooter = () => (
           </ul>
         </div>
 
-        <div>
-          <h4 className="mb-4 text-sm font-extrabold uppercase tracking-[0.6px]">
-            Categorias
-          </h4>
-          <ul className="space-y-2 text-[13px] text-white/80">
-            <li>
-              <Link className="transition hover:text-white" href="/categoria/consoles">
-                Consoles
-              </Link>
-            </li>
-            <li>
-              <Link className="transition hover:text-white" href="/categoria/perifericos">
-                Perifericos
-              </Link>
-            </li>
-            <li>
-              <Link className="transition hover:text-white" href="/categoria/colecionaveis">
-                Colecionaveis
-              </Link>
-            </li>
-            <li>
-              <Link className="transition hover:text-white" href="/categoria/gift-cards">
-                Gift Cards
-              </Link>
-            </li>
-          </ul>
-        </div>
 
         <div>
           <h4 className="mb-4 text-sm font-extrabold uppercase tracking-[0.6px]">

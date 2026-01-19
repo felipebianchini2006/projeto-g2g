@@ -61,24 +61,25 @@ export const SiteProvider = ({ children }: { children: React.ReactNode }) => {
   const addToCart = (item: CartItemInput) => {
     setCartItems((prev) => {
       const existingIndex = prev.findIndex((current) => current.id === item.id);
-      if (existingIndex === -1) {
-        return [
-          ...prev,
-          {
-            ...item,
-            quantity: item.quantity ?? 1,
-          },
-        ];
+      if (existingIndex !== -1) {
+        // Item already in cart - don't add again
+        return prev;
       }
-      const updated = [...prev];
-      const existing = updated[existingIndex];
-      updated[existingIndex] = {
-        ...existing,
-        quantity: existing.quantity + (item.quantity ?? 1),
-      };
-      return updated;
+      return [
+        ...prev,
+        {
+          ...item,
+          quantity: 1,
+        },
+      ];
     });
-    notify(`${item.title} adicionado ao carrinho!`);
+    // Check if already in cart to show appropriate message
+    const alreadyInCart = cartItems.some((current) => current.id === item.id);
+    if (alreadyInCart) {
+      notify(`${item.title} já está no carrinho!`, 'info');
+    } else {
+      notify(`${item.title} adicionado ao carrinho!`);
+    }
   };
 
   const removeFromCart = (itemId: string) => {

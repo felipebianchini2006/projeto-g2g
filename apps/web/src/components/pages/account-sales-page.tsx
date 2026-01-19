@@ -305,8 +305,8 @@ export const AccountSalesContent = () => {
             <div
               className="fixed z-50 w-40 rounded-xl border border-slate-100 bg-white p-2 text-sm shadow-[0_10px_38px_-10px_rgba(22,23,24,0.35),0_10px_20px_-15px_rgba(22,23,24,0.2)]"
               style={{
-                top: menuState.top,
-                left: menuState.left,
+                top: `${menuState.top}px`,
+                left: `${menuState.left}px`,
               }}
             >
               <Link
@@ -320,9 +320,10 @@ export const AccountSalesContent = () => {
                 type="button"
                 className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-meow-charcoal hover:bg-meow-50"
                 onClick={() => {
+                  const orderId = menuState.id;
                   setMenuState(null);
                   if (navigator?.clipboard) {
-                    navigator.clipboard.writeText(menuState.id).catch(() => { });
+                    navigator.clipboard.writeText(orderId).catch(() => { });
                   }
                 }}
               >
@@ -453,11 +454,12 @@ export const AccountSalesContent = () => {
                             type="button"
                             className="grid h-8 w-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:border-meow-200 hover:text-meow-deep"
                             onClick={(e) => {
+                              e.stopPropagation();
                               const rect = e.currentTarget.getBoundingClientRect();
                               setMenuState({
                                 id: order.id,
-                                top: rect.bottom + window.scrollY + 5,
-                                left: rect.left + window.scrollX - 120, // Ajuste para alinhar à esquerda
+                                top: rect.bottom + 5,
+                                left: Math.max(10, rect.right - 160),
                               });
                             }}
                             aria-label="Acoes"

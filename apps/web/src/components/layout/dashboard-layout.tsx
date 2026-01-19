@@ -586,7 +586,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               onClick={() => setSidebarOpen(false)}
               aria-hidden="true"
             />
-            <div className="relative z-10 h-full w-[86%] max-w-sm bg-white p-5 shadow-xl">
+            <div className="relative z-10 flex h-full w-[86%] max-w-sm flex-col overflow-y-auto bg-white p-5 shadow-xl">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-bold text-meow-charcoal">Menu</span>
                 <button
