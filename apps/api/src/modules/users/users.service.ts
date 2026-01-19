@@ -24,6 +24,17 @@ const USER_SELECT = {
   payoutBlockedReason: true,
   createdAt: true,
   updatedAt: true,
+  fullName: true,
+  cpf: true,
+  birthDate: true,
+  addressZip: true,
+  addressStreet: true,
+  addressNumber: true,
+  addressComplement: true,
+  addressDistrict: true,
+  addressCity: true,
+  addressState: true,
+  addressCountry: true,
 };
 
 const USER_PROFILE_SELECT = {

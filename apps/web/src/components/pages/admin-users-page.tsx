@@ -490,6 +490,56 @@ export const AdminUsersContent = () => {
 
                   <hr className="border-slate-100" />
 
+                  <div className="space-y-4">
+                    <h3 className="text-xs font-bold uppercase tracking-wide text-meow-muted">Dados pessoais</h3>
+                    <div className="grid gap-3 text-xs text-slate-600">
+                      <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                        <span className="block text-[10px] font-semibold uppercase text-slate-400">Nome completo</span>
+                        <span className="mt-1 block text-sm font-bold text-meow-charcoal">
+                          {selectedUser.fullName ?? 'Nao informado'}
+                        </span>
+                      </div>
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                          <span className="block text-[10px] font-semibold uppercase text-slate-400">CPF</span>
+                          <span className="mt-1 block text-sm font-bold text-meow-charcoal">
+                            {selectedUser.cpf ?? 'Nao informado'}
+                          </span>
+                        </div>
+                        <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                          <span className="block text-[10px] font-semibold uppercase text-slate-400">Nascimento</span>
+                          <span className="mt-1 block text-sm font-bold text-meow-charcoal">
+                            {selectedUser.birthDate ?? 'Nao informado'}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                        <span className="block text-[10px] font-semibold uppercase text-slate-400">Endereco</span>
+                        <span className="mt-1 block text-sm font-bold text-meow-charcoal">
+                          {selectedUser.addressStreet ? (
+                            <>
+                              {selectedUser.addressStreet}{selectedUser.addressNumber ? `, ${selectedUser.addressNumber}` : ''}
+                              {selectedUser.addressComplement ? ` - ${selectedUser.addressComplement}` : ''}
+                            </>
+                          ) : (
+                            'Nao informado'
+                          )}
+                        </span>
+                        <span className="mt-1 block text-xs text-slate-500">
+                          {selectedUser.addressDistrict ?? '-'} | {selectedUser.addressCity ?? '-'} - {selectedUser.addressState ?? '-'} | {selectedUser.addressZip ?? '-'}
+                        </span>
+                      </div>
+                      <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                        <span className="block text-[10px] font-semibold uppercase text-slate-400">Pais</span>
+                        <span className="mt-1 block text-sm font-bold text-meow-charcoal">
+                          {selectedUser.addressCountry ?? 'Nao informado'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <hr className="border-slate-100" />
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
                       <div className="text-xs font-medium text-slate-500 mb-1 flex items-center gap-1.5">

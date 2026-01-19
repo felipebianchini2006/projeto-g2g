@@ -10,6 +10,17 @@ export type AdminUser = {
   blockedReason?: string | null;
   payoutBlockedAt?: string | null;
   payoutBlockedReason?: string | null;
+  fullName?: string | null;
+  cpf?: string | null;
+  birthDate?: string | null;
+  addressZip?: string | null;
+  addressStreet?: string | null;
+  addressNumber?: string | null;
+  addressComplement?: string | null;
+  addressDistrict?: string | null;
+  addressCity?: string | null;
+  addressState?: string | null;
+  addressCountry?: string | null;
   createdAt: string;
   updatedAt: string;
 };

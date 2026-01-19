@@ -165,6 +165,7 @@ export const AccountDataContent = () => {
   const [verificationBusy, setVerificationBusy] = useState(false);
   const [verificationError, setVerificationError] = useState<string | null>(null);
   const [verificationCopied, setVerificationCopied] = useState(false);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
 
   /* Removed early returns */
 
@@ -227,7 +228,7 @@ export const AccountDataContent = () => {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!accessToken) {
-      setError('Sess?o expirada. Entre novamente.');
+      setError('Sessão expirada. Entre novamente.');
       return;
     }
     if (isProfileLocked) {
@@ -256,6 +257,9 @@ export const AccountDataContent = () => {
       const normalizedNumber = updated.addressNumber?.toLowerCase() ?? '';
       setNoNumber(normalizedNumber === 's/n' || normalizedNumber === 'sem numero');
       setSuccess('Dados atualizados com sucesso.');
+      if (!isProfileVerified) {
+        setShowVerificationModal(true);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível salvar.');
     } finally {
@@ -330,9 +334,9 @@ export const AccountDataContent = () => {
           setProfile((prev) =>
             prev
               ? {
-                  ...prev,
-                  verificationFeePaidAt: data.paidAt ?? prev.verificationFeePaidAt ?? new Date().toISOString(),
-                }
+                ...prev,
+                verificationFeePaidAt: data.paidAt ?? prev.verificationFeePaidAt ?? new Date().toISOString(),
+              }
               : prev,
           );
         }
@@ -412,9 +416,9 @@ export const AccountDataContent = () => {
         setProfile((prev) =>
           prev
             ? {
-                ...prev,
-                verificationFeePaidAt: data.paidAt ?? prev.verificationFeePaidAt ?? new Date().toISOString(),
-              }
+              ...prev,
+              verificationFeePaidAt: data.paidAt ?? prev.verificationFeePaidAt ?? new Date().toISOString(),
+            }
             : prev,
         );
       }
@@ -436,9 +440,9 @@ export const AccountDataContent = () => {
         setProfile((prev) =>
           prev
             ? {
-                ...prev,
-                verificationFeePaidAt: data.paidAt ?? prev.verificationFeePaidAt ?? new Date().toISOString(),
-              }
+              ...prev,
+              verificationFeePaidAt: data.paidAt ?? prev.verificationFeePaidAt ?? new Date().toISOString(),
+            }
             : prev,
         );
       }
@@ -549,7 +553,7 @@ export const AccountDataContent = () => {
                 Complete suas informações para agilizar suas compras e vendas com segurança.
               </p>
               <p className="mt-3 text-xs text-meow-muted">
-                Preencha todas as informa??es solicitadas com aten??o. Ap?s o envio, n?o ser? poss?vel alter?-las. Esses dados s?o necess?rios para a verifica??o da sua conta e tamb?m ser?o utilizados para realizarmos o seu pagamento.
+                Preencha todas as informações solicitadas com atenção. Após o envio, não será possível alterá-las. Esses dados são necessários para a verificação da sua conta e também serão utilizados para realizarmos o seu pagamento.
               </p>
               {isProfileLocked ? (
                 <p className="mt-2 text-xs font-semibold text-amber-600">
@@ -557,12 +561,6 @@ export const AccountDataContent = () => {
                 </p>
               ) : null}
             </div>
-            <Badge
-              variant={isProfileVerified ? 'success' : 'danger'}
-              className="rounded-full border border-current bg-transparent px-3 py-1 text-[11px]"
-            >
-              {isProfileVerified ? 'Perfil Verificado' : 'Perfil Não Verificado'}
-            </Badge>
           </div>
 
           {error ? (
@@ -576,28 +574,34 @@ export const AccountDataContent = () => {
             </div>
           ) : null}
 
-          <div className="mt-4 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-4 text-sm text-slate-700">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="text-sm font-bold text-slate-800">Verificacao da conta</p>
-                <p className="mt-1 text-xs text-slate-500">Taxa unica via Pix: R$ 0,03.</p>
-              </div>
-              {isProfileVerified ? (
-                <span className="rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-bold text-emerald-600">Pagamento confirmado</span>
-              ) : null}
-            </div>
+          {showVerificationModal ? (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+              <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-bold text-meow-charcoal">Verificacao da conta</h3>
+                  <button
+                    type="button"
+                    onClick={() => setShowVerificationModal(false)}
+                    className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                  >
+                    <XCircle size={18} />
+                  </button>
+                </div>
 
-            {verificationError ? (
-              <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
-                {verificationError}
-              </div>
-            ) : null}
+                <p className="mt-2 text-xs text-slate-500">
+                  Será feita uma cobrança de R$ 0,03 para verificação.
+                  Os dados do Pix devem ser iguais aos informados; caso contrário, não haverá confirmação e o valor será reembolsado.
+                </p>
 
-            {!isProfileVerified ? (
-              <>
+                {verificationError ? (
+                  <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                    {verificationError}
+                  </div>
+                ) : null}
+
                 {verificationState?.status === 'PENDING' && verificationState.payment ? (
                   <div className="mt-4 grid gap-3">
-                    <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-white py-4">
+                    <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 py-4">
                       {verificationState.payment.qrCode ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -619,7 +623,8 @@ export const AccountDataContent = () => {
                           value={verificationState.payment.copyPaste ?? ''}
                           className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500"
                         />
-                        <Button type="button" size="sm" variant="secondary" onClick={handleCopyVerificationPix}>
+                        <Button type="button" size="sm" variant="secondary" onClick={handleCopyVerificationPix}
+                        >
                           {verificationCopied ? 'Copiado!' : 'Copiar'}
                         </Button>
                       </div>
@@ -627,11 +632,11 @@ export const AccountDataContent = () => {
                   </div>
                 ) : (
                   <div className="mt-4 text-xs text-slate-500">
-                    Gere o Pix para liberar a verificacao dos seus dados.
+                    Clique em gerar Pix para criar o pagamento.
                   </div>
                 )}
 
-                <div className="mt-4 flex flex-wrap gap-2">
+                <div className="mt-4 flex flex-wrap justify-center gap-2">
                   <Button
                     type="button"
                     size="sm"
@@ -650,13 +655,21 @@ export const AccountDataContent = () => {
                     {verificationLoading ? 'Atualizando...' : 'Atualizar status'}
                   </Button>
                 </div>
-              </>
-            ) : null}
-          </div>
+              </div>
+            </div>
+          ) : null}
 
           <div className="mt-6 space-y-6">
             <div>
-              <SectionTitle icon={<UserRound size={14} aria-hidden />} label="Identificação" />
+              <div className="flex flex-wrap items-center gap-3">
+                <SectionTitle icon={<UserRound size={14} aria-hidden />} label="Identificação" />
+                <Badge
+                  variant={isProfileVerified ? 'success' : 'danger'}
+                  className="rounded-full border border-current bg-transparent px-3 py-1 text-[11px]"
+                >
+                  {isProfileVerified ? 'Perfil Verificado' : 'Perfil Não Verificado'}
+                </Badge>
+              </div>
               <div className="mt-4 grid gap-4">
                 <label className="grid gap-1 text-xs font-semibold uppercase text-meow-muted">
                   Nome completo
