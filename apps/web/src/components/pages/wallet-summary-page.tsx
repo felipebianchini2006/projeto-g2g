@@ -863,7 +863,7 @@ export const WalletSummaryContent = () => {
                 </div>
               ) : null}
 
-              <div className="flex justify-end gap-3 pt-2">
+              <div className="flex justify-center gap-3 pt-2">
                 <Button variant="ghost" onClick={closeWithdraw} type="button">
                   Cancelar
                 </Button>

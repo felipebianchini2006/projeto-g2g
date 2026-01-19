@@ -25,6 +25,7 @@ import {
 } from '../../lib/marketplace-public';
 import { ordersApi, type CheckoutResponse, type Order } from '../../lib/orders-api';
 import { paymentsApi, type PixPayment } from '../../lib/payments-api';
+import { publicProfilesApi, type PublicProfile } from '../../lib/public-profiles-api';
 import { usersApi } from '../../lib/users-api';
 import { useAuth } from '../auth/auth-provider';
 import { useSite } from '../site-context';
@@ -154,6 +155,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
   const [buyerCpf, setBuyerCpf] = useState('');
   const [buyerError, setBuyerError] = useState<string | null>(null);
   const [buyerBusy, setBuyerBusy] = useState(false);
+  const [sellerProfile, setSellerProfile] = useState<PublicProfile | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -227,6 +229,30 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
   }, [listingId, cartItems]);
 
   useEffect(() => {
+    const sellerId = listingState.listing?.sellerId;
+    if (!sellerId) {
+      setSellerProfile(null);
+      return;
+    }
+    let active = true;
+    publicProfilesApi
+      .getProfile(sellerId)
+      .then((profile) => {
+        if (active) {
+          setSellerProfile(profile);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setSellerProfile(null);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [listingState.listing?.sellerId]);
+
+  useEffect(() => {
     setReferralSlug(readCookieValue(REFERRAL_COOKIE));
   }, []);
 
@@ -288,7 +314,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
 
   const listing = listingState.listing;
   const listingImage = listing?.media?.[0]?.url ?? '/assets/meoow/highlight-01.webp';
-  const sellerLabel = 'Marketplace';
+  const sellerLabel = sellerProfile?.displayName ?? 'Marketplace';
   const selectedPriceCents = (listing?.priceCents ?? 0) + selectedPackage.deltaCents;
   const oldPriceCents =
     listing?.oldPriceCents && listing.oldPriceCents > 0
@@ -299,10 +325,11 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
       ? Math.round((1 - selectedPriceCents / oldPriceCents) * 100)
       : null;
 
+  const baseFeeCents = 95;
   const serviceFeeCents =
     selectedPackage.id === 'premium'
-      ? Math.round((listing?.priceCents ?? 0) * 0.2)
-      : 1500;
+      ? baseFeeCents + Math.round(selectedPriceCents * quantity * 0.04)
+      : baseFeeCents;
   const subtotalCents = selectedPriceCents * quantity + serviceFeeCents;
 
   let couponDiscountValue = 0;
