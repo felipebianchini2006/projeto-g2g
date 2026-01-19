@@ -45,6 +45,18 @@ export class UsersController {
     return this.usersService.updateProfile(userId, dto);
   }
 
+  @Get('me/verification-fee')
+  getVerificationFee(@Req() req: AuthenticatedRequest) {
+    const userId = this.getUserId(req);
+    return this.usersService.getVerificationFeeStatus(userId);
+  }
+
+  @Post('me/verification-fee/pix')
+  createVerificationFeePix(@Req() req: AuthenticatedRequest) {
+    const userId = this.getUserId(req);
+    return this.usersService.createVerificationFeePix(userId);
+  }
+
   @Post('me/avatar')
   @UseInterceptors(
     FileInterceptor('file', {

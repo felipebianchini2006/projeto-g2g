@@ -41,6 +41,9 @@ export class WebhooksProcessor extends WorkerHost {
     const eventId = job.data.webhookEventId;
     let correlationId = job.data.correlationId ?? eventId;
 
+    let verificationMismatch: { orderId: string } | null = null;
+    let skipNotifications = false;
+
     try {
       const requestId = job.id?.toString() ?? correlationId;
       await this.requestContext.run({ requestId, correlationId }, async () => {
@@ -116,38 +119,72 @@ export class WebhooksProcessor extends WorkerHost {
               tx,
             );
           } else if (orderDetails?.buyerId && !orderDetails?.sellerId) {
-            // WALLET TOPUP
-            const existingEntry = await tx.ledgerEntry.findFirst({
-              where: {
-                paymentId: payment.id,
-                source: 'WALLET_TOPUP',
-              },
+            const verificationUser = await tx.user.findFirst({
+              where: { verificationFeeOrderId: order.id },
+              select: { id: true, verificationFeePaidAt: true, fullName: true, cpf: true },
             });
 
-            if (!existingEntry) {
-              await tx.ledgerEntry.create({
-                data: {
-                  userId: orderDetails.buyerId,
-                  type: 'CREDIT',
-                  state: 'AVAILABLE',
-                  source: 'WALLET_TOPUP',
-                  amountCents: payment.amountCents,
-                  currency: payment.currency,
-                  description: `Adição de saldo #${payment.id.slice(0, 8)}`,
-                  orderId: order.id,
+            if (verificationUser) {
+              const payer = this.extractPayerData(payload);
+              const matched = this.isVerificationPayerMatch(verificationUser, payer);
+
+              if (!matched) {
+                await tx.user.update({
+                  where: { id: verificationUser.id },
+                  data: { verificationFeeOrderId: null },
+                });
+                verificationMismatch = { orderId: order.id };
+                skipNotifications = true;
+              } else {
+                if (!verificationUser.verificationFeePaidAt) {
+                  await tx.user.update({
+                    where: { id: verificationUser.id },
+                    data: {
+                      verificationFeePaidAt: paidAt ?? new Date(),
+                      verificationFeeOrderId: null,
+                    },
+                  });
+                }
+
+                await tx.order.update({
+                  where: { id: order.id },
+                  data: { status: 'COMPLETED', completedAt: new Date() },
+                });
+              }
+            } else {
+              // WALLET TOPUP
+              const existingEntry = await tx.ledgerEntry.findFirst({
+                where: {
                   paymentId: payment.id,
+                  source: 'WALLET_TOPUP',
                 },
               });
 
-              // Complete the order immediately for Top-up
-              await tx.order.update({
-                where: { id: order.id },
-                data: { status: 'COMPLETED', completedAt: new Date() },
-              });
+              if (!existingEntry) {
+                await tx.ledgerEntry.create({
+                  data: {
+                    userId: orderDetails.buyerId,
+                    type: 'CREDIT',
+                    state: 'AVAILABLE',
+                    source: 'WALLET_TOPUP',
+                    amountCents: payment.amountCents,
+                    currency: payment.currency,
+                    description: `Adi????o de saldo #${payment.id.slice(0, 8)}`,
+                    orderId: order.id,
+                    paymentId: payment.id,
+                  },
+                });
+
+                // Complete the order immediately for Top-up
+                await tx.order.update({
+                  where: { id: order.id },
+                  data: { status: 'COMPLETED', completedAt: new Date() },
+                });
+              }
             }
           }
 
-          const shouldNotify = applied || paymentNeedsUpdate;
+          const shouldNotify = (applied || paymentNeedsUpdate) && !skipNotifications;
 
           if (shouldNotify && orderDetails?.buyerId) {
             await tx.notification.create({
@@ -196,7 +233,21 @@ export class WebhooksProcessor extends WorkerHost {
         if (result.status === 'processed') {
           this.metrics.increment('processed', correlationId);
           this.logger.log('Webhook processed', this.buildContext(correlationId));
-          if (result.applied) {
+          if (verificationMismatch) {
+            try {
+              await this.settlementService.refundOrder(
+                verificationMismatch.orderId,
+                null,
+                'verification-fee-mismatch',
+              );
+            } catch (error) {
+              this.logger.error(
+                error instanceof Error ? error.message : 'Refund failed',
+                error instanceof Error ? error.stack : undefined,
+                this.buildContext(correlationId),
+              );
+            }
+          } else if (result.applied) {
             await this.ordersService.handlePaymentSideEffects(result.order, null, {
               source: 'system',
               reason: 'efi-webhook',
@@ -284,6 +335,81 @@ export class WebhooksProcessor extends WorkerHost {
       }
     }
     return new Date();
+  }
+
+  private extractPayerData(payload: Prisma.JsonObject) {
+    const pix = payload['pix'];
+    const first =
+      Array.isArray(pix) && pix.length > 0 ? (pix[0] as Record<string, unknown>) : undefined;
+    const direct = (payload['pagador'] ?? payload['devedor']) as
+      | Record<string, unknown>
+      | undefined;
+    const nested = (first?.['pagador'] ?? first?.['devedor']) as
+      | Record<string, unknown>
+      | undefined;
+
+    const cpfRaw =
+      (nested?.['cpf'] as string | undefined) ??
+      (direct?.['cpf'] as string | undefined) ??
+      (first?.['cpf'] as string | undefined) ??
+      (payload['cpf'] as string | undefined);
+    const nameRaw =
+      (nested?.['nome'] as string | undefined) ??
+      (direct?.['nome'] as string | undefined) ??
+      (first?.['nome'] as string | undefined) ??
+      (payload['nome'] as string | undefined);
+
+    return {
+      cpf: cpfRaw,
+      name: nameRaw,
+    };
+  }
+
+  private normalizeDigits(value?: string | null) {
+    if (!value) return '';
+    return value.replace(/\D/g, '');
+  }
+
+  private normalizeName(value?: string | null) {
+    if (!value) return '';
+    return value
+      .normalize('NFD')
+      .replace(/\p{M}/gu, '')
+      .replace(/[^A-Za-z0-9 ]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toUpperCase();
+  }
+
+  private countWords(value?: string | null) {
+    const normalized = this.normalizeName(value);
+    if (!normalized) return 0;
+    return normalized.split(' ').filter(Boolean).length;
+  }
+
+  private isVerificationPayerMatch(
+    user: { fullName: string | null; cpf: string | null },
+    payer: { cpf?: string; name?: string },
+  ) {
+    const userCpf = this.normalizeDigits(user.cpf);
+    const payerCpf = this.normalizeDigits(payer.cpf);
+    if (payerCpf) {
+      return payerCpf.length > 0 && payerCpf === userCpf;
+    }
+
+    const payerName = this.normalizeName(payer.name ?? null);
+    const userName = this.normalizeName(user.fullName ?? null);
+    if (!payerName || !userName) {
+      return false;
+    }
+
+    const payerWords = this.countWords(payer.name ?? null);
+    const userWords = this.countWords(user.fullName ?? null);
+    if (payerWords < userWords) {
+      return false;
+    }
+
+    return payerName === userName;
   }
 
   private buildContext(correlationId: string) {

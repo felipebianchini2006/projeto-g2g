@@ -18,6 +18,7 @@ import type { ChangeEvent, FormEvent } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 
 import { usersApi, type UserProfile } from '../../lib/users-api';
+import type { PixPayment } from '../../lib/payments-api';
 import { rgApi, type RgStatusResponse, type RgStatus } from '../../lib/rg-api';
 import { useAuth } from '../auth/auth-provider';
 import { AccountShell } from '../account/account-shell';
@@ -137,6 +138,7 @@ const formatRg = (value: string) => {
 export const AccountDataContent = () => {
   const { user, loading, accessToken } = useAuth();
   const [form, setForm] = useState<ProfileForm>(emptyForm);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [status, setStatus] = useState<'idle' | 'loading' | 'saving'>('idle');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -154,6 +156,16 @@ export const AccountDataContent = () => {
   const [rgError, setRgError] = useState<string | null>(null);
   const [rgSuccess, setRgSuccess] = useState<string | null>(null);
 
+  const [verificationState, setVerificationState] = useState<{
+    status: 'PAID' | 'PENDING' | 'NOT_PAID';
+    paidAt?: string;
+    payment?: PixPayment;
+  } | null>(null);
+  const [verificationLoading, setVerificationLoading] = useState(false);
+  const [verificationBusy, setVerificationBusy] = useState(false);
+  const [verificationError, setVerificationError] = useState<string | null>(null);
+  const [verificationCopied, setVerificationCopied] = useState(false);
+
   /* Removed early returns */
 
   useEffect(() => {
@@ -170,6 +182,7 @@ export const AccountDataContent = () => {
           return;
         }
         setForm(mapProfileToForm(profile));
+        setProfile(profile);
         const normalizedNumber = profile.addressNumber?.toLowerCase() ?? '';
         setNoNumber(normalizedNumber === 's/n' || normalizedNumber === 'sem numero');
       })
@@ -177,6 +190,7 @@ export const AccountDataContent = () => {
         if (!active) {
           return;
         }
+        setProfile(null);
         setError(err instanceof Error ? err.message : 'Não foi possível carregar seus dados.');
       })
       .finally(() => {
@@ -213,7 +227,11 @@ export const AccountDataContent = () => {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!accessToken) {
-      setError('Sessão expirada. Entre novamente.');
+      setError('Sess?o expirada. Entre novamente.');
+      return;
+    }
+    if (isProfileLocked) {
+      setError('Seus dados ja foram confirmados e nao podem ser alterados.');
       return;
     }
     setStatus('saving');
@@ -234,6 +252,9 @@ export const AccountDataContent = () => {
         addressCountry: form.addressCountry,
       });
       setForm(mapProfileToForm(updated));
+      setProfile(updated);
+      const normalizedNumber = updated.addressNumber?.toLowerCase() ?? '';
+      setNoNumber(normalizedNumber === 's/n' || normalizedNumber === 'sem numero');
       setSuccess('Dados atualizados com sucesso.');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível salvar.');
@@ -295,6 +316,39 @@ export const AccountDataContent = () => {
     return () => { active = false; };
   }, [accessToken]);
 
+  useEffect(() => {
+    if (!accessToken) return;
+    let active = true;
+    setVerificationLoading(true);
+    setVerificationError(null);
+    usersApi
+      .getVerificationFeeStatus(accessToken)
+      .then((data) => {
+        if (!active) return;
+        setVerificationState(data);
+        if (data.status === 'PAID') {
+          setProfile((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  verificationFeePaidAt: data.paidAt ?? prev.verificationFeePaidAt ?? new Date().toISOString(),
+                }
+              : prev,
+          );
+        }
+      })
+      .catch((err) => {
+        if (!active) return;
+        setVerificationError(err instanceof Error ? err.message : 'Nao foi possivel carregar a taxa de verificacao.');
+      })
+      .finally(() => {
+        if (active) setVerificationLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [accessToken]);
+
   const handleRgFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -347,6 +401,65 @@ export const AccountDataContent = () => {
     return statusMap[rgStatus.status as Exclude<RgStatus, 'NOT_SUBMITTED'>];
   };
 
+  const refreshVerificationStatus = async () => {
+    if (!accessToken) return;
+    setVerificationLoading(true);
+    setVerificationError(null);
+    try {
+      const data = await usersApi.getVerificationFeeStatus(accessToken);
+      setVerificationState(data);
+      if (data.status === 'PAID') {
+        setProfile((prev) =>
+          prev
+            ? {
+                ...prev,
+                verificationFeePaidAt: data.paidAt ?? prev.verificationFeePaidAt ?? new Date().toISOString(),
+              }
+            : prev,
+        );
+      }
+    } catch (err) {
+      setVerificationError(err instanceof Error ? err.message : 'Nao foi possivel carregar a taxa de verificacao.');
+    } finally {
+      setVerificationLoading(false);
+    }
+  };
+
+  const handleCreateVerificationPix = async () => {
+    if (!accessToken || verificationBusy) return;
+    setVerificationBusy(true);
+    setVerificationError(null);
+    try {
+      const data = await usersApi.createVerificationFeePix(accessToken);
+      setVerificationState(data);
+      if (data.status === 'PAID') {
+        setProfile((prev) =>
+          prev
+            ? {
+                ...prev,
+                verificationFeePaidAt: data.paidAt ?? prev.verificationFeePaidAt ?? new Date().toISOString(),
+              }
+            : prev,
+        );
+      }
+    } catch (err) {
+      setVerificationError(err instanceof Error ? err.message : 'Nao foi possivel gerar o Pix de verificacao.');
+    } finally {
+      setVerificationBusy(false);
+    }
+  };
+
+  const handleCopyVerificationPix = async () => {
+    if (!verificationState?.payment?.copyPaste) return;
+    try {
+      await navigator.clipboard.writeText(verificationState.payment.copyPaste);
+      setVerificationCopied(true);
+      setTimeout(() => setVerificationCopied(false), 2000);
+    } catch {
+      setVerificationCopied(false);
+    }
+  };
+
   const isProfileComplete = useMemo(() => {
     const cpfDigits = stripDigits(form.cpf);
     const birthOk = Boolean(form.birthDate.trim());
@@ -364,6 +477,31 @@ export const AccountDataContent = () => {
       Boolean(form.addressCountry.trim())
     );
   }, [form, noNumber]);
+  const isProfileLocked = useMemo(() => {
+    if (!profile || !profile.verificationFeePaidAt) {
+      return false;
+    }
+    const cpfDigits = stripDigits(profile.cpf ?? '');
+    const normalizedNumber = profile.addressNumber?.trim().toLowerCase() ?? '';
+    const numberOk =
+      normalizedNumber === 's/n' ||
+      normalizedNumber === 'sem numero' ||
+      Boolean(profile.addressNumber?.trim());
+    return (
+      Boolean(profile.fullName?.trim()) &&
+      cpfDigits.length === 11 &&
+      Boolean(profile.birthDate?.trim()) &&
+      Boolean(profile.addressZip?.trim()) &&
+      Boolean(profile.addressStreet?.trim()) &&
+      numberOk &&
+      Boolean(profile.addressDistrict?.trim()) &&
+      Boolean(profile.addressCity?.trim()) &&
+      Boolean(profile.addressState?.trim()) &&
+      Boolean(profile.addressCountry?.trim())
+    );
+  }, [profile]);
+  const isProfileVerified = isProfileComplete && Boolean(profile?.verificationFeePaidAt);
+  const isFormLocked = status === 'saving' || isProfileLocked;
 
   if (loading) {
     return (
@@ -410,12 +548,20 @@ export const AccountDataContent = () => {
               <p className="mt-2 text-sm text-meow-muted">
                 Complete suas informações para agilizar suas compras e vendas com segurança.
               </p>
+              <p className="mt-3 text-xs text-meow-muted">
+                Preencha todas as informa??es solicitadas com aten??o. Ap?s o envio, n?o ser? poss?vel alter?-las. Esses dados s?o necess?rios para a verifica??o da sua conta e tamb?m ser?o utilizados para realizarmos o seu pagamento.
+              </p>
+              {isProfileLocked ? (
+                <p className="mt-2 text-xs font-semibold text-amber-600">
+                  Seus dados ja foram confirmados e nao podem ser alterados.
+                </p>
+              ) : null}
             </div>
             <Badge
-              variant={isProfileComplete ? 'success' : 'danger'}
+              variant={isProfileVerified ? 'success' : 'danger'}
               className="rounded-full border border-current bg-transparent px-3 py-1 text-[11px]"
             >
-              {isProfileComplete ? 'Perfil Verificado' : 'Perfil Não Verificado'}
+              {isProfileVerified ? 'Perfil Verificado' : 'Perfil Não Verificado'}
             </Badge>
           </div>
 
@@ -430,6 +576,84 @@ export const AccountDataContent = () => {
             </div>
           ) : null}
 
+          <div className="mt-4 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-4 text-sm text-slate-700">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-bold text-slate-800">Verificacao da conta</p>
+                <p className="mt-1 text-xs text-slate-500">Taxa unica via Pix: R$ 0,03.</p>
+              </div>
+              {isProfileVerified ? (
+                <span className="rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-bold text-emerald-600">Pagamento confirmado</span>
+              ) : null}
+            </div>
+
+            {verificationError ? (
+              <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                {verificationError}
+              </div>
+            ) : null}
+
+            {!isProfileVerified ? (
+              <>
+                {verificationState?.status === 'PENDING' && verificationState.payment ? (
+                  <div className="mt-4 grid gap-3">
+                    <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-white py-4">
+                      {verificationState.payment.qrCode ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={verificationState.payment.qrCode}
+                          alt="QR Code Pix"
+                          className="h-40 w-40 mix-blend-multiply"
+                        />
+                      ) : (
+                        <div className="text-xs text-slate-400">QR Code indisponivel</div>
+                      )}
+                      <p className="mt-2 text-xs text-slate-400">Escaneie o QR Code</p>
+                    </div>
+
+                    <div>
+                      <label className="mb-1 block text-xs font-bold text-slate-600">Copia e cola</label>
+                      <div className="flex gap-2">
+                        <input
+                          readOnly
+                          value={verificationState.payment.copyPaste ?? ''}
+                          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500"
+                        />
+                        <Button type="button" size="sm" variant="secondary" onClick={handleCopyVerificationPix}>
+                          {verificationCopied ? 'Copiado!' : 'Copiar'}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-4 text-xs text-slate-500">
+                    Gere o Pix para liberar a verificacao dos seus dados.
+                  </div>
+                )}
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={handleCreateVerificationPix}
+                    disabled={verificationBusy || verificationLoading}
+                  >
+                    {verificationBusy ? 'Gerando...' : 'Gerar Pix'}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={refreshVerificationStatus}
+                    disabled={verificationLoading}
+                  >
+                    {verificationLoading ? 'Atualizando...' : 'Atualizar status'}
+                  </Button>
+                </div>
+              </>
+            ) : null}
+          </div>
+
           <div className="mt-6 space-y-6">
             <div>
               <SectionTitle icon={<UserRound size={14} aria-hidden />} label="Identificação" />
@@ -441,7 +665,7 @@ export const AccountDataContent = () => {
                     placeholder="Digite seu nome completo"
                     value={form.fullName}
                     onChange={handleChange('fullName')}
-                    disabled={status === 'saving'}
+                    disabled={isFormLocked}
                   />
                 </label>
                 <div className="grid gap-4 md:grid-cols-2">
@@ -454,8 +678,7 @@ export const AccountDataContent = () => {
                       onChange={handleCpfChange}
                       maxLength={14}
                       inputMode="numeric"
-                      pattern="\d*"
-                      disabled={status === 'saving'}
+                      disabled={isFormLocked}
                     />
                   </label>
                   <label className="grid gap-1 text-xs font-semibold uppercase text-meow-muted">
@@ -467,8 +690,7 @@ export const AccountDataContent = () => {
                       onChange={handleDateChange}
                       maxLength={10}
                       inputMode="numeric"
-                      pattern="\d*"
-                      disabled={status === 'saving'}
+                      disabled={isFormLocked}
                     />
                   </label>
                 </div>
@@ -488,15 +710,14 @@ export const AccountDataContent = () => {
                       onChange={handleCepChange}
                       maxLength={9}
                       inputMode="numeric"
-                      pattern="\d*"
-                      disabled={status === 'saving'}
+                      disabled={isFormLocked}
                       className="pr-12"
                     />
                     <button
                       type="button"
                       className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl border border-slate-200 bg-white text-rose-500"
                       onClick={handleCepLookup}
-                      disabled={cepBusy || status === 'saving'}
+                      disabled={cepBusy || isFormLocked}
                       aria-label="Buscar CEP"
                     >
                       <div className="flex h-4 w-4 items-center justify-center">
@@ -521,7 +742,7 @@ export const AccountDataContent = () => {
                     placeholder="Rua, Avenida, Travessa..."
                     value={form.addressStreet}
                     onChange={handleChange('addressStreet')}
-                    disabled={status === 'saving'}
+                    disabled={isFormLocked}
                   />
                 </label>
                 <div className="grid gap-1">
@@ -535,7 +756,7 @@ export const AccountDataContent = () => {
                         checked={noNumber}
                         onChange={(event) => handleNoNumber(event.target.checked)}
                         className="h-4 w-4 rounded border-slate-300 text-meow-deep focus:ring-meow-200"
-                        disabled={status === 'saving'}
+                        disabled={isFormLocked}
                       />
                       Sem número
                     </label>
@@ -546,7 +767,7 @@ export const AccountDataContent = () => {
                     onChange={handleDigitsChange('addressNumber')}
                     inputMode="numeric"
                     pattern="\d*"
-                    disabled={status === 'saving' || noNumber}
+                    disabled={isFormLocked || noNumber}
                   />
                 </div>
               </div>
@@ -563,7 +784,7 @@ export const AccountDataContent = () => {
                     placeholder="Apto 101, Bloco B"
                     value={form.addressComplement}
                     onChange={handleChange('addressComplement')}
-                    disabled={status === 'saving'}
+                    disabled={isFormLocked}
                   />
                 </label>
                 <label className="grid gap-1 text-xs font-semibold uppercase text-meow-muted">
@@ -572,7 +793,7 @@ export const AccountDataContent = () => {
                     placeholder="Seu bairro"
                     value={form.addressDistrict}
                     onChange={handleChange('addressDistrict')}
-                    disabled={status === 'saving'}
+                    disabled={isFormLocked}
                   />
                 </label>
               </div>
@@ -584,7 +805,7 @@ export const AccountDataContent = () => {
                     placeholder="Sua cidade"
                     value={form.addressCity}
                     onChange={handleChange('addressCity')}
-                    disabled={status === 'saving'}
+                    disabled={isFormLocked}
                   />
                 </label>
                 <label className="grid gap-1 text-xs font-semibold uppercase text-meow-muted">
@@ -594,7 +815,7 @@ export const AccountDataContent = () => {
                     onChange={(event) =>
                       setForm((prev) => ({ ...prev, addressState: event.target.value }))
                     }
-                    disabled={status === 'saving'}
+                    disabled={isFormLocked}
                   >
                     <option value="">UF</option>
                     <option value="AC">AC</option>
@@ -633,7 +854,7 @@ export const AccountDataContent = () => {
                     onChange={(event) =>
                       setForm((prev) => ({ ...prev, addressCountry: event.target.value }))
                     }
-                    disabled={status === 'saving'}
+                    disabled={isFormLocked}
                   >
                     <option value="Brasil">🇧🇷 Brasil</option>
                   </Select>
@@ -763,8 +984,8 @@ export const AccountDataContent = () => {
             <Link href="/conta" className="text-xs font-semibold text-meow-muted hover:text-meow-deep">
               Cancelar
             </Link>
-            <Button type="submit" size="lg" disabled={status === 'saving'}>
-              {status === 'saving' ? 'Salvando...' : 'Salvar Alterações'}
+            <Button type="submit" size="lg" disabled={isFormLocked}>
+              {isProfileLocked ? 'Dados bloqueados' : status === 'saving' ? 'Salvando...' : 'Salvar Alteracoes'}
             </Button>
           </div>
         </div>

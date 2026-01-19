@@ -445,6 +445,11 @@ export default function Page() {
             <AlertCircle size={20} /> {error}
           </div>
         )}
+        {user && user.role !== 'SELLER' && user.role !== 'ADMIN' && (
+          <div className="mb-6 flex items-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-6 py-4 text-sm font-bold text-red-600">
+            <AlertCircle size={18} /> Voce precisa ser um vendedor verificado para publicar anuncios.
+          </div>
+        )}
         {profileError && (
           <div className="mb-6 flex items-center gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-6 py-4 text-sm font-bold text-amber-700">
             <AlertCircle size={18} /> {profileError}

@@ -25,22 +25,22 @@ const benefits = [
   {
     icon: Truck,
     title: 'Entrega garantida',
-    description: 'receba seu produto',
+    description: 'Receba seu produto',
   },
   {
     icon: ShieldCheck,
-    title: 'Segurança',
-    description: 'site seguro',
+    title: 'Seguranca',
+    description: 'Site seguro',
   },
   {
     icon: Package,
     title: 'Entrega rapida',
-    description: 'receba rapidamente',
+    description: 'Receba rapidamente',
   },
   {
     icon: ShieldCheck,
-    title: 'Segurança',
-    description: 'Loja oficial',
+    title: 'Seguranca',
+    description: 'Marketplace',
   },
 ];
 

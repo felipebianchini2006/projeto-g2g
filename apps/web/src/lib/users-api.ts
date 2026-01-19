@@ -1,4 +1,5 @@
 import { ApiClientError, apiFetch } from './api-client';
+import type { PixPayment } from './payments-api';
 import { emitGlobalError } from './global-error';
 
 export type UserProfile = {
@@ -16,10 +17,12 @@ export type UserProfile = {
   addressState: string | null;
   addressCountry: string | null;
   avatarUrl: string | null;
+  verificationFeeOrderId?: string | null;
+  verificationFeePaidAt?: string | null;
 };
 
 export type UserProfileUpdate = Partial<
-  Omit<UserProfile, 'id' | 'email' | 'avatarUrl'>
+  Omit<UserProfile, 'id' | 'email' | 'avatarUrl' | 'verificationFeeOrderId' | 'verificationFeePaidAt'>
 >;
 
 const authHeaders = (token: string | null) =>
@@ -103,6 +106,23 @@ export const usersApi = {
     }),
   toggleFollow: (token: string | null, targetId: string) =>
     apiFetch<{ following: boolean }>(`/users/${targetId}/follow`, {
+      method: 'POST',
+      headers: authHeaders(token),
+    }),
+  getVerificationFeeStatus: (token: string | null) =>
+    apiFetch<{
+      status: 'PAID' | 'PENDING' | 'NOT_PAID';
+      paidAt?: string;
+      payment?: PixPayment;
+    }>('/users/me/verification-fee', {
+      headers: authHeaders(token),
+    }),
+  createVerificationFeePix: (token: string | null) =>
+    apiFetch<{
+      status: 'PAID' | 'PENDING' | 'NOT_PAID';
+      paidAt?: string;
+      payment?: PixPayment;
+    }>('/users/me/verification-fee/pix', {
       method: 'POST',
       headers: authHeaders(token),
     }),

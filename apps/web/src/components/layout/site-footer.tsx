@@ -55,11 +55,6 @@ export const SiteFooter = () => (
                 Formas de pagamento
               </Link>
             </li>
-            <li>
-              <Link className="transition hover:text-white" href="/ajuda/trocas">
-                Trocas e devolucoes
-              </Link>
-            </li>
           </ul>
         </div>
       </div>

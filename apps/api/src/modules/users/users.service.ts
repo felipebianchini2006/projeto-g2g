@@ -1,7 +1,9 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { AuditAction, Prisma } from '@prisma/client';
+import { AuditAction, OrderStatus, PaymentStatus, Prisma } from '@prisma/client';
 
+import { PaymentsService } from '../payments/payments.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { OrdersQueueService } from '../orders/orders.queue.service';
 import { UserBlockDto } from './dto/user-block.dto';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { UserUpdateDto } from './dto/user-update.dto';
@@ -39,11 +41,20 @@ const USER_PROFILE_SELECT = {
   addressState: true,
   addressCountry: true,
   avatarUrl: true,
+  verificationFeeOrderId: true,
+  verificationFeePaidAt: true,
 };
+
+const VERIFICATION_FEE_AMOUNT_CENTS = 3;
+const VERIFICATION_FEE_TTL_MS = 15 * 60 * 1000;
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly paymentsService: PaymentsService,
+    private readonly ordersQueue: OrdersQueueService,
+  ) { }
 
   async listUsers(query: UsersQueryDto) {
     const where: Prisma.UserWhereInput = {};
@@ -94,6 +105,14 @@ export class UsersService {
   }
 
   async updateProfile(userId: string, dto: UpdateUserProfileDto) {
+    const current = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { verificationFeePaidAt: true },
+    });
+    if (current?.verificationFeePaidAt) {
+      throw new BadRequestException('Dados ja verificados e bloqueados para edicao.');
+    }
+
     const normalizeText = (value?: string) => {
       if (typeof value !== 'string') {
         return null;
@@ -409,5 +428,148 @@ export class UsersService {
 
       return updated;
     });
+  }
+
+  async getVerificationFeeStatus(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { verificationFeePaidAt: true, verificationFeeOrderId: true, fullName: true, cpf: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found.');
+    }
+
+    if (user.verificationFeePaidAt) {
+      return { status: 'PAID', paidAt: user.verificationFeePaidAt };
+    }
+
+    if (!user.fullName?.trim() || !user.cpf) {
+      throw new BadRequestException('Preencha nome completo e CPF antes de gerar o Pix.');
+    }
+
+    if (!user.verificationFeeOrderId) {
+      return { status: 'NOT_PAID' };
+    }
+
+    const payment = await this.prisma.payment.findFirst({
+      where: { orderId: user.verificationFeeOrderId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!payment) {
+      return { status: 'NOT_PAID' };
+    }
+
+    if (payment.status === PaymentStatus.CONFIRMED) {
+      const paidAt = payment.paidAt ?? new Date();
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { verificationFeePaidAt: paidAt, verificationFeeOrderId: null },
+      });
+      return { status: 'PAID', paidAt };
+    }
+
+    if (payment.status === PaymentStatus.PENDING) {
+      return {
+        status: 'PENDING',
+        payment: {
+          id: payment.id,
+          orderId: payment.orderId,
+          provider: payment.provider,
+          txid: payment.txid,
+          status: payment.status,
+          amountCents: payment.amountCents,
+          currency: payment.currency,
+          qrCode: payment.qrCode,
+          copyPaste: payment.copyPaste,
+          expiresAt: payment.expiresAt,
+        },
+      };
+    }
+
+    return { status: 'NOT_PAID' };
+  }
+
+  async createVerificationFeePix(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { verificationFeePaidAt: true, verificationFeeOrderId: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found.');
+    }
+
+    if (user.verificationFeePaidAt) {
+      return { status: 'PAID', paidAt: user.verificationFeePaidAt };
+    }
+
+    if (user.verificationFeeOrderId) {
+      const existingPayment = await this.prisma.payment.findFirst({
+        where: {
+          orderId: user.verificationFeeOrderId,
+          status: PaymentStatus.PENDING,
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+      if (existingPayment) {
+        return {
+          status: 'PENDING',
+          payment: {
+            id: existingPayment.id,
+            orderId: existingPayment.orderId,
+            provider: existingPayment.provider,
+            txid: existingPayment.txid,
+            status: existingPayment.status,
+            amountCents: existingPayment.amountCents,
+            currency: existingPayment.currency,
+            qrCode: existingPayment.qrCode,
+            copyPaste: existingPayment.copyPaste,
+            expiresAt: existingPayment.expiresAt,
+          },
+        };
+      }
+    }
+
+    const expiresAt = new Date(Date.now() + VERIFICATION_FEE_TTL_MS);
+    const order = await this.prisma.order.create({
+      data: {
+        buyerId: userId,
+        sellerId: null,
+        totalAmountCents: VERIFICATION_FEE_AMOUNT_CENTS,
+        currency: 'BRL',
+        status: OrderStatus.CREATED,
+        expiresAt,
+        items: {
+          create: [],
+        },
+      },
+    });
+
+    await this.ordersQueue.scheduleOrderExpiration(order.id, expiresAt);
+
+    const payment = await this.paymentsService.createPixCharge(order, userId);
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { verificationFeeOrderId: order.id },
+    });
+
+    return {
+      status: 'PENDING',
+      payment: {
+        id: payment.id,
+        orderId: payment.orderId,
+        provider: payment.provider,
+        txid: payment.txid,
+        status: payment.status,
+        amountCents: payment.amountCents,
+        currency: payment.currency,
+        qrCode: payment.qrCode,
+        copyPaste: payment.copyPaste,
+        expiresAt: payment.expiresAt,
+      },
+    };
   }
 }
