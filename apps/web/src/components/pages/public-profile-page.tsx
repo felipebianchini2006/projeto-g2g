@@ -73,7 +73,9 @@ type TrustSealsCardProps = {
 
 type PerformanceCardProps = {};
 
-type MedalsCardProps = {};
+type MedalsCardProps = {
+  profile: PublicProfile;
+};
 
 type SkeletonProfileProps = {
   sidebarOnly?: boolean;
@@ -321,27 +323,48 @@ const PerformanceCard = ({ }: PerformanceCardProps) => (
   </Card>
 );
 
-const MedalsCard = ({ }: MedalsCardProps) => (
-  <Card className="rounded-[24px] border border-slate-100 p-5 shadow-card">
-    <h2 className="text-sm font-bold uppercase text-meow-muted">Medalhas</h2>
-    <div className="mt-4 grid grid-cols-4 gap-3">
-      {[
-        { icon: <Trophy size={18} aria-hidden />, tone: 'bg-amber-50 text-amber-500' },
-        { icon: <ShieldCheck size={18} aria-hidden />, tone: 'bg-blue-50 text-blue-500' },
-        { icon: <Zap size={18} aria-hidden />, tone: 'bg-emerald-50 text-emerald-500' },
-        { icon: <Crown size={18} aria-hidden />, tone: 'bg-purple-50 text-purple-500' },
-        { icon: <Star size={18} aria-hidden />, tone: 'bg-rose-50 text-rose-500' },
-      ].map((badge, index) => (
-        <div
-          key={`${badge.tone}-${index}`}
-          className={`grid h-12 w-12 place-items-center rounded-2xl ${badge.tone}`}
-        >
-          {badge.icon}
+const MedalsCard = ({ profile }: MedalsCardProps) => {
+  const medals = [
+    {
+      key: 'verified',
+      active: profile.trustSeals.cpfVerified,
+      icon: <ShieldCheck size={18} aria-hidden />,
+      tone: 'bg-blue-50 text-blue-500',
+    },
+    {
+      key: 'top-seller',
+      active: profile.stats.salesCount >= 100,
+      icon: <Trophy size={18} aria-hidden />,
+      tone: 'bg-amber-50 text-amber-500',
+    },
+    {
+      key: 'fast-reply',
+      active: profile.isOnline,
+      icon: <Zap size={18} aria-hidden />,
+      tone: 'bg-emerald-50 text-emerald-500',
+    },
+  ].filter((medal) => medal.active);
+
+  return (
+    <Card className="rounded-[24px] border border-slate-100 p-5 shadow-card">
+      <h2 className="text-sm font-bold uppercase text-meow-muted">Medalhas</h2>
+      {medals.length ? (
+        <div className="mt-4 grid grid-cols-4 gap-3">
+          {medals.map((badge) => (
+            <div
+              key={badge.key}
+              className={`grid h-12 w-12 place-items-center rounded-2xl ${badge.tone}`}
+            >
+              {badge.icon}
+            </div>
+          ))}
         </div>
-      ))}
-    </div>
-  </Card>
-);
+      ) : (
+        <p className="mt-4 text-xs text-meow-muted">Nenhuma medalha desbloqueada ainda.</p>
+      )}
+    </Card>
+  );
+};
 
 const SkeletonProfile = ({ sidebarOnly }: SkeletonProfileProps) => (
   <div className={`grid gap-6 ${sidebarOnly ? '' : 'lg:grid-cols-[320px_minmax(0,1fr)]'}`}>
@@ -705,7 +728,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
             {profile.role !== 'USER' ? (
               <>
                 <PerformanceCard />
-                <MedalsCard />
+                <MedalsCard profile={profile} />
               </>
             ) : null}
 

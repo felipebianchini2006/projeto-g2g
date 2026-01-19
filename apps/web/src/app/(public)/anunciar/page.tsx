@@ -262,6 +262,11 @@ export default function Page() {
     if (!formState.categoryId) return setError('Selecione uma categoria.');
     if (formState.priceCents <= 0) return setError('O valor deve ser maior que zero.');
 
+    // Check if user has seller permission
+    if (user?.role !== 'SELLER' && user?.role !== 'ADMIN') {
+      return setError('Você precisa ser um vendedor verificado para publicar anúncios.');
+    }
+
     // Inventory check
     const items = parseInventoryItems(inventoryPayload);
     if (autoDelivery && items.length === 0) return setError('Adicione itens ao estoque para entrega automática.');
@@ -666,6 +671,34 @@ export default function Page() {
                 variant={listingType === 'deluxe' ? 'red' : 'dark'}
                 isAuto={autoDelivery}
               />
+
+              {/* Origin & Recovery Info */}
+              {(formState.originId || formState.recoveryOptionId) && (
+                <div className="rounded-2xl bg-white p-5 border border-slate-100 shadow-sm space-y-3">
+                  <h4 className="text-xs font-bold uppercase tracking-wide text-slate-400">Informações do produto</h4>
+                  {formState.originId && (
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                        {origins.find(o => o.id === formState.originId)?.name || 'Procedência'}
+                      </span>
+                    </div>
+                  )}
+                  {formState.recoveryOptionId && (
+                    <div className="flex items-center gap-2">
+                      {recoveryOptions.find(r => r.id === formState.recoveryOptionId)?.slug === 'nao-tem-dados' ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+                          <AlertCircle size={12} />
+                          Não possui dados de recuperação
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                          {recoveryOptions.find(r => r.id === formState.recoveryOptionId)?.name || 'Dados'}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Guidance Box */}
               <div className="rounded-2xl bg-white p-6 border border-slate-100 shadow-sm space-y-4">
