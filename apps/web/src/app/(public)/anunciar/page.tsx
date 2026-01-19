@@ -301,7 +301,7 @@ export default function Page() {
     { label: 'CPF', valid: stripDigits(profile.cpf ?? '').length === 11 },
     { label: 'Nascimento', valid: Boolean(profile.birthDate?.trim()) },
     { label: 'CEP', valid: Boolean(profile.addressZip?.trim()) },
-    { label: 'Endereco', valid: Boolean(profile.addressStreet?.trim()) },
+    { label: 'Endereço', valid: Boolean(profile.addressStreet?.trim()) },
     { label: 'Numero', valid: addressNumberOk },
     { label: 'Bairro', valid: Boolean(profile.addressDistrict?.trim()) },
     { label: 'Cidade', valid: Boolean(profile.addressCity?.trim()) },
