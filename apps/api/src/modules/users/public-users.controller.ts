@@ -1,5 +1,5 @@
 import { Controller, Get, NotFoundException, Param } from '@nestjs/common';
-import { OrderStatus, UserRole } from '@prisma/client';
+import { DeliveryType, ListingStatus, OrderStatus, UserRole } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -38,7 +38,8 @@ export class PublicUsersController {
     const handle = normalizeHandle(emailPrefix);
     const isVerified = Boolean(user.fullName && user.cpf);
 
-    const [salesCount, reviewsAggregate, onlineSession] = await Promise.all([
+    const [salesCount, reviewsAggregate, onlineSession, deliveryPerformance, responseMinutes] =
+      await Promise.all([
       this.prisma.order.count({
         where: {
           sellerId: user.id,
@@ -58,6 +59,8 @@ export class PublicUsersController {
         },
         select: { id: true },
       }),
+      this.resolveDeliveryPerformance(user.id),
+      this.resolveResponseMinutes(user.id),
     ]);
 
     return {
@@ -81,6 +84,102 @@ export class PublicUsersController {
         emailVerified: Boolean(user.email),
         phoneVerified: false,
       },
+      performance: {
+        responseTimeMinutes: responseMinutes,
+        onTimeDeliveryRate: deliveryPerformance,
+      },
     };
+  }
+
+  private async resolveDeliveryPerformance(userId: string) {
+    const listings = await this.prisma.listing.findMany({
+      where: { sellerId: userId, status: ListingStatus.PUBLISHED },
+      select: { deliveryType: true },
+    });
+
+    if (listings.length > 0 && listings.every((item) => item.deliveryType === DeliveryType.AUTO)) {
+      return 100;
+    }
+
+    const orders = await this.prisma.order.findMany({
+      where: {
+        sellerId: userId,
+        status: { in: [OrderStatus.PAID, OrderStatus.DELIVERED, OrderStatus.COMPLETED] },
+      },
+      select: {
+        createdAt: true,
+        deliveredAt: true,
+        items: {
+          select: {
+            listing: { select: { deliverySlaHours: true } },
+          },
+        },
+      },
+    });
+
+    let total = 0;
+    let onTime = 0;
+    for (const order of orders) {
+      if (!order.deliveredAt) {
+        continue;
+      }
+      for (const item of order.items) {
+        const slaHours = item.listing?.deliverySlaHours;
+        if (!slaHours) {
+          continue;
+        }
+        total += 1;
+        const deadline = order.createdAt.getTime() + slaHours * 60 * 60 * 1000;
+        if (order.deliveredAt.getTime() <= deadline) {
+          onTime += 1;
+        }
+      }
+    }
+
+    if (!total) {
+      return null;
+    }
+
+    return Math.round((onTime / total) * 1000) / 10;
+  }
+
+  private async resolveResponseMinutes(userId: string) {
+    const rooms = await this.prisma.chatRoom.findMany({
+      where: { order: { sellerId: userId } },
+      select: {
+        order: { select: { sellerId: true } },
+        messages: { select: { senderId: true, createdAt: true }, orderBy: { createdAt: 'asc' } },
+      },
+    });
+
+    let totalMs = 0;
+    let totalResponses = 0;
+
+    for (const room of rooms) {
+      const sellerId = room.order.sellerId;
+      if (!sellerId) {
+        continue;
+      }
+      let awaitingAt: Date | null = null;
+      for (const message of room.messages) {
+        if (message.senderId !== sellerId) {
+          if (!awaitingAt) {
+            awaitingAt = message.createdAt;
+          }
+          continue;
+        }
+        if (awaitingAt) {
+          totalMs += message.createdAt.getTime() - awaitingAt.getTime();
+          totalResponses += 1;
+          awaitingAt = null;
+        }
+      }
+    }
+
+    if (!totalResponses) {
+      return null;
+    }
+
+    return Math.max(1, Math.round(totalMs / totalResponses / 60000));
   }
 }

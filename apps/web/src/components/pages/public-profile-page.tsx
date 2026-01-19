@@ -71,7 +71,10 @@ type TrustSealsCardProps = {
   trustSeals: PublicProfile['trustSeals'];
 };
 
-type PerformanceCardProps = {};
+type PerformanceCardProps = {
+  responseTimeMinutes: number | null;
+  onTimeDeliveryRate: number | null;
+};
 
 type MedalsCardProps = {
   profile: PublicProfile;
@@ -294,34 +297,60 @@ const TrustSealsCard = ({ trustSeals }: TrustSealsCardProps) => (
   </Card>
 );
 
-const PerformanceCard = ({ }: PerformanceCardProps) => (
-  <Card className="rounded-[24px] border border-slate-100 p-5 shadow-card">
-    <div className="flex items-center justify-between">
-      <h2 className="text-sm font-bold uppercase text-meow-muted">Performance</h2>
-      <Trophy size={16} className="text-meow-deep" aria-hidden />
-    </div>
-    <div className="mt-4 space-y-3 text-xs text-meow-muted">
-      <div>
-        <div className="flex items-center justify-between">
-          <span>Tempo de resposta</span>
-          <span className="font-semibold text-emerald-600">~5 min</span>
+const PerformanceCard = ({
+  responseTimeMinutes,
+  onTimeDeliveryRate,
+}: PerformanceCardProps) => {
+  const responseLabel =
+    typeof responseTimeMinutes === 'number' ? `~${responseTimeMinutes} min` : '-';
+  const responsePercent =
+    typeof responseTimeMinutes === 'number'
+      ? Math.min(100, Math.max(5, Math.round(100 - (responseTimeMinutes / 60) * 100)))
+      : 5;
+  const deliveryLabel =
+    typeof onTimeDeliveryRate === 'number'
+      ? `${onTimeDeliveryRate.toFixed(1).replace('.', ',')}%`
+      : '-';
+  const deliveryPercent =
+    typeof onTimeDeliveryRate === 'number'
+      ? Math.min(100, Math.max(5, Math.round(onTimeDeliveryRate)))
+      : 5;
+
+  return (
+    <Card className="rounded-[24px] border border-slate-100 p-5 shadow-card">
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-bold uppercase text-meow-muted">Performance</h2>
+        <Trophy size={16} className="text-meow-deep" aria-hidden />
+      </div>
+      <div className="mt-4 space-y-3 text-xs text-meow-muted">
+        <div>
+          <div className="flex items-center justify-between">
+            <span>Tempo de resposta</span>
+            <span className="font-semibold text-emerald-600">{responseLabel}</span>
+          </div>
+          <div className="mt-2 h-2 w-full rounded-full bg-slate-100">
+            <div
+              className="h-2 rounded-full bg-emerald-400"
+              style={{ width: `${responsePercent}%` }}
+            />
+          </div>
         </div>
-        <div className="mt-2 h-2 w-full rounded-full bg-slate-100">
-          <div className="h-2 w-[88%] rounded-full bg-emerald-400" />
+        <div>
+          <div className="flex items-center justify-between">
+            <span>Entrega no prazo</span>
+            <span className="font-semibold text-pink-500">{deliveryLabel}</span>
+          </div>
+          <div className="mt-2 h-2 w-full rounded-full bg-slate-100">
+            <div
+              className="h-2 rounded-full bg-pink-400"
+              style={{ width: `${deliveryPercent}%` }}
+            />
+          </div>
         </div>
       </div>
-      <div>
-        <div className="flex items-center justify-between">
-          <span>Entrega no prazo</span>
-          <span className="font-semibold text-pink-500">99,8%</span>
-        </div>
-        <div className="mt-2 h-2 w-full rounded-full bg-slate-100">
-          <div className="h-2 w-[95%] rounded-full bg-pink-400" />
-        </div>
-      </div>
-    </div>
-  </Card>
-);
+    </Card>
+  );
+};
 
 const MedalsCard = ({ profile }: MedalsCardProps) => {
   const medals = [
@@ -727,7 +756,10 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
 
             {profile.role !== 'USER' ? (
               <>
-                <PerformanceCard />
+                <PerformanceCard
+                  responseTimeMinutes={profile.performance.responseTimeMinutes}
+                  onTimeDeliveryRate={profile.performance.onTimeDeliveryRate}
+                />
                 <MedalsCard profile={profile} />
               </>
             ) : null}

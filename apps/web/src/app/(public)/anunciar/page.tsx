@@ -28,6 +28,7 @@ import {
   type Listing,
   type ListingInput,
 } from '../../../lib/marketplace-api';
+import { usersApi, type UserProfile } from '../../../lib/users-api';
 import {
   catalogPublicApi,
   type CatalogGroup,
@@ -80,6 +81,7 @@ const parseInventoryItems = (payload: string) =>
     .split(/[\n,;]+/)
     .map((value) => value.trim())
     .filter(Boolean);
+const stripDigits = (value: string) => value.replace(/\D/g, '');
 
 // Fallback Data if API is empty
 const DEFAULT_SALES_MODELS: CatalogOption[] = [
@@ -132,6 +134,9 @@ export default function Page() {
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
 
   // Data State
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileError, setProfileError] = useState<string | null>(null);
   const [listing, setListing] = useState<Listing | null>(null);
   const [categories, setCategories] = useState<CatalogCategory[]>([]);
   const [salesModels, setSalesModels] = useState<CatalogOption[]>([]);
@@ -159,6 +164,39 @@ export default function Page() {
     loadData();
     return () => { active = false; };
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    if (!accessToken) {
+      setProfile(null);
+      setProfileLoading(false);
+      return () => { active = false; };
+    }
+    setProfileLoading(true);
+    setProfileError(null);
+    usersApi
+      .getProfile(accessToken)
+      .then((data) => {
+        if (active) {
+          setProfile(data);
+        }
+      })
+      .catch((err) => {
+        if (!active) {
+          return;
+        }
+        setProfile(null);
+        setProfileError(err instanceof Error ? err.message : 'Nao foi possivel carregar seus dados.');
+      })
+      .finally(() => {
+        if (active) {
+          setProfileLoading(false);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [accessToken]);
 
   // Load Global Catalogs (Sales Models, Origins, Recovery)
   useEffect(() => {
@@ -254,9 +292,32 @@ export default function Page() {
     }
   }, [groups, formState.categoryGroupId]);
 
+  const normalizedNumber = profile?.addressNumber?.trim().toLowerCase() ?? '';
+  const addressNumberOk =
+    (normalizedNumber === 's/n' || normalizedNumber === 'sem numero') ||
+    Boolean(profile?.addressNumber?.trim());
+  const profileMissingFields = profile ? [
+    { label: 'Nome completo', valid: Boolean(profile.fullName?.trim()) },
+    { label: 'CPF', valid: stripDigits(profile.cpf ?? '').length === 11 },
+    { label: 'Nascimento', valid: Boolean(profile.birthDate?.trim()) },
+    { label: 'CEP', valid: Boolean(profile.addressZip?.trim()) },
+    { label: 'Endereco', valid: Boolean(profile.addressStreet?.trim()) },
+    { label: 'Numero', valid: addressNumberOk },
+    { label: 'Bairro', valid: Boolean(profile.addressDistrict?.trim()) },
+    { label: 'Cidade', valid: Boolean(profile.addressCity?.trim()) },
+    { label: 'Estado', valid: Boolean(profile.addressState?.trim()) },
+    { label: 'Pais', valid: Boolean(profile.addressCountry?.trim()) },
+  ].filter((item) => !item.valid).map((item) => item.label) : [];
+  const shouldBlockPublish = profileLoading || !profile || profileMissingFields.length > 0;
+
   // --- Handlers ---
 
   const handlePublish = async () => {
+    if (profileLoading) return setError('Aguarde o carregamento dos seus dados.');
+    if (!profile) return setError('Nao foi possivel verificar seus dados. Tente novamente.');
+    if (profileMissingFields.length > 0) {
+      return setError('Complete seus dados antes de publicar um anuncio.');
+    }
     if (!termsAccepted) return setError('Aceite os termos para continuar.');
     if (!formState.title.trim()) return setError('O título é obrigatório.');
     if (!formState.categoryId) return setError('Selecione uma categoria.');
@@ -382,6 +443,22 @@ export default function Page() {
         {error && (
           <div className="mb-8 flex items-center gap-2 rounded-2xl bg-red-50 px-6 py-4 text-sm font-bold text-red-600 animate-in fade-in slide-in-from-top-4">
             <AlertCircle size={20} /> {error}
+          </div>
+        )}
+        {profileError && (
+          <div className="mb-6 flex items-center gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-6 py-4 text-sm font-bold text-amber-700">
+            <AlertCircle size={18} /> {profileError}
+          </div>
+        )}
+        {!profileLoading && profileMissingFields.length > 0 && (
+          <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-6 py-4 text-sm text-amber-800">
+            <p className="font-bold">Verifique seus dados antes de publicar.</p>
+            <p className="mt-1 text-xs text-amber-700">
+              Complete os campos em <Link href="/conta/meus-dados" className="font-bold underline">Meus dados</Link>.
+            </p>
+            <p className="mt-3 text-xs font-semibold text-amber-700">
+              Pendencias: {profileMissingFields.join(', ')}.
+            </p>
           </div>
         )}
 
@@ -630,6 +707,7 @@ export default function Page() {
             <ActionBar
               onNext={handlePublish}
               nextLabel="Publicar Anúncio"
+              nextDisabled={shouldBlockPublish}
               loading={busyAction === 'publish'}
               className="relative translate-y-0" // Reset fixed pos if needed, but ActionBar handles it
               leftContent={

@@ -15,6 +15,11 @@ export type PublicProfileTrustSeals = {
   phoneVerified: boolean;
 };
 
+export type PublicProfilePerformance = {
+  responseTimeMinutes: number | null;
+  onTimeDeliveryRate: number | null;
+};
+
 export type PublicProfile = {
   id: string;
   role: PublicProfileRole;
@@ -27,6 +32,7 @@ export type PublicProfile = {
   isPremium: boolean;
   stats: PublicProfileStats;
   trustSeals: PublicProfileTrustSeals;
+  performance: PublicProfilePerformance;
   bio?: string | null;
 };
 

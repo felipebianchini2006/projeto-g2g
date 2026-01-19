@@ -335,6 +335,10 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
     oldPriceCents && oldPriceCents > priceCents
       ? Math.round((1 - priceCents / oldPriceCents) * 100)
       : null;
+  const productInfoItems = [
+    listing.origin?.name,
+    listing.recoveryOption?.name,
+  ].filter(Boolean) as string[];
   const questionCount = questionsState.total || questionsState.items.length;
   const canAskQuestion = Boolean(accessToken);
   const reviewEligibility = eligibilityState.data;
@@ -678,6 +682,19 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
                 </div>
                 <p className="mt-1 text-xs text-slate-500">{editionLabel}</p>
               </div>
+
+              {productInfoItems.length > 0 ? (
+                <div className="mt-4 rounded-2xl border border-slate-100 bg-slate-50/70 px-4 py-3">
+                  <p className="text-xs font-bold uppercase tracking-[0.3px] text-slate-500">
+                    Informacoes do produto
+                  </p>
+                  <ul className="mt-2 space-y-1 text-sm text-meow-charcoal">
+                    {productInfoItems.map((item, index) => (
+                      <li key={`${item}-${index}`}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
 
               <div className="mt-6 grid gap-3">
                 <Link

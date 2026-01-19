@@ -24,6 +24,8 @@ export type PublicListing = {
   sellerId?: string;
   title: string;
   description?: string | null;
+  origin?: { id: string; name: string; slug: string } | null;
+  recoveryOption?: { id: string; name: string; slug: string } | null;
   oldPriceCents?: number;
   priceCents: number;
   currency: string;
