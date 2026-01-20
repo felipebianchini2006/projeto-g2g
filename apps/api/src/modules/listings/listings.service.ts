@@ -1,5 +1,13 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { AuditAction, DeliveryType, ListingStatus, Prisma, UserRole } from '@prisma/client';
+import {
+  AuditAction,
+  DeliveryType,
+  InventoryStatus,
+  ListingStatus,
+  OrderStatus,
+  Prisma,
+  UserRole,
+} from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateListingDto } from './dto/create-listing.dto';
@@ -30,6 +38,10 @@ type PublicListing = {
   categorySlug?: string;
   categoryLabel?: string;
   createdAt: Date;
+  updatedAt: Date;
+  availableCount: number;
+  soldCount: number;
+  salesCount: number;
 };
 
 type PublicCategory = {
@@ -127,7 +139,42 @@ export class ListingsService {
       take: filters.take ?? 20,
     });
 
-    return listings.map((listing) => ({
+    const listingIds = listings.map((listing) => listing.id);
+    const [inventoryCounts, salesStats] = listingIds.length
+      ? await Promise.all([
+          this.prisma.inventoryItem.groupBy({
+            by: ['listingId'],
+            where: { listingId: { in: listingIds }, status: InventoryStatus.AVAILABLE },
+            _count: { _all: true },
+          }),
+          this.prisma.orderItemSnapshot.groupBy({
+            by: ['listingId'],
+            where: {
+              listingId: { in: listingIds },
+              order: { status: { in: [OrderStatus.PAID, OrderStatus.DELIVERED, OrderStatus.COMPLETED] } },
+            },
+            _sum: { quantity: true },
+            _count: { _all: true },
+          }),
+        ])
+      : [[], []];
+
+    const availableByListing = new Map(
+      inventoryCounts.map((item) => [item.listingId, item._count._all]),
+    );
+    const salesByListing = new Map(
+      salesStats.map((item) => [
+        item.listingId,
+        {
+          soldCount: item._sum.quantity ?? 0,
+          salesCount: item._count._all,
+        },
+      ]),
+    );
+
+    return listings.map((listing) => {
+      const sales = salesByListing.get(listing.id);
+      return {
       id: listing.id,
       sellerId: listing.sellerId,
       title: listing.title,
@@ -144,7 +191,12 @@ export class ListingsService {
       categorySlug: listing.category?.slug ?? undefined,
       categoryLabel: listing.category?.name ?? undefined,
       createdAt: listing.createdAt,
-    }));
+      updatedAt: listing.updatedAt,
+      availableCount: availableByListing.get(listing.id) ?? 0,
+      soldCount: sales?.soldCount ?? 0,
+      salesCount: sales?.salesCount ?? 0,
+      };
+    });
   }
 
   async getPublicListing(listingId: string): Promise<PublicListing> {
@@ -170,6 +222,20 @@ export class ListingsService {
       throw new NotFoundException('Listing not found.');
     }
 
+    const [availableCount, salesAggregate] = await Promise.all([
+      this.prisma.inventoryItem.count({
+        where: { listingId: listing.id, status: InventoryStatus.AVAILABLE },
+      }),
+      this.prisma.orderItemSnapshot.aggregate({
+        where: {
+          listingId: listing.id,
+          order: { status: { in: [OrderStatus.PAID, OrderStatus.DELIVERED, OrderStatus.COMPLETED] } },
+        },
+        _sum: { quantity: true },
+        _count: { _all: true },
+      }),
+    ]);
+
     const payload = {
       id: listing.id,
       sellerId: listing.sellerId,
@@ -187,6 +253,10 @@ export class ListingsService {
       categorySlug: listing.category?.slug ?? undefined,
       categoryLabel: listing.category?.name ?? undefined,
       createdAt: listing.createdAt,
+      updatedAt: listing.updatedAt,
+      availableCount,
+      soldCount: salesAggregate._sum.quantity ?? 0,
+      salesCount: salesAggregate._count._all,
     };
 
     this.setCached(this.publicListingCache, listing.id, payload);

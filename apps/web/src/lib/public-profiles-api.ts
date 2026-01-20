@@ -27,6 +27,7 @@ export type PublicProfile = {
   handle: string;
   avatarUrl?: string | null;
   createdAt: string;
+  lastSeenAt?: string | null;
   isOnline: boolean;
   isVerified: boolean;
   isPremium: boolean;

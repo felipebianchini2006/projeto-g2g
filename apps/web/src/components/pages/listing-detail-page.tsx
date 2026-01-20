@@ -3,7 +3,16 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useEffect, useRef, useState } from 'react';
-import { Flag, Heart, ShoppingBag, ShoppingCart, Star, X } from 'lucide-react';
+import {
+  CheckCircle,
+  Flag,
+  Heart,
+  ShieldCheck,
+  ShoppingBag,
+  ShoppingCart,
+  Star,
+  X,
+} from 'lucide-react';
 
 import { ApiClientError } from '../../lib/api-client';
 import {
@@ -344,6 +353,48 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
   const reviewEligibility = eligibilityState.data;
   const canReview = Boolean(reviewEligibility?.canReview && reviewEligibility.orderId);
   const reviewOrderId = reviewEligibility?.orderId ?? null;
+  const availableCount =
+    typeof listing.availableCount === 'number' ? listing.availableCount : 0;
+  const soldCount = typeof listing.soldCount === 'number' ? listing.soldCount : 0;
+  const salesCount = typeof listing.salesCount === 'number' ? listing.salesCount : 0;
+  const descriptionUpdatedLabel = (() => {
+    const updatedAt = listing.updatedAt ?? listing.createdAt;
+    return updatedAt ? new Date(updatedAt).toLocaleString('pt-BR') : '-';
+  })();
+  const memberSinceLabel = sellerProfile?.createdAt
+    ? new Date(sellerProfile.createdAt).toLocaleDateString('pt-BR')
+    : '-';
+  const positiveReviewsPercent =
+    sellerProfile && sellerProfile.stats.reviewsCount > 0
+      ? Math.round((sellerProfile.stats.ratingAverage / 5) * 100)
+      : null;
+  const lastSeenLabel = (() => {
+    if (!sellerProfile) {
+      return '-';
+    }
+    if (sellerProfile.isOnline) {
+      return 'Online agora';
+    }
+    if (!sellerProfile.lastSeenAt) {
+      return '-';
+    }
+    const diffMs = Date.now() - new Date(sellerProfile.lastSeenAt).getTime();
+    const minutes = Math.floor(diffMs / 60000);
+    if (minutes < 60) {
+      return `há ${minutes || 1} min`;
+    }
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) {
+      return `há ${hours} horas`;
+    }
+    const days = Math.floor(hours / 24);
+    return `há ${days} dias`;
+  })();
+  const verificationItems = [
+    { label: 'E-mail', active: Boolean(sellerProfile?.trustSeals?.emailVerified) },
+    { label: 'Telefone', active: Boolean(sellerProfile?.trustSeals?.phoneVerified) },
+    { label: 'Documentos', active: Boolean(sellerProfile?.trustSeals?.cpfVerified) },
+  ];
 
   const resolveInitials = (value?: string | null) => {
     if (!value) {
@@ -695,6 +746,20 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
                   </ul>
                 </div>
               ) : null}
+              <div className="mt-4 grid grid-cols-3 gap-3 rounded-2xl border border-slate-100 bg-white px-4 py-3 text-center">
+                {[
+                  { label: 'DISPONÍVEIS', value: availableCount },
+                  { label: 'VENDIDOS', value: soldCount },
+                  { label: 'VENDAS', value: salesCount },
+                ].map((item) => (
+                  <div key={item.label} className="rounded-xl bg-slate-50 px-3 py-2">
+                    <p className="text-[10px] font-bold tracking-[0.4px] text-slate-400">
+                      {item.label}
+                    </p>
+                    <p className="mt-1 text-sm font-black text-meow-charcoal">{item.value}</p>
+                  </div>
+                ))}
+              </div>
 
               <div className="mt-6 grid gap-3">
                 <Link
@@ -731,7 +796,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
               </div>
             </div>
 
-            {sellerProfile ? (
+            {sellerProfile ? (<>
               <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
                 <div className="flex items-center gap-4">
                   <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-base font-bold ${sellerProfile.avatarUrl ? '' : resolveAvatarTone(sellerProfile.displayName)
@@ -782,6 +847,36 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
                     <p className="text-[10px] text-slate-400">Reviews</p>
                   </div>
                 </div>
+                <div className="mt-4 grid gap-2 rounded-xl border border-slate-100 bg-white px-4 py-3 text-xs text-slate-500">
+                  <div className="flex items-center justify-between">
+                    <span>Membro desde</span>
+                    <span className="font-semibold text-meow-charcoal">{memberSinceLabel}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Avaliações positivas</span>
+                    <span className="font-semibold text-meow-charcoal">
+                      {positiveReviewsPercent !== null ? `${positiveReviewsPercent}%` : '-'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Número de avaliações</span>
+                    <span className="font-semibold text-meow-charcoal">
+                      {sellerProfile.stats.reviewsCount}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Último acesso</span>
+                    <span className="inline-flex items-center gap-2 font-semibold text-meow-charcoal">
+                      <span
+                        className={`h-2 w-2 rounded-full ${
+                          sellerProfile.isOnline ? 'bg-emerald-500' : 'bg-slate-300'
+                        }`}
+                        aria-hidden
+                      />
+                      {lastSeenLabel}
+                    </span>
+                  </div>
+                </div>
 
                 <Link
                   href={`/perfil/${sellerProfile.id}`}
@@ -790,7 +885,34 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
                   Ver perfil completo
                 </Link>
               </div>
-            ) : null}
+              <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
+                <div className="flex items-center gap-2 text-sm font-black text-meow-charcoal">
+                  <ShieldCheck size={16} className="text-meow-deep" aria-hidden />
+                  Verificações
+                </div>
+                <div className="mt-4 space-y-3 text-sm text-meow-charcoal">
+                  {verificationItems.map((item) => (
+                    <div key={item.label} className="flex items-center justify-between">
+                      <span className="text-slate-500">{item.label}</span>
+                      <span
+                        className={`flex items-center gap-2 text-xs font-bold ${item.active ? 'text-emerald-600' : 'text-slate-400'
+                          }`}
+                      >
+                        <CheckCircle size={14} aria-hidden />
+                        {item.active ? 'Verificado' : 'Nao verificado'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
+                <div className="flex items-center gap-2 text-sm font-black text-meow-charcoal">
+                  <ShieldCheck size={18} className="text-emerald-500" aria-hidden />
+                  Entrega garantida
+                </div>
+                <p className="mt-2 text-xs text-slate-400">Ou o seu dinheiro de volta</p>
+              </div>
+            </>) : null}
           </div>
         </div>
 
@@ -805,7 +927,12 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
             </TabsList>
 
             <TabsContent value="descricao">
-              <p>{listing.description ?? 'Descrição não informada.'}</p>
+              <div className="space-y-2">
+                <p>{listing.description ?? 'Descri????o n??o informada.'}</p>
+                <p className="text-xs text-slate-400">
+                  Descrição atualizada em {descriptionUpdatedLabel}
+                </p>
+              </div>
             </TabsContent>
             <TabsContent value="avaliacoes">
               <div className="space-y-6">
@@ -825,6 +952,9 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
                         Entre para avaliar
                       </Link>
                     ) : null}
+                  </div>
+                  <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-amber-700">
+                    ATENÇÃO: É proibido compartilhar meios de contato externos, como WhatsApp, Discord, Facebook, Instagram, e-mail ou similares.
                   </div>
 
                   {!accessToken ? (
@@ -1025,6 +1155,9 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
                       Entre para perguntar
                     </Link>
                   ) : null}
+                </div>
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-amber-700">
+                  ATENÇÃO: É proibido compartilhar meios de contato externos, como WhatsApp, Discord, Facebook, Instagram, e-mail ou similares.
                 </div>
 
                 {questionsState.error ? (

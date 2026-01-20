@@ -37,6 +37,10 @@ export type PublicListing = {
   categorySlug?: string;
   categoryLabel?: string;
   createdAt?: string;
+  updatedAt?: string;
+  availableCount?: number;
+  soldCount?: number;
+  salesCount?: number;
 };
 
 export type PublicListingResponse = {

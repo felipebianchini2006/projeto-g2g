@@ -38,8 +38,14 @@ export class PublicUsersController {
     const handle = normalizeHandle(emailPrefix);
     const isVerified = Boolean(user.fullName && user.cpf);
 
-    const [salesCount, reviewsAggregate, onlineSession, deliveryPerformance, responseMinutes] =
-      await Promise.all([
+    const [
+      salesCount,
+      reviewsAggregate,
+      onlineSession,
+      lastSeenSession,
+      deliveryPerformance,
+      responseMinutes,
+    ] = await Promise.all([
       this.prisma.order.count({
         where: {
           sellerId: user.id,
@@ -59,6 +65,11 @@ export class PublicUsersController {
         },
         select: { id: true },
       }),
+      this.prisma.session.findFirst({
+        where: { userId: user.id },
+        orderBy: { updatedAt: 'desc' },
+        select: { updatedAt: true },
+      }),
       this.resolveDeliveryPerformance(user.id),
       this.resolveResponseMinutes(user.id),
     ]);
@@ -70,6 +81,7 @@ export class PublicUsersController {
       handle,
       avatarUrl: user.avatarUrl,
       createdAt: user.createdAt,
+      lastSeenAt: lastSeenSession?.updatedAt ?? null,
       isOnline: Boolean(onlineSession),
       isVerified,
       isPremium: user.role === UserRole.ADMIN,
