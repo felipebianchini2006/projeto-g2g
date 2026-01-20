@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { Filter, MoreHorizontal, Plus, Search } from 'lucide-react';
+import { Eye, Filter, Megaphone, MoreHorizontal, Plus, Search, ShoppingCart } from 'lucide-react';
 
 import { ApiClientError } from '../../lib/api-client';
 import { marketplaceApi, type Listing, type ListingStatus } from '../../lib/marketplace-api';
@@ -181,6 +181,29 @@ export const AccountListingsContent = () => {
   );
   const totalCount = state.listings.length;
   const viewsCount = 0;
+  const summaryCards = [
+    {
+      label: 'Anuncios ativos',
+      value: activeCount,
+      description: 'Status publicados.',
+      icon: Megaphone,
+      tone: 'from-emerald-500 via-emerald-500 to-emerald-600',
+    },
+    {
+      label: 'Total de vendas',
+      value: salesCount,
+      description: salesError ? salesError : 'Baseado nos pedidos do vendedor.',
+      icon: ShoppingCart,
+      tone: 'from-blue-500 via-blue-500 to-indigo-500',
+    },
+    {
+      label: 'Visualizacoes',
+      value: viewsCount,
+      description: 'Pronto para integrar.',
+      icon: Eye,
+      tone: 'from-fuchsia-500 via-pink-500 to-rose-500',
+    },
+  ];
 
   const handleSubmitListing = async (listingId: string) => {
     if (!accessToken) {
@@ -308,29 +331,28 @@ export const AccountListingsContent = () => {
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
-          <Card className="rounded-[26px] border border-slate-100 p-5 shadow-card">
-            <p className="text-xs font-semibold uppercase tracking-[0.3px] text-slate-400">
-              Anuncios ativos
-            </p>
-            <p className="mt-3 text-3xl font-black text-meow-charcoal">{activeCount}</p>
-            <p className="mt-1 text-xs text-meow-muted">Status publicados.</p>
-          </Card>
-          <Card className="rounded-[26px] border border-slate-100 p-5 shadow-card">
-            <p className="text-xs font-semibold uppercase tracking-[0.3px] text-slate-400">
-              Total de vendas
-            </p>
-            <p className="mt-3 text-3xl font-black text-meow-charcoal">{salesCount}</p>
-            <p className="mt-1 text-xs text-meow-muted">
-              {salesError ? salesError : 'Baseado nos pedidos do vendedor.'}
-            </p>
-          </Card>
-          <Card className="rounded-[26px] border border-slate-100 p-5 shadow-card">
-            <p className="text-xs font-semibold uppercase tracking-[0.3px] text-slate-400">
-              Visualizacoes
-            </p>
-            <p className="mt-3 text-3xl font-black text-meow-charcoal">{viewsCount}</p>
-            <p className="mt-1 text-xs text-meow-muted">Pronto para integrar.</p>
-          </Card>
+          {summaryCards.map((card) => {
+            const Icon = card.icon;
+            return (
+              <Card
+                key={card.label}
+                className={`relative overflow-hidden rounded-[26px] border-0 bg-gradient-to-br ${card.tone} p-5 text-white shadow-[0_18px_40px_rgba(15,23,42,0.18)]`}
+              >
+                <div className="absolute -right-6 -top-6 h-16 w-16 rounded-full bg-white/15" />
+                <div className="absolute right-8 top-6 h-10 w-10 rounded-full bg-white/10" />
+                <div className="relative z-10">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/20">
+                    <Icon size={18} aria-hidden />
+                  </div>
+                  <p className="mt-4 text-xs font-semibold uppercase tracking-[0.3px] text-white/80">
+                    {card.label}
+                  </p>
+                  <p className="mt-2 text-3xl font-black">{card.value}</p>
+                  <p className="mt-1 text-xs text-white/80">{card.description}</p>
+                </div>
+              </Card>
+            );
+          })}
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-3">

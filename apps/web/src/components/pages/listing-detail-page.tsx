@@ -361,6 +361,23 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
     const updatedAt = listing.updatedAt ?? listing.createdAt;
     return updatedAt ? new Date(updatedAt).toLocaleString('pt-BR') : '-';
   })();
+  const salesModelLabel = (() => {
+    const name = listing.salesModel?.name?.toLowerCase() ?? '';
+    const slug = listing.salesModel?.slug?.toLowerCase() ?? '';
+    if (slug.includes('premium') || name.includes('premium')) {
+      return 'Premium';
+    }
+    if (slug.includes('deluxe') || name.includes('deluxe')) {
+      return 'Deluxe';
+    }
+    if (slug.includes('padrao') || slug.includes('padr%C3%A3o') || name.includes('padrao') || name.includes('padr')) {
+      return 'Padrão';
+    }
+    if (slug.includes('standard') || name.includes('standard')) {
+      return 'Padrão';
+    }
+    return listing.salesModel?.name ?? '-';
+  })();
   const memberSinceLabel = sellerProfile?.createdAt
     ? new Date(sellerProfile.createdAt).toLocaleDateString('pt-BR')
     : '-';
@@ -759,6 +776,12 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
                     <p className="mt-1 text-sm font-black text-meow-charcoal">{item.value}</p>
                   </div>
                 ))}
+              </div>
+              <div className="mt-3 rounded-2xl border border-slate-100 bg-white px-4 py-3 text-xs text-slate-500">
+                <div className="flex items-center justify-between">
+                  <span>Modelo do anúncio</span>
+                  <span className="font-semibold text-meow-charcoal">{salesModelLabel}</span>
+                </div>
               </div>
 
               <div className="mt-6 grid gap-3">

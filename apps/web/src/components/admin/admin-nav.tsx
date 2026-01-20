@@ -9,6 +9,7 @@ const ADMIN_LINKS = [
   { href: '/admin/usuarios', label: 'Usuarios' },
   { href: '/admin/parceiros', label: 'Parceiros' },
   { href: '/admin/cupons', label: 'Cupons' },
+  { href: '/admin/lucros', label: 'Lucros' },
   { href: '/admin/parametros', label: 'Parametros' },
 ];
 

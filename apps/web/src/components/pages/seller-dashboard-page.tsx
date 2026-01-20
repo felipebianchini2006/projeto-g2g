@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { MessageCircle, ShoppingCart, Ticket, Wallet } from 'lucide-react';
 
 import { ApiClientError } from '../../lib/api-client';
 import { ordersApi, type Order } from '../../lib/orders-api';
@@ -195,6 +196,38 @@ export const SellerDashboardContent = () => {
 
   const openTicketsCount = ticketsState.items.filter((ticket) => ticket.status === 'OPEN')
     .length;
+  const summaryCards = [
+    {
+      label: 'Vendas hoje',
+      value: formatCurrency(salesToday),
+      description: 'Pedidos do dia.',
+      icon: ShoppingCart,
+      tone: 'from-emerald-500 via-emerald-500 to-emerald-600',
+    },
+    {
+      label: 'Saldo total',
+      value: formatCurrency(walletTotal),
+      description: 'Disponivel + a receber.',
+      icon: Wallet,
+      tone: 'from-blue-500 via-blue-500 to-indigo-500',
+    },
+    {
+      label: 'Perguntas',
+      value: questionsState.status === 'loading' ? '...' : questionsState.items.length,
+      description: 'Perguntas recebidas.',
+      helperLink: '/conta/perguntas-recebidas',
+      helperLabel: 'Ver perguntas',
+      icon: MessageCircle,
+      tone: 'from-pink-500 via-rose-500 to-fuchsia-500',
+    },
+    {
+      label: 'Ticket aberto',
+      value: ticketsState.status === 'loading' ? '...' : openTicketsCount,
+      description: 'Tickets em andamento.',
+      icon: Ticket,
+      tone: 'from-violet-500 via-purple-500 to-indigo-500',
+    },
+  ];
 
   const chartData = useMemo(() => {
     const days = Array.from({ length: 7 }).map((_, index) => {
@@ -219,48 +252,36 @@ export const SellerDashboardContent = () => {
       ]}
     >
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card className="rounded-2xl border border-meow-red/20 p-5 shadow-card">
-          <p className="text-xs font-semibold uppercase tracking-[0.4px] text-meow-muted">
-            Vendas hoje
-          </p>
-          <p className="mt-3 text-2xl font-black text-meow-charcoal">
-            {formatCurrency(salesToday)}
-          </p>
-          <p className="mt-1 text-xs text-meow-muted">Pedidos do dia.</p>
-        </Card>
-        <Card className="rounded-2xl border border-meow-red/20 p-5 shadow-card">
-          <p className="text-xs font-semibold uppercase tracking-[0.4px] text-meow-muted">
-            Saldo total
-          </p>
-          <p className="mt-3 text-2xl font-black text-meow-charcoal">
-            {formatCurrency(walletTotal)}
-          </p>
-          <p className="mt-1 text-xs text-meow-muted">Disponivel + a receber.</p>
-        </Card>
-        <Card className="rounded-2xl border border-meow-red/20 p-5 shadow-card">
-          <p className="text-xs font-semibold uppercase tracking-[0.4px] text-meow-muted">
-            Perguntas
-          </p>
-          <p className="mt-3 text-2xl font-black text-meow-charcoal">
-            {questionsState.status === 'loading' ? '...' : questionsState.items.length}
-          </p>
-          <p className="mt-1 text-xs text-meow-muted">Perguntas recebidas.</p>
-          <Link
-            href="/conta/perguntas-recebidas"
-            className="mt-3 inline-flex text-xs font-semibold text-rose-500"
-          >
-            Ver perguntas
-          </Link>
-        </Card>
-        <Card className="rounded-2xl border border-meow-red/20 p-5 shadow-card">
-          <p className="text-xs font-semibold uppercase tracking-[0.4px] text-meow-muted">
-            Ticket aberto
-          </p>
-          <p className="mt-3 text-2xl font-black text-meow-charcoal">
-            {ticketsState.status === 'loading' ? '...' : openTicketsCount}
-          </p>
-          <p className="mt-1 text-xs text-meow-muted">Tickets em andamento.</p>
-        </Card>
+        {summaryCards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <Card
+              key={card.label}
+              className={`relative overflow-hidden rounded-2xl border-0 bg-gradient-to-br ${card.tone} p-5 text-white shadow-[0_18px_40px_rgba(15,23,42,0.18)]`}
+            >
+              <div className="absolute -right-6 -top-6 h-16 w-16 rounded-full bg-white/15" />
+              <div className="absolute right-8 top-6 h-10 w-10 rounded-full bg-white/10" />
+              <div className="relative z-10">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/20">
+                  <Icon size={18} aria-hidden />
+                </div>
+                <p className="mt-4 text-xs font-semibold uppercase tracking-[0.4px] text-white/80">
+                  {card.label}
+                </p>
+                <p className="mt-2 text-2xl font-black">{card.value}</p>
+                <p className="mt-1 text-xs text-white/80">{card.description}</p>
+                {card.helperLink ? (
+                  <Link
+                    href={card.helperLink}
+                    className="mt-3 inline-flex text-xs font-semibold text-white/90 underline"
+                  >
+                    {card.helperLabel}
+                  </Link>
+                ) : null}
+              </div>
+            </Card>
+          );
+        })}
       </div>
 
       {ordersState.error ? (

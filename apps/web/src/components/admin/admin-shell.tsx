@@ -75,6 +75,7 @@ export const AdminShell = ({ breadcrumbs, children }: AdminShellProps) => {
           { label: 'Parceiros', href: '/admin/parceiros' },
           { label: 'Cupons', href: '/admin/cupons' },
           { label: 'Pedidos', href: '/admin/pedidos' },
+          { label: 'Lucros', href: '/admin/lucros' },
           { label: 'Carteira', href: '/admin/carteira' },
           { label: 'Webhooks', href: '/admin/webhooks' },
           { label: 'Sistema', href: '/admin/sistema' },

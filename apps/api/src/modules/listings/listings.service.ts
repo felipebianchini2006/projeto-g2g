@@ -26,6 +26,7 @@ type PublicListing = {
   sellerId: string;
   title: string;
   description: string | null;
+  salesModel?: { id: string; name: string; slug: string } | null;
   origin?: { id: string; name: string; slug: string } | null;
   recoveryOption?: { id: string; name: string; slug: string } | null;
   priceCents: number;
@@ -131,6 +132,7 @@ export class ListingsService {
       include: {
         media: { orderBy: { position: 'asc' } },
         category: { select: { slug: true, name: true } },
+        salesModel: { select: { id: true, name: true, slug: true } },
         origin: { select: { id: true, name: true, slug: true } },
         recoveryOption: { select: { id: true, name: true, slug: true } },
       },
@@ -179,6 +181,7 @@ export class ListingsService {
       sellerId: listing.sellerId,
       title: listing.title,
       description: listing.description,
+      salesModel: listing.salesModel ?? null,
       origin: listing.origin ?? null,
       recoveryOption: listing.recoveryOption ?? null,
       priceCents: listing.priceCents,
@@ -213,6 +216,7 @@ export class ListingsService {
       include: {
         media: { orderBy: { position: 'asc' } },
         category: { select: { slug: true, name: true } },
+        salesModel: { select: { id: true, name: true, slug: true } },
         origin: { select: { id: true, name: true, slug: true } },
         recoveryOption: { select: { id: true, name: true, slug: true } },
       },
@@ -241,6 +245,7 @@ export class ListingsService {
       sellerId: listing.sellerId,
       title: listing.title,
       description: listing.description,
+      salesModel: listing.salesModel ?? null,
       origin: listing.origin ?? null,
       recoveryOption: listing.recoveryOption ?? null,
       priceCents: listing.priceCents,
