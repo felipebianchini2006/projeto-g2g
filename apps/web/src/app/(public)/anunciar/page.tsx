@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Box,
@@ -9,9 +9,11 @@ import {
   Gamepad2,
   LayoutGrid,
   Package,
+  Plus,
   Sparkles,
   Trophy,
   Wrench,
+  X,
   AlertCircle,
   Zap,
   Image as ImageIcon,
@@ -22,6 +24,7 @@ import { Input } from '../../../components/ui/input';
 import { Select } from '../../../components/ui/select';
 import { Textarea } from '../../../components/ui/textarea';
 import { Toggle } from '../../../components/ui/toggle';
+import { Button } from '../../../components/ui/button';
 import { ApiClientError } from '../../../lib/api-client';
 import {
   marketplaceApi,
@@ -82,6 +85,13 @@ const parseInventoryItems = (payload: string) =>
     .map((value) => value.trim())
     .filter(Boolean);
 const stripDigits = (value: string) => value.replace(/\D/g, '');
+
+type DynamicItem = {
+  id: string;
+  title: string;
+  price: string;
+  quantity: string;
+};
 
 // Fallback Data if API is empty
 const DEFAULT_SALES_MODELS: CatalogOption[] = [
@@ -151,6 +161,10 @@ export default function Page() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [listingType, setListingType] = useState('premium');
   const [productKind, setProductKind] = useState('Conta');
+  const [categorySearch, setCategorySearch] = useState('');
+  const [dynamicItems, setDynamicItems] = useState<DynamicItem[]>([
+    { id: `item-${Date.now()}`, title: '', price: '', quantity: '1' },
+  ]);
 
   // --- Effects ---
 
@@ -338,9 +352,9 @@ export default function Page() {
     try {
       // 1. Create/Update Listing
       const feeMap: Record<string, number> = {
-        padrao: 1000,
-        premium: 1150,
-        deluxe: 1250,
+        normal: 999,
+        premium: 1199,
+        deluxe: 1299,
       };
       const platformFeeBps = feeMap[listingType] || 1000;
 
@@ -382,46 +396,117 @@ export default function Page() {
 
   // --- Derived Mappings ---
 
-  const modelOptions: ModelOption[] = salesModels.map(m => {
-    let icon = Package;
-    let desc = 'O item vendido será exatamente o do título do anúncio cadastrado neste formulário.';
+  const modelOptions: ModelOption[] = salesModels
+    .map(m => {
+      let icon = Package;
+      let desc = 'O item vendido será exatamente o do título do anúncio cadastrado neste formulário.';
 
-    if (m.slug?.includes('dinam')) {
-      icon = Sparkles;
-      desc = 'Anuncie vários itens; dando opções para que o cliente escolha qual item ele deseja.';
-    }
-    if (m.slug?.includes('serv')) {
-      icon = Wrench;
-      desc = 'Anuncie um serviço no qual o preço não é fixo e que dependem de orçamentos.';
-    }
-    return { id: m.id, name: m.name, description: desc, icon };
-  });
+      if (m.slug?.includes('dinam')) {
+        icon = Sparkles;
+        desc = 'Anuncie vários itens; dando opções para que o cliente escolha qual item ele deseja.';
+      }
+      if (m.slug?.includes('serv')) {
+        icon = Wrench;
+        desc = 'Anuncie um serviço no qual o preço não é fixo e que dependem de orçamentos.';
+      }
+      return { id: m.id, name: m.name, description: desc, icon };
+    })
+    .sort((a, b) => {
+      const rank = (value: string) => {
+        const key = value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        if (key.includes('normal') || key === 'normal') return 1;
+        if (key.includes('dinam') || key.includes('dinamico')) return 2;
+        if (key.includes('serv') || key.includes('servico')) return 3;
+        return 99;
+      };
+      return rank(a.name) - rank(b.name);
+    });
 
   const tierOptions: Tier[] = [
     {
-      id: 'padrao',
-      name: 'Padrão',
-      rate: '10% taxa',
-      benefits: ['Exposição padrão', 'Suporte padrão']
+      id: 'normal',
+      name: 'Normal',
+      rate: 'Taxa de 9,99%',
+      benefits: ['Anúncio Normal', 'Taxa básica de 9,99%']
     },
     {
       id: 'premium',
       name: 'Premium',
-      rate: '11.50% taxa',
+      rate: 'Taxa de 11,99%',
       recommended: true,
-      benefits: ['Exposição Alta', 'Destaque na Home', 'Suporte Prioritário']
+      benefits: ['Anúncio Premium', 'Destaque na página principal', 'Mais visibilidade', 'Taxa de 11,99%']
     },
     {
       id: 'deluxe',
       name: 'Deluxe',
-      rate: '12.50% taxa',
-      benefits: ['Exposição Máxima', 'Topo da Categoria', 'Email Marketing']
+      rate: 'Taxa de 12,99%',
+      benefits: ['Anúncio Deluxe', 'Destaque na página principal', 'Destaque nas pesquisas', 'Máxima visibilidade', 'Taxa de 12,99%']
     },
   ];
 
   const selectedModel = salesModels.find(m => m.id === formState.salesModelId);
   const inventoryCount = parseInventoryItems(inventoryPayload).length;
   const isDynamic = selectedModel?.slug?.includes('dinam');
+  const dynamicInventoryPayload = useMemo(() => {
+    const lines: string[] = [];
+    dynamicItems.forEach((item, index) => {
+      const qty = Math.max(0, Number(stripDigits(item.quantity)) || 0);
+      if (!qty) {
+        return;
+      }
+      const name = item.title.trim() || `Item ${index + 1}`;
+      const priceCents = parsePriceToCents(item.price || '');
+      const priceLabel = priceCents ? formatCurrency(priceCents) : '';
+      const line = priceLabel ? `${name} | ${priceLabel}` : name;
+      for (let i = 0; i < qty; i += 1) {
+        lines.push(line);
+      }
+    });
+    return lines.join('\n');
+  }, [dynamicItems]);
+  const dynamicStockCount = useMemo(
+    () =>
+      dynamicItems.reduce((acc, item) => {
+        const qty = Math.max(0, Number(stripDigits(item.quantity)) || 0);
+        return acc + qty;
+      }, 0),
+    [dynamicItems],
+  );
+  const updateDynamicItem = (id: string, updates: Partial<DynamicItem>) => {
+    setDynamicItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, ...updates } : item)),
+    );
+  };
+  const removeDynamicItem = (id: string) => {
+    setDynamicItems((prev) => prev.filter((item) => item.id !== id));
+  };
+  const addDynamicItem = () => {
+    setDynamicItems((prev) => [
+      ...prev,
+      { id: `item-${Date.now()}-${Math.random().toString(16).slice(2)}`, title: '', price: '', quantity: '1' },
+    ]);
+  };
+
+  useEffect(() => {
+    if (!isDynamic) {
+      return;
+    }
+    setInventoryPayload(dynamicInventoryPayload);
+    if (!priceInput.trim() && dynamicItems.length > 0) {
+      const firstPrice = parsePriceToCents(dynamicItems[0]?.price || '');
+      if (firstPrice > 0) {
+        setPriceInput(formatCurrency(firstPrice));
+        setFormState((prev) => ({ ...prev, priceCents: firstPrice }));
+      }
+    }
+  }, [dynamicInventoryPayload, dynamicItems, isDynamic, priceInput]);
+  const filteredCategories = categories.filter((category) => {
+    const term = categorySearch.trim().toLowerCase();
+    if (!term) {
+      return true;
+    }
+    return category.label.toLowerCase().includes(term);
+  });
 
   if (!user) return <div className="p-8 text-center text-slate-500">Faça login para anunciar.</div>; // Simplified auth guard
 
@@ -520,13 +605,19 @@ export default function Page() {
                 <div className="grid gap-6 md:grid-cols-3">
                   <div className="space-y-2">
                     <label className="text-xs font-bold uppercase tracking-wide text-slate-400">CATEGORIA</label>
+                    <Input
+                      value={categorySearch}
+                      onChange={(event) => setCategorySearch(event.target.value)}
+                      placeholder="Buscar categoria..."
+                      className="h-12 rounded-2xl border-slate-200 bg-slate-50 font-semibold text-slate-700 placeholder:text-slate-400"
+                    />
                     <Select
                       value={formState.categoryId || ''}
                       onChange={(e) => setFormState(prev => ({ ...prev, categoryId: e.target.value, categoryGroupId: '', categorySectionId: '' }))}
                       className="h-14 rounded-2xl border-slate-200 bg-slate-50 font-bold text-slate-700 hover:bg-slate-100 focus:border-meow-300"
                     >
                       <option value="">Selecione...</option>
-                      {categories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+                      {filteredCategories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
                     </Select>
                   </div>
 
@@ -577,6 +668,104 @@ export default function Page() {
                     <div className="h-20 rounded-2xl bg-slate-50 animate-pulse" />
                   )}
 
+                  {isDynamic ? (
+                    <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <h3 className="text-base font-bold text-slate-800">
+                            Itens do anúncio dinâmico
+                          </h3>
+                          <p className="text-xs text-slate-500">
+                            Crie opções para o cliente escolher a conta desejada.
+                          </p>
+                        </div>
+                        <span className="text-xs font-bold text-slate-400">
+                          Total em estoque: {dynamicStockCount}
+                        </span>
+                      </div>
+
+                      <div className="mt-4 space-y-4">
+                        {dynamicItems.map((item, index) => (
+                          <div
+                            key={item.id}
+                            className="rounded-2xl border border-slate-100 bg-slate-50 p-4"
+                          >
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-sm font-bold text-slate-800">
+                                Item #{index + 1}
+                              </h4>
+                              {dynamicItems.length > 1 ? (
+                                <button
+                                  type="button"
+                                  onClick={() => removeDynamicItem(item.id)}
+                                  className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+                                  aria-label="Remover item"
+                                >
+                                  <X size={14} />
+                                </button>
+                              ) : null}
+                            </div>
+                            <div className="mt-3 grid gap-3 md:grid-cols-2">
+                              <div className="space-y-2">
+                                <label className="text-xs font-bold uppercase tracking-wide text-slate-400">
+                                  Título
+                                </label>
+                                <Input
+                                  value={item.title}
+                                  onChange={(event) =>
+                                    updateDynamicItem(item.id, { title: event.target.value })
+                                  }
+                                  placeholder="Ex: Conta com 4.8k de vbucks"
+                                  className="h-12 rounded-xl border-slate-200 bg-white font-semibold text-slate-700"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <label className="text-xs font-bold uppercase tracking-wide text-slate-400">
+                                  Preço
+                                </label>
+                                <Input
+                                  value={item.price}
+                                  onChange={(event) =>
+                                    updateDynamicItem(item.id, { price: event.target.value })
+                                  }
+                                  placeholder="R$ 0,00"
+                                  className="h-12 rounded-xl border-slate-200 bg-white font-semibold text-slate-700"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <label className="text-xs font-bold uppercase tracking-wide text-slate-400">
+                                  Quantidade em estoque
+                                </label>
+                                <Input
+                                  value={item.quantity}
+                                  onChange={(event) =>
+                                    updateDynamicItem(item.id, {
+                                      quantity: stripDigits(event.target.value),
+                                    })
+                                  }
+                                  placeholder="0"
+                                  className="h-12 rounded-xl border-slate-200 bg-white font-semibold text-slate-700"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="mt-4 flex justify-center">
+                        <Button
+                          type="button"
+                          size="sm"
+                          className="gap-2"
+                          onClick={addDynamicItem}
+                        >
+                          <Plus size={14} aria-hidden />
+                          Adicionar item
+                        </Button>
+                      </div>
+                    </div>
+                  ) : null}
+
                   <div className="grid gap-8 md:grid-cols-2">
                     {/* Price */}
                     <div className="space-y-2">
@@ -598,7 +787,7 @@ export default function Page() {
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-wide text-slate-400">ESTOQUE</label>
                       <Input
-                        value={autoDelivery ? (isDynamic ? inventoryCount : 1) : 1}
+                        value={autoDelivery ? (isDynamic ? dynamicStockCount : inventoryCount) : 1}
                         readOnly
                         className="h-14 rounded-xl border-slate-200 bg-slate-50 pl-4 text-xl font-bold text-slate-800"
                       />
@@ -624,7 +813,7 @@ export default function Page() {
                       />
                     </div>
 
-                    {autoDelivery && (
+                    {autoDelivery && !isDynamic && (
                       <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
                         <label className="text-xs font-bold uppercase tracking-wide text-emerald-700">DADOS PARA ENTREGA (FICA OCULTO ATÉ A VENDA)</label>
                         <Textarea
@@ -639,6 +828,12 @@ export default function Page() {
                         </p>
                       </div>
                     )}
+                    {autoDelivery && isDynamic ? (
+                      <p className="text-xs font-semibold text-emerald-700">
+                        Os itens dinâmicos geram o estoque automaticamente.
+                      </p>
+                    ) : null}
+
                   </div>
                 </div>
               </FormSection>
@@ -721,11 +916,11 @@ export default function Page() {
                   <span className="text-xl font-black text-meow-deep">
                     {(() => {
                       const feeMap: Record<string, number> = {
-                        padrao: 0.10,
-                        premium: 0.115,
-                        deluxe: 0.125,
+                        normal: 0.0999,
+                        premium: 0.1199,
+                        deluxe: 0.1299,
                       };
-                      const fee = feeMap[listingType] || 0.10;
+                      const fee = feeMap[listingType] || 0.0999;
                       const total = formState.priceCents * (1 - fee);
                       return formatCurrency(total);
                     })()}

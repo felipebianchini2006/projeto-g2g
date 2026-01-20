@@ -631,7 +631,7 @@ export const AccountDataContent = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="mt-4 text-xs text-slate-500">
+                  <div className="mt-4 text-xs text-slate-500 text-center">
                     Clique em gerar Pix para criar o pagamento.
                   </div>
                 )}

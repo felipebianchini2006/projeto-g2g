@@ -43,7 +43,7 @@ describe('DashboardLayout', () => {
 
         // Check items in Menu
         expect(screen.getByText('Visão geral')).toBeVisible();
-        expect(screen.getByText('Minhas compras')).toBeVisible();
+        expect(screen.getByText('Minhas perguntas')).toBeVisible();
         // Ensure "Painel do vendedor" is NOT present for USER
         expect(screen.queryByText('Painel do vendedor')).toBeNull();
     });

@@ -831,7 +831,11 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
                         className="h-full w-full rounded-full object-cover"
                       />
                     ) : (
-                      resolveInitials(sellerProfile.displayName)
+                      <img
+                        src="/assets/meoow/avatar-01.png"
+                        alt="Avatar padrão"
+                        className="h-full w-full rounded-full object-cover"
+                      />
                     )}
                   </div>
                   <div className="flex-1 overflow-hidden">

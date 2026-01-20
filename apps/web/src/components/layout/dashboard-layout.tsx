@@ -116,11 +116,11 @@ const accountNav = (
       title: 'Menu',
       items: [
         { label: 'Visão geral', href: '/conta' },
-        { label: 'Minhas compras', href: '/conta/pedidos' },
-        { label: 'Favoritos', href: '/conta/favoritos' },
         { label: 'Minhas perguntas', href: '/conta/perguntas' },
-        { label: 'Carteira', href: '/conta/carteira' },
+        ...(isSeller ? [{ label: 'Minhas vendas', href: '/conta/vendas' }] : []),
         { label: 'Meus tickets', href: '/conta/tickets' },
+        { label: 'Favoritos', href: '/conta/favoritos' },
+        { label: 'Carteira', href: '/conta/carteira' },
       ],
     },
   ];
@@ -130,8 +130,7 @@ const accountNav = (
       title: 'Vendedor',
       items: [
         { label: 'Painel do vendedor', href: '/conta/vendedor' },
-        { label: 'Meus anúncios', href: '/conta/anuncios' },
-        { label: 'Minhas vendas', href: '/conta/vendas' },
+        { label: 'Meus an?ncios', href: '/conta/anuncios' },
         { label: 'Perguntas recebidas', href: '/conta/perguntas-recebidas' },
       ],
     });

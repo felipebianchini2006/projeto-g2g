@@ -16,14 +16,14 @@ describe('HomeContent', () => {
     it('renders the benefit texts correctly', async () => {
         render(<HomeContent />);
 
-        expect(screen.getByText('Frete Gratis')).toBeInTheDocument();
-        expect(screen.getByText('acima de R$349')).toBeInTheDocument();
-        expect(screen.getByText('Descontos')).toBeInTheDocument();
-        expect(screen.getByText('em pagamentos a vista')).toBeInTheDocument();
-        expect(screen.getByText('Entrega local')).toBeInTheDocument();
-        expect(screen.getByText('rapido')).toBeInTheDocument();
-        expect(screen.getByText('Seguranca')).toBeInTheDocument();
-        expect(screen.getByText('Loja oficial')).toBeInTheDocument();
+        expect(screen.getByText('Entrega garantida')).toBeInTheDocument();
+        expect(screen.getByText('Receba seu produto')).toBeInTheDocument();
+        expect(screen.getByText('Segurança')).toBeInTheDocument();
+        expect(screen.getByText('Site seguro')).toBeInTheDocument();
+        expect(screen.getByText('Entrega rapida')).toBeInTheDocument();
+        expect(screen.getByText('Receba rapidamente')).toBeInTheDocument();
+        expect(screen.getByText('Variedade')).toBeInTheDocument();
+        expect(screen.getByText('Compre e venda')).toBeInTheDocument();
     });
 
     it('renders highlights centered and major categories', async () => {

@@ -90,8 +90,15 @@ html[data-theme='dark'] [class*="bg-meow-100"] {
   background-color: var(--surface-soft) !important;
 }
 
+html[data-theme='dark'] [class*="bg-meow-50/"],
+html[data-theme='dark'] [class*="bg-meow-100/"] {
+  background-color: var(--surface-soft) !important;
+}
+
 html[data-theme='dark'] [class*="border-meow-100"],
-html[data-theme='dark'] [class*="border-meow-200"] {
+html[data-theme='dark'] [class*="border-meow-200"],
+html[data-theme='dark'] [class*="border-meow-100/"],
+html[data-theme='dark'] [class*="border-meow-200/"] {
   border-color: var(--border-soft) !important;
 }
 
@@ -117,6 +124,12 @@ html[data-theme='dark'] [class*="text-meow-charcoal/"] {
 
 html[data-theme='dark'] [class~="bg-slate-50"] {
   background-color: var(--surface-muted) !important;
+}
+
+html[data-theme='dark'] [class*="bg-slate-50/"],
+html[data-theme='dark'] [class*="bg-slate-100/"],
+html[data-theme='dark'] [class*="bg-slate-200/"] {
+  background-color: var(--surface-soft) !important;
 }
 
 html[data-theme='dark'] [class~="bg-slate-100"],

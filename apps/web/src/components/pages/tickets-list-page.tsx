@@ -2,7 +2,15 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Info, MessageSquarePlus, MoreHorizontal, Search } from 'lucide-react';
+import {
+  Clock,
+  Info,
+  MessageSquarePlus,
+  MoreHorizontal,
+  Search,
+  Ticket,
+  TicketCheck,
+} from 'lucide-react';
 
 import { ApiClientError } from '../../lib/api-client';
 import { ordersApi, type Order } from '../../lib/orders-api';
@@ -253,6 +261,29 @@ export const TicketsListContent = ({ initialOrderId }: TicketsListContentProps) 
   }, [state.tickets]);
 
   const ticketCount = state.tickets.length;
+  const summaryCards = [
+    {
+      label: 'Tickets abertos',
+      value: openCount,
+      description: 'Aguardando resposta.',
+      icon: Ticket,
+      tone: 'from-emerald-500 via-emerald-500 to-emerald-600',
+    },
+    {
+      label: 'Resolvidos',
+      value: resolvedCount,
+      description: 'Encerrados com sucesso.',
+      icon: TicketCheck,
+      tone: 'from-blue-500 via-blue-500 to-indigo-500',
+    },
+    {
+      label: 'Tempo medio',
+      value: averageResolution,
+      description: 'De abertura ate resolucao.',
+      icon: Clock,
+      tone: 'from-pink-500 via-rose-500 to-fuchsia-500',
+    },
+  ];
 
   const selectedTicket = useMemo(
     () => state.tickets.find((ticket) => ticket.id === selectedTicketId) ?? null,
@@ -356,27 +387,28 @@ export const TicketsListContent = ({ initialOrderId }: TicketsListContentProps) 
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
-          <Card className="rounded-[26px] border border-slate-100 p-5 shadow-card">
-            <p className="text-xs font-semibold uppercase tracking-[0.3px] text-slate-400">
-              Tickets abertos
-            </p>
-            <p className="mt-3 text-3xl font-black text-meow-charcoal">{openCount}</p>
-            <p className="mt-1 text-xs text-meow-muted">Aguardando resposta.</p>
-          </Card>
-          <Card className="rounded-[26px] border border-slate-100 p-5 shadow-card">
-            <p className="text-xs font-semibold uppercase tracking-[0.3px] text-slate-400">
-              Resolvidos
-            </p>
-            <p className="mt-3 text-3xl font-black text-meow-charcoal">{resolvedCount}</p>
-            <p className="mt-1 text-xs text-meow-muted">Encerrados com sucesso.</p>
-          </Card>
-          <Card className="rounded-[26px] border border-slate-100 p-5 shadow-card">
-            <p className="text-xs font-semibold uppercase tracking-[0.3px] text-slate-400">
-              Tempo medio
-            </p>
-            <p className="mt-3 text-3xl font-black text-meow-charcoal">{averageResolution}</p>
-            <p className="mt-1 text-xs text-meow-muted">De abertura ate resolucao.</p>
-          </Card>
+          {summaryCards.map((card) => {
+            const Icon = card.icon;
+            return (
+              <Card
+                key={card.label}
+                className={`relative overflow-hidden rounded-[26px] border-0 bg-gradient-to-br ${card.tone} p-5 text-white shadow-[0_18px_40px_rgba(15,23,42,0.18)]`}
+              >
+                <div className="absolute -right-6 -top-6 h-16 w-16 rounded-full bg-white/15" />
+                <div className="absolute right-8 top-6 h-10 w-10 rounded-full bg-white/10" />
+                <div className="relative z-10">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/20">
+                    <Icon size={18} aria-hidden />
+                  </div>
+                  <p className="mt-4 text-xs font-semibold uppercase tracking-[0.3px] text-white/80">
+                    {card.label}
+                  </p>
+                  <p className="mt-2 text-3xl font-black">{card.value}</p>
+                  <p className="mt-1 text-xs text-white/80">{card.description}</p>
+                </div>
+              </Card>
+            );
+          })}
         </div>
 
         {state.error ? (

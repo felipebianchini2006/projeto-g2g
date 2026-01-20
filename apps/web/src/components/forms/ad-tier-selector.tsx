@@ -23,7 +23,7 @@ export function AdTierSelector({
     className = '',
 }: AdTierSelectorProps) {
     return (
-        <div className={className}>
+        <div className={`rounded-2xl border border-slate-100 bg-white p-6 shadow-sm ${className}`}>
             <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wide">Destaque do Anúncio</h2>
             </div>
@@ -37,7 +37,7 @@ export function AdTierSelector({
                             key={tier.id}
                             type="button"
                             onClick={() => onChange(tier.id)}
-                            className={`relative flex flex-col rounded-2xl border pk-6 text-left transition-all duration-200 ${isSelected
+                            className={`relative flex flex-col rounded-2xl border p-6 text-left transition-all duration-200 ${isSelected
                                 ? 'border-2 border-meow-500 bg-meow-50/50 shadow-md ring-0'
                                 : 'border border-slate-200 bg-slate-50 hover:border-slate-300 hover:shadow-sm'
                                 }`}

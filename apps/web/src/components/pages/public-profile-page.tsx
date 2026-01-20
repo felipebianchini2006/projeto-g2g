@@ -22,6 +22,7 @@ import {
   X,
   Trash2,
   Flag,
+  Pencil,
 } from 'lucide-react';
 
 import { communityApi } from '../../lib/community-api';
@@ -59,6 +60,7 @@ type ProfileHeaderCardProps = {
   canChat: boolean;
   chatLoading: boolean;
   onChat: () => void;
+  onEditProfile?: () => void;
 };
 
 type ProfileTabsProps = {
@@ -141,20 +143,24 @@ const ProfileHeaderCard = ({
   <Card className="-mt-16 rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
     <div className="flex flex-wrap items-center justify-between gap-4">
       <div className="flex items-center gap-4">
-        <div className="relative h-24 w-24 overflow-hidden rounded-[24px] bg-slate-100">
-          {profile.avatarUrl ? (
-            <img
-              src={profile.avatarUrl}
-              alt={profile.displayName}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="grid h-full w-full place-items-center text-2xl font-bold text-slate-400">
-              {profile.displayName.slice(0, 2).toUpperCase()}
-            </div>
-          )}
+        <div className="relative">
+          <div className="h-20 w-20 sm:h-24 sm:w-24 overflow-hidden rounded-full bg-slate-100 aspect-square">
+            {profile.avatarUrl ? (
+              <img
+                src={profile.avatarUrl}
+                alt={profile.displayName}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <img
+                src="/assets/meoow/avatar-02.png"
+                alt="Avatar padrão"
+                className="h-full w-full object-cover"
+              />
+            )}
+          </div>
           {profile.isOnline ? (
-            <span className="absolute bottom-2 right-2 rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-bold uppercase text-white">
+            <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-bold uppercase text-white shadow-sm">
               Online
             </span>
           ) : null}
@@ -225,6 +231,15 @@ const ProfileHeaderCard = ({
             className="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-meow-charcoal"
           >
             Entrar para conversar
+          </Link>
+        ) : null}
+        {isOwner ? (
+          <Link
+            href="/conta/dados"
+            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-meow-charcoal hover:bg-slate-50 transition"
+          >
+            <Pencil size={14} aria-hidden />
+            Editar Perfil
           </Link>
         ) : null}
         <Button variant="secondary" size="icon" className="rounded-full">
@@ -591,6 +606,29 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
       return () => { active = false; };
     }
   }, [activeTab, profileId, accessToken, postsState.status]);
+
+  // Load Listings
+  useEffect(() => {
+    if (profileState.status !== 'ready' || profileState.profile?.role === 'USER') {
+      setListingsStatus('ready');
+      return;
+    }
+    let active = true;
+    setListingsStatus('loading');
+    fetchPublicListings({ seller: profileId, take: 20 })
+      .then(res => {
+        if (active) {
+          setListings(res.listings);
+          setListingsStatus('ready');
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setListingsStatus('ready');
+        }
+      });
+    return () => { active = false; };
+  }, [profileId, profileState.status, profileState.profile?.role]);
 
   const showTabs = profileState.profile?.role !== 'USER';
 
