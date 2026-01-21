@@ -2,7 +2,9 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Param,
+  Patch,
   Post,
   Req,
   UnauthorizedException,
@@ -18,6 +20,7 @@ import type { JwtPayload } from '../auth/auth.types';
 import { InventoryAddDto } from './dto/inventory-add.dto';
 import { InventoryImportDto } from './dto/inventory-import.dto';
 import { InventoryReserveDto } from './dto/inventory-reserve.dto';
+import { InventoryUpdateDto } from './dto/inventory-update.dto';
 import { InventoryService } from './inventory.service';
 
 type AuthenticatedRequest = Request & { user?: JwtPayload };
@@ -36,6 +39,25 @@ export class InventoryController {
   ) {
     const userId = this.getUserId(req);
     return this.inventoryService.addInventoryItems(userId, listingId, dto.codes);
+  }
+
+  @Get('items')
+  @Roles(UserRole.SELLER, UserRole.ADMIN)
+  list(@Req() req: AuthenticatedRequest, @Param('listingId') listingId: string) {
+    const userId = this.getUserId(req);
+    return this.inventoryService.listInventoryItems(userId, listingId);
+  }
+
+  @Patch('items/:itemId')
+  @Roles(UserRole.SELLER, UserRole.ADMIN)
+  update(
+    @Req() req: AuthenticatedRequest,
+    @Param('listingId') listingId: string,
+    @Param('itemId') itemId: string,
+    @Body() dto: InventoryUpdateDto,
+  ) {
+    const userId = this.getUserId(req);
+    return this.inventoryService.updateInventoryItem(userId, listingId, itemId, dto);
   }
 
   @Post('import')

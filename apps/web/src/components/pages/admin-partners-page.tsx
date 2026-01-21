@@ -262,7 +262,13 @@ export const AdminPartnersContent = () => {
                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => startEditing(partner)}>
                           <Edit2 size={14} className="text-slate-400 hover:text-meow-deep" />
                         </Button>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => handleLoadStats(partner.id)}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={() => handleLoadStats(partner.id)}
+                          aria-label="Ver estatisticas"
+                        >
                           <BarChart2 size={14} className="text-slate-400 hover:text-blue-600" />
                         </Button>
                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => {

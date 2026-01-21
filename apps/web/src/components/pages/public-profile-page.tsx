@@ -235,7 +235,7 @@ const ProfileHeaderCard = ({
         ) : null}
         {isOwner ? (
           <Link
-            href="/conta/dados"
+            href="/conta/meus-dados"
             className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-meow-charcoal hover:bg-slate-50 transition"
           >
             <Pencil size={14} aria-hidden />
@@ -990,14 +990,9 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
                 ) : null}
 
                 {postsState.status === 'loading' ? (
-                  <div className="space-y-4">
-                    {Array.from({ length: 3 }).map((_, index) => (
-                      <div
-                        key={index}
-                        className="h-40 rounded-[24px] border border-slate-100 bg-slate-50"
-                      />
-                    ))}
-                  </div>
+                  <Card className="rounded-[24px] border border-slate-100 p-6 text-sm text-meow-muted shadow-card">
+                    Carregando postagens...
+                  </Card>
                 ) : null}
 
                 {postsState.status === 'error' ? (
@@ -1297,15 +1292,9 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
             {showTabs && activeTab === 'avaliacoes' ? (
               <div className="space-y-4">
                 {reviewsState.status === 'loading' ? (
-                  <div className="space-y-4">
-                    <div className="h-36 rounded-[24px] border border-slate-100 bg-rose-50" />
-                    {Array.from({ length: 3 }).map((_, index) => (
-                      <div
-                        key={index}
-                        className="h-32 rounded-[24px] border border-slate-100 bg-slate-50"
-                      />
-                    ))}
-                  </div>
+                  <Card className="rounded-[24px] border border-slate-100 p-6 text-sm text-meow-muted shadow-card">
+                    Carregando avaliacoes...
+                  </Card>
                 ) : null}
 
                 {reviewsState.status === 'error' ? (

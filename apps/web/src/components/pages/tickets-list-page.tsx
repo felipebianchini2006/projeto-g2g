@@ -281,7 +281,7 @@ export const TicketsListContent = ({ initialOrderId }: TicketsListContentProps) 
       value: averageResolution,
       description: 'De abertura ate resolucao.',
       icon: Clock,
-      tone: 'from-pink-500 via-rose-500 to-fuchsia-500',
+      tone: 'from-violet-500 via-purple-500 to-indigo-500',
     },
   ];
 

@@ -726,9 +726,9 @@ export default function Page() {
                                 <Input
                                   value={item.price}
                                   onChange={(event) =>
-                                    updateDynamicItem(item.id, { price: event.target.value })
+                                    updateDynamicItem(item.id, { price: stripDigits(event.target.value) })
                                   }
-                                  placeholder="R$ 0,00"
+                                  placeholder="0"
                                   className="h-12 rounded-xl border-slate-200 bg-white font-semibold text-slate-700"
                                 />
                               </div>

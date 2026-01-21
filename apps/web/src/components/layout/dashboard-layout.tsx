@@ -130,7 +130,7 @@ const accountNav = (
       title: 'Vendedor',
       items: [
         { label: 'Painel do vendedor', href: '/conta/vendedor' },
-        { label: 'Meus an?ncios', href: '/conta/anuncios' },
+        { label: 'Meus anúncios', href: '/conta/anuncios' },
         { label: 'Perguntas recebidas', href: '/conta/perguntas-recebidas' },
       ],
     });
@@ -537,7 +537,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       <div className="min-h-screen bg-meow-gradient">
         <SiteHeader />
         <section className="px-4 pb-12 pt-8">
-          <div className="mx-auto w-full max-w-[1200px]">
+          <div className="mx-auto w-full max-w-[1400px]">
             <div className="flex items-center justify-between gap-3">
               <span className="text-xs font-bold uppercase tracking-[0.4px] text-meow-muted">
                 {headerTitle}

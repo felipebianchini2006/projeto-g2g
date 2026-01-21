@@ -4,6 +4,7 @@ import { emitGlobalError } from './global-error';
 export type ListingStatus = 'DRAFT' | 'PENDING' | 'PUBLISHED' | 'SUSPENDED';
 export type DeliveryType = 'AUTO' | 'MANUAL';
 export type ListingMediaType = 'IMAGE' | 'VIDEO';
+export type InventoryStatus = 'AVAILABLE' | 'RESERVED' | 'DELIVERED' | 'DISABLED';
 
 export type ListingMedia = {
   id: string;
@@ -58,6 +59,22 @@ export type InventoryActionResult = {
   created?: number;
   skipped?: number;
   removed?: number;
+};
+
+export type InventoryItem = {
+  id: string;
+  code: string;
+  status: InventoryStatus;
+  orderItemId?: string | null;
+  reservedAt?: string | null;
+  deliveredAt?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type InventoryUpdateInput = {
+  code?: string;
+  status?: InventoryStatus;
 };
 
 const resolveBaseUrl = () =>
@@ -154,6 +171,23 @@ export const marketplaceApi = {
       method: 'POST',
       headers: authHeaders(token),
       body: JSON.stringify({ quantity }),
+    }),
+
+  listInventoryItems: (token: string | null, listingId: string) =>
+    apiFetch<InventoryItem[]>(`/listings/${listingId}/inventory/items`, {
+      headers: authHeaders(token),
+    }),
+
+  updateInventoryItem: (
+    token: string | null,
+    listingId: string,
+    itemId: string,
+    payload: InventoryUpdateInput,
+  ) =>
+    apiFetch<InventoryItem>(`/listings/${listingId}/inventory/items/${itemId}`, {
+      method: 'PATCH',
+      headers: authHeaders(token),
+      body: JSON.stringify(payload),
     }),
 
   uploadMedia: async (

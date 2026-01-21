@@ -47,7 +47,7 @@ export function ModelSelector({
                                 {option.name}
                             </h3>
 
-                            <p className="text-[10px] leading-tight text-slate-500 line-clamp-2">
+                            <p className="text-[10px] leading-tight text-slate-500">
                                 {option.description}
                             </p>
 

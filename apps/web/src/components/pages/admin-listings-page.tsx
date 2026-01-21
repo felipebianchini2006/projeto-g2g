@@ -43,7 +43,7 @@ import { marketplaceApi } from '../../lib/marketplace-api';
 import { useAuth } from '../auth/auth-provider';
 import { AdminShell } from '../admin/admin-shell';
 import { Card } from '../ui/card';
-import { Button } from '../ui/button';
+import { Button, buttonVariants } from '../ui/button';
 import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
 import { Textarea } from '../ui/textarea';
@@ -784,6 +784,16 @@ export const AdminListingsContent = ({
                       <Badge variant={statusBadgeVariant[selectedListing.status]}>{statusLabel[selectedListing.status]}</Badge>
                     </div>
                   </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Link
+                      href={`/anuncios/${selectedListing.id}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={buttonVariants({ variant: 'outline', size: 'sm' })}
+                    >
+                      <Eye size={14} className="mr-2" /> Ver anuncio completo
+                    </Link>
+                  </div>
                 </div>
 
                 <Tabs defaultValue="details" className="w-full">
@@ -809,6 +819,13 @@ export const AdminListingsContent = ({
                       </div>
 
                       <div className="space-y-2">
+                        <h3 className="text-xs font-bold uppercase text-slate-400">Politica de reembolso</h3>
+                        <div className="rounded-xl bg-slate-50 p-4 text-sm text-slate-700 whitespace-pre-wrap border border-slate-100">
+                          {selectedListing.refundPolicy || 'Sem politica definida.'}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
                         <h3 className="text-xs font-bold uppercase text-slate-400">Descrição</h3>
                         <div className="rounded-xl bg-slate-50 p-4 text-sm text-slate-700 whitespace-pre-wrap border border-slate-100">
                           {selectedListing.description || 'Sem descrição.'}
@@ -819,16 +836,68 @@ export const AdminListingsContent = ({
                         <h3 className="text-xs font-bold uppercase text-slate-400">Informações Técnicas</h3>
                         <div className="text-xs space-y-2 text-slate-600">
                           <div className="flex justify-between border-b border-slate-100 pb-2">
+                            <span>Seller</span>
+                            <span className="font-mono">{selectedListing.seller?.email ?? '-'}</span>
+                          </div>
+                          <div className="flex justify-between border-b border-slate-100 pb-2">
                             <span>Seller ID</span>
                             <span className="font-mono">{selectedListing.sellerId}</span>
+                          </div>
+                          <div className="flex justify-between border-b border-slate-100 pb-2">
+                            <span>Categoria</span>
+                            <span>{selectedListing.category?.name ?? '-'}</span>
+                          </div>
+                          <div className="flex justify-between border-b border-slate-100 pb-2">
+                            <span>Subcategoria</span>
+                            <span>{selectedListing.categoryGroup?.name ?? '-'}</span>
+                          </div>
+                          <div className="flex justify-between border-b border-slate-100 pb-2">
+                            <span>Secao</span>
+                            <span>{selectedListing.categorySection?.name ?? '-'}</span>
                           </div>
                           <div className="flex justify-between border-b border-slate-100 pb-2">
                             <span>Categoria ID</span>
                             <span className="font-mono">{selectedListing.categoryId}</span>
                           </div>
                           <div className="flex justify-between border-b border-slate-100 pb-2">
+                            <span>Subcategoria ID</span>
+                            <span className="font-mono">{selectedListing.categoryGroupId ?? '-'}</span>
+                          </div>
+                          <div className="flex justify-between border-b border-slate-100 pb-2">
+                            <span>Secao ID</span>
+                            <span className="font-mono">{selectedListing.categorySectionId ?? '-'}</span>
+                          </div>
+                          <div className="flex justify-between border-b border-slate-100 pb-2">
+                            <span>Modelo de venda</span>
+                            <span>{selectedListing.salesModel?.name ?? '-'}</span>
+                          </div>
+                          <div className="flex justify-between border-b border-slate-100 pb-2">
+                            <span>Origem</span>
+                            <span>{selectedListing.origin?.name ?? '-'}</span>
+                          </div>
+                          <div className="flex justify-between border-b border-slate-100 pb-2">
+                            <span>Recuperacao</span>
+                            <span>{selectedListing.recoveryOption?.name ?? '-'}</span>
+                          </div>
+                          <div className="flex justify-between border-b border-slate-100 pb-2">
+                            <span>Status</span>
+                            <span>{statusLabel[selectedListing.status]}</span>
+                          </div>
+                          <div className="flex justify-between border-b border-slate-100 pb-2">
                             <span>Criado em</span>
                             <span>{new Date(selectedListing.createdAt).toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between border-b border-slate-100 pb-2">
+                            <span>Atualizado em</span>
+                            <span>{new Date(selectedListing.updatedAt).toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between border-b border-slate-100 pb-2">
+                            <span>Destaque</span>
+                            <span>{selectedListing.featuredAt ? 'Sim' : 'Nao'}</span>
+                          </div>
+                          <div className="flex justify-between border-b border-slate-100 pb-2">
+                            <span>Must Have</span>
+                            <span>{selectedListing.mustHaveAt ? 'Sim' : 'Nao'}</span>
                           </div>
                         </div>
                       </div>

@@ -7,6 +7,7 @@ import {
   Percent,
   Calendar,
   Users,
+  BarChart2,
   Plus,
   RefreshCw,
   Edit2,
@@ -69,6 +70,7 @@ export const AdminCouponsContent = () => {
   const [partners, setPartners] = useState<Partner[]>([]);
   const [form, setForm] = useState<CouponForm>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [viewingStatsId, setViewingStatsId] = useState<string | null>(null);
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -124,10 +126,12 @@ export const AdminCouponsContent = () => {
   const resetForm = () => {
     setForm(emptyForm);
     setEditingId(null);
+    setViewingStatsId(null);
   };
 
   const startEditing = (coupon: Coupon) => {
     setEditingId(coupon.id);
+    setViewingStatsId(null);
     setForm({
       code: coupon.code,
       partnerId: coupon.partnerId ?? '',
@@ -140,10 +144,20 @@ export const AdminCouponsContent = () => {
       maxUses: coupon.maxUses ? String(coupon.maxUses) : '',
     });
   };
+  const startViewingStats = (couponId: string) => {
+    setViewingStatsId(couponId);
+    setEditingId(null);
+  };
 
   const discountPercent = Number(form.discountPercent);
   const discountCents = Number(form.discountCents);
   const maxUses = Number(form.maxUses);
+  const selectedCoupon = useMemo(
+    () => (viewingStatsId ? coupons.find((coupon) => coupon.id === viewingStatsId) : null),
+    [coupons, viewingStatsId],
+  );
+  const formatDate = (value?: string | null) =>
+    value ? new Date(value).toLocaleDateString('pt-BR') : '—';
 
   const canSave =
     form.code.trim().length > 0 &&
@@ -293,6 +307,15 @@ export const AdminCouponsContent = () => {
                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => startEditing(coupon)}>
                           <Edit2 size={14} className="text-slate-400 hover:text-meow-deep" />
                         </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={() => startViewingStats(coupon.id)}
+                          aria-label="Ver estatisticas"
+                        >
+                          <BarChart2 size={14} className="text-slate-400 hover:text-blue-600" />
+                        </Button>
                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => {
                           if (confirm('Tem certeza que deseja excluir este cupom?')) {
                             runAction('delete', async () => {
@@ -314,7 +337,64 @@ export const AdminCouponsContent = () => {
         {/* Right Column: Form */}
         <div className="relative">
           <div className="sticky top-6">
-            <Card className="rounded-2xl border border-slate-200 shadow-card">
+            {viewingStatsId && selectedCoupon ? (
+              <Card className="rounded-2xl border border-blue-100 bg-blue-50/50 p-0 shadow-card overflow-hidden">
+                <div className="bg-blue-100 px-5 py-3 border-b border-blue-200 flex items-center justify-between">
+                  <h2 className="text-sm font-bold text-blue-900 flex items-center gap-2">
+                    <BarChart2 size={16} /> Estatisticas do cupom
+                  </h2>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 w-6 p-0 hover:bg-blue-200 text-blue-700"
+                    onClick={() => setViewingStatsId(null)}
+                  >
+                    <XCircle size={14} />
+                  </Button>
+                </div>
+                <div className="p-5 grid gap-4">
+                  <div className="bg-white p-3 rounded-xl border border-blue-100 shadow-sm">
+                    <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider block mb-1">Usos</span>
+                    <span className="text-xl font-black text-blue-900">
+                      {selectedCoupon.usesCount}
+                      {selectedCoupon.maxUses ? ` / ${selectedCoupon.maxUses}` : ''}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-white p-3 rounded-xl border border-blue-100 shadow-sm">
+                      <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider block mb-1">Desconto</span>
+                      <span className="text-sm font-black text-blue-900">
+                        {selectedCoupon.discountBps
+                          ? `${(selectedCoupon.discountBps / 100).toFixed(2)}%`
+                          : formatCurrency(selectedCoupon.discountCents ?? 0)}
+                      </span>
+                    </div>
+                    <div className="bg-white p-3 rounded-xl border border-blue-100 shadow-sm">
+                      <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider block mb-1">Status</span>
+                      <span className="text-sm font-black text-blue-900">
+                        {selectedCoupon.active ? 'Ativo' : 'Inativo'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="bg-white p-3 rounded-xl border border-blue-100 shadow-sm">
+                    <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider block mb-1">Validade</span>
+                    <span className="text-xs font-semibold text-blue-900">
+                      Inicio: {formatDate(selectedCoupon.startsAt)}
+                    </span>
+                    <span className="text-xs font-semibold text-blue-900">
+                      Fim: {formatDate(selectedCoupon.endsAt)}
+                    </span>
+                  </div>
+                  <div className="bg-white p-3 rounded-xl border border-blue-100 shadow-sm">
+                    <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider block mb-1">Parceiro</span>
+                    <span className="text-sm font-black text-blue-900">
+                      {selectedCoupon.partner?.name ?? 'Global'}
+                    </span>
+                  </div>
+                </div>
+              </Card>
+            ) : (
+              <Card className="rounded-2xl border border-slate-200 shadow-card">
               <div className="bg-slate-50 px-5 py-4 border-b border-slate-100 flex items-center justify-between">
                 <div>
                   <h2 className="text-md font-bold text-meow-charcoal">
@@ -471,6 +551,7 @@ export const AdminCouponsContent = () => {
                 </Button>
               </div>
             </Card>
+            )}
           </div>
         </div>
       </div>

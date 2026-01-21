@@ -42,7 +42,7 @@ export function AdTierSelector({
                                 : 'border border-slate-200 bg-slate-50 hover:border-slate-300 hover:shadow-sm'
                                 }`}
                         >
-                            <div className="p-4">
+                            <div className="flex h-full flex-col p-4">
                                 <div className="mb-4 flex items-center justify-between">
                                     <span className={`text-lg font-bold ${isSelected ? 'text-meow-600' : 'text-slate-700'}`}>
                                         {tier.name}

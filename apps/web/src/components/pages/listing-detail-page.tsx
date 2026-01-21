@@ -933,11 +933,17 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
                 </div>
               </div>
               <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
-                <div className="flex items-center gap-2 text-sm font-black text-meow-charcoal">
-                  <ShieldCheck size={18} className="text-emerald-500" aria-hidden />
-                  Entrega garantida
+                <div className="flex flex-col items-center text-center">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-800">
+                    <ShieldCheck size={20} aria-hidden />
+                  </div>
+                  <h4 className="mt-3 text-lg font-black text-meow-charcoal">
+                    Entrega garantida
+                  </h4>
+                  <p className="mt-1 text-sm text-meow-muted">
+                    Ou o seu dinheiro de volta
+                  </p>
                 </div>
-                <p className="mt-2 text-xs text-slate-400">Ou o seu dinheiro de volta</p>
               </div>
             </>) : null}
           </div>

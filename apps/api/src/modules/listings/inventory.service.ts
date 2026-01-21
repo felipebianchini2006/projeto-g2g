@@ -7,6 +7,7 @@ import {
 import { DeliveryType, InventoryStatus, Prisma } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
+import { InventoryUpdateDto } from './dto/inventory-update.dto';
 
 type ReserveOptions = {
   holdMs?: number;
@@ -65,6 +66,73 @@ export class InventoryService {
     }
 
     return { removed: result.count };
+  }
+
+  async listInventoryItems(sellerId: string, listingId: string) {
+    await this.ensureAutoListing(sellerId, listingId);
+    return this.prisma.inventoryItem.findMany({
+      where: { listingId },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        code: true,
+        status: true,
+        orderItemId: true,
+        reservedAt: true,
+        deliveredAt: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  }
+
+  async updateInventoryItem(
+    sellerId: string,
+    listingId: string,
+    itemId: string,
+    dto: InventoryUpdateDto,
+  ) {
+    await this.ensureAutoListing(sellerId, listingId);
+    const data: Prisma.InventoryItemUpdateInput = {};
+
+    if (dto.code !== undefined) {
+      const code = dto.code.trim();
+      if (!code) {
+        throw new BadRequestException('Code is required.');
+      }
+      const existing = await this.prisma.inventoryItem.findFirst({
+        where: { listingId, code, NOT: { id: itemId } },
+        select: { id: true },
+      });
+      if (existing) {
+        throw new ConflictException('Inventory code already exists.');
+      }
+      data.code = code;
+    }
+
+    if (dto.status !== undefined) {
+      data.status = dto.status;
+      if (dto.status === InventoryStatus.DELIVERED) {
+        data.deliveredAt = new Date();
+      } else {
+        data.deliveredAt = null;
+      }
+      if (dto.status === InventoryStatus.AVAILABLE) {
+        data.reservedAt = null;
+        data.orderItem = { disconnect: true };
+      }
+    }
+
+    const result = await this.prisma.inventoryItem.updateMany({
+      where: { id: itemId, listingId },
+      data,
+    });
+
+    if (result.count === 0) {
+      throw new NotFoundException('Inventory item not found.');
+    }
+
+    return this.prisma.inventoryItem.findUnique({ where: { id: itemId } });
   }
 
   async reserveInventoryItem(listingId: string, orderItemId: string, options?: ReserveOptions) {
