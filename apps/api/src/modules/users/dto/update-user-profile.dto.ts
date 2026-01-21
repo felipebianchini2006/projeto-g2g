@@ -1,4 +1,4 @@
-import { IsOptional, IsString, MaxLength } from 'class-validator';
+import { ArrayMaxSize, IsArray, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class UpdateUserProfileDto {
   @IsOptional()
@@ -55,4 +55,16 @@ export class UpdateUserProfileDto {
   @IsString()
   @MaxLength(60)
   addressCountry?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  bio?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(10)
+  @IsString({ each: true })
+  @MaxLength(32, { each: true })
+  gameTags?: string[];
 }

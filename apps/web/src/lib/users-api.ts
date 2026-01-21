@@ -17,6 +17,8 @@ export type UserProfile = {
   addressState: string | null;
   addressCountry: string | null;
   avatarUrl: string | null;
+  bio?: string | null;
+  gameTags?: string[] | null;
   verificationFeeOrderId?: string | null;
   verificationFeePaidAt?: string | null;
 };

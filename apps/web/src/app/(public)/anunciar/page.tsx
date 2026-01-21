@@ -948,6 +948,7 @@ export default function Page() {
                 description={formState.description}
                 variant={listingType === 'deluxe' ? 'red' : 'dark'}
                 isAuto={autoDelivery}
+                showFavorite={false}
               />
 
               {/* Origin & Recovery Info */}

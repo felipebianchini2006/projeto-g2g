@@ -328,7 +328,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
   const baseFeeCents = 95;
   const serviceFeeCents =
     selectedPackage.id === 'premium'
-      ? baseFeeCents + Math.round(selectedPriceCents * quantity * 0.04)
+      ? baseFeeCents + Math.round(selectedPriceCents * quantity * 0.035)
       : baseFeeCents;
   const subtotalCents = selectedPriceCents * quantity + serviceFeeCents;
 

@@ -239,6 +239,8 @@ model User {
   addressState String?
   addressCountry String?
   avatarUrl    String?
+  bio          String?
+  gameTags     String[] @default([])
   verificationFeeOrderId String? @unique
   verificationFeePaidAt DateTime?
   payoutPixKey String?

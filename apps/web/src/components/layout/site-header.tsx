@@ -41,7 +41,7 @@ const getNotificationLink = (item: Notification): string | null => {
     .replace(/[\u0300-\u036f]/g, '');
 
   if (text.includes('pergunta')) {
-    return '/conta/perguntas';
+    return '/conta/perguntas-recebidas';
   }
 
   if (text.includes('venda')) {

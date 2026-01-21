@@ -280,7 +280,7 @@ const ProfileTabs = ({ activeTab, onChange, communityCount = 2 }: ProfileTabsPro
 );
 
 const TrustSealsCard = ({ trustSeals }: TrustSealsCardProps) => (
-  <Card className="rounded-[24px] border border-slate-100 p-5 shadow-card">
+  <Card className="rounded-[24px] border border-slate-100 p-5 shadow-card font-nunito">
     <div className="flex items-center gap-2 text-sm font-bold uppercase text-meow-muted">
       <ShieldCheck size={16} aria-hidden />
       Selos de confianca
@@ -589,23 +589,70 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
 
   // Load Community Posts
   useEffect(() => {
-    if (activeTab === 'comunidade' && postsState.status === 'idle') {
-      let active = true;
-      setPostsState(prev => ({ ...prev, status: 'loading' }));
-      publicCommunityApi.listUserPosts(profileId, { take: 10 }, accessToken)
-        .then(res => {
-          if (active) {
-            setPostsState({ status: 'ready', items: res.items, total: res.total });
-          }
-        })
-        .catch(err => {
-          if (active) {
-            setPostsState(prev => ({ ...prev, status: 'error', error: err.message || 'Erro ao carregar posts.' }));
-          }
-        });
-      return () => { active = false; };
+    if (activeTab !== 'comunidade') {
+      return;
     }
-  }, [activeTab, profileId, accessToken, postsState.status]);
+    let active = true;
+    setPostsState((prev) => ({ ...prev, status: 'loading', error: undefined }));
+    publicCommunityApi
+      .listUserPosts(profileId, { take: 10 }, accessToken)
+      .then((res) => {
+        if (active) {
+          setPostsState({ status: 'ready', items: res.items, total: res.total });
+        }
+      })
+      .catch((err) => {
+        if (active) {
+          setPostsState({
+            status: 'error',
+            items: [],
+            total: 0,
+            error: err.message || 'Erro ao carregar posts.',
+          });
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [activeTab, profileId, accessToken]);
+
+  // Load Reviews
+  useEffect(() => {
+    if (activeTab !== 'avaliacoes') {
+      return;
+    }
+    let active = true;
+    setReviewsState((prev) => ({
+      ...prev,
+      status: 'loading',
+      error: undefined,
+    }));
+    publicReviewsApi
+      .listSellerReviews(profileId, 0, 10)
+      .then((res) => {
+        if (active) {
+          setReviewsState({
+            status: 'ready',
+            items: res.items,
+            total: res.total,
+            ratingAverage: res.ratingAverage,
+            distribution: res.distribution,
+          });
+        }
+      })
+      .catch((err) => {
+        if (active) {
+          setReviewsState((prev) => ({
+            ...prev,
+            status: 'error',
+            error: err.message || 'Não foi possível carregar as avaliações.',
+          }));
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [activeTab, profileId]);
 
   // Load Listings
   useEffect(() => {
@@ -679,6 +726,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
     : profile.role === 'USER'
       ? 'Perfil público do cliente na Meoww.'
       : 'Especialista em contas de jogos, entregas rápidas e suporte dedicado.';
+  const gameTags = profile.gameTags?.length ? profile.gameTags : [];
   const isOwner = user?.id === profileId;
   const canFollow = Boolean(accessToken && user && !isOwner);
   const canChat = Boolean(accessToken && user && !isOwner);
@@ -778,9 +826,9 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
             <Card className="rounded-[24px] border border-slate-100 p-5 shadow-card">
               <h2 className="text-sm font-bold uppercase text-meow-muted">{aboutTitle}</h2>
               <p className="mt-3 text-sm text-meow-muted">{aboutText}</p>
-              {profile.role !== 'USER' ? (
+              {profile.role !== 'USER' && gameTags.length ? (
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {['LoL', 'Valorant', 'Fortnite', 'Steam'].map((tag) => (
+                  {gameTags.map((tag) => (
                     <span
                       key={tag}
                       className="rounded-full bg-meow-50 px-3 py-1 text-xs font-semibold text-meow-deep"

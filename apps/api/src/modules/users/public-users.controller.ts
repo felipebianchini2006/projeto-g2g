@@ -26,6 +26,8 @@ export class PublicUsersController {
         cpf: true,
         avatarUrl: true,
         createdAt: true,
+        bio: true,
+        gameTags: true,
       },
     });
 
@@ -100,6 +102,8 @@ export class PublicUsersController {
         responseTimeMinutes: responseMinutes,
         onTimeDeliveryRate: deliveryPerformance,
       },
+      bio: user.bio ?? null,
+      gameTags: user.gameTags ?? [],
     };
   }
 

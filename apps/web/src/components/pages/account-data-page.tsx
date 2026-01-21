@@ -12,6 +12,7 @@ import {
   Search,
   Upload,
   UserRound,
+  X,
   XCircle,
 } from 'lucide-react';
 import type { ChangeEvent, FormEvent } from 'react';
@@ -26,6 +27,7 @@ import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Select } from '../ui/select';
+import { Textarea } from '../ui/textarea';
 
 type ProfileForm = {
   fullName: string;
@@ -39,6 +41,8 @@ type ProfileForm = {
   addressCity: string;
   addressState: string;
   addressCountry: string;
+  bio: string;
+  gameTags: string[];
 };
 
 type InputWithIconProps = React.InputHTMLAttributes<HTMLInputElement> & {
@@ -62,6 +66,8 @@ const emptyForm: ProfileForm = {
   addressCity: '',
   addressState: '',
   addressCountry: 'Brasil',
+  bio: '',
+  gameTags: [],
 };
 
 const mapProfileToForm = (profile: UserProfile): ProfileForm => ({
@@ -76,6 +82,8 @@ const mapProfileToForm = (profile: UserProfile): ProfileForm => ({
   addressCity: profile.addressCity ?? '',
   addressState: profile.addressState ?? '',
   addressCountry: profile.addressCountry ?? 'Brasil',
+  bio: profile.bio ?? '',
+  gameTags: profile.gameTags ?? [],
 });
 
 const InputWithIcon = ({ icon, className, ...props }: InputWithIconProps) => (
@@ -155,6 +163,7 @@ export const AccountDataContent = () => {
   const [rgSubmitting, setRgSubmitting] = useState(false);
   const [rgError, setRgError] = useState<string | null>(null);
   const [rgSuccess, setRgSuccess] = useState<string | null>(null);
+  const [gameTagsInput, setGameTagsInput] = useState('');
 
   const [verificationState, setVerificationState] = useState<{
     status: 'PAID' | 'PENDING' | 'NOT_PAID';
@@ -182,7 +191,9 @@ export const AccountDataContent = () => {
         if (!active) {
           return;
         }
-        setForm(mapProfileToForm(profile));
+        const mapped = mapProfileToForm(profile);
+        setForm(mapped);
+        setGameTagsInput(mapped.gameTags.join(', '));
         setProfile(profile);
         const normalizedNumber = profile.addressNumber?.toLowerCase() ?? '';
         setNoNumber(normalizedNumber === 's/n' || normalizedNumber === 'sem numero');
@@ -225,34 +236,75 @@ export const AccountDataContent = () => {
     setForm((prev) => ({ ...prev, addressZip: formatCep(event.target.value) }));
   };
 
+  const handleBioChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
+    setForm((prev) => ({ ...prev, bio: event.target.value }));
+  };
+
+  const normalizeGameTags = (value: string) => {
+    const tags = value
+      .split(',')
+      .map((tag) => tag.trim())
+      .filter(Boolean);
+    const seen = new Set<string>();
+    const normalized: string[] = [];
+    for (const tag of tags) {
+      const key = tag.toLowerCase();
+      if (seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
+      normalized.push(tag);
+    }
+    return normalized.slice(0, 10);
+  };
+
+  const handleGameTagsChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setGameTagsInput(value);
+    setForm((prev) => ({ ...prev, gameTags: normalizeGameTags(value) }));
+  };
+
+  const handleRemoveTag = (tag: string) => {
+    setForm((prev) => {
+      const nextTags = prev.gameTags.filter((item) => item !== tag);
+      setGameTagsInput(nextTags.join(', '));
+      return { ...prev, gameTags: nextTags };
+    });
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!accessToken) {
       setError('Sessão expirada. Entre novamente.');
       return;
     }
-    if (isProfileLocked) {
-      setError('Seus dados ja foram confirmados e nao podem ser alterados.');
-      return;
-    }
     setStatus('saving');
     setError(null);
     setSuccess(null);
     try {
+      const basePayload = isProfileLocked
+        ? {}
+        : {
+          fullName: form.fullName,
+          cpf: stripDigits(form.cpf),
+          birthDate: form.birthDate,
+          addressZip: stripDigits(form.addressZip),
+          addressStreet: form.addressStreet,
+          addressNumber: form.addressNumber,
+          addressComplement: form.addressComplement,
+          addressDistrict: form.addressDistrict,
+          addressCity: form.addressCity,
+          addressState: form.addressState,
+          addressCountry: form.addressCountry,
+        };
       const updated = await usersApi.updateProfile(accessToken, {
-        fullName: form.fullName,
-        cpf: stripDigits(form.cpf),
-        birthDate: form.birthDate,
-        addressZip: stripDigits(form.addressZip),
-        addressStreet: form.addressStreet,
-        addressNumber: form.addressNumber,
-        addressComplement: form.addressComplement,
-        addressDistrict: form.addressDistrict,
-        addressCity: form.addressCity,
-        addressState: form.addressState,
-        addressCountry: form.addressCountry,
+        ...basePayload,
+        bio: form.bio,
+        gameTags: form.gameTags,
       });
-      setForm(mapProfileToForm(updated));
+      const mapped = mapProfileToForm(updated);
+      setForm(mapped);
+      setGameTagsInput(mapped.gameTags.join(', '));
       setProfile(updated);
       const normalizedNumber = updated.addressNumber?.toLowerCase() ?? '';
       setNoNumber(normalizedNumber === 's/n' || normalizedNumber === 'sem numero');
@@ -506,6 +558,7 @@ export const AccountDataContent = () => {
   }, [profile]);
   const isProfileVerified = isProfileComplete && Boolean(profile?.verificationFeePaidAt);
   const isFormLocked = status === 'saving' || isProfileLocked;
+  const isPublicProfileLocked = status === 'saving' || status === 'loading';
 
   if (loading) {
     return (
@@ -707,6 +760,56 @@ export const AccountDataContent = () => {
                     />
                   </label>
                 </div>
+              </div>
+            </div>
+
+            <div className="border-t border-slate-100 pt-6">
+              <SectionTitle icon={<Info size={14} aria-hidden />} label="Perfil publico" />
+              <div className="mt-4 grid gap-4">
+                <label className="grid gap-1 text-xs font-semibold uppercase text-meow-muted">
+                  Biografia
+                  <Textarea
+                    placeholder="Conte um pouco sobre voce, seu estilo de atendimento e o que vende."
+                    value={form.bio}
+                    onChange={handleBioChange}
+                    maxLength={500}
+                    rows={4}
+                    disabled={isPublicProfileLocked}
+                  />
+                </label>
+                <label className="grid gap-1 text-xs font-semibold uppercase text-meow-muted">
+                  Tags de jogos
+                  <Input
+                    placeholder="Ex: Valorant, LoL, Steam"
+                    value={gameTagsInput}
+                    onChange={handleGameTagsChange}
+                    disabled={isPublicProfileLocked}
+                  />
+                </label>
+                {form.gameTags.length ? (
+                  <div className="flex flex-wrap gap-2">
+                    {form.gameTags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="inline-flex items-center gap-1 rounded-full bg-meow-50 px-3 py-1 text-xs font-semibold text-meow-deep"
+                      >
+                        {tag}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveTag(tag)}
+                          className="rounded-full p-0.5 text-meow-deep/70 hover:text-meow-deep"
+                          aria-label={`Remover ${tag}`}
+                          disabled={isPublicProfileLocked}
+                        >
+                          <X size={12} aria-hidden />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                <p className="text-[11px] text-slate-400">
+                  Separe as tags por virgula. Maximo de 10.
+                </p>
               </div>
             </div>
 

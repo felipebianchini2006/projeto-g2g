@@ -450,9 +450,12 @@ export const AccountSalesContent = () => {
                         <div className="text-xs font-semibold text-slate-400">
                           #{order.id.slice(0, 8).toUpperCase()}
                         </div>
-                        <div className="text-sm font-semibold text-meow-charcoal">
+                        <Link
+                          href={`/conta/vendas/${order.id}`}
+                          className="text-sm font-semibold text-meow-charcoal transition hover:text-meow-deep"
+                        >
                           {product}
-                        </div>
+                        </Link>
                       </td>
                       <td className="px-3 py-3 text-sm text-slate-600">{buyer}</td>
                       <td className="px-3 py-3 text-sm text-slate-600">

@@ -16,6 +16,7 @@ type ListingCardProps = {
   isAuto?: boolean;
   href: string;
   variant?: 'red' | 'dark';
+  showFavorite?: boolean;
 };
 
 const mediaVariants = {
@@ -34,6 +35,7 @@ export const ListingCard = ({
   priceCents,
   oldPriceCents,
   currency,
+  showFavorite = true,
 }: ListingCardProps) => {
   const { isFavorite, toggleFavorite } = useSite();
   const favorite = isFavorite(id);
@@ -65,22 +67,24 @@ export const ListingCard = ({
             Entrega auto
           </span>
         ) : null}
-        <button
-          type="button"
-          onClick={() =>
-            toggleFavorite({
-              id,
-              title,
-              priceCents,
-              currency,
-              image,
-            })
-          }
-          className="absolute right-8 top-8 flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-meow-deep shadow-card"
-          aria-label={favorite ? 'Remover favorito' : 'Salvar favorito'}
-        >
-          <Heart size={16} className={favorite ? 'fill-meow-deep' : ''} aria-hidden />
-        </button>
+        {showFavorite ? (
+          <button
+            type="button"
+            onClick={() =>
+              toggleFavorite({
+                id,
+                title,
+                priceCents,
+                currency,
+                image,
+              })
+            }
+            className="absolute right-8 top-8 flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-meow-deep shadow-card"
+            aria-label={favorite ? 'Remover favorito' : 'Salvar favorito'}
+          >
+            <Heart size={16} className={favorite ? 'fill-meow-deep' : ''} aria-hidden />
+          </button>
+        ) : null}
       </div>
       <div className="flex flex-1 flex-col gap-4 px-6 pb-6">
         <div>

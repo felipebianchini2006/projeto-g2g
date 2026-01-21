@@ -201,7 +201,7 @@ export const AccountListingsContent = () => {
       value: viewsCount,
       description: 'Pronto para integrar.',
       icon: Eye,
-      tone: 'from-fuchsia-500 via-pink-500 to-rose-500',
+      tone: 'from-rose-500 to-rose-600',
     },
   ];
 

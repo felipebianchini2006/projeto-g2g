@@ -467,35 +467,61 @@ export const TicketsListContent = ({ initialOrderId }: TicketsListContentProps) 
               ) : null}
 
               <div className="mt-4 grid gap-3">
-                {filteredTickets.map((ticket) => (
-                  <button
-                    key={ticket.id}
-                    type="button"
-                    onClick={() => setSelectedTicketId(ticket.id)}
-                    className={`w-full rounded-2xl border px-4 py-3 text-left transition ${selectedTicketId === ticket.id
+                {filteredTickets.map((ticket) => {
+                  const baseClass = `w-full rounded-2xl border px-4 py-3 text-left transition ${
+                    selectedTicketId === ticket.id
                       ? 'border-meow-200 bg-meow-50'
                       : 'border-slate-100 bg-white hover:border-meow-100'
-                      }`}
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <Badge variant={statusTone[ticket.status]}>{statusLabel[ticket.status]}</Badge>
-                      <span className="text-xs text-slate-400">
-                        {formatDate(ticket.createdAt)}
-                      </span>
-                    </div>
-                    <p className="mt-2 text-sm font-semibold text-meow-charcoal">
-                      {ticket.subject}
-                    </p>
-                    <p className="mt-1 text-xs text-slate-500">
-                      {ticket.orderId
-                        ? `Pedido ${ticket.orderId.slice(0, 8).toUpperCase()}`
-                        : 'Sem pedido relacionado'}
-                    </p>
-                    <p className="mt-2 text-xs text-meow-muted line-clamp-2">
-                      {extractLastMessage(ticket.messages)}
-                    </p>
-                  </button>
-                ))}
+                  }`;
+                  const orderHref = ticket.orderId
+                    ? ticket.order?.sellerId && user?.id === ticket.order.sellerId
+                      ? `/conta/vendas/${ticket.orderId}`
+                      : `/conta/pedidos/${ticket.orderId}`
+                    : null;
+
+                  const content = (
+                    <>
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <Badge variant={statusTone[ticket.status]}>
+                          {statusLabel[ticket.status]}
+                        </Badge>
+                        <span className="text-xs text-slate-400">
+                          {formatDate(ticket.createdAt)}
+                        </span>
+                      </div>
+                      <p className="mt-2 text-sm font-semibold text-meow-charcoal">
+                        {ticket.subject}
+                      </p>
+                      <p className="mt-1 text-xs text-slate-500">
+                        {ticket.orderId
+                          ? `Pedido ${ticket.orderId.slice(0, 8).toUpperCase()}`
+                          : 'Sem pedido relacionado'}
+                      </p>
+                      <p className="mt-2 text-xs text-meow-muted line-clamp-2">
+                        {extractLastMessage(ticket.messages)}
+                      </p>
+                    </>
+                  );
+
+                  if (orderHref) {
+                    return (
+                      <Link key={ticket.id} href={orderHref} className={baseClass}>
+                        {content}
+                      </Link>
+                    );
+                  }
+
+                  return (
+                    <button
+                      key={ticket.id}
+                      type="button"
+                      onClick={() => setSelectedTicketId(ticket.id)}
+                      className={baseClass}
+                    >
+                      {content}
+                    </button>
+                  );
+                })}
               </div>
             </Card>
 

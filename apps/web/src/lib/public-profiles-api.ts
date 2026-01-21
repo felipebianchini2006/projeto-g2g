@@ -35,6 +35,7 @@ export type PublicProfile = {
   trustSeals: PublicProfileTrustSeals;
   performance: PublicProfilePerformance;
   bio?: string | null;
+  gameTags?: string[] | null;
 };
 
 export const publicProfilesApi = {

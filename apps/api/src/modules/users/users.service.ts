@@ -52,6 +52,8 @@ const USER_PROFILE_SELECT = {
   addressState: true,
   addressCountry: true,
   avatarUrl: true,
+  bio: true,
+  gameTags: true,
   verificationFeeOrderId: true,
   verificationFeePaidAt: true,
 };
@@ -120,7 +122,20 @@ export class UsersService {
       where: { id: userId },
       select: { verificationFeePaidAt: true },
     });
-    if (current?.verificationFeePaidAt) {
+    const hasProtectedChanges = [
+      'fullName',
+      'cpf',
+      'birthDate',
+      'addressZip',
+      'addressStreet',
+      'addressNumber',
+      'addressComplement',
+      'addressDistrict',
+      'addressCity',
+      'addressState',
+      'addressCountry',
+    ].some((field) => dto[field as keyof UpdateUserProfileDto] !== undefined);
+    if (current?.verificationFeePaidAt && hasProtectedChanges) {
       throw new BadRequestException('Dados ja verificados e bloqueados para edicao.');
     }
 
@@ -138,6 +153,30 @@ export class UsersService {
       }
       const digits = value.replace(/\D/g, '');
       return digits.length ? digits : null;
+    };
+
+    const normalizeTags = (tags?: string[]) => {
+      if (!Array.isArray(tags)) {
+        return [];
+      }
+      const seen = new Set<string>();
+      const normalized: string[] = [];
+      for (const tag of tags) {
+        if (typeof tag !== 'string') {
+          continue;
+        }
+        const cleaned = tag.trim();
+        if (!cleaned) {
+          continue;
+        }
+        const key = cleaned.toLowerCase();
+        if (seen.has(key)) {
+          continue;
+        }
+        seen.add(key);
+        normalized.push(cleaned);
+      }
+      return normalized;
     };
 
     const data: Prisma.UserUpdateInput = {};
@@ -189,6 +228,12 @@ export class UsersService {
     }
     if (dto.addressCountry !== undefined) {
       data.addressCountry = normalizeText(dto.addressCountry);
+    }
+    if (dto.bio !== undefined) {
+      data.bio = normalizeText(dto.bio);
+    }
+    if (dto.gameTags !== undefined) {
+      data.gameTags = normalizeTags(dto.gameTags);
     }
 
     if (Object.keys(data).length === 0) {

@@ -23,6 +23,7 @@
   --radius-sm: 8px;
   --font-display: "Poppins", sans-serif;
   --font-body: "Poppins", sans-serif;
+  --font-nunito: "Nunito", sans-serif;
 }
 
 html[data-theme='dark'] {
@@ -48,6 +49,10 @@ body {
   background: #ffffff;
   color: var(--charcoal);
   letter-spacing: 0.1px;
+}
+
+.font-nunito {
+  font-family: var(--font-nunito);
 }
 
 html[data-theme='dark'] body {
