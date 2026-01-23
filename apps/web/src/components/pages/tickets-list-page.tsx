@@ -380,7 +380,7 @@ export const TicketsListContent = ({ initialOrderId }: TicketsListContentProps) 
               {ticketCount}
             </Badge>
           </div>
-          <Button variant="secondary" size="sm" onClick={handleOpenForm}>
+          <Button variant="secondary" size="sm" onClick={handleOpenForm} className="gap-2">
             <MessageSquarePlus size={16} aria-hidden />
             Abrir novo ticket
           </Button>

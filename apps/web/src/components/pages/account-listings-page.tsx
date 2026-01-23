@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { Eye, Filter, Megaphone, MoreHorizontal, Plus, Search, ShoppingCart } from 'lucide-react';
 
@@ -25,7 +26,7 @@ type SortOption = 'recent' | 'price-asc' | 'price-desc' | 'title';
 
 const statusLabel: Record<ListingStatus, string> = {
   DRAFT: 'Rascunho',
-  PENDING: 'Em analise',
+  PENDING: 'Em análise',
   PUBLISHED: 'Publicado',
   SUSPENDED: 'Pausado',
 };
@@ -48,6 +49,7 @@ const formatCurrency = (value: number, currency = 'BRL') =>
   }).format(value / 100);
 
 export const AccountListingsContent = () => {
+  const router = useRouter();
   const { user, accessToken, loading } = useAuth();
   const [state, setState] = useState<ListingsState>({
     status: 'loading',
@@ -85,7 +87,7 @@ export const AccountListingsContent = () => {
         const message =
           error instanceof ApiClientError
             ? error.message
-            : 'Nao foi possivel carregar seus anuncios.';
+            : 'Não foi possível carregar seus anúncios.';
         setState({ status: 'ready', listings: [], error: message });
       }
     };
@@ -119,7 +121,7 @@ export const AccountListingsContent = () => {
         const message =
           error instanceof ApiClientError
             ? error.message
-            : 'Nao foi possivel carregar as vendas.';
+            : 'Não foi possível carregar as vendas.';
         setSalesError(message);
       }
     };
@@ -183,7 +185,7 @@ export const AccountListingsContent = () => {
   const viewsCount = 0;
   const summaryCards = [
     {
-      label: 'Anuncios ativos',
+      label: 'Anúncios ativos',
       value: activeCount,
       description: 'Status publicados.',
       icon: Megaphone,
@@ -197,7 +199,7 @@ export const AccountListingsContent = () => {
       tone: 'from-blue-500 via-blue-500 to-indigo-500',
     },
     {
-      label: 'Visualizacoes',
+      label: 'Visualizações',
       value: viewsCount,
       description: 'Pronto para integrar.',
       icon: Eye,
@@ -217,12 +219,12 @@ export const AccountListingsContent = () => {
         ...prev,
         listings: prev.listings.map((item) => (item.id === updated.id ? updated : item)),
       }));
-      setNotice('Anuncio enviado para analise.');
+      setNotice('Anúncio enviado para análise.');
     } catch (error) {
       const message =
         error instanceof ApiClientError
           ? error.message
-          : 'Nao foi possivel ativar o anuncio.';
+          : 'Não foi possível ativar o anúncio.';
       setNotice(message);
     } finally {
       setActionBusy(null);
@@ -241,12 +243,12 @@ export const AccountListingsContent = () => {
         ...prev,
         listings: prev.listings.map((item) => (item.id === updated.id ? updated : item)),
       }));
-      setNotice('Anuncio pausado.');
+      setNotice('Anúncio pausado.');
     } catch (error) {
       const message =
         error instanceof ApiClientError
           ? error.message
-          : 'Nao foi possivel pausar o anuncio.';
+          : 'Não foi possível pausar o anúncio.';
       setNotice(message);
     } finally {
       setActionBusy(null);
@@ -257,7 +259,7 @@ export const AccountListingsContent = () => {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-4 text-sm text-meow-muted">
-          Carregando sessao...
+          Carregando sessão...
         </div>
       </section>
     );
@@ -451,7 +453,16 @@ export const AccountListingsContent = () => {
             return (
               <Card
                 key={listing.id}
-                className="rounded-[26px] border border-slate-100 p-5 shadow-card"
+                className="cursor-pointer rounded-[26px] border border-slate-100 p-5 shadow-card transition hover:border-slate-200"
+                role="link"
+                tabIndex={0}
+                onClick={() => router.push(`/anuncios/${listing.id}`)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    router.push(`/anuncios/${listing.id}`);
+                  }
+                }}
               >
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
@@ -483,9 +494,11 @@ export const AccountListingsContent = () => {
                       <button
                         type="button"
                         className="grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:border-meow-200 hover:text-meow-deep"
-                        onClick={() =>
-                          setMenuOpenId((prev) => (prev === listing.id ? null : listing.id))
-                        }
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setMenuOpenId((prev) => (prev === listing.id ? null : listing.id));
+                        }}
+                        onKeyDown={(event) => event.stopPropagation()}
                         aria-label="Acoes"
                       >
                         <MoreHorizontal size={16} aria-hidden />
@@ -495,7 +508,11 @@ export const AccountListingsContent = () => {
                           <Link
                             href={`/conta/anuncios/${listing.id}`}
                             className="block rounded-xl px-3 py-2 text-sm font-semibold text-meow-charcoal hover:bg-meow-50"
-                            onClick={() => setMenuOpenId(null)}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setMenuOpenId(null);
+                            }}
+                            onKeyDown={(event) => event.stopPropagation()}
                           >
                             Editar
                           </Link>
@@ -503,11 +520,13 @@ export const AccountListingsContent = () => {
                             <button
                               type="button"
                               className="w-full rounded-xl px-3 py-2 text-left text-sm font-semibold text-meow-charcoal hover:bg-meow-50"
-                              onClick={() => {
+                              onClick={(event) => {
+                                event.stopPropagation();
                                 setMenuOpenId(null);
                                 handleArchiveListing(listing.id);
                               }}
                               disabled={actionBusy === listing.id}
+                              onKeyDown={(event) => event.stopPropagation()}
                             >
                               {actionBusy === listing.id ? 'Pausando...' : 'Pausar'}
                             </button>
@@ -516,11 +535,13 @@ export const AccountListingsContent = () => {
                             <button
                               type="button"
                               className="w-full rounded-xl px-3 py-2 text-left text-sm font-semibold text-meow-charcoal hover:bg-meow-50"
-                              onClick={() => {
+                              onClick={(event) => {
+                                event.stopPropagation();
                                 setMenuOpenId(null);
                                 handleSubmitListing(listing.id);
                               }}
                               disabled={actionBusy === listing.id}
+                              onKeyDown={(event) => event.stopPropagation()}
                             >
                               {actionBusy === listing.id ? 'Ativando...' : 'Ativar'}
                             </button>

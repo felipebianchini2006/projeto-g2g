@@ -217,7 +217,7 @@ export const HomeContent = () => {
         <div className="mx-auto w-full max-w-[1280px]">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <h2 className="text-2xl font-black text-meow-charcoal">
-              Qual deles tem o seu coracao?
+              Qual deles tem o seu Coração?
             </h2>
             <div className="flex items-center gap-2">
               <Button

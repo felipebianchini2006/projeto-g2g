@@ -652,7 +652,8 @@ export const OrderChat = ({
           <div className="flex items-start gap-2">
             <ShieldCheck size={16} className="mt-0.5 text-blue-600" aria-hidden />
             <p>
-              Compra garantida pela Meoww Store. O pagamento fica retido em segurança até você confirmar o recebimento. Só libere após testar o produto.</p>
+              Compra garantida pela Meoww. O pagamento fica retido em segurança até você confirmar o recebimento. Só libere após testar o produto.
+            </p>
           </div>
         </div>
 

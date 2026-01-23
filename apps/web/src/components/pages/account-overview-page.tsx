@@ -16,8 +16,9 @@ import {
   Bot,
   Calendar,
   Hash,
-  LifeBuoy,
+  MessageCircle,
   ShoppingCart,
+  Ticket,
   Wallet,
 } from 'lucide-react';
 
@@ -211,7 +212,7 @@ export const AccountOverviewContent = () => {
             value: '0',
             desc: 'Perguntas recebidas.',
             className: 'from-rose-500 to-rose-600',
-            icon: <Bot size={18} aria-hidden />,
+            icon: <MessageCircle size={18} aria-hidden />,
             link: 'Ver perguntas',
             href: '/conta/perguntas',
           },
@@ -220,7 +221,7 @@ export const AccountOverviewContent = () => {
             value: '0',
             desc: 'Tickets em andamento.',
             className: 'from-purple-500 to-purple-600',
-            icon: <LifeBuoy size={18} aria-hidden />,
+            icon: <Ticket size={18} aria-hidden />,
           },
         ].map((card) => (
           <Card

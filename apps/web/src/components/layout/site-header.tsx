@@ -373,12 +373,12 @@ export const SiteHeader = () => {
   return (
     <>
       <div className="bg-gradient-to-r from-[#f2a4c3] via-[#f7b8d1] to-[#f2a4c3] text-white">
-        <div className="relative mx-auto w-full max-w-[1280px] px-6 py-2 text-[11px] font-bold uppercase tracking-[0.6px] flex flex-col items-center gap-2 text-center sm:block">
+        <div className="relative mx-auto w-full max-w-[1280px] px-6 pb-2 pt-[calc(0.5rem+env(safe-area-inset-top))] text-[11px] font-bold uppercase tracking-[0.6px] flex flex-col items-center gap-2 text-center sm:block sm:py-2">
           <span></span>
         </div>
       </div>
       <header className="site-header relative z-40 border-b border-meow-deep/10 bg-white/95 shadow-[0_12px_30px_rgba(240,98,146,0.08)] backdrop-blur">
-        <div className="mx-auto w-full max-w-[1280px] px-6 py-4">
+        <div className="mx-auto w-full max-w-[1280px] px-6 pb-4 pt-[calc(1rem+env(safe-area-inset-top))] sm:py-4">
           <div className="grid w-full grid-cols-[auto_1fr_auto] items-center gap-4 md:grid-cols-[auto_minmax(280px,1fr)_auto] md:gap-6">
             <div className="flex justify-start">
               <Link href="/" className="flex items-center gap-3" onClick={closeAll}>

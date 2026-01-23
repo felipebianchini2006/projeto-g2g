@@ -161,7 +161,8 @@ export default function Page() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [listingType, setListingType] = useState('premium');
   const [productKind, setProductKind] = useState('Conta');
-  const [categorySearch, setCategorySearch] = useState('');
+  const [categoryQuery, setCategoryQuery] = useState('');
+  const [categoryOpen, setCategoryOpen] = useState(false);
   const [dynamicItems, setDynamicItems] = useState<DynamicItem[]>([
     { id: `item-${Date.now()}`, title: '', price: '', quantity: '1' },
   ]);
@@ -178,6 +179,13 @@ export default function Page() {
     loadData();
     return () => { active = false; };
   }, []);
+
+  useEffect(() => {
+    const selected = categories.find((category) => category.id === formState.categoryId);
+    if (selected) {
+      setCategoryQuery(selected.label);
+    }
+  }, [categories, formState.categoryId]);
 
   useEffect(() => {
     let active = true;
@@ -500,13 +508,13 @@ export default function Page() {
       }
     }
   }, [dynamicInventoryPayload, dynamicItems, isDynamic, priceInput]);
-  const filteredCategories = categories.filter((category) => {
-    const term = categorySearch.trim().toLowerCase();
+  const filteredCategories = useMemo(() => {
+    const term = categoryQuery.trim().toLowerCase();
     if (!term) {
-      return true;
+      return categories;
     }
-    return category.label.toLowerCase().includes(term);
-  });
+    return categories.filter((category) => category.label.toLowerCase().includes(term));
+  }, [categories, categoryQuery]);
 
   if (!user) return <div className="p-8 text-center text-slate-500">Faça login para anunciar.</div>; // Simplified auth guard
 
@@ -605,20 +613,51 @@ export default function Page() {
                 <div className="grid gap-6 md:grid-cols-3">
                   <div className="space-y-2">
                     <label className="text-xs font-bold uppercase tracking-wide text-slate-400">CATEGORIA</label>
-                    <Input
-                      value={categorySearch}
-                      onChange={(event) => setCategorySearch(event.target.value)}
-                      placeholder="Buscar categoria..."
-                      className="h-12 rounded-2xl border-slate-200 bg-slate-50 font-semibold text-slate-700 placeholder:text-slate-400"
-                    />
-                    <Select
-                      value={formState.categoryId || ''}
-                      onChange={(e) => setFormState(prev => ({ ...prev, categoryId: e.target.value, categoryGroupId: '', categorySectionId: '' }))}
-                      className="h-14 rounded-2xl border-slate-200 bg-slate-50 font-bold text-slate-700 hover:bg-slate-100 focus:border-meow-300"
-                    >
-                      <option value="">Selecione...</option>
-                      {filteredCategories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
-                    </Select>
+                    <div className="relative">
+                      <Input
+                        value={categoryQuery}
+                        onChange={(event) => {
+                          setCategoryQuery(event.target.value);
+                          setCategoryOpen(true);
+                        }}
+                        onFocus={() => setCategoryOpen(true)}
+                        onBlur={() => setTimeout(() => setCategoryOpen(false), 120)}
+                        placeholder="Digite para buscar..."
+                        className="h-12 rounded-2xl border-slate-200 bg-slate-50 font-semibold text-slate-700 placeholder:text-slate-400"
+                      />
+                      {categoryOpen ? (
+                        <div className="absolute z-10 mt-2 w-full rounded-2xl border border-slate-100 bg-white p-2 shadow-[0_18px_32px_rgba(15,23,42,0.12)]">
+                          {filteredCategories.length > 0 ? (
+                            <div className="max-h-56 overflow-y-auto">
+                              {filteredCategories.map((category) => (
+                                <button
+                                  type="button"
+                                  key={category.id}
+                                  className="w-full rounded-xl px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                                  onMouseDown={(event) => {
+                                    event.preventDefault();
+                                    setFormState((prev) => ({
+                                      ...prev,
+                                      categoryId: category.id,
+                                      categoryGroupId: '',
+                                      categorySectionId: '',
+                                    }));
+                                    setCategoryQuery(category.label);
+                                    setCategoryOpen(false);
+                                  }}
+                                >
+                                  {category.label}
+                                </button>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="px-3 py-2 text-xs text-slate-400">
+                              Nenhuma categoria encontrada.
+                            </div>
+                          )}
+                        </div>
+                      ) : null}
+                    </div>
                   </div>
 
                   <div className="space-y-2">
@@ -796,20 +835,20 @@ export default function Page() {
 
                   {/* Auto Delivery Input */}
                   <div className="rounded-2xl bg-emerald-50/50 border border-emerald-100 p-6">
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white shadow-sm">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm">
                           <Zap size={16} fill="currentColor" />
                         </div>
                         <div>
                           <h4 className="font-bold text-slate-800">Entrega Automática</h4>
-                          <p className="text-xs text-slate-500 font-bold">O sistema entrega o produto assim que o pagamento for aprovado.</p>
+                          <p className="text-xs font-bold text-slate-500">O sistema entrega o produto assim que o pagamento for aprovado.</p>
                         </div>
                       </div>
                       <Toggle
                         checked={autoDelivery}
                         onCheckedChange={setAutoDelivery}
-                        className="data-[state=on]:bg-meow-500"
+                        className="self-start data-[state=on]:bg-meow-500 sm:self-center"
                       />
                     </div>
 

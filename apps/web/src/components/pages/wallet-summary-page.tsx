@@ -23,6 +23,7 @@ import {
   type TopupResponse,
   type WalletSummary,
 } from '../../lib/wallet-api';
+import { usersApi, type UserProfile } from '../../lib/users-api';
 import { useAuth } from '../auth/auth-provider';
 import { AccountShell } from '../account/account-shell';
 import { Badge } from '../ui/badge';
@@ -153,6 +154,8 @@ const maskPhone = (value: string) => {
     .replace(/(-\d{4})\d+?$/, '$1');
 };
 
+const stripDigits = (value: string) => value.replace(/\D/g, '');
+
 export const WalletSummaryContent = () => {
   const { user, accessToken, loading } = useAuth();
   const [state, setState] = useState<WalletState>({
@@ -183,6 +186,8 @@ export const WalletSummaryContent = () => {
   const [withdrawLoading, setWithdrawLoading] = useState(false);
   const [withdrawError, setWithdrawError] = useState<string | null>(null);
   const [withdrawSuccess, setWithdrawSuccess] = useState<string | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
 
   useEffect(() => {
     if (copied) {
@@ -190,6 +195,37 @@ export const WalletSummaryContent = () => {
       return () => clearTimeout(timer);
     }
   }, [copied]);
+
+  useEffect(() => {
+    if (!isWithdrawOpen || !accessToken || profileLoading) {
+      return;
+    }
+    let active = true;
+    if (profile) {
+      return;
+    }
+    setProfileLoading(true);
+    usersApi
+      .getProfile(accessToken)
+      .then((data) => {
+        if (active) {
+          setProfile(data);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setProfile(null);
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setProfileLoading(false);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [accessToken, isWithdrawOpen, profile, profileLoading]);
 
   const handlePixKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;
@@ -660,12 +696,31 @@ export const WalletSummaryContent = () => {
                   return;
                 }
                 const amountCents = Math.round(value * 100);
-                const feeCents = withdrawSpeed === 'INSTANT' ? 100 : 0;
+                const feeCents = withdrawSpeed === 'INSTANT' ? 350 : 0;
+
+                if (withdrawSpeed === 'INSTANT') {
+                  const profileCpf = stripDigits(profile?.cpf ?? '');
+                  if (!profileCpf) {
+                    setWithdrawError('Para retirada imediata, cadastre seu CPF em Meus dados.');
+                    return;
+                  }
+                  if (withdrawPixKeyType !== 'CPF') {
+                    setWithdrawError('Retirada imediata disponível apenas para chave CPF.');
+                    return;
+                  }
+                  const pixCpf = stripDigits(withdrawPixKey);
+                  if (pixCpf !== profileCpf) {
+                    setWithdrawError(
+                      'Retirada imediata exige a mesma chave CPF cadastrada nos seus dados.',
+                    );
+                    return;
+                  }
+                }
 
                 if (state.summary && amountCents + feeCents > state.summary.availableCents) {
                   setWithdrawError(
                     feeCents > 0
-                      ? 'Saldo insuficiente (considere a taxa de R$ 1,00 para saque imediato).'
+                      ? 'Saldo insuficiente (considere a taxa de R$ 3,50 para saque imediato).'
                       : 'Saldo insuficiente para esse saque.'
                   );
                   return;
@@ -846,10 +901,25 @@ export const WalletSummaryContent = () => {
                   >
                     Retirada imediata
                     <span className="block text-[10px] font-normal opacity-70">
-                      Taxa: R$ 1,00
+                      Taxa: R$ 3,50
                     </span>
                   </button>
                 </div>
+              </div>
+
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
+                <p>
+                  Retirada normal: limite de até R$ 10.000 por dia, com no máximo 2
+                  saques diários.
+                </p>
+                <p className="mt-2">
+                  Retirada imediata: até R$ 1.000 por saque, com limite diário de
+                  R$ 5.000. A taxa do Saque TURBO (R$ 3,50) será descontada do
+                  valor total solicitado.
+                </p>
+                <p className="mt-2">
+                  Retirada imediata: somente com chave CPF igual ao CPF cadastrado nos seus dados.
+                </p>
               </div>
 
               {withdrawError ? (

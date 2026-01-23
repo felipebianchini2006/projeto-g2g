@@ -571,8 +571,9 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
                 <div className="flex items-start gap-2">
                   <ShieldAlert size={14} aria-hidden className="mt-0.5" />
                   <p>
-                    Dica: Grave a tela ao logar pela primeira vez para sua segurança em
-                    caso de problemas.
+                    Este pedido contém um produto com entrega automática, e as mensagens
+                    foram enviadas pelo sistema. Para qualquer dúvida sobre o produto ou
+                    serviço, entre em contato com o vendedor pelo chat.
                   </p>
                 </div>
               </div>
@@ -594,27 +595,18 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
                       {state.order.items?.[0]?.title ?? 'Produto'}
                     </p>
                     <p className="text-xs text-meow-muted">
-                      Qtd: {state.order.items?.[0]?.quantity ?? 1} • PIX
+                      Quantidade: {state.order.items?.[0]?.quantity ?? 1} • PIX
                     </p>
                     <p className="text-[11px] text-slate-400">
                       {new Date(state.order.createdAt).toLocaleString('pt-BR')}
+                    </p>
+                    <p className="text-[11px] text-slate-400">
+                      Liberação para o vendedor: 25/01/2026 às 12:24
                     </p>
                   </div>
                 </div>
 
                 <div className="mt-4 grid gap-3">
-                  <Button
-                    className="w-full rounded-full bg-meow-linear px-4 py-3 text-xs font-bold text-white shadow-cute hover:shadow-meow disabled:cursor-not-allowed disabled:opacity-50"
-                    disabled={!canConfirm}
-                    onClick={() =>
-                      handleAction(
-                        () => ordersApi.confirmReceipt(accessToken!, orderId),
-                        'Recebimento confirmado.',
-                      )
-                    }
-                  >
-                    Confirmar e Avaliar
-                  </Button>
                   <Button
                     variant="secondary"
                     className="w-full rounded-full border border-meow-red/30 px-4 py-3 text-xs font-bold text-meow-deep disabled:cursor-not-allowed disabled:opacity-50"
@@ -629,11 +621,13 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
                 </div>
 
                 <div className="mt-4 text-[11px] text-slate-400">
-                  Se você não confirmar em 24h, a confirmação é automática. O pagamento fica em segurança até a entrega e, se houver problema, você pode abrir uma disputa e pedir reembolso em até 7 dias após a confirmação.
+                  [12:24] O valor desta venda será disponibilizado ao vendedor em
+                  25/01/2026 às 12:24. Garanta que todas as etapas da negociação estejam
+                  devidamente resolvidas até essa data.
                 </div>
                 <div className="mt-3 flex items-center gap-2 text-[11px] text-slate-400">
                   <Lock size={12} aria-hidden />
-                  Ambiente Seguro Meoww Store
+                  Ambiente Seguro Meoww
                 </div>
               </div>
             </div>

@@ -822,7 +822,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
         ) : null}
 
         <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
-          <div className="space-y-4">
+          <div className="order-2 space-y-4 lg:order-1">
             <Card className="rounded-[24px] border border-slate-100 p-5 shadow-card">
               <h2 className="text-sm font-bold uppercase text-meow-muted">{aboutTitle}</h2>
               <p className="mt-3 text-sm text-meow-muted">{aboutText}</p>
@@ -853,7 +853,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
             <TrustSealsCard trustSeals={profile.trustSeals} />
           </div>
 
-          <div className="space-y-4">
+          <div className="order-1 space-y-4 lg:order-2">
             {!showTabs ? (
               <Card className="rounded-[24px] border border-slate-100 p-6 shadow-card">
                 <h3 className="text-base font-bold text-meow-charcoal">Avaliações recebidas</h3>

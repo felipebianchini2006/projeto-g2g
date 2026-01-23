@@ -235,7 +235,7 @@ export const NotificationsCenterContent = () => {
 
           <div className="mt-5 flex flex-wrap items-center gap-3">
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
-              <TabsList className="gap-2">
+              <TabsList className="gap-2 overflow-x-auto whitespace-nowrap sm:flex-wrap sm:overflow-visible">
                 {tabs.map((tab) => {
                   const Icon = tab.icon;
                   return (

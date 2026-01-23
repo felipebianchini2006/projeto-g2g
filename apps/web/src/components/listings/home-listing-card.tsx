@@ -103,7 +103,7 @@ export const HomeListingCard = ({ listing, image, href }: HomeListingCardProps) 
               'mt-auto h-10 w-full rounded-full text-xs font-bold justify-center',
           })}
         >
-          Adicionar ao carrinho
+          Ver detalhes
         </Link>
       </div>
     </article>
