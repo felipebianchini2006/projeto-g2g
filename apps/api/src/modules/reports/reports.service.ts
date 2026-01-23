@@ -70,6 +70,125 @@ export class ReportsService {
         });
     }
 
+    async createProfileReport(userId: string, targetUserId: string, dto: CreateReportDto) {
+        const target = await this.prisma.user.findUnique({
+            where: { id: targetUserId },
+            select: { id: true },
+        });
+
+        if (!target) {
+            throw new NotFoundException('Perfil nÃ£o encontrado.');
+        }
+
+        const existingReport = await this.prisma.profileReport.findFirst({
+            where: {
+                userId: targetUserId,
+                reporterId: userId,
+                status: { in: [ReportStatus.OPEN, ReportStatus.REVIEWING] },
+            },
+        });
+
+        if (existingReport) {
+            throw new BadRequestException('VocÃª jÃ¡ denunciou este perfil. Aguarde a anÃ¡lise.');
+        }
+
+        return this.prisma.profileReport.create({
+            data: {
+                userId: targetUserId,
+                reporterId: userId,
+                reason: dto.reason,
+                message: dto.message,
+            },
+        });
+    }
+
+    async listProfileReports(query: ReportQueryDto) {
+        return this.prisma.profileReport.findMany({
+            where: {
+                status: query.status,
+            },
+            include: {
+                user: {
+                    select: { id: true, email: true, fullName: true },
+                },
+                reporter: {
+                    select: { id: true, email: true },
+                },
+                reviewedByAdmin: {
+                    select: { id: true, email: true },
+                },
+            },
+            orderBy: { createdAt: 'desc' },
+            skip: query.skip,
+            take: query.take ?? 50,
+        });
+    }
+
+    async getProfileReport(reportId: string) {
+        const report = await this.prisma.profileReport.findUnique({
+            where: { id: reportId },
+            include: {
+                user: {
+                    select: { id: true, email: true, fullName: true },
+                },
+                reporter: {
+                    select: { id: true, email: true },
+                },
+                reviewedByAdmin: {
+                    select: { id: true, email: true },
+                },
+            },
+        });
+
+        if (!report) {
+            throw new NotFoundException('DenÃºncia nÃ£o encontrada.');
+        }
+
+        return report;
+    }
+
+    async updateProfileReport(reportId: string, adminId: string, dto: UpdateReportDto) {
+        const report = await this.prisma.profileReport.findUnique({
+            where: { id: reportId },
+        });
+
+        if (!report) {
+            throw new NotFoundException('DenÃºncia nÃ£o encontrada.');
+        }
+
+        const data: Record<string, unknown> = {
+            reviewedByAdminId: adminId,
+            updatedAt: new Date(),
+        };
+
+        if (dto.status !== undefined) {
+            data['status'] = dto.status;
+            if (dto.status === ReportStatus.RESOLVED || dto.status === ReportStatus.REJECTED) {
+                data['resolvedAt'] = new Date();
+            }
+        }
+
+        if (dto.adminNote !== undefined) {
+            data['adminNote'] = dto.adminNote;
+        }
+
+        return this.prisma.profileReport.update({
+            where: { id: reportId },
+            data,
+            include: {
+                user: {
+                    select: { id: true, email: true, fullName: true },
+                },
+                reporter: {
+                    select: { id: true, email: true },
+                },
+                reviewedByAdmin: {
+                    select: { id: true, email: true },
+                },
+            },
+        });
+    }
+
     async getReport(reportId: string) {
         const report = await this.prisma.listingReport.findUnique({
             where: { id: reportId },

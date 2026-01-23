@@ -25,6 +25,9 @@ const formatCurrency = (value: number, currency = 'BRL') =>
     maximumFractionDigits: 2,
   }).format(value / 100);
 
+const formatDateTime = (value?: string | null) =>
+  value ? new Date(value).toLocaleString('pt-BR') : '--';
+
 const sourceLabel: Record<LedgerEntrySource, string> = {
   ORDER_PAYMENT: 'Pagamento',
   REFUND: 'Reembolso',
@@ -271,8 +274,9 @@ export const WalletEntriesContent = () => {
       ) : null}
 
       <div className="rounded-2xl border border-meow-red/20 bg-white shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
-        <div className="grid grid-cols-[1.2fr_0.9fr_0.9fr_0.8fr_1fr] gap-3 border-b border-meow-red/10 px-4 py-3 text-xs font-semibold text-meow-muted">
+        <div className="hidden grid-cols-[1.1fr_1fr_0.9fr_0.9fr_0.8fr_1fr] gap-3 border-b border-meow-red/10 px-4 py-3 text-xs font-semibold text-meow-muted md:grid">
           <span>Data</span>
+          <span>Recebimento</span>
           <span>Origem</span>
           <span>Estado</span>
           <span>Valor</span>
@@ -281,20 +285,60 @@ export const WalletEntriesContent = () => {
         {state.entries.map((entry) => {
           const signedAmount = entry.type === 'DEBIT' ? -entry.amountCents : entry.amountCents;
           const amountClass = signedAmount < 0 ? 'text-red-600' : 'text-emerald-600';
+          const receiveAt = entry.state === 'HELD' ? formatDateTime(entry.availableAt) : '--';
           return (
             <div
               key={entry.id}
-              className="grid grid-cols-[1.2fr_0.9fr_0.9fr_0.8fr_1fr] gap-3 border-b border-meow-red/10 px-4 py-3 text-xs text-meow-muted last:border-b-0"
+              className="grid gap-3 border-b border-meow-red/10 px-4 py-4 text-xs text-meow-muted last:border-b-0 md:grid-cols-[1.1fr_1fr_0.9fr_0.9fr_0.8fr_1fr] md:py-3"
             >
-              <span>{new Date(entry.createdAt).toLocaleString('pt-BR')}</span>
-              <span className="font-semibold text-meow-charcoal">{sourceLabel[entry.source]}</span>
-              <span className="text-xs font-semibold text-meow-charcoal">
+              <div className="flex flex-wrap items-center justify-between gap-2 md:hidden">
+                <span className="text-[11px] font-semibold text-meow-muted">Data</span>
+                <span className="text-[11px] text-meow-charcoal">
+                  {new Date(entry.createdAt).toLocaleString('pt-BR')}
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-2 md:hidden">
+                <span className="text-[11px] font-semibold text-meow-muted">Recebimento</span>
+                <span className="text-[11px] text-meow-charcoal">{receiveAt}</span>
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-2 md:hidden">
+                <span className="text-[11px] font-semibold text-meow-muted">Origem</span>
+                <span className="text-[11px] font-semibold text-meow-charcoal">
+                  {sourceLabel[entry.source]}
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-2 md:hidden">
+                <span className="text-[11px] font-semibold text-meow-muted">Estado</span>
+                <span className="text-[11px] font-semibold text-meow-charcoal">
+                  {stateLabel[entry.state]}
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-2 md:hidden">
+                <span className="text-[11px] font-semibold text-meow-muted">Valor</span>
+                <span className={`text-[11px] font-semibold ${amountClass}`}>
+                  {formatCurrency(signedAmount, entry.currency)}
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-2 md:hidden">
+                <span className="text-[11px] font-semibold text-meow-muted">Referencia</span>
+                <span className="font-mono text-[11px] text-meow-charcoal">
+                  {entry.orderId ? `#${entry.orderId.slice(0, 8)}` : entry.description ?? '--'}
+                </span>
+              </div>
+              <span className="hidden md:inline">
+                {new Date(entry.createdAt).toLocaleString('pt-BR')}
+              </span>
+              <span className="hidden md:inline">{receiveAt}</span>
+              <span className="hidden font-semibold text-meow-charcoal md:inline">
+                {sourceLabel[entry.source]}
+              </span>
+              <span className="hidden text-xs font-semibold text-meow-charcoal md:inline">
                 {stateLabel[entry.state]}
               </span>
-              <span className={`font-semibold ${amountClass}`}>
+              <span className={`hidden font-semibold md:inline ${amountClass}`}>
                 {formatCurrency(signedAmount, entry.currency)}
               </span>
-              <span className="font-mono text-[11px] text-meow-charcoal">
+              <span className="hidden font-mono text-[11px] text-meow-charcoal md:inline">
                 {entry.orderId ? `#${entry.orderId.slice(0, 8)}` : entry.description ?? '--'}
               </span>
             </div>

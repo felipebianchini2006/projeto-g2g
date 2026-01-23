@@ -38,6 +38,7 @@ import {
   type PublicReview,
   type ReviewDistribution,
 } from '../../lib/public-reviews-api';
+import { reportsApi, type ReportReason } from '../../lib/reports-api';
 import { fetchPublicListings, type PublicListing } from '../../lib/marketplace-public';
 import { usersApi } from '../../lib/users-api';
 import { useAuth } from '../auth/auth-provider';
@@ -60,6 +61,8 @@ type ProfileHeaderCardProps = {
   canChat: boolean;
   chatLoading: boolean;
   onChat: () => void;
+  canReport: boolean;
+  onReportProfile: () => void;
   onEditProfile?: () => void;
 };
 
@@ -139,6 +142,8 @@ const ProfileHeaderCard = ({
   canChat,
   chatLoading,
   onChat,
+  canReport,
+  onReportProfile,
 }: ProfileHeaderCardProps) => (
   <Card className="-mt-16 rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
     <div className="flex flex-wrap items-center justify-between gap-4">
@@ -233,6 +238,17 @@ const ProfileHeaderCard = ({
             Entrar para conversar
           </Link>
         ) : null}
+        {canReport ? (
+          <Button
+            variant="secondary"
+            size="sm"
+            className="rounded-full gap-2"
+            onClick={onReportProfile}
+          >
+            <Flag size={14} aria-hidden />
+            Denunciar perfil
+          </Button>
+        ) : null}
         {isOwner ? (
           <Link
             href="/conta/meus-dados"
@@ -242,9 +258,7 @@ const ProfileHeaderCard = ({
             Editar Perfil
           </Link>
         ) : null}
-        <Button variant="secondary" size="icon" className="rounded-full">
-          <MoreHorizontal size={16} aria-hidden />
-        </Button>
+        
       </div>
     </div>
   </Card>
@@ -475,6 +489,12 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
   const [reportLoading, setReportLoading] = useState(false);
   const [reportSuccess, setReportSuccess] = useState(false);
   const [reportError, setReportError] = useState<string | null>(null);
+  const [profileReportOpen, setProfileReportOpen] = useState(false);
+  const [profileReportReason, setProfileReportReason] = useState<ReportReason>('SCAM');
+  const [profileReportMessage, setProfileReportMessage] = useState('');
+  const [profileReportSending, setProfileReportSending] = useState(false);
+  const [profileReportSuccess, setProfileReportSuccess] = useState(false);
+  const [profileReportError, setProfileReportError] = useState<string | null>(null);
 
   const handleReportPost = (postId: string) => {
     if (!accessToken) {
@@ -505,6 +525,34 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
       setReportError('Ocorreu um erro ao enviar sua denúncia.');
     } finally {
       setReportLoading(false);
+    }
+  };
+  const handleReportProfile = () => {
+    if (!accessToken) {
+      router.push(`/login?redirect=/perfil/${profileId}`);
+      return;
+    }
+    setProfileReportReason('SCAM');
+    setProfileReportMessage('');
+    setProfileReportSuccess(false);
+    setProfileReportError(null);
+    setProfileReportOpen(true);
+  };
+  const submitProfileReport = async () => {
+    if (!accessToken) return;
+    setProfileReportSending(true);
+    setProfileReportError(null);
+    try {
+      await reportsApi.createProfileReport(accessToken, profileId, {
+        reason: profileReportReason,
+        message: profileReportMessage.trim() || undefined,
+      });
+      setProfileReportSuccess(true);
+      setProfileReportMessage('');
+    } catch (err) {
+      setProfileReportError('N\u00e3o foi poss\u00edvel enviar a den\u00fancia.');
+    } finally {
+      setProfileReportSending(false);
     }
   };
   const router = useRouter();
@@ -730,6 +778,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
   const isOwner = user?.id === profileId;
   const canFollow = Boolean(accessToken && user && !isOwner);
   const canChat = Boolean(accessToken && user && !isOwner);
+  const canReport = !isOwner;
   const canCompose =
     Boolean(user && accessToken) &&
     (isOwner || user?.role === 'ADMIN') &&
@@ -738,6 +787,13 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
   const activePost =
     activePostId ? postsState.items.find((post) => post.id === activePostId) ?? null : null;
   const communityCount = postsState.status === 'ready' ? postsState.total : 0;
+  const profileReportOptions: { value: ReportReason; label: string }[] = [
+    { value: 'SCAM', label: 'Golpe / Fraude' },
+    { value: 'PROHIBITED_CONTENT', label: 'Conte\u00fado Proibido' },
+    { value: 'MISLEADING_DESCRIPTION', label: 'Descri\u00e7\u00e3o Enganosa' },
+    { value: 'DUPLICATE', label: 'Perfil Duplicado' },
+    { value: 'OTHER', label: 'Outro' },
+  ];
 
   const handleComposerImageChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -810,6 +866,8 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
                 setChatLoading(false);
               }
             }}
+            canReport={canReport}
+            onReportProfile={handleReportProfile}
           />
         </div>
 
@@ -1546,6 +1604,95 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
         </div>
       ) : null
       }
+      {profileReportOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-md rounded-[24px] bg-white p-6 shadow-xl animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold text-meow-charcoal">Denunciar perfil</h3>
+              <button
+                type="button"
+                onClick={() => setProfileReportOpen(false)}
+                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {profileReportSuccess ? (
+              <div className="mt-6 text-center">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-500">
+                  <CheckCircle size={32} />
+                </div>
+                <h4 className="text-lg font-bold text-meow-charcoal">Den\u00fancia enviada!</h4>
+                <p className="mt-2 text-sm text-meow-muted">
+                  Nossa equipe vai analisar o relato. Obrigado por ajudar a manter a comunidade segura.
+                </p>
+                <Button
+                  className="mt-6 w-full rounded-full"
+                  onClick={() => setProfileReportOpen(false)}
+                >
+                  Fechar
+                </Button>
+              </div>
+            ) : (
+              <>
+                <p className="mt-2 text-sm text-meow-muted">
+                  Selecione o motivo e descreva o problema.
+                </p>
+
+                <div className="mt-4 space-y-4">
+                  <label className="grid gap-2 text-xs font-semibold text-slate-500">
+                    Motivo
+                    <select
+                      value={profileReportReason}
+                      onChange={(e) => setProfileReportReason(e.target.value as ReportReason)}
+                      className="h-10 w-full appearance-none rounded-2xl border border-slate-200 bg-slate-50 px-3 text-sm text-meow-charcoal outline-none focus:border-meow-300 focus:ring-4 focus:ring-meow-100"
+                    >
+                      {profileReportOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <textarea
+                    rows={4}
+                    placeholder="Descreva o problema..."
+                    value={profileReportMessage}
+                    onChange={(e) => setProfileReportMessage(e.target.value)}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-meow-charcoal outline-none focus:border-meow-300 focus:ring-4 focus:ring-meow-100"
+                  />
+
+                  {profileReportError ? (
+                    <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-600">
+                      {profileReportError}
+                    </div>
+                  ) : null}
+
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setProfileReportOpen(false)}
+                      className="flex-1 rounded-full border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-50"
+                    >
+                      Cancelar
+                    </button>
+                    <Button
+                      type="button"
+                      disabled={profileReportSending}
+                      onClick={submitProfileReport}
+                      className="flex-1 rounded-full bg-rose-500 hover:bg-rose-600 text-white font-bold"
+                    >
+                      {profileReportSending ? 'Enviando...' : 'Enviar den\u00fancia'}
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      ) : null}
     </section >
   );
 };

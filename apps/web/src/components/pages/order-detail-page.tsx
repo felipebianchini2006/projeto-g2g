@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
-import { Copy, Eye, EyeOff, KeyRound, Lock, ShieldAlert } from 'lucide-react';
+import { Copy, Eye, EyeOff, KeyRound, Lock } from 'lucide-react';
 
 import { ApiClientError } from '../../lib/api-client';
 import {
@@ -569,7 +569,6 @@ export const OrderDetailContent = ({ orderId, scope }: OrderDetailContentProps) 
 
               <div className="rounded-[22px] border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
                 <div className="flex items-start gap-2">
-                  <ShieldAlert size={14} aria-hidden className="mt-0.5" />
                   <p>
                     Este pedido contém um produto com entrega automática, e as mensagens
                     foram enviadas pelo sistema. Para qualquer dúvida sobre o produto ou

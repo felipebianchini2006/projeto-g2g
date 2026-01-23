@@ -357,6 +357,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
     typeof listing.availableCount === 'number' ? listing.availableCount : 0;
   const soldCount = typeof listing.soldCount === 'number' ? listing.soldCount : 0;
   const salesCount = typeof listing.salesCount === 'number' ? listing.salesCount : 0;
+  const isSuspended = listing.status === 'SUSPENDED';
   const descriptionUpdatedLabel = (() => {
     const updatedAt = listing.updatedAt ?? listing.createdAt;
     return updatedAt ? new Date(updatedAt).toLocaleString('pt-BR') : '-';
@@ -784,39 +785,65 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
                 </div>
               </div>
 
-              <div className="mt-6 grid gap-3">
-                <Link
-                  className={buttonVariants({
-                    variant: 'primary',
-                    size: 'lg',
-                    className: 'w-full gap-2 text-xs sm:text-sm',
-                  })}
-                  href={`/checkout/${listing.id}?variant=${selectedEdition}`}
-                >
-                  <ShoppingBag size={18} aria-hidden />
-                  COMPRAR AGORA
-                </Link>
-                <button
-                  type="button"
-                  className={buttonVariants({
-                    variant: 'secondary',
-                    size: 'lg',
-                    className: 'w-full gap-2 text-xs sm:text-sm',
-                  })}
-                  onClick={() =>
-                    addToCart({
-                      id: listing.id,
-                      title: `${listing.title} - ${editionLabel}`,
-                      priceCents,
-                      currency: listing.currency,
-                      image: listing.media?.[0]?.url ?? null,
-                    })
-                  }
-                >
-                  <ShoppingCart size={18} aria-hidden />
-                  Adicionar ao Carrinho
-                </button>
-              </div>
+                <div className="mt-6 space-y-3">
+                  {isSuspended ? (
+                    <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-amber-700">
+                      Anúncio pausado. Compras desativadas, mas você pode tirar dúvidas abaixo.
+                    </div>
+                  ) : null}
+                  <div className="grid gap-3">
+                    {isSuspended ? (
+                      <button
+                        type="button"
+                        className={buttonVariants({
+                          variant: 'primary',
+                          size: 'lg',
+                          className: 'w-full gap-2 text-xs sm:text-sm opacity-60',
+                        })}
+                        disabled
+                      >
+                        <ShoppingBag size={18} aria-hidden />
+                        COMPRAR AGORA
+                      </button>
+                    ) : (
+                      <Link
+                        className={buttonVariants({
+                          variant: 'primary',
+                          size: 'lg',
+                          className: 'w-full gap-2 text-xs sm:text-sm',
+                        })}
+                        href={`/checkout/${listing.id}?variant=${selectedEdition}`}
+                      >
+                        <ShoppingBag size={18} aria-hidden />
+                        COMPRAR AGORA
+                      </Link>
+                    )}
+                    <button
+                      type="button"
+                      className={buttonVariants({
+                        variant: 'secondary',
+                        size: 'lg',
+                        className: 'w-full gap-2 text-xs sm:text-sm',
+                      })}
+                      disabled={isSuspended}
+                      onClick={() => {
+                        if (isSuspended) {
+                          return;
+                        }
+                        addToCart({
+                          id: listing.id,
+                          title: `${listing.title} - ${editionLabel}`,
+                          priceCents,
+                          currency: listing.currency,
+                          image: listing.media?.[0]?.url ?? null,
+                        });
+                      }}
+                    >
+                      <ShoppingCart size={18} aria-hidden />
+                      Adicionar ao Carrinho
+                    </button>
+                  </div>
+                </div>
             </div>
 
             {sellerProfile ? (<>

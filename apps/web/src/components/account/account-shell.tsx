@@ -216,7 +216,7 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
             className="inline-flex items-center gap-2 rounded-full border border-meow-200 bg-white px-4 py-2 text-sm font-semibold text-meow-charcoal shadow-card"
           >
             <Bell size={16} aria-hidden />
-            Notificacoes
+            Notificações
           </Link>
         </div>
 

@@ -427,7 +427,81 @@ export const AccountSalesContent = () => {
             </div>
           ) : null}
 
-          <div className="mt-6 overflow-x-auto">
+          <div className="mt-6 grid gap-4 md:hidden">
+            {filteredOrders.map((order) => {
+              const buyer =
+                order.buyer?.fullName ?? order.buyer?.email ?? 'Comprador';
+              const product = order.items[0]?.title ?? 'Venda';
+              const tone = statusTone[order.status] ?? 'neutral';
+
+              return (
+                <div
+                  key={order.id}
+                  className="rounded-[22px] border border-slate-100 bg-white p-5 shadow-card"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase text-slate-400">
+                        #{order.id.slice(0, 8).toUpperCase()}
+                      </span>
+                      <h3 className="mt-1 text-sm font-bold text-meow-charcoal">
+                        {product}
+                      </h3>
+                    </div>
+                    <Badge variant={tone} className="shrink-0">
+                      {statusLabel[order.status] ?? order.status}
+                    </Badge>
+                  </div>
+
+                  <div className="mt-4 grid gap-3 border-t border-slate-50 pt-4 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-slate-400">Comprador</span>
+                      <span className="font-medium text-slate-700">{buyer}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-slate-400">Data</span>
+                      <span className="font-medium text-slate-700">
+                        {formatDate(order.createdAt)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-slate-400">Valor</span>
+                      <span className="font-bold text-meow-deep">
+                        {formatCurrency(order.totalAmountCents, order.currency)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex items-center justify-end gap-2 border-t border-slate-50 pt-3">
+                    <Link
+                      href={`/conta/vendas/${order.id}`}
+                      className="inline-flex h-9 items-center justify-center rounded-full bg-slate-100 px-4 text-xs font-bold text-slate-600 transition hover:bg-slate-200"
+                    >
+                      Detalhes
+                    </Link>
+                    <button
+                      type="button"
+                      className="grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white text-slate-400 transition hover:border-meow-200 hover:text-meow-deep"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        setMenuState({
+                          id: order.id,
+                          top: rect.bottom + 5,
+                          left: Math.max(10, rect.right - 160),
+                        });
+                      }}
+                      aria-label="Acoes"
+                    >
+                      <MoreHorizontal size={16} />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-6 hidden overflow-x-auto md:block">
             <table className="min-w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-100 text-xs uppercase text-slate-400">

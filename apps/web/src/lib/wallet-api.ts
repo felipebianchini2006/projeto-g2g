@@ -34,6 +34,7 @@ export type WalletEntry = {
   description?: string | null;
   orderId?: string | null;
   paymentId?: string | null;
+  availableAt?: string | null;
   createdAt: string;
 };
 

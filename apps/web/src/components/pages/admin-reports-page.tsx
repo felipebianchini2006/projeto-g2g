@@ -11,7 +11,6 @@ import {
     Clock,
     ChevronLeft,
     MessageSquare,
-    Search,
     Filter
 } from 'lucide-react';
 
@@ -20,7 +19,7 @@ import {
     adminReportsApi,
     type UpdateReportInput,
 } from '../../lib/admin-reports-api';
-import type { ListingReport, ReportStatus, ReportReason } from '../../lib/reports-api';
+import type { ListingReport, ProfileReport, ReportStatus, ReportReason } from '../../lib/reports-api';
 import { useAuth } from '../auth/auth-provider';
 import { AdminShell } from '../admin/admin-shell';
 import { Card } from '../ui/card';
@@ -61,8 +60,9 @@ const formatDate = (dateStr: string) =>
 
 export const AdminReportsContent = () => {
     const { user, accessToken, loading } = useAuth();
-    const [reports, setReports] = useState<ListingReport[]>([]);
-    const [selectedReport, setSelectedReport] = useState<ListingReport | null>(null);
+    const [reportScope, setReportScope] = useState<'listings' | 'profiles'>('listings');
+    const [reports, setReports] = useState<Array<ListingReport | ProfileReport>>([]);
+    const [selectedReport, setSelectedReport] = useState<ListingReport | ProfileReport | null>(null);
     const [statusFilter, setStatusFilter] = useState<ReportStatus | 'all'>('OPEN');
     const [adminNote, setAdminNote] = useState('');
     const [busyAction, setBusyAction] = useState<string | null>(null);
@@ -81,12 +81,21 @@ export const AdminReportsContent = () => {
         if (!accessToken) return;
         setBusyAction('load');
         try {
-            const data = await adminReportsApi.listReports(
-                accessToken,
-                statusFilter === 'all' ? undefined : statusFilter,
-            );
+            const data = reportScope === 'listings'
+                ? await adminReportsApi.listReports(
+                    accessToken,
+                    statusFilter === 'all' ? undefined : statusFilter,
+                )
+                : await adminReportsApi.listProfileReports(
+                    accessToken,
+                    statusFilter === 'all' ? undefined : statusFilter,
+                );
             setReports(data);
-            if (data.length > 0 && !selectedReport) {
+            if (data.length === 0) {
+                setSelectedReport(null);
+                return;
+            }
+            if (!selectedReport || !data.some((report) => report.id === selectedReport.id)) {
                 setSelectedReport(data[0] ?? null);
             }
         } catch (err) {
@@ -100,7 +109,7 @@ export const AdminReportsContent = () => {
         if (accessToken && user?.role === 'ADMIN') {
             loadReports();
         }
-    }, [accessToken, user?.role, statusFilter]);
+    }, [accessToken, reportScope, user?.role, statusFilter]);
 
     const handleStatusUpdate = async (newStatus: ReportStatus) => {
         if (!selectedReport || !accessToken) return;
@@ -112,7 +121,9 @@ export const AdminReportsContent = () => {
             if (adminNote.trim()) {
                 input.adminNote = adminNote.trim();
             }
-            const updated = await adminReportsApi.updateReport(accessToken, selectedReport.id, input);
+            const updated = reportScope === 'listings'
+                ? await adminReportsApi.updateReport(accessToken, selectedReport.id, input)
+                : await adminReportsApi.updateProfileReport(accessToken, selectedReport.id, input);
             setNotice(`Denúncia marcada como ${statusLabel[newStatus]}.`);
             setSelectedReport(updated);
             loadReports();
@@ -128,9 +139,13 @@ export const AdminReportsContent = () => {
         setBusyAction('note');
         setError('');
         try {
-            const updated = await adminReportsApi.updateReport(accessToken, selectedReport.id, {
-                adminNote: adminNote.trim(),
-            });
+            const updated = reportScope === 'listings'
+                ? await adminReportsApi.updateReport(accessToken, selectedReport.id, {
+                    adminNote: adminNote.trim(),
+                })
+                : await adminReportsApi.updateProfileReport(accessToken, selectedReport.id, {
+                    adminNote: adminNote.trim(),
+                });
             setNotice('Nota salva.');
             setSelectedReport(updated);
         } catch (err) {
@@ -139,6 +154,14 @@ export const AdminReportsContent = () => {
             setBusyAction(null);
         }
     };
+
+    const isListingReport = (report: ListingReport | ProfileReport): report is ListingReport =>
+        'listingId' in report;
+
+    const getReportTitle = (report: ListingReport | ProfileReport) =>
+        isListingReport(report)
+            ? report.listing?.title ?? 'Anúncio'
+            : report.user?.fullName ?? report.user?.email ?? 'Perfil';
 
     if (loading) {
         return (
@@ -169,7 +192,7 @@ export const AdminReportsContent = () => {
     return (
         <AdminShell
             breadcrumbs={[
-                { label: 'Inicio', href: '/' },
+                { label: 'Início', href: '/' },
                 { label: 'Admin', href: '/admin/atendimento' },
                 { label: 'Denúncias' },
             ]}
@@ -177,7 +200,7 @@ export const AdminReportsContent = () => {
             <Card className="rounded-2xl border border-meow-red/20 p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-xl font-black text-meow-charcoal">Denúncias de Anúncios</h1>
+                        <h1 className="text-xl font-black text-meow-charcoal">Denúncias</h1>
                         <p className="mt-2 text-sm text-meow-muted">
                             Gerencie denúncias enviadas pelos usuários.
                         </p>
@@ -201,6 +224,37 @@ export const AdminReportsContent = () => {
                     {notice}
                 </div>
             ) : null}
+
+            <div className="flex flex-wrap items-center gap-3">
+                <button
+                    type="button"
+                    className={`rounded-full border px-4 py-2 text-xs font-bold transition ${reportScope === 'listings'
+                        ? 'border-meow-red/30 bg-meow-red/10 text-meow-deep'
+                        : 'border-slate-200 bg-white text-slate-500 hover:border-meow-red/30 hover:text-meow-deep'
+                        }`}
+                    onClick={() => {
+                        setReportScope('listings');
+                        setSelectedReport(null);
+                        setAdminNote('');
+                    }}
+                >
+                    Anúncios
+                </button>
+                <button
+                    type="button"
+                    className={`rounded-full border px-4 py-2 text-xs font-bold transition ${reportScope === 'profiles'
+                        ? 'border-meow-red/30 bg-meow-red/10 text-meow-deep'
+                        : 'border-slate-200 bg-white text-slate-500 hover:border-meow-red/30 hover:text-meow-deep'
+                        }`}
+                    onClick={() => {
+                        setReportScope('profiles');
+                        setSelectedReport(null);
+                        setAdminNote('');
+                    }}
+                >
+                    Perfis
+                </button>
+            </div>
 
             <div className="grid gap-6 lg:grid-cols-[1fr_450px]">
                 {/* Left Column: List */}
@@ -266,16 +320,17 @@ export const AdminReportsContent = () => {
                                             >
                                                 <div className="flex w-full items-start justify-between">
                                                     <div className="flex items-center gap-3">
-                                                        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg font-bold ${isSelected ? 'bg-meow-deep text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-white group-hover:text-meow-deep'
-                                                            }`}>
+                                                        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg font-bold ${isSelected ? 'bg-meow-deep text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-white group-hover:text-meow-deep'}`}>
                                                             <Flag size={18} />
                                                         </div>
                                                         <div>
                                                             <p className={`text-sm font-bold line-clamp-1 ${isSelected ? 'text-meow-deep' : 'text-slate-700'}`}>
-                                                                {report.listing?.title ?? 'Anúncio removido'}
+                                                                {getReportTitle(report)}
                                                             </p>
                                                             <div className="flex items-center gap-2 text-xs text-slate-500">
                                                                 <span>{reasonLabel[report.reason]}</span>
+                                                                <span>•</span>
+                                                                <span>{isListingReport(report) ? 'Anúncio' : 'Perfil'}</span>
                                                                 <span>•</span>
                                                                 <span>{report.reporter?.email ?? 'Anônimo'}</span>
                                                             </div>
@@ -340,11 +395,11 @@ export const AdminReportsContent = () => {
                                         </div>
                                     </div>
 
-                                    {selectedReport.listing && (
+                                    {'listingId' in selectedReport && selectedReport.listing ? (
                                         <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
                                             <div className="flex items-center justify-between">
                                                 <div className="overflow-hidden">
-                                                    <p className="text-xs font-bold text-meow-muted uppercase mb-1">Anúncio Denunciado</p>
+                                                    <p className="text-xs font-bold text-meow-muted uppercase mb-1">Anúncio denunciado</p>
                                                     <p className="font-bold text-slate-800 truncate">{selectedReport.listing.title}</p>
                                                     <p className="text-xs text-slate-500">Vendedor: {selectedReport.listing.seller?.email}</p>
                                                 </div>
@@ -357,7 +412,29 @@ export const AdminReportsContent = () => {
                                                 </Link>
                                             </div>
                                         </div>
-                                    )}
+                                    ) : null}
+
+                                    {'userId' in selectedReport ? (
+                                        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                                            <div className="flex items-center justify-between">
+                                                <div className="overflow-hidden">
+                                                    <p className="text-xs font-bold text-meow-muted uppercase mb-1">Perfil denunciado</p>
+                                                    <p className="font-bold text-slate-800 truncate">{selectedReport.user?.fullName ?? selectedReport.user?.email ?? 'Perfil'}</p>
+                                                    <p className="text-xs text-slate-500">Email: {selectedReport.user?.email ?? 'Não informado'}</p>
+                                                </div>
+                                                {selectedReport.user?.id ? (
+                                                    <Link
+                                                        href={`/perfil/${selectedReport.user.id}`}
+                                                        target="_blank"
+                                                        className="ml-2 inline-flex h-9 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-900 shadow-sm transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950"
+                                                    >
+                                                        <ExternalLink size={14} className="mr-1.5" /> Ver
+                                                    </Link>
+                                                ) : null}
+                                            </div>
+                                        </div>
+                                    ) : null}
+
 
                                     {selectedReport.message && (
                                         <div className="rounded-xl bg-amber-50 border border-amber-100 p-4">
@@ -412,9 +489,15 @@ export const AdminReportsContent = () => {
                                         </Button>
                                     </div>
 
-                                    <p className="text-[10px] text-center text-slate-400">
-                                        Para suspender o anúncio, acesse a <Link href="/admin/vendas" className="text-meow-deep hover:underline">moderação de anúncios</Link>.
-                                    </p>
+                                    {'listingId' in selectedReport ? (
+                                        <p className="text-[10px] text-center text-slate-400">
+                                            Para suspender o anúncio, acesse a <Link href="/admin/vendas" className="text-meow-deep hover:underline">moderação de anúncios</Link>.
+                                        </p>
+                                    ) : (
+                                        <p className="text-[10px] text-center text-slate-400">
+                                            Para bloquear um perfil, acesse a gestão de usuários.
+                                        </p>
+                                    )}
                                 </div>
                             </Card>
                         )}

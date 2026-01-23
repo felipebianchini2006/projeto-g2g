@@ -1,5 +1,5 @@
 import { apiFetch } from './api-client';
-import type { ListingReport, ReportStatus } from './reports-api';
+import type { ListingReport, ProfileReport, ReportStatus } from './reports-api';
 
 export type UpdateReportInput = {
     status?: ReportStatus;
@@ -25,6 +25,23 @@ export const adminReportsApi = {
 
     updateReport: (token: string | null, reportId: string, input: UpdateReportInput) =>
         apiFetch<ListingReport>(`/admin/reports/listings/${reportId}`, {
+            method: 'PATCH',
+            headers: authHeaders(token),
+            body: JSON.stringify(input),
+        }),
+    listProfileReports: (token: string | null, status?: ReportStatus) =>
+        apiFetch<ProfileReport[]>(
+            status
+                ? `/admin/reports/profiles?status=${encodeURIComponent(status)}`
+                : '/admin/reports/profiles',
+            { headers: authHeaders(token) },
+        ),
+    getProfileReport: (token: string | null, reportId: string) =>
+        apiFetch<ProfileReport>(`/admin/reports/profiles/${reportId}`, {
+            headers: authHeaders(token),
+        }),
+    updateProfileReport: (token: string | null, reportId: string, input: UpdateReportInput) =>
+        apiFetch<ProfileReport>(`/admin/reports/profiles/${reportId}`, {
             method: 'PATCH',
             headers: authHeaders(token),
             body: JSON.stringify(input),

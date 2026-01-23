@@ -210,7 +210,7 @@ export class ListingsService {
 
     const listing = await this.prisma.listing.findFirst({
       where: {
-        status: ListingStatus.PUBLISHED,
+        status: { in: [ListingStatus.PUBLISHED, ListingStatus.SUSPENDED] },
         OR: [{ id: listingId }, { slug: listingId }],
       },
       include: {

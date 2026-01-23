@@ -83,7 +83,7 @@ export const NotificationsBell = () => {
           ? error.message
           : error instanceof Error
             ? error.message
-            : 'Não foi possível carregar notificacoes.';
+            : 'Não foi possível carregar notificações.';
       setError(message);
     } finally {
       setBusy(false);
@@ -165,7 +165,7 @@ export const NotificationsBell = () => {
         className="notifications-trigger"
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        aria-label="Notificacoes"
+        aria-label="Notificações"
       >
         <i className="fas fa-bell" aria-hidden="true" />
         {unreadCount > 0 ? <span className="notification-badge">{unreadCount}</span> : null}
@@ -180,7 +180,7 @@ export const NotificationsBell = () => {
           />
           <div className="notifications-panel">
             <div className="notifications-panel-header">
-              <strong>Notificacoes</strong>
+              <strong>Notificações</strong>
               <button
                 className="text-meow-muted sm:hidden"
                 type="button"
@@ -202,7 +202,7 @@ export const NotificationsBell = () => {
             {error ? <div className="state-card info">{error}</div> : null}
 
             {items.length === 0 && !busy ? (
-              <div className="state-card">Nenhuma notificacao.</div>
+              <div className="state-card">Nenhuma notificação.</div>
             ) : null}
 
             <div className="notifications-list">

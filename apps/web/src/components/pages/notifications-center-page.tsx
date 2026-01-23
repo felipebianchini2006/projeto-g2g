@@ -184,7 +184,7 @@ export const NotificationsCenterContent = () => {
         <div className="mx-auto w-full max-w-[1200px] px-6">
           <div className="rounded-xl border border-slate-200 bg-white px-6 py-6 text-center">
             <p className="text-sm text-meow-muted">
-              Entre para acompanhar suas notificacoes.
+              Entre para acompanhar suas notificações.
             </p>
             <Link
               href="/login"
@@ -209,13 +209,13 @@ export const NotificationsCenterContent = () => {
           <Link href="/conta" className="font-semibold text-meow-deep">
             Conta
           </Link>{' '}
-          &gt; Notificacoes
+          &gt; Notificações
         </div>
 
         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-black text-meow-charcoal">Notificacoes</h1>
+              <h1 className="text-2xl font-black text-meow-charcoal">Notificações</h1>
               <Badge variant="pink">{unreadCount} novas</Badge>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -259,7 +259,7 @@ export const NotificationsCenterContent = () => {
             {loadingList ? <div className="text-sm text-meow-muted">Carregando...</div> : null}
             {!loadingList && filtered.length === 0 ? (
               <div className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-5 text-sm text-meow-muted">
-                Nenhuma notificacao por aqui.
+                Nenhuma notificação por aqui.
               </div>
             ) : null}
             {filtered.map((notification) => {
@@ -314,7 +314,7 @@ export const NotificationsCenterContent = () => {
                       className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:border-red-200 hover:text-red-500 disabled:opacity-50"
                       onClick={() => deleteOne(notification.id)}
                       disabled={actionBusy === notification.id}
-                      aria-label="Apagar notificacao"
+                      aria-label="Apagar notificação"
                     >
                       <Trash2 size={16} />
                     </button>
@@ -326,7 +326,7 @@ export const NotificationsCenterContent = () => {
 
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 text-xs text-meow-muted">
             <span>
-              Mostrando {filtered.length} de {notifications.length} notificacoes.
+              Mostrando {filtered.length} de {notifications.length} notificações.
             </span>
             <button
               type="button"

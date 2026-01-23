@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { MessageCircle, ShoppingCart, Ticket, Wallet } from 'lucide-react';
+import { MessageCircle, ShoppingCart, Ticket as TicketIcon, Wallet } from 'lucide-react';
 
 import { ApiClientError } from '../../lib/api-client';
 import { ordersApi, type Order } from '../../lib/orders-api';
@@ -218,14 +218,14 @@ export const SellerDashboardContent = () => {
       helperLink: '/conta/perguntas-recebidas',
       helperLabel: 'Ver perguntas',
       icon: MessageCircle,
-      tone: 'from-pink-500 via-rose-500 to-fuchsia-500',
+      tone: 'from-rose-500 via-rose-500 to-rose-600',
     },
     {
       label: 'Ticket aberto',
       value: ticketsState.status === 'loading' ? '...' : openTicketsCount,
       description: 'Tickets em andamento.',
-      icon: Ticket,
-      tone: 'from-violet-500 via-purple-500 to-indigo-500',
+      icon: TicketIcon,
+      tone: 'from-violet-500 via-violet-500 to-purple-600',
     },
   ];
 
@@ -257,23 +257,23 @@ export const SellerDashboardContent = () => {
           return (
             <Card
               key={card.label}
-              className={`relative overflow-hidden rounded-2xl border-0 bg-gradient-to-br ${card.tone} p-5 text-white shadow-[0_18px_40px_rgba(15,23,42,0.18)]`}
+              className={`relative overflow-hidden rounded-[26px] border-0 bg-gradient-to-br ${card.tone} p-5 text-white shadow-[0_20px_45px_rgba(15,23,42,0.2)]`}
             >
-              <div className="absolute -right-6 -top-6 h-16 w-16 rounded-full bg-white/15" />
-              <div className="absolute right-8 top-6 h-10 w-10 rounded-full bg-white/10" />
+              <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-white/15" />
+              <div className="absolute right-6 top-6 h-10 w-10 rounded-full bg-white/10" />
               <div className="relative z-10">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/20">
-                  <Icon size={18} aria-hidden />
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/30 bg-white/15">
+                  {Icon ? <Icon size={18} aria-hidden /> : card.label.slice(0, 1)}
                 </div>
-                <p className="mt-4 text-xs font-semibold uppercase tracking-[0.4px] text-white/80">
+                <p className="mt-4 text-xs font-semibold uppercase tracking-[0.3px] text-white/80">
                   {card.label}
                 </p>
-                <p className="mt-2 text-2xl font-black">{card.value}</p>
+                <p className="mt-2 text-3xl font-black">{card.value}</p>
                 <p className="mt-1 text-xs text-white/80">{card.description}</p>
                 {card.helperLink ? (
                   <Link
                     href={card.helperLink}
-                    className="mt-3 inline-flex text-xs font-semibold text-white/90 underline"
+                    className="mt-3 inline-flex text-xs font-semibold text-white underline decoration-white/70 underline-offset-4 transition hover:text-white"
                   >
                     {card.helperLabel}
                   </Link>

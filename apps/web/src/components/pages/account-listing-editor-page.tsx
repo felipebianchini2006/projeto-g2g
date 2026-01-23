@@ -765,8 +765,8 @@ export const AccountListingEditorContent = ({ listingId }: { listingId: string }
 
               {/* 1. Configuração Inicial */}
               <FormSection step="1" title="Configuração Inicial">
-                <div className="grid gap-6 md:grid-cols-3">
-                  <div className="space-y-2">
+                <div className="grid gap-6 md:grid-cols-[repeat(3,minmax(0,1fr))]">
+                  <div className="min-w-0 space-y-2">
                     <label className="text-xs font-bold uppercase tracking-wide text-slate-400">TIPO DE PRODUTO</label>
                     <Select
                       value={productKind}
@@ -781,7 +781,7 @@ export const AccountListingEditorContent = ({ listingId }: { listingId: string }
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="min-w-0 space-y-2">
                     <label className="text-xs font-bold uppercase tracking-wide text-slate-400">PROCEDÊNCIA</label>
                     <Select
                       value={originId || ''}
@@ -792,7 +792,7 @@ export const AccountListingEditorContent = ({ listingId }: { listingId: string }
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="min-w-0 space-y-2">
                     <label className="text-xs font-bold uppercase tracking-wide text-slate-400">DADOS DE RECUPERAÇÃO</label>
                     <Select
                       value={recoveryOptionId || ''}
@@ -807,15 +807,15 @@ export const AccountListingEditorContent = ({ listingId }: { listingId: string }
 
               {/* 2. Categorias */}
               <FormSection step="2" title="O que estamos vendendo?">
-                <div className="grid gap-6 md:grid-cols-3">
-                  <div className="space-y-2">
+                <div className="grid gap-6 md:grid-cols-[repeat(3,minmax(0,1fr))] md:items-stretch md:justify-items-stretch">
+                  <div className="w-full min-w-0 space-y-2">
                     <label className="text-xs font-bold uppercase tracking-wide text-slate-400">CATEGORIA</label>
-                    <Input
-                      value={categorySearch}
-                      onChange={(event) => setCategorySearch(event.target.value)}
-                      placeholder="Buscar categoria..."
-                      className="h-12 rounded-2xl border-slate-200 bg-slate-50 font-semibold text-slate-700 placeholder:text-slate-400"
-                    />
+                      <Input
+                        value={categorySearch}
+                        onChange={(event) => setCategorySearch(event.target.value)}
+                        placeholder="Buscar categoria..."
+                        className="block h-14 w-full min-w-0 max-w-none rounded-2xl border-slate-200 bg-slate-50 px-4 text-sm font-bold text-slate-700 shadow-[0_8px_20px_rgba(15,23,42,0.04)] placeholder:text-slate-400 hover:bg-slate-100 focus:border-meow-300"
+                      />
                     <Select
                       value={categoryId || ''}
                       onChange={(e) => {
@@ -823,14 +823,14 @@ export const AccountListingEditorContent = ({ listingId }: { listingId: string }
                         setCategoryGroupId('');
                         setCategorySectionId('');
                       }}
-                      className="h-14 rounded-2xl border-slate-200 bg-slate-50 font-bold text-slate-700 hover:bg-slate-100 focus:border-meow-300"
+                        className="h-14 w-full max-w-none rounded-2xl border-slate-200 bg-slate-50 font-bold text-slate-700 hover:bg-slate-100 focus:border-meow-300"
                     >
                       <option value="">Selecione...</option>
                       {filteredCategories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="w-full min-w-0 space-y-2">
                     <label className="text-xs font-bold uppercase tracking-wide text-slate-400">JOGO / SUBCATEGORIA</label>
                     <Select
                       value={categoryGroupId || ''}
@@ -838,19 +838,19 @@ export const AccountListingEditorContent = ({ listingId }: { listingId: string }
                         setCategoryGroupId(e.target.value);
                         setCategorySectionId('');
                       }}
-                      className="h-14 rounded-2xl border-slate-200 bg-slate-50 font-bold text-slate-700 hover:bg-slate-100 focus:border-meow-300"
+                      className="h-14 w-full max-w-none rounded-2xl border-slate-200 bg-slate-50 font-bold text-slate-700 hover:bg-slate-100 focus:border-meow-300"
                     >
                       <option value="">Selecione...</option>
                       {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="w-full min-w-0 space-y-2">
                     <label className="text-xs font-bold uppercase tracking-wide text-slate-400">SEÇÃO</label>
                     <Select
                       value={categorySectionId || ''}
                       onChange={(e) => setCategorySectionId(e.target.value)}
-                      className="h-14 rounded-2xl border-slate-200 bg-slate-50 font-bold text-slate-700 hover:bg-slate-100 focus:border-meow-300"
+                      className="h-14 w-full max-w-none rounded-2xl border-slate-200 bg-slate-50 font-bold text-slate-700 hover:bg-slate-100 focus:border-meow-300"
                     >
                       <option value="">Selecione...</option>
                       {sections.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -1006,15 +1006,17 @@ export const AccountListingEditorContent = ({ listingId }: { listingId: string }
                   </div>
 
                   {/* Auto Delivery Input */}
-                  <div className="rounded-2xl bg-emerald-50/50 border border-emerald-100 p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-2">
+                  <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-6">
+                    <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex items-start gap-3">
                         <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white shadow-sm">
                           <Zap size={16} fill="currentColor" />
                         </div>
                         <div>
                           <h4 className="font-bold text-slate-800">Entrega Automática</h4>
-                          <p className="text-xs text-slate-500 font-bold">O sistema entrega o produto assim que o pagamento for aprovado.</p>
+                          <p className="text-xs font-bold text-slate-500">
+                            O sistema entrega o produto assim que o pagamento for aprovado.
+                          </p>
                         </div>
                       </div>
                       <Toggle

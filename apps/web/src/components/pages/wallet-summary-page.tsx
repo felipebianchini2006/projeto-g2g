@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowUp,
   CheckCircle2,
@@ -188,6 +188,9 @@ export const WalletSummaryContent = () => {
   const [withdrawSuccess, setWithdrawSuccess] = useState<string | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshAnimating, setRefreshAnimating] = useState(false);
+  const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (copied) {
@@ -359,9 +362,20 @@ export const WalletSummaryContent = () => {
     }
   };
 
-  const handleRefresh = () => {
-    loadSummary();
-    loadChartEntries();
+  const handleRefresh = async () => {
+    if (refreshTimerRef.current) {
+      clearTimeout(refreshTimerRef.current);
+    }
+    setRefreshAnimating(true);
+    refreshTimerRef.current = setTimeout(() => {
+      setRefreshAnimating(false);
+    }, 900);
+    setRefreshing(true);
+    try {
+      await Promise.all([loadSummary(), loadChartEntries()]);
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   useEffect(() => {
@@ -370,6 +384,14 @@ export const WalletSummaryContent = () => {
       loadChartEntries();
     }
   }, [accessToken, accessAllowed]);
+
+  useEffect(() => {
+    return () => {
+      if (refreshTimerRef.current) {
+        clearTimeout(refreshTimerRef.current);
+      }
+    };
+  }, []);
 
   const yAxisLabels = useMemo(() => {
     const max = Math.max(...chartState.data.map((item) => item.value), 0);
@@ -453,8 +475,15 @@ export const WalletSummaryContent = () => {
               <Plus size={14} aria-hidden />
               Adicionar saldo
             </Button>
-            <Button variant="secondary" size="sm" type="button" onClick={handleRefresh} className="gap-2">
-              <RefreshCw size={14} aria-hidden />
+            <Button
+              variant="secondary"
+              size="sm"
+              type="button"
+              onClick={handleRefresh}
+              className="gap-2"
+              disabled={refreshing}
+            >
+              <RefreshCw size={14} aria-hidden className={refreshAnimating ? 'animate-spin' : ''} />
               Atualizar
             </Button>
             <Button

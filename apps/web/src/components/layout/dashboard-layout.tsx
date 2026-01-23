@@ -106,6 +106,35 @@ const isActivePath = (pathname: string, href?: string) => {
   return false;
 };
 
+const readStoredSections = (key: string, sections: MenuSection[]) => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) {
+      return null;
+    }
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      return null;
+    }
+    const valid = parsed.filter((title) =>
+      sections.some((section) => section.title === title),
+    );
+    return valid.length > 0 ? valid : null;
+  } catch {
+    return null;
+  }
+};
+
+const persistSections = (key: string, openSections: string[]) => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  window.localStorage.setItem(key, JSON.stringify(openSections));
+};
+
 const accountNav = (
   logout: () => Promise<void>,
   goHome: () => void,
@@ -116,6 +145,7 @@ const accountNav = (
       title: 'Menu',
       items: [
         { label: 'Visão geral', href: '/conta' },
+        { label: 'Minhas compras', href: '/conta/pedidos' },
         { label: 'Minhas perguntas', href: '/conta/perguntas' },
         ...(isSeller ? [{ label: 'Minhas vendas', href: '/conta/vendas' }] : []),
         { label: 'Meus tickets', href: '/conta/tickets' },
@@ -217,7 +247,7 @@ const iconMap: Record<string, React.ReactNode> = {
   Segurança: <ShieldCheck size={16} aria-hidden />,
   Sessões: <Settings size={16} aria-hidden />,
   'Central de ajuda': <LifeBuoy size={16} aria-hidden />,
-  Notificacoes: <Bell size={16} aria-hidden />,
+  Notificações: <Bell size={16} aria-hidden />,
   Configurações: <Settings size={16} aria-hidden />,
   'Sair da conta': <LogOut size={16} aria-hidden />,
   Atendimento: <Headset size={16} aria-hidden />,
@@ -257,30 +287,39 @@ const SidebarCard = ({
   initials: string;
   avatarUrl?: string | null;
 }) => {
+  const storageKey = `dashboard:sidebar:sections:${title}`;
   const initialOpenSections = useMemo(() => {
-    const activeSections = sections
-      .filter((section) =>
-        section.items.some((item) => isActivePath(pathname, item.href)),
-      )
-      .map((section) => section.title);
-    if (activeSections.length > 0) {
-      return activeSections;
-    }
-    return sections[0]?.title ? [sections[0].title] : [];
-  }, [sections, pathname]);
+    return (
+      readStoredSections(storageKey, sections) ??
+      sections.map((section) => section.title)
+    );
+  }, [sections, storageKey]);
 
-  const [openSections, setOpenSections] = useState<string[]>(initialOpenSections);
+  const [openSections, setOpenSections] = useState<string[]>(() => initialOpenSections);
 
   useEffect(() => {
-    setOpenSections(initialOpenSections);
-  }, [initialOpenSections]);
+    setOpenSections((prev) => {
+      const validPrev = prev.filter((item) =>
+        sections.some((section) => section.title === item),
+      );
+      const missing = sections
+        .map((section) => section.title)
+        .filter((item) => !validPrev.includes(item));
+      const next =
+        validPrev.length > 0 ? [...validPrev, ...missing] : sections.map((s) => s.title);
+      persistSections(storageKey, next);
+      return next;
+    });
+  }, [sections, storageKey]);
 
   const toggleSection = (titleValue: string) => {
-    setOpenSections((prev) =>
-      prev.includes(titleValue)
+    setOpenSections((prev) => {
+      const next = prev.includes(titleValue)
         ? prev.filter((item) => item !== titleValue)
-        : [...prev, titleValue],
-    );
+        : [...prev, titleValue];
+      persistSections(storageKey, next);
+      return next;
+    });
   };
 
   return (
@@ -374,30 +413,39 @@ const AccountSidebar = ({
   initials: string;
   avatarUrl?: string | null;
 }) => {
+  const storageKey = 'dashboard:account:sections';
   const initialOpenSections = useMemo(() => {
-    const activeSections = sections
-      .filter((section) =>
-        section.items.some((item) => isActivePath(pathname, item.href)),
-      )
-      .map((section) => section.title);
-    if (activeSections.length > 0) {
-      return activeSections;
-    }
-    return sections[0]?.title ? [sections[0].title] : [];
-  }, [sections, pathname]);
+    return (
+      readStoredSections(storageKey, sections) ??
+      sections.map((section) => section.title)
+    );
+  }, [sections, storageKey]);
 
-  const [openSections, setOpenSections] = useState<string[]>(initialOpenSections);
+  const [openSections, setOpenSections] = useState<string[]>(() => initialOpenSections);
 
   useEffect(() => {
-    setOpenSections(initialOpenSections);
-  }, [initialOpenSections]);
+    setOpenSections((prev) => {
+      const validPrev = prev.filter((item) =>
+        sections.some((section) => section.title === item),
+      );
+      const missing = sections
+        .map((section) => section.title)
+        .filter((item) => !validPrev.includes(item));
+      const next =
+        validPrev.length > 0 ? [...validPrev, ...missing] : sections.map((s) => s.title);
+      persistSections(storageKey, next);
+      return next;
+    });
+  }, [sections, storageKey]);
 
   const toggleSection = (titleValue: string) => {
-    setOpenSections((prev) =>
-      prev.includes(titleValue)
+    setOpenSections((prev) => {
+      const next = prev.includes(titleValue)
         ? prev.filter((item) => item !== titleValue)
-        : [...prev, titleValue],
-    );
+        : [...prev, titleValue];
+      persistSections(storageKey, next);
+      return next;
+    });
   };
 
   return (

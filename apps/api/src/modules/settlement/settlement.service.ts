@@ -101,6 +101,11 @@ export class SettlementService {
       return existing;
     }
 
+    const settings = await this.settingsService.getSettings();
+    const delayHours = settings.settlementReleaseDelayHours ?? 0;
+    const availableAt =
+      delayHours > 0 ? new Date(Date.now() + delayHours * 60 * 60 * 1000) : new Date();
+
     return client.ledgerEntry.create({
       data: {
         userId: input.sellerId,
@@ -112,6 +117,7 @@ export class SettlementService {
         amountCents: input.amountCents,
         currency: input.currency,
         description: 'Escrow held after payment confirmation.',
+        availableAt,
       },
     });
   }

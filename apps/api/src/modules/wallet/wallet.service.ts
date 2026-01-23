@@ -38,6 +38,7 @@ type WalletEntryItem = {
   description: string | null;
   orderId: string | null;
   paymentId: string | null;
+  availableAt: Date | null;
   createdAt: Date;
 };
 
@@ -137,6 +138,7 @@ export class WalletService {
           description: true,
           orderId: true,
           paymentId: true,
+          availableAt: true,
           createdAt: true,
         },
       }),

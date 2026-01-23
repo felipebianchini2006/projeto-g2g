@@ -284,6 +284,9 @@ model User {
   listingQuestionsAnswered ListingQuestion[] @relation("ListingQuestionAnsweredBy")
   listingReportsSubmitted  ListingReport[]   @relation("ListingReportReporter")
   listingReportsReviewed   ListingReport[]   @relation("ListingReportAdmin")
+  profileReportsSubmitted  ProfileReport[]   @relation("ProfileReportReporter")
+  profileReportsReviewed   ProfileReport[]   @relation("ProfileReportAdmin")
+  profileReportsReceived   ProfileReport[]   @relation("ProfileReportTarget")
   rgVerifications          RgVerification[]  @relation("RgVerificationUser")
   rgReviewsAsAdmin         RgVerification[]  @relation("RgVerificationAdmin")
   payoutsReceived          Payout[]          @relation("PayoutUser")
@@ -670,6 +673,30 @@ model ListingReport {
   @@index([status])
   @@index([createdAt])
   @@map("listing_reports")
+}
+
+model ProfileReport {
+  id                String       @id @default(cuid())
+  userId            String
+  reporterId        String
+  reason            ReportReason
+  message           String?
+  status            ReportStatus @default(OPEN)
+  reviewedByAdminId String?
+  adminNote         String?
+  resolvedAt        DateTime?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  user            User  @relation("ProfileReportTarget", fields: [userId], references: [id], onDelete: Cascade)
+  reporter        User  @relation("ProfileReportReporter", fields: [reporterId], references: [id])
+  reviewedByAdmin User? @relation("ProfileReportAdmin", fields: [reviewedByAdminId], references: [id])
+
+  @@index([userId])
+  @@index([reporterId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("profile_reports")
 }
 
 model ListingMedia {
