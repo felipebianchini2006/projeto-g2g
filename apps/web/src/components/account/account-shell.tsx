@@ -83,7 +83,6 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
           { label: 'Favoritos', href: '/conta/favoritos' },
           // Questions links
           { label: 'Minhas perguntas', href: '/conta/perguntas' },
-          { label: 'Carteira', href: '/conta/carteira' },
           { label: 'Meus tickets', href: '/conta/tickets' },
         ],
       },
@@ -93,9 +92,10 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
       sections.unshift({
         title: 'Vendedor',
         items: [
-          { label: 'Painel do vendedor', href: '/conta/vendedor' },
+          { label: 'Carteira', href: '/conta/carteira' },
           { label: 'Meus anúncios', href: '/conta/anuncios' },
           { label: 'Minhas vendas', href: '/conta/vendas' },
+          { label: 'Painel do vendedor', href: '/conta/vendedor' },
           { label: 'Perguntas recebidas', href: '/conta/perguntas-recebidas' },
         ],
       });
@@ -103,20 +103,13 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
 
     sections.push({
       title: 'Conta',
-      items: [
-        { label: 'Configurações', href: '/conta/config' },
-        { label: 'Meus dados', href: '/conta/meus-dados' },
-        { label: 'Segurança', href: '/conta/seguranca' },
-        { label: 'Sessões', href: '/conta/sessoes' },
-        {
-          label: 'Sair da conta',
-          tone: 'danger',
-          onClick: async () => {
-            await logout();
-            router.push('/');
-          },
-        },
-      ],
+          items: [
+            { label: 'Painel do vendedor', href: '/conta/vendedor' },
+            { label: 'Meus anúncios', href: '/conta/anuncios' },
+            { label: 'Minhas vendas', href: '/conta/vendas' },
+            { label: 'Perguntas recebidas', href: '/conta/perguntas-recebidas' },
+            { label: 'Carteira', href: '/conta/carteira' },
+          ],
     });
 
     return sections;

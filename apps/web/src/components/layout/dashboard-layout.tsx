@@ -49,7 +49,6 @@ import { useAuth } from '../auth/auth-provider';
 import { SiteHeader } from './site-header';
 import { buttonVariants } from '../ui/button';
 import { Card } from '../ui/card';
-import { SupportChatFab } from '../support/support-chat-fab';
 
 type MenuItem = {
   label: string;
@@ -147,10 +146,8 @@ const accountNav = (
         { label: 'Visão geral', href: '/conta' },
         { label: 'Minhas compras', href: '/conta/pedidos' },
         { label: 'Minhas perguntas', href: '/conta/perguntas' },
-        ...(isSeller ? [{ label: 'Minhas vendas', href: '/conta/vendas' }] : []),
         { label: 'Meus tickets', href: '/conta/tickets' },
         { label: 'Favoritos', href: '/conta/favoritos' },
-        { label: 'Carteira', href: '/conta/carteira' },
       ],
     },
   ];
@@ -159,8 +156,10 @@ const accountNav = (
     sections.unshift({
       title: 'Vendedor',
       items: [
-        { label: 'Painel do vendedor', href: '/conta/vendedor' },
+        { label: 'Carteira', href: '/conta/carteira' },
         { label: 'Meus anúncios', href: '/conta/anuncios' },
+        { label: 'Minhas vendas', href: '/conta/vendas' },
+        { label: 'Painel do vendedor', href: '/conta/vendedor' },
         { label: 'Perguntas recebidas', href: '/conta/perguntas-recebidas' },
       ],
     });
@@ -670,7 +669,6 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             </div>
           </div>
         ) : null}
-        <SupportChatFab />
       </div>
     </DashboardLayoutContext.Provider>
   );
