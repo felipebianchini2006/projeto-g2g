@@ -2,7 +2,13 @@ import { apiFetch } from './api-client';
 
 export type LedgerEntryType = 'CREDIT' | 'DEBIT';
 export type LedgerEntryState = 'HELD' | 'AVAILABLE' | 'REVERSED';
-export type LedgerEntrySource = 'ORDER_PAYMENT' | 'REFUND' | 'FEE' | 'PAYOUT' | 'WALLET_TOPUP';
+export type LedgerEntrySource =
+  | 'ORDER_PAYMENT'
+  | 'REFUND'
+  | 'FEE'
+  | 'PAYOUT'
+  | 'WALLET_TOPUP'
+  | 'WALLET_PAYMENT';
 
 export type TopupResponse = {
   orderId: string;
@@ -70,6 +76,21 @@ export type PayoutResponse = {
   pixKey: string;
 };
 
+export type WalletPaymentResponse = {
+  order: {
+    id: string;
+    status: string;
+    totalAmountCents: number;
+    currency: string;
+  };
+  payment: {
+    id: string;
+    status: string;
+    txid: string;
+    paidAt?: string | null;
+  };
+};
+
 const authHeaders = (token: string | null): Record<string, string> =>
   token ? { Authorization: `Bearer ${token}` } : {};
 
@@ -107,5 +128,12 @@ export const walletApi = {
       method: 'POST',
       headers: authHeaders(token),
       body: JSON.stringify(payload),
+    }),
+
+  payOrder: (token: string | null, orderId: string) =>
+    apiFetch<WalletPaymentResponse>('/wallet/pay-order', {
+      method: 'POST',
+      headers: authHeaders(token),
+      body: JSON.stringify({ orderId }),
     }),
 };

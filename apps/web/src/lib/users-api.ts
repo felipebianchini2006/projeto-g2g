@@ -128,4 +128,12 @@ export const usersApi = {
       method: 'POST',
       headers: authHeaders(token),
     }),
+  upgradeToSeller: (token: string | null) =>
+    apiFetch<{ id: string; role: 'USER' | 'SELLER' | 'ADMIN' }>(
+      '/users/me/upgrade-seller',
+      {
+        method: 'POST',
+        headers: authHeaders(token),
+      },
+    ),
 };

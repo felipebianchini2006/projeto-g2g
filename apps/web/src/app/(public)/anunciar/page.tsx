@@ -70,10 +70,31 @@ const emptyListing: ListingInput = {
   refundPolicy: 'Reembolso disponivel enquanto o pedido estiver em aberto.',
 };
 
-const parsePriceToCents = (value: string) => {
-  const digits = value.replace(/[^0-9]/g, '');
-  return digits ? Number(digits) : 0;
+const MAX_PRICE_CENTS = 300000;
+
+const parsePriceToCentsRaw = (value: string) => {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return 0;
+  }
+  const cleaned = trimmed.replace(/[^\d,.-]/g, '').replace(/-/g, '');
+  const lastComma = cleaned.lastIndexOf(',');
+  const lastDot = cleaned.lastIndexOf('.');
+  const lastSeparator = Math.max(lastComma, lastDot);
+  if (lastSeparator === -1) {
+    const digits = cleaned.replace(/\D/g, '');
+    return digits ? Number(digits) * 100 : 0;
+  }
+  const integerPart = cleaned.slice(0, lastSeparator).replace(/\D/g, '');
+  const decimalRaw = cleaned.slice(lastSeparator + 1).replace(/\D/g, '');
+  const decimalPart = decimalRaw.slice(0, 2).padEnd(2, '0');
+  const integerValue = integerPart ? Number(integerPart) : 0;
+  const decimalValue = decimalPart ? Number(decimalPart) : 0;
+  return integerValue * 100 + decimalValue;
 };
+
+const parsePriceToCents = (value: string) =>
+  Math.min(parsePriceToCentsRaw(value), MAX_PRICE_CENTS);
 
 const formatCurrency = (cents: number) => {
   return (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -813,8 +834,15 @@ export default function Page() {
                         <Input
                           value={priceInput}
                           onChange={(e) => {
-                            setPriceInput(e.target.value);
-                            setFormState(prev => ({ ...prev, priceCents: parsePriceToCents(e.target.value) }));
+                            const nextValue = e.target.value;
+                            const rawCents = parsePriceToCentsRaw(nextValue);
+                            const nextCents = Math.min(rawCents, MAX_PRICE_CENTS);
+                            if (rawCents > MAX_PRICE_CENTS) {
+                              setPriceInput(formatCurrency(MAX_PRICE_CENTS));
+                            } else {
+                              setPriceInput(nextValue);
+                            }
+                            setFormState(prev => ({ ...prev, priceCents: nextCents }));
                           }}
                           placeholder="R$ 0,00"
                           className="h-14 rounded-xl border-slate-200 bg-slate-50 pl-4 text-xl font-bold text-slate-800 focus:border-meow-300 focus:ring-4 focus:ring-meow-red/10"

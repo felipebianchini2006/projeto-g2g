@@ -164,11 +164,6 @@ const ProfileHeaderCard = ({
               />
             )}
           </div>
-          {profile.isOnline ? (
-            <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-bold uppercase text-white shadow-sm">
-              Online
-            </span>
-          ) : null}
         </div>
         <div>
           <div className="flex flex-wrap items-center gap-2">
@@ -218,6 +213,11 @@ const ProfileHeaderCard = ({
           >
             Entrar para seguir
           </Link>
+        ) : null}
+        {profile.isOnline ? (
+          <span className="rounded-full bg-emerald-500 px-2 py-1 text-[10px] font-bold uppercase text-white">
+            Online
+          </span>
         ) : null}
         {canChat ? (
           <Button
@@ -299,7 +299,7 @@ const TrustSealsCard = ({ trustSeals }: TrustSealsCardProps) => (
       <ShieldCheck size={16} aria-hidden />
       Selos de confianca
     </div>
-    <div className="mt-4 space-y-3">
+    <div className="mt-4 flex-1 min-h-0 space-y-3 overflow-y-auto pr-1 overscroll-contain">
       {[
         { label: 'Identidade (CPF)', active: trustSeals.cpfVerified, icon: <BadgeCheck size={16} /> },
         { label: 'E-mail', active: trustSeals.emailVerified, icon: <CheckCircle size={16} /> },
@@ -599,6 +599,19 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
   }>({ status: 'idle', following: false });
   const [chatLoading, setChatLoading] = useState(false);
   const [brandColor, setBrandColor] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!activePostId) {
+      return;
+    }
+    const { body } = document;
+    const previousOverflow = body.style.overflow;
+    body.style.overflow = 'hidden';
+    return () => {
+      body.style.overflow = previousOverflow;
+    };
+  }, [activePostId]);
+
 
   useEffect(() => {
     if (profileState.profile?.avatarUrl) {
@@ -1263,7 +1276,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
                       onClick={() => setActivePostId(null)}
                       aria-label="Fechar comentários"
                     />
-                    <Card className="relative w-full max-w-xl rounded-[24px] border border-slate-100 bg-white p-5 shadow-card">
+                    <Card className="relative flex w-full max-w-xl flex-col rounded-[24px] border border-slate-100 bg-white p-5 shadow-card max-h-[85vh]">
                       <div className="flex items-center justify-between">
                         <div>
                           <h3 className="text-base font-bold text-meow-charcoal">Comentários</h3>
@@ -1279,7 +1292,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
                         </button>
                       </div>
 
-                      <div className="mt-4 space-y-3">
+                      <div className="mt-4 flex-1 min-h-0 space-y-3 overflow-y-auto pr-1 overscroll-contain">
                         {commentsState.status === 'loading' ? (
                           <div className="space-y-3">
                             {Array.from({ length: 3 }).map((_, index) => (

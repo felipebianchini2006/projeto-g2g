@@ -1089,7 +1089,7 @@ export const AccountDataContent = () => {
           </div>
         </div>
 
-        <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 bg-white/90 px-6 py-4 backdrop-blur">
+        <div className="sticky bottom-0 flex flex-wrap items-center justify-center gap-3 border-t border-slate-100 bg-white/90 px-6 py-4 backdrop-blur sm:justify-between">
           {!isProfileComplete ? (
             <span className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600">
               <AlertTriangle size={14} aria-hidden />
@@ -1101,7 +1101,7 @@ export const AccountDataContent = () => {
               Cancelar
             </Link>
             <Button type="submit" size="lg" disabled={isFormLocked}>
-              {isProfileLocked ? 'Dados bloqueados' : status === 'saving' ? 'Salvando...' : 'Salvar Alteracoes'}
+              {isProfileLocked ? 'Dados bloqueados' : status === 'saving' ? 'Salvando...' : 'Salvar Alterações'}
             </Button>
           </div>
         </div>

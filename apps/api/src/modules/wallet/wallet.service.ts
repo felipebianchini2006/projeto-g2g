@@ -1,9 +1,12 @@
-import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import {
   LedgerEntrySource,
   LedgerEntryState,
   LedgerEntryType,
+  NotificationType,
   OrderStatus,
+  PaymentProvider,
+  PaymentStatus,
   PayoutScope,
   PayoutStatus,
   Prisma,
@@ -13,11 +16,14 @@ import { randomUUID } from 'crypto';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { PaymentsService } from '../payments/payments.service';
+import { OrdersService } from '../orders/orders.service';
 import { OrdersQueueService } from '../orders/orders.queue.service';
+import { SettlementService } from '../settlement/settlement.service';
 import { WalletEntriesQueryDto } from './dto/wallet-entries-query.dto';
 import { TopupWalletDto } from './dto/topup-wallet.dto';
 import { buildWalletSummary, type WalletSummaryRow } from './wallet.utils';
 import { CreatePayoutDto } from './dto/create-payout.dto';
+import { PayOrderWithWalletDto } from './dto/pay-order-with-wallet.dto';
 import type { EfiPixSendResponse } from '../payments/efi/efi.types';
 const DEFAULT_TAKE = 20;
 
@@ -65,7 +71,9 @@ export class WalletService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly paymentsService: PaymentsService,
+    private readonly ordersService: OrdersService,
     private readonly ordersQueue: OrdersQueueService,
+    private readonly settlementService: SettlementService,
   ) { }
 
   async getSummary(userId: string) {
@@ -103,6 +111,157 @@ export class WalletService {
       orderId: order.id,
       payment,
     };
+  }
+
+  async payOrderWithBalance(
+    userId: string,
+    dto: PayOrderWithWalletDto,
+    meta?: { ip?: string; userAgent?: string },
+  ) {
+    const result = await this.prisma.$transaction(async (tx) => {
+      const order = await tx.order.findUnique({
+        where: { id: dto.orderId },
+        include: { items: true },
+      });
+
+      if (!order) {
+        throw new NotFoundException('Order not found.');
+      }
+
+      if (order.buyerId !== userId) {
+        throw new ForbiddenException('Only the buyer can pay with wallet balance.');
+      }
+
+      if (
+        order.status !== OrderStatus.CREATED &&
+        order.status !== OrderStatus.AWAITING_PAYMENT
+      ) {
+        throw new BadRequestException('Order cannot be paid with wallet balance.');
+      }
+
+      if (!order.totalAmountCents || order.totalAmountCents <= 0) {
+        throw new BadRequestException('Order amount is invalid.');
+      }
+
+      if (!order.sellerId) {
+        throw new BadRequestException('Order cannot be paid with wallet balance.');
+      }
+
+      const balanceRows = await tx.ledgerEntry.groupBy({
+        by: ['type'],
+        where: {
+          userId,
+          state: LedgerEntryState.AVAILABLE,
+          currency: order.currency,
+        },
+        _sum: { amountCents: true },
+      });
+
+      const availableCents = balanceRows.reduce((total, row) => {
+        const amount = row._sum.amountCents ?? 0;
+        return total + (row.type === LedgerEntryType.DEBIT ? -amount : amount);
+      }, 0);
+
+      if (availableCents < order.totalAmountCents) {
+        throw new BadRequestException('Saldo insuficiente para pagar o pedido.');
+      }
+
+      await tx.payment.updateMany({
+        where: { orderId: order.id, status: PaymentStatus.PENDING },
+        data: { status: PaymentStatus.EXPIRED },
+      });
+
+      const payment = await tx.payment.create({
+        data: {
+          orderId: order.id,
+          payerId: userId,
+          provider: PaymentProvider.WALLET,
+          txid: `wallet-${randomUUID()}`,
+          status: PaymentStatus.CONFIRMED,
+          amountCents: order.totalAmountCents,
+          currency: order.currency,
+          paidAt: new Date(),
+        },
+      });
+
+      await tx.ledgerEntry.create({
+        data: {
+          userId,
+          orderId: order.id,
+          paymentId: payment.id,
+          type: LedgerEntryType.DEBIT,
+          state: LedgerEntryState.AVAILABLE,
+          source: LedgerEntrySource.WALLET_PAYMENT,
+          amountCents: order.totalAmountCents,
+          currency: order.currency,
+          description: `Pagamento com saldo #${order.id.slice(0, 8)}`,
+        },
+      });
+
+      const confirmation = await this.ordersService.applyPaymentConfirmation(
+        order.id,
+        userId,
+        {
+          source: 'user',
+          reason: 'wallet-balance',
+          ip: meta?.ip,
+          userAgent: meta?.userAgent,
+        },
+        tx,
+      );
+
+      if (order.sellerId) {
+        await this.settlementService.createHeldEntry(
+          {
+            orderId: order.id,
+            paymentId: payment.id,
+            sellerId: order.sellerId,
+            amountCents: order.totalAmountCents,
+            currency: order.currency,
+          },
+          tx,
+        );
+      }
+
+      if (order.buyerId) {
+        await tx.notification.create({
+          data: {
+            userId: order.buyerId,
+            type: NotificationType.PAYMENT,
+            title: 'Pagamento confirmado',
+            body: `Pedido ${order.id} confirmado.`,
+          },
+        });
+      }
+
+      if (order.sellerId) {
+        await tx.notification.create({
+          data: {
+            userId: order.sellerId,
+            type: NotificationType.PAYMENT,
+            title: 'Pagamento confirmado',
+            body: `Pedido ${order.id} confirmado.`,
+          },
+        });
+      }
+
+      return {
+        order: confirmation.order,
+        applied: confirmation.applied,
+        payment,
+      };
+    });
+
+    if (result.applied) {
+      await this.ordersService.handlePaymentSideEffects(result.order, userId, {
+        source: 'user',
+        reason: 'wallet-balance',
+        ip: meta?.ip,
+        userAgent: meta?.userAgent,
+      });
+    }
+
+    return { order: result.order, payment: result.payment };
   }
 
   async listEntries(userId: string, query: WalletEntriesQueryDto) {

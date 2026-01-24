@@ -79,10 +79,31 @@ const statusTone: Record<string, 'success' | 'warning' | 'info' | 'danger' | 'ne
   SUSPENDED: 'danger',
 };
 
-const parsePriceToCents = (value: string) => {
-  const digits = value.replace(/[^0-9]/g, '');
-  return digits ? Number(digits) : 0;
+const MAX_PRICE_CENTS = 300000;
+
+const parsePriceToCentsRaw = (value: string) => {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return 0;
+  }
+  const cleaned = trimmed.replace(/[^\d,.-]/g, '').replace(/-/g, '');
+  const lastComma = cleaned.lastIndexOf(',');
+  const lastDot = cleaned.lastIndexOf('.');
+  const lastSeparator = Math.max(lastComma, lastDot);
+  if (lastSeparator === -1) {
+    const digits = cleaned.replace(/\D/g, '');
+    return digits ? Number(digits) * 100 : 0;
+  }
+  const integerPart = cleaned.slice(0, lastSeparator).replace(/\D/g, '');
+  const decimalRaw = cleaned.slice(lastSeparator + 1).replace(/\D/g, '');
+  const decimalPart = decimalRaw.slice(0, 2).padEnd(2, '0');
+  const integerValue = integerPart ? Number(integerPart) : 0;
+  const decimalValue = decimalPart ? Number(decimalPart) : 0;
+  return integerValue * 100 + decimalValue;
 };
+
+const parsePriceToCents = (value: string) =>
+  Math.min(parsePriceToCentsRaw(value), MAX_PRICE_CENTS);
 
 const formatCurrency = (cents: number) => {
   return (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -986,8 +1007,15 @@ export const AccountListingEditorContent = ({ listingId }: { listingId: string }
                         <Input
                           value={priceInput}
                           onChange={(e) => {
-                            setPriceInput(e.target.value);
-                            setFormState(prev => ({ ...prev, priceCents: parsePriceToCents(e.target.value) }));
+                            const nextValue = e.target.value;
+                            const rawCents = parsePriceToCentsRaw(nextValue);
+                            const nextCents = Math.min(rawCents, MAX_PRICE_CENTS);
+                            if (rawCents > MAX_PRICE_CENTS) {
+                              setPriceInput(formatCurrency(MAX_PRICE_CENTS));
+                            } else {
+                              setPriceInput(nextValue);
+                            }
+                            setFormState(prev => ({ ...prev, priceCents: nextCents }));
                           }}
                           placeholder="R$ 0,00"
                           className="h-14 rounded-xl border-slate-200 bg-slate-50 pl-4 text-xl font-bold text-slate-800 focus:border-meow-300 focus:ring-4 focus:ring-meow-red/10"
@@ -1006,15 +1034,15 @@ export const AccountListingEditorContent = ({ listingId }: { listingId: string }
                   </div>
 
                   {/* Auto Delivery Input */}
-                  <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-6">
+                  <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-6 dark:border-emerald-500/20 dark:bg-emerald-950/40">
                     <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white shadow-sm">
-                          <Zap size={16} fill="currentColor" />
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm dark:bg-emerald-500/20 dark:text-emerald-200">
+                          <Zap size={18} fill="currentColor" />
                         </div>
                         <div>
-                          <h4 className="font-bold text-slate-800">Entrega Automática</h4>
-                          <p className="text-xs font-bold text-slate-500">
+                          <h4 className="font-bold text-slate-800 dark:text-emerald-50">Entrega Automática</h4>
+                          <p className="text-xs font-bold text-slate-500 dark:text-emerald-100/70">
                             O sistema entrega o produto assim que o pagamento for aprovado.
                           </p>
                         </div>
@@ -1028,21 +1056,21 @@ export const AccountListingEditorContent = ({ listingId }: { listingId: string }
 
                     {autoDelivery && !isDynamic && (
                       <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-                        <label className="text-xs font-bold uppercase tracking-wide text-emerald-700">ADICIONAR NOVOS ITENS AO ESTOQUE</label>
+                        <label className="text-xs font-bold uppercase tracking-wide text-emerald-700 dark:text-emerald-200">ADICIONAR NOVOS ITENS AO ESTOQUE</label>
                         <Textarea
                           value={inventoryPayload}
                           onChange={e => setInventoryPayload(e.target.value)}
                           placeholder={isDynamic ? "Item #1 | Acesso...\nItem #2 | Acesso..." : "Ex: Login: usuario123 | Senha: senha123\nOu Cole aqui a Key do jogo..."}
-                          className="min-h-[120px] rounded-xl border-emerald-200 bg-white font-mono text-sm focus:border-emerald-400 focus:ring-emerald-500/10"
+                          className="min-h-[120px] rounded-xl border-emerald-200 bg-white font-mono text-sm focus:border-emerald-400 focus:ring-emerald-500/10 dark:border-emerald-500/40 dark:bg-emerald-950/20"
                         />
-                        <p className="text-[10px] font-bold text-emerald-600 flex items-center gap-1">
-                          <span className="w-2 h-2 rounded-full bg-emerald-500 block"></span>
+                        <p className="text-[10px] font-bold text-emerald-600 flex items-center gap-1 dark:text-emerald-200">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 block dark:bg-emerald-300"></span>
                           Esses dados são criptografados e enviados apenas para o comprador após o pagamento.
                         </p>
                       </div>
                     )}
                     {autoDelivery && isDynamic ? (
-                      <p className="text-xs font-semibold text-emerald-700">
+                      <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-200">
                         Os itens dinâmicos geram o estoque automaticamente.
                       </p>
                     ) : null}

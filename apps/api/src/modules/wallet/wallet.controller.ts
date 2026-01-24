@@ -7,6 +7,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { WalletEntriesQueryDto } from './dto/wallet-entries-query.dto';
+import { PayOrderWithWalletDto } from './dto/pay-order-with-wallet.dto';
 import { TopupWalletDto } from './dto/topup-wallet.dto';
 import { CreatePayoutDto } from './dto/create-payout.dto';
 import { WalletService } from './wallet.service';
@@ -42,6 +43,15 @@ export class WalletController {
   createPayout(@Req() req: AuthenticatedRequest, @Body() dto: CreatePayoutDto) {
     const userId = this.getUserId(req);
     return this.walletService.createUserPayout(userId, dto);
+  }
+
+  @Post('pay-order')
+  payOrder(@Req() req: AuthenticatedRequest, @Body() dto: PayOrderWithWalletDto) {
+    const userId = this.getUserId(req);
+    return this.walletService.payOrderWithBalance(userId, dto, {
+      ip: req.ip,
+      userAgent: req.headers['user-agent'],
+    });
   }
 
   private getUserId(request: AuthenticatedRequest) {

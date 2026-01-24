@@ -97,6 +97,7 @@ enum DeliveryEvidenceType {
 
 enum PaymentProvider {
   EFI
+  WALLET
 }
 
 enum PaymentStatus {
@@ -129,6 +130,7 @@ enum LedgerEntrySource {
   FEE
   PAYOUT
   WALLET_TOPUP
+  WALLET_PAYMENT
 }
 
 enum PayoutScope {

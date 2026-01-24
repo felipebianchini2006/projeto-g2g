@@ -307,7 +307,7 @@ export const AccountSalesContent = () => {
               value={period}
               onChange={(event) => setPeriod(event.target.value as PeriodOption)}
             >
-              <option value="month">Este mes</option>
+              <option value="month">Este mês</option>
               <option value="30d">Ultimos 30 dias</option>
               <option value="90d">Ultimos 90 dias</option>
               <option value="all">Todo periodo</option>

@@ -267,7 +267,7 @@ export const AccountSessionsContent = () => {
         { label: 'Sessões' },
       ]}
     >
-      <Card className="rounded-[26px] border border-slate-200 bg-gradient-to-r from-slate-50 to-rose-50 p-6 shadow-card">
+      <Card className="rounded-[26px] border border-slate-200 bg-white/95 p-6 shadow-card">
         <div className="flex flex-wrap items-start gap-4">
           <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white text-rose-500 shadow-card">
             <ShieldCheck size={20} aria-hidden />
@@ -357,7 +357,7 @@ export const AccountSessionsContent = () => {
                 }`}
               >
                 {isCurrent ? (
-                  <span className="absolute right-4 top-[-12px] rounded-full bg-rose-500 px-3 py-1 text-[10px] font-bold uppercase text-white shadow-card">
+                  <span className="absolute right-3 top-3 rounded-full bg-rose-500 px-3 py-1 text-[10px] font-bold uppercase text-white shadow-card">
                     DISPOSITIVO ATUAL
                   </span>
                 ) : null}

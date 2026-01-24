@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 
 import { ApiClientError } from '../../lib/api-client';
 import { accountSecurityApi } from '../../lib/account-security-api';
+import { usersApi } from '../../lib/users-api';
 import { useAuth } from '../auth/auth-provider';
 import { AccountShell } from '../account/account-shell';
 import { Button, buttonVariants } from '../ui/button';
@@ -38,10 +39,11 @@ const roleTone: Record<string, 'success' | 'warning' | 'info' | 'danger' | 'neut
 };
 
 export const AccountProfileContent = () => {
-  const { user, loading, accessToken, logout } = useAuth();
+  const { user, loading, accessToken, logout, refresh } = useAuth();
   const router = useRouter();
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [state, setState] = useState<SecurityState>({ busy: false });
+  const [upgradeState, setUpgradeState] = useState<SecurityState>({ busy: false });
   const [form, setForm] = useState<PasswordForm>({
     currentPassword: '',
     newPassword: '',
@@ -99,6 +101,29 @@ export const AccountProfileContent = () => {
             ? error.message
             : 'Nao foi possivel atualizar a senha.';
       setState({ busy: false, error: message });
+    }
+  };
+
+  const handleUpgradeSeller = async () => {
+    if (!accessToken || upgradeState.busy) {
+      return;
+    }
+    if (!window.confirm('Deseja ativar o perfil de vendedor?')) {
+      return;
+    }
+    setUpgradeState({ busy: true, error: undefined, success: undefined });
+    try {
+      await usersApi.upgradeToSeller(accessToken);
+      await refresh();
+      setUpgradeState({ busy: false, success: 'Perfil atualizado para vendedor.' });
+    } catch (error) {
+      const message =
+        error instanceof ApiClientError
+          ? error.message
+          : error instanceof Error
+            ? error.message
+            : 'Nao foi possivel atualizar o perfil.';
+      setUpgradeState({ busy: false, error: message });
     }
   };
 
@@ -179,6 +204,16 @@ export const AccountProfileContent = () => {
         {state.success ? (
           <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
             {state.success}
+          </div>
+        ) : null}
+        {upgradeState.error ? (
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {upgradeState.error}
+          </div>
+        ) : null}
+        {upgradeState.success ? (
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            {upgradeState.success}
           </div>
         ) : null}
 
@@ -274,6 +309,35 @@ export const AccountProfileContent = () => {
               </Link>
             </div>
           </Card>
+          <Card className="rounded-2xl border border-slate-100 p-6 shadow-card">
+            <h2 className="text-lg font-black text-meow-charcoal">Vender na plataforma</h2>
+            <p className="mt-2 text-sm text-meow-muted">
+              Ative seu perfil de vendedor para publicar anuncios e receber pagamentos.
+            </p>
+            <div className="mt-5 flex flex-wrap items-center gap-3">
+              {user.role === 'USER' ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleUpgradeSeller}
+                  disabled={upgradeState.busy}
+                >
+                  {upgradeState.busy ? 'Ativando...' : 'Quero vender'}
+                </Button>
+              ) : (
+                <>
+                  <Badge variant="success">Perfil de vendedor ativo</Badge>
+                  <Link
+                    href="/conta/anuncios"
+                    className={buttonVariants({ variant: 'secondary', size: 'sm' })}
+                  >
+                    Criar anúncio
+                  </Link>
+                </>
+              )}
+            </div>
+          </Card>
+
         </div>
       </div>
     </AccountShell>

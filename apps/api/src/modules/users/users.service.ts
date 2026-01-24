@@ -58,6 +58,11 @@ const USER_PROFILE_SELECT = {
   verificationFeePaidAt: true,
 };
 
+const USER_ROLE_SELECT = {
+  id: true,
+  role: true,
+};
+
 const VERIFICATION_FEE_AMOUNT_CENTS = 3;
 const VERIFICATION_FEE_TTL_MS = 15 * 60 * 1000;
 
@@ -476,6 +481,51 @@ export class UsersService {
             },
             next: {
               email: updated.email,
+              role: updated.role,
+            },
+          },
+        },
+      });
+
+      return updated;
+    });
+  }
+
+  async upgradeToSeller(userId: string, meta: AuditMeta) {
+    return this.prisma.$transaction(async (tx) => {
+      const current = await tx.user.findUnique({
+        where: { id: userId },
+        select: USER_ROLE_SELECT,
+      });
+
+      if (!current) {
+        throw new NotFoundException('User not found.');
+      }
+
+      if (current.role !== 'USER') {
+        return current;
+      }
+
+      const updated = await tx.user.update({
+        where: { id: userId },
+        data: { role: 'SELLER' },
+        select: USER_ROLE_SELECT,
+      });
+
+      await tx.auditLog.create({
+        data: {
+          adminId: userId,
+          action: AuditAction.PERMISSION_CHANGE,
+          entityType: 'user',
+          entityId: userId,
+          ip: meta.ip,
+          userAgent: meta.userAgent,
+          payload: {
+            action: 'self_upgrade',
+            previous: {
+              role: current.role,
+            },
+            next: {
               role: updated.role,
             },
           },

@@ -6,7 +6,6 @@ import {
   Bell,
   Check,
   MessageCircle,
-  Settings,
   ShoppingBag,
   Ticket,
   Trash2,
@@ -67,7 +66,6 @@ export const NotificationsCenterContent = () => {
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number]['id']>('all');
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loadingList, setLoadingList] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
   const [actionBusy, setActionBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -222,14 +220,6 @@ export const NotificationsCenterContent = () => {
               <Button type="button" size="sm" variant="secondary" onClick={markAll}>
                 Marcar todas como lidas
               </Button>
-              <button
-                type="button"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:border-meow-red/40 hover:text-meow-deep"
-                onClick={() => setShowSettings(true)}
-                aria-label="Configuracoes"
-              >
-                <Settings size={16} />
-              </button>
             </div>
           </div>
 
@@ -339,30 +329,6 @@ export const NotificationsCenterContent = () => {
         </div>
       </div>
 
-      {showSettings ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6">
-          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-meow-charcoal">Configuracoes</h2>
-              <button
-                type="button"
-                className="text-sm font-semibold text-slate-400 hover:text-slate-600"
-                onClick={() => setShowSettings(false)}
-              >
-                Fechar
-              </button>
-            </div>
-            <p className="mt-4 text-sm text-meow-muted">Em breve.</p>
-            <Button
-              type="button"
-              className="mt-5 w-full"
-              onClick={() => setShowSettings(false)}
-            >
-              Ok
-            </Button>
-          </div>
-        </div>
-      ) : null}
     </section>
   );
 };

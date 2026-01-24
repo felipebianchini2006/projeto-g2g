@@ -186,7 +186,7 @@ export default function Page() {
               Ver mais
             </Link>
           </div>
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap justify-center gap-4 sm:justify-start">
             {recommendations.map((listing) => (
               <HomeListingCard
                 key={listing.id}

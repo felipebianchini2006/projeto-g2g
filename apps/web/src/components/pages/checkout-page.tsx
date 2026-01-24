@@ -14,6 +14,7 @@ import {
   Package,
   QrCode,
   Star,
+  Wallet,
 } from 'lucide-react';
 
 import { ApiClientError } from '../../lib/api-client';
@@ -27,6 +28,7 @@ import { ordersApi, type CheckoutResponse, type Order } from '../../lib/orders-a
 import { paymentsApi, type PixPayment } from '../../lib/payments-api';
 import { publicProfilesApi, type PublicProfile } from '../../lib/public-profiles-api';
 import { usersApi } from '../../lib/users-api';
+import { walletApi, type WalletSummary } from '../../lib/wallet-api';
 import { useAuth } from '../auth/auth-provider';
 import { useSite } from '../site-context';
 import { Badge } from '../ui/badge';
@@ -150,6 +152,11 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
   const [referralSlug, setReferralSlug] = useState<string | null>(null);
   const [order, setOrder] = useState<Order | null>(null);
   const [pixPayment, setPixPayment] = useState<PixPayment | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'pix' | 'wallet'>('pix');
+  const [walletSummary, setWalletSummary] = useState<WalletSummary | null>(null);
+  const [walletStatus, setWalletStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
+  const [walletError, setWalletError] = useState<string | null>(null);
+  const [walletPaying, setWalletPaying] = useState(false);
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
   const [buyerFullName, setBuyerFullName] = useState('');
   const [buyerCpf, setBuyerCpf] = useState('');
@@ -286,6 +293,37 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
   }, [accessToken]);
 
   useEffect(() => {
+    if (!accessToken || step !== 'pagamento') {
+      setWalletSummary(null);
+      setWalletStatus('idle');
+      setWalletError(null);
+      return;
+    }
+    let active = true;
+    setWalletStatus('loading');
+    setWalletError(null);
+    walletApi
+      .getSummary(accessToken)
+      .then((summary) => {
+        if (!active) {
+          return;
+        }
+        setWalletSummary(summary);
+        setWalletStatus('ready');
+      })
+      .catch(() => {
+        if (!active) {
+          return;
+        }
+        setWalletStatus('error');
+        setWalletError('Não foi possível carregar o saldo da carteira.');
+      });
+    return () => {
+      active = false;
+    };
+  }, [accessToken, step]);
+
+  useEffect(() => {
     if (!accessToken || !order || step !== 'pagamento') {
       return;
     }
@@ -344,6 +382,10 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
   const subtotalAfterCoupon = Math.max(subtotalCents - couponDiscountValue, 0);
   const pixDiscountCents = 0; // Desconto de PIX removido.
   const estimatedTotalCents = Math.max(subtotalAfterCoupon - pixDiscountCents, 0);
+  const paymentTotalCents = order?.totalAmountCents ?? estimatedTotalCents;
+  const walletAvailableCents = walletSummary?.availableCents ?? 0;
+  const canPayWithWallet =
+    walletStatus === 'ready' && walletAvailableCents >= paymentTotalCents;
 
   const checkoutBlockedReason = useMemo(() => {
     if (!listing) {
@@ -461,6 +503,29 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
       }
     } finally {
       setBuyerBusy(false);
+    }
+  };
+
+  const handlePayWithWallet = async () => {
+    if (!accessToken || !order || walletPaying || !canPayWithWallet) {
+      return;
+    }
+    setWalletPaying(true);
+    setWalletError(null);
+    try {
+      const response = await walletApi.payOrder(accessToken, order.id);
+      setOrder((prev) => (prev ? { ...prev, ...response.order } : response.order));
+      setStep('confirmacao');
+    } catch (error) {
+      const message =
+        error instanceof ApiClientError
+          ? error.message
+          : error instanceof Error
+            ? error.message
+            : 'Não foi possível pagar com o saldo.';
+      setWalletError(message);
+    } finally {
+      setWalletPaying(false);
     }
   };
 
@@ -676,30 +741,61 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                     </h2>
                     <div className="mt-4 grid gap-3 sm:grid-cols-3">
                       {[
-                        { id: 'pix', label: 'Pix', helper: 'Instantâneo', active: true, icon: QrCode },
+                        {
+                          id: 'pix',
+                          label: 'Pix',
+                          helper: 'Instant?neo',
+                          icon: QrCode,
+                          enabled: true,
+                        },
+                        {
+                          id: 'wallet',
+                          label: 'Saldo',
+                          helper:
+                            walletStatus === 'loading'
+                              ? 'Carregando saldo...'
+                              : walletStatus === 'error'
+                                ? 'Saldo indispon?vel'
+                                : `Dispon?vel ${formatCurrency(walletAvailableCents, listing?.currency ?? 'BRL')}`,
+                          icon: Wallet,
+                          enabled: walletStatus === 'ready',
+                          insufficient: walletStatus === 'ready' && walletAvailableCents < paymentTotalCents,
+                        },
                         {
                           id: 'card',
                           label: 'Cartao',
                           helper: 'Ate 12x',
-                          active: false,
                           icon: CreditCard,
+                          enabled: false,
                         },
                         {
                           id: 'boleto',
                           label: 'Boleto',
                           helper: '+2 dias',
-                          active: false,
                           icon: Barcode,
+                          enabled: false,
                         },
                       ].map((method) => {
                         const Icon = method.icon;
+                        const isActive = paymentMethod === method.id;
+                        const isWallet = method.id === 'wallet';
+                        const isDisabled = !method.enabled || (isWallet && Boolean(method.insufficient));
+                        const showSoon = !method.enabled && method.id !== 'wallet';
                         return (
-                          <div
+                          <button
                             key={method.id}
-                            className={`rounded-2xl border px-4 py-3 text-sm font-semibold ${method.active
+                            type="button"
+                            disabled={isDisabled}
+                            onClick={() => {
+                              if (isDisabled) return;
+                              if (method.id === 'pix' || method.id === 'wallet') {
+                                setPaymentMethod(method.id);
+                              }
+                            }}
+                            className={`rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition ${isActive
                               ? 'border-meow-300 bg-meow-100/60 text-meow-deep'
                               : 'border-slate-100 bg-slate-50 text-slate-400'
-                              }`}
+                              } ${isDisabled ? 'cursor-not-allowed opacity-60' : 'hover:border-meow-300/60'}`}
                           >
                             <div className="flex items-center justify-between">
                               <span className="flex items-center gap-2">
@@ -708,97 +804,162 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                                 </span>
                                 {method.label}
                               </span>
-                              {method.active ? (
+                              {isActive ? (
                                 <Badge variant="success" className="text-[9px]">
-                                  {method.helper}
+                                  {isWallet && method.insufficient ? 'Saldo insuficiente' : method.helper}
                                 </Badge>
-                              ) : (
+                              ) : showSoon ? (
                                 <span className="text-[10px] font-bold uppercase">Em breve</span>
-                              )}
+                              ) : null}
                             </div>
                             <p className="mt-2 text-xs text-slate-500">{method.helper}</p>
-                          </div>
-                        )
+                          </button>
+                        );
                       })}
                     </div>
+
                   </Card>
 
-                  <Card className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-6 shadow-card">
-                    <div className="flex items-center gap-3">
-                      <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600">
-                        <QrCode size={20} aria-hidden />
-                      </span>
-                      <div>
-                        <h2 className="text-base font-bold text-meow-charcoal">
-                          Pix - Pagamento rápido
-                        </h2>
-                        <p className="text-sm text-meow-muted">
-                          Pague com Pix e receba seu produto na hora.
-                        </p>
+                  {paymentMethod === 'pix' ? (
+                    <Card className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-6 shadow-card">
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600">
+                          <QrCode size={20} aria-hidden />
+                        </span>
+                        <div>
+                          <h2 className="text-base font-bold text-meow-charcoal">
+                            Pix - Pagamento r?pido
+                          </h2>
+                          <p className="text-sm text-meow-muted">
+                            Pague com Pix e receba seu produto na hora.
+                          </p>
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="mt-4 rounded-2xl border border-dashed border-emerald-300 bg-white p-4">
-                      {qrImage ? (
-                        <img src={qrImage} alt="QR Code Pix" className="mx-auto h-44 w-44" />
+                      <div className="mt-4 rounded-2xl border border-dashed border-emerald-300 bg-white p-4">
+                        {qrImage ? (
+                          <img src={qrImage} alt="QR Code Pix" className="mx-auto h-44 w-44" />
+                        ) : null}
+                        {activePayment?.qrCode && !qrImage ? (
+                          <p className="text-xs text-meow-muted">{activePayment.qrCode}</p>
+                        ) : null}
+                        {!activePayment ? (
+                          <p className="text-sm text-meow-muted">
+                            Gere o Pix para visualizar o QR Code.
+                          </p>
+                        ) : null}
+                      </div>
+
+                      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <p className="text-xs text-meow-muted">Valor</p>
+                          <p className="text-lg font-black text-meow-charcoal">
+                            {order
+                              ? formatCurrency(order.totalAmountCents, order.currency)
+                              : formatCurrency(estimatedTotalCents, listing.currency)}
+                          </p>
+                        </div>
+
+                        <button
+                          type="button"
+                          className={buttonVariants({
+                            variant: 'primary',
+                            size: 'sm',
+                            className: 'gap-2 bg-emerald-500 hover:bg-emerald-600',
+                          })}
+                          onClick={handleCopyPix}
+                          disabled={!activePayment?.copyPaste}
+                        >
+                          <Copy size={14} aria-hidden />
+                          Copiar Codigo Pix
+                        </button>
+                      </div>
+
+                      {copyStatus ? (
+                        <div className="mt-2 text-xs font-semibold text-meow-muted">
+                          {copyStatus}
+                        </div>
                       ) : null}
-                      {activePayment?.qrCode && !qrImage ? (
-                        <p className="text-xs text-meow-muted">{activePayment.qrCode}</p>
+
+                      {paymentState.error ? (
+                        <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                          {paymentState.error}
+                        </div>
                       ) : null}
-                      {!activePayment ? (
-                        <p className="text-sm text-meow-muted">
-                          Gere o Pix para visualizar o QR Code.
-                        </p>
+
+                      {!activePayment && accessToken ? (
+                        <button
+                          type="button"
+                          className={buttonVariants({ variant: 'secondary', size: 'sm' })}
+                          onClick={handleCreatePix}
+                        >
+                          Gerar Pix
+                        </button>
                       ) : null}
-                    </div>
+                    </Card>
+                  ) : null}
 
-                    <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-                      <div>
-                        <p className="text-xs text-meow-muted">Valor</p>
-                        <p className="text-lg font-black text-meow-charcoal">
-                          {order
-                            ? formatCurrency(order.totalAmountCents, order.currency)
-                            : formatCurrency(estimatedTotalCents, listing.currency)}
-                        </p>
+                  {paymentMethod === 'wallet' ? (
+                    <Card className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-600">
+                          <Wallet size={20} aria-hidden />
+                        </span>
+                        <div>
+                          <h2 className="text-base font-bold text-meow-charcoal">
+                            Saldo da carteira
+                          </h2>
+                          <p className="text-sm text-meow-muted">
+                            Use seu saldo para pagar 100% do pedido.
+                          </p>
+                        </div>
                       </div>
 
-                      <button
-                        type="button"
-                        className={buttonVariants({
-                          variant: 'primary',
-                          size: 'sm',
-                          className: 'gap-2 bg-emerald-500 hover:bg-emerald-600',
-                        })}
-                        onClick={handleCopyPix}
-                        disabled={!activePayment?.copyPaste}
-                      >
-                        <Copy size={14} aria-hidden />
-                        Copiar Codigo Pix
-                      </button>
-                    </div>
-
-                    {copyStatus ? (
-                      <div className="mt-2 text-xs font-semibold text-meow-muted">
-                        {copyStatus}
+                      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <p className="text-xs text-meow-muted">Saldo dispon?vel</p>
+                          <p className="text-lg font-black text-meow-charcoal">
+                            {formatCurrency(walletAvailableCents, listing?.currency ?? 'BRL')}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-meow-muted">Valor do pedido</p>
+                          <p className="text-lg font-black text-meow-charcoal">
+                            {formatCurrency(paymentTotalCents, listing?.currency ?? 'BRL')}
+                          </p>
+                        </div>
                       </div>
-                    ) : null}
 
-                    {paymentState.error ? (
-                      <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
-                        {paymentState.error}
+                      {walletError ? (
+                        <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                          {walletError}
+                        </div>
+                      ) : null}
+
+                      {!walletError && walletStatus === 'ready' && walletAvailableCents < paymentTotalCents ? (
+                        <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                          Saldo insuficiente. Adicione saldo na carteira para concluir o pagamento.
+                        </div>
+                      ) : null}
+
+                      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                        <Link
+                          href="/conta/carteira"
+                          className={buttonVariants({ variant: 'secondary', size: 'sm' })}
+                        >
+                          Adicionar saldo
+                        </Link>
+                        <button
+                          type="button"
+                          className={buttonVariants({ variant: 'primary', size: 'sm' })}
+                          onClick={handlePayWithWallet}
+                          disabled={!canPayWithWallet || walletPaying}
+                        >
+                          {walletPaying ? 'Processando...' : 'Pagar com saldo'}
+                        </button>
                       </div>
-                    ) : null}
-
-                    {!activePayment && accessToken ? (
-                      <button
-                        type="button"
-                        className={buttonVariants({ variant: 'secondary', size: 'sm' })}
-                        onClick={handleCreatePix}
-                      >
-                        Gerar Pix
-                      </button>
-                    ) : null}
-                  </Card>
+                    </Card>
+                  ) : null}
                 </>
               ) : null}
 

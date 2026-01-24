@@ -45,6 +45,13 @@ export class UsersController {
     return this.usersService.updateProfile(userId, dto);
   }
 
+  @Post('me/upgrade-seller')
+  upgradeToSeller(@Req() req: AuthenticatedRequest) {
+    const userId = this.getUserId(req);
+    const meta = this.getRequestMeta(req);
+    return this.usersService.upgradeToSeller(userId, meta);
+  }
+
   @Get('me/verification-fee')
   getVerificationFee(@Req() req: AuthenticatedRequest) {
     const userId = this.getUserId(req);
@@ -120,5 +127,12 @@ export class UsersController {
       throw new UnauthorizedException('Missing user context.');
     }
     return request.user.sub;
+  }
+
+  private getRequestMeta(request: Request) {
+    return {
+      ip: request.ip,
+      userAgent: request.headers['user-agent'],
+    };
   }
 }
