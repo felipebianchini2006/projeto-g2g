@@ -15,6 +15,7 @@ import {
   PartnerCommissionEventType,
   OrderEventType,
   OrderStatus,
+  PaymentProvider,
   PaymentStatus,
   Prisma,
 } from '@prisma/client';
@@ -28,6 +29,9 @@ import { PrismaService } from '../prisma/prisma.service';
 import { RequestContextService } from '../request-context/request-context.service';
 import { SettingsService } from '../settings/settings.service';
 import { SettlementJobName, SETTLEMENT_QUEUE } from './settlement.queue';
+
+const REFUND_FEE_THRESHOLD_CENTS = 2500;
+const REFUND_FEE_CENTS = 30;
 
 type SettlementMeta = {
   reason?: string;
@@ -436,6 +440,11 @@ export class SettlementService {
       throw new BadRequestException('Payment not found for order.');
     }
 
+    const refundAmountCents =
+      payment.amountCents < REFUND_FEE_THRESHOLD_CENTS
+        ? Math.max(payment.amountCents - REFUND_FEE_CENTS, 0)
+        : payment.amountCents;
+
     const releaseExists = await this.prisma.ledgerEntry.findFirst({
       where: {
         orderId: order.id,
@@ -455,15 +464,17 @@ export class SettlementService {
       return { status: 'already_refunded', orderId };
     }
 
-    const e2eId = await this.findEndToEndId(payment.txid);
-    await this.paymentsService.refundPix({
-      paymentId: payment.id,
-      txid: payment.txid,
-      e2eId,
-      amountCents: payment.amountCents,
-      currency: payment.currency,
-      reason: reason ?? 'refund',
-    });
+    if (payment.provider !== PaymentProvider.WALLET) {
+      const e2eId = await this.findEndToEndId(payment.txid);
+      await this.paymentsService.refundPix({
+        paymentId: payment.id,
+        txid: payment.txid,
+        e2eId,
+        amountCents: refundAmountCents,
+        currency: payment.currency,
+        reason: reason ?? 'refund',
+      });
+    }
 
     const emailOutboxIds: string[] = [];
     await this.prisma.$transaction(async (tx) => {
@@ -517,6 +528,22 @@ export class SettlementService {
           description: 'Held balance reversed for refund.',
         },
       });
+
+      if (payment.provider === PaymentProvider.WALLET && order.buyerId) {
+        await tx.ledgerEntry.create({
+          data: {
+            userId: order.buyerId,
+            orderId: order.id,
+            paymentId: payment.id,
+            type: LedgerEntryType.CREDIT,
+            state: LedgerEntryState.AVAILABLE,
+            source: LedgerEntrySource.REFUND,
+            amountCents: refundAmountCents,
+            currency: payment.currency,
+            description: 'Wallet refund credited.',
+          },
+        });
+      }
 
       await tx.ledgerEntry.create({
         data: {

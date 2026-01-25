@@ -21,6 +21,7 @@ import {
 
 import { useAuth } from '../auth/auth-provider';
 import { Input } from '../ui/input';
+import { CurrencyInput } from '../ui/currency-input';
 import { Select } from '../ui/select';
 import { Textarea } from '../ui/textarea';
 import { Toggle } from '../ui/toggle';
@@ -80,6 +81,7 @@ const statusTone: Record<string, 'success' | 'warning' | 'info' | 'danger' | 'ne
 };
 
 const MAX_PRICE_CENTS = 300000;
+const MIN_PRICE_CENTS = 250;
 
 const parsePriceToCentsRaw = (value: string) => {
   const trimmed = value.trim();
@@ -119,7 +121,7 @@ const stripDigits = (value: string) => value.replace(/\D/g, '');
 type DynamicItem = {
   id: string;
   title: string;
-  price: string;
+  priceCents: number;
   quantity: string;
 };
 
@@ -179,7 +181,6 @@ export const AccountListingEditorContent = ({ listingId }: { listingId: string }
     deliverySlaHours: 24,
     refundPolicy: '',
   });
-  const [priceInput, setPriceInput] = useState('');
   const [autoDelivery, setAutoDelivery] = useState(true);
   const [inventoryPayload, setInventoryPayload] = useState('');
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
@@ -208,7 +209,7 @@ export const AccountListingEditorContent = ({ listingId }: { listingId: string }
   const [originId, setOriginId] = useState('');
   const [recoveryOptionId, setRecoveryOptionId] = useState('');
   const [dynamicItems, setDynamicItems] = useState<DynamicItem[]>([
-    { id: `item-${Date.now()}`, title: '', price: '', quantity: '1' },
+    { id: `item-${Date.now()}`, title: '', priceCents: 0, quantity: '1' },
   ]);
 
   const accessAllowed = user?.role === 'SELLER' || user?.role === 'ADMIN';
@@ -237,7 +238,6 @@ export const AccountListingEditorContent = ({ listingId }: { listingId: string }
           deliverySlaHours: listing.deliverySlaHours ?? 24,
           refundPolicy: listing.refundPolicy ?? '',
         });
-        setPriceInput(formatCurrency(listing.priceCents));
         setAutoDelivery(listing.deliveryType === 'AUTO');
         setCategoryId(listing.categoryId ?? '');
         setCategoryGroupId(listing.categoryGroupId ?? '');
@@ -378,7 +378,7 @@ export const AccountListingEditorContent = ({ listingId }: { listingId: string }
         return;
       }
       const name = item.title.trim() || `Item ${index + 1}`;
-      const priceCents = parsePriceToCents(item.price || '');
+      const priceCents = item.priceCents ?? 0;
       const priceLabel = priceCents ? formatCurrency(priceCents) : '';
       const line = priceLabel ? `${name} | ${priceLabel}` : name;
       for (let i = 0; i < qty; i += 1) {
@@ -406,7 +406,7 @@ export const AccountListingEditorContent = ({ listingId }: { listingId: string }
   const addDynamicItem = () => {
     setDynamicItems((prev) => [
       ...prev,
-      { id: `item-${Date.now()}-${Math.random().toString(16).slice(2)}`, title: '', price: '', quantity: '1' },
+      { id: `item-${Date.now()}-${Math.random().toString(16).slice(2)}`, title: '', priceCents: 0, quantity: '1' },
     ]);
   };
 
@@ -415,14 +415,13 @@ export const AccountListingEditorContent = ({ listingId }: { listingId: string }
       return;
     }
     setInventoryPayload(dynamicInventoryPayload);
-    if (!priceInput.trim() && dynamicItems.length > 0) {
+    if ((formState.priceCents ?? 0) <= 0 && dynamicItems.length > 0) {
       const firstPrice = parsePriceToCents(dynamicItems[0]?.price || '');
       if (firstPrice > 0) {
-        setPriceInput(formatCurrency(firstPrice));
         setFormState((prev) => ({ ...prev, priceCents: firstPrice }));
       }
     }
-  }, [dynamicInventoryPayload, dynamicItems, isDynamic, priceInput]);
+  }, [dynamicInventoryPayload, dynamicItems, formState.priceCents, isDynamic]);
 
   const filteredCategories = categories.filter((category) => {
     const term = categorySearch.trim().toLowerCase();
@@ -462,8 +461,8 @@ export const AccountListingEditorContent = ({ listingId }: { listingId: string }
       setError('O título é obrigatório.');
       return;
     }
-    if ((formState.priceCents ?? 0) <= 0) {
-      setError('O valor deve ser maior que zero.');
+    if ((formState.priceCents ?? 0) < MIN_PRICE_CENTS) {
+      setError('O valor deve ser de pelo menos R$ 2,50.');
       return;
     }
 
@@ -956,12 +955,13 @@ export const AccountListingEditorContent = ({ listingId }: { listingId: string }
                                 <label className="text-xs font-bold uppercase tracking-wide text-slate-400">
                                   Preço
                                 </label>
-                                <Input
-                                  value={item.price}
-                                  onChange={(event) =>
-                                    updateDynamicItem(item.id, { price: stripDigits(event.target.value) })
+                                <CurrencyInput
+                                  valueCents={item.priceCents}
+                                  onValueChange={(nextCents) =>
+                                    updateDynamicItem(item.id, { priceCents: nextCents })
                                   }
-                                  placeholder="0"
+                                  maxCents={MAX_PRICE_CENTS}
+                                  placeholder="R$ 0,00"
                                   className="h-12 rounded-xl border-slate-200 bg-white font-semibold text-slate-700"
                                 />
                               </div>
@@ -1002,21 +1002,22 @@ export const AccountListingEditorContent = ({ listingId }: { listingId: string }
                   <div className="grid gap-8 md:grid-cols-2">
                     {/* Price */}
                     <div className="space-y-2">
-                      <label className="text-xs font-bold uppercase tracking-wide text-slate-400">VALOR (BRL)</label>
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold uppercase tracking-wide text-slate-400">VALOR (BRL)</label>
+                        <span className="text-[10px] font-semibold text-slate-400">
+                          Min: R$ 2,50 · Máx: R$ 3.000,00
+                        </span>
+                      </div>
                       <div className="relative">
-                        <Input
-                          value={priceInput}
-                          onChange={(e) => {
-                            const nextValue = e.target.value;
-                            const rawCents = parsePriceToCentsRaw(nextValue);
-                            const nextCents = Math.min(rawCents, MAX_PRICE_CENTS);
-                            if (rawCents > MAX_PRICE_CENTS) {
-                              setPriceInput(formatCurrency(MAX_PRICE_CENTS));
-                            } else {
-                              setPriceInput(nextValue);
-                            }
-                            setFormState(prev => ({ ...prev, priceCents: nextCents }));
-                          }}
+                        <CurrencyInput
+                          valueCents={formState.priceCents ?? 0}
+                          onValueChange={(nextCents) =>
+                            setFormState((prev) => ({
+                              ...prev,
+                              priceCents: Math.max(nextCents, 0),
+                            }))
+                          }
+                          maxCents={MAX_PRICE_CENTS}
                           placeholder="R$ 0,00"
                           className="h-14 rounded-xl border-slate-200 bg-slate-50 pl-4 text-xl font-bold text-slate-800 focus:border-meow-300 focus:ring-4 focus:ring-meow-red/10"
                         />

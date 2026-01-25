@@ -29,6 +29,7 @@ import { AccountShell } from '../account/account-shell';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
+import { CurrencyInput } from '../ui/currency-input';
 import { Select } from '../ui/select';
 
 const formatCurrency = (value: number, currency = 'BRL') =>
@@ -168,12 +169,12 @@ export const WalletSummaryContent = () => {
   });
 
   const [isTopupOpen, setIsTopupOpen] = useState(false);
-  const [topupAmount, setTopupAmount] = useState('');
+  const [topupAmountCents, setTopupAmountCents] = useState(0);
   const [topupLoading, setTopupLoading] = useState(false);
   const [topupPix, setTopupPix] = useState<TopupResponse['payment'] | null>(null);
   const [copied, setCopied] = useState(false);
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
-  const [withdrawAmount, setWithdrawAmount] = useState('');
+  const [withdrawAmountCents, setWithdrawAmountCents] = useState(0);
   const [withdrawPixKeyType, setWithdrawPixKeyType] =
     useState<CreatePayoutPayload['pixKeyType']>('CPF');
   const [withdrawPixKey, setWithdrawPixKey] = useState('');
@@ -275,8 +276,8 @@ export const WalletSummaryContent = () => {
   const handleCreateTopup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!accessToken) return;
-    const value = parseFloat(topupAmount.replace(',', '.'));
-    if (isNaN(value) || value < 5) {
+    const value = topupAmountCents / 100;
+    if (!value || value < 5) {
       alert('O valor mínimo é R$ 5,00');
       return;
     }
@@ -295,7 +296,7 @@ export const WalletSummaryContent = () => {
   const closeTopup = () => {
     setIsTopupOpen(false);
     setTopupPix(null);
-    setTopupAmount('');
+    setTopupAmountCents(0);
     handleRefresh();
   };
 
@@ -627,14 +628,11 @@ export const WalletSummaryContent = () => {
                     <label className="mb-1 block text-xs font-bold text-meow-charcoal">
                       Valor (R$)
                     </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="5"
+                    <CurrencyInput
+                      valueCents={topupAmountCents}
+                      onValueChange={setTopupAmountCents}
                       className="w-full rounded-xl border border-meow-red/20 bg-slate-50 px-4 py-3 text-lg font-bold text-meow-charcoal outline-none focus:border-meow-red/60 focus:ring-4 focus:ring-meow-red/15"
-                      placeholder="0,00"
-                      value={topupAmount}
-                      onChange={(e) => setTopupAmount(e.target.value)}
+                      placeholder="R$ 0,00"
                       required
                     />
                     <p className="mt-1 text-xs text-meow-muted">Mínimo: R$ 5,00</p>
@@ -719,7 +717,7 @@ export const WalletSummaryContent = () => {
                 setWithdrawError(null);
                 setWithdrawSuccess(null);
 
-                const value = Number(withdrawAmount.replace(',', '.'));
+                const value = withdrawAmountCents / 100;
                 if (!value || Number.isNaN(value)) {
                   setWithdrawError('Informe um valor valido.');
                   return;
@@ -770,7 +768,7 @@ export const WalletSummaryContent = () => {
                     payoutSpeed: withdrawSpeed,
                   });
                   setWithdrawSuccess('Saque solicitado com sucesso.');
-                  setWithdrawAmount('');
+                  setWithdrawAmountCents(0);
                   setWithdrawPixKey('');
                   setWithdrawBeneficiaryName('');
                   handleRefresh();
@@ -788,12 +786,11 @@ export const WalletSummaryContent = () => {
               <div className="grid gap-3 md:grid-cols-2">
                 <label className="grid gap-2 text-sm text-meow-charcoal">
                   Valor da retirada *
-                  <input
-                    type="text"
+                  <CurrencyInput
+                    valueCents={withdrawAmountCents}
+                    onValueChange={setWithdrawAmountCents}
                     className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-meow-charcoal outline-none focus:border-meow-red/60 focus:ring-4 focus:ring-meow-red/10"
                     placeholder="R$ 0,00"
-                    value={withdrawAmount}
-                    onChange={(event) => setWithdrawAmount(event.target.value)}
                     required
                   />
                 </label>
