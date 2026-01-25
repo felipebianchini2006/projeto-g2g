@@ -371,7 +371,7 @@ export class WalletService {
   ) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, payoutBlockedAt: true, payoutBlockedReason: true },
+      select: { id: true, createdAt: true, payoutBlockedAt: true, payoutBlockedReason: true },
     });
     if (!user) {
       throw new BadRequestException('User not found.');
@@ -380,6 +380,11 @@ export class WalletService {
       throw new ForbiddenException(
         user.payoutBlockedReason || 'Payout is blocked for this account.',
       );
+    }
+    const accountAgeMs = Date.now() - user.createdAt.getTime();
+    const minAgeMs = 5 * 24 * 60 * 60 * 1000;
+    if (accountAgeMs < minAgeMs) {
+      throw new ForbiddenException('Conta nova: saque liberado após 5 dias.');
     }
 
     const summary = await this.getSummary(userId);

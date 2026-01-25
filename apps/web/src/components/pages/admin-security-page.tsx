@@ -147,15 +147,15 @@ export const AdminSecurityContent = () => {
       breadcrumbs={[
         { label: 'Inicio', href: '/' },
         { label: 'Admin', href: '/admin/atendimento' },
-        { label: 'Seguranca' },
+        { label: 'Segurança' },
       ]}
     >
       <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-xl font-black text-meow-charcoal">Seguranca</h1>
+            <h1 className="text-xl font-black text-meow-charcoal">Segurança</h1>
             <p className="mt-2 text-sm text-meow-muted">
-              Auditoria de saques, sinais de risco e acoes administrativas.
+              Auditoria de saques, sinais de risco e ações administrativas.
             </p>
           </div>
           <Button
@@ -186,7 +186,7 @@ export const AdminSecurityContent = () => {
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-base font-bold text-meow-charcoal">Solicitacoes de saque</h2>
+            <h2 className="text-base font-bold text-meow-charcoal">Solicitações de saque</h2>
             <span className="text-xs text-meow-muted">{payouts.length} registros</span>
           </div>
 
@@ -241,7 +241,7 @@ export const AdminSecurityContent = () => {
         </div>
 
         <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-card">
-          <h2 className="text-base font-bold text-meow-charcoal">Detalhes e acoes</h2>
+          <h2 className="text-base font-bold text-meow-charcoal">Detalhes e ações</h2>
 
           {!selectedPayout ? (
             <p className="mt-4 text-sm text-meow-muted">Selecione um saque para ver detalhes.</p>
