@@ -78,6 +78,7 @@ export const adminSecurityApi = {
   listPayouts: (token: string | null, query?: AdminSecurityPayoutsQuery) =>
     apiFetch<AdminSecurityPayoutsResponse>(`/admin/security/payouts${buildQuery(query)}`, {
       headers: authHeaders(token),
+      skipGlobalError: true,
     }),
 
   adjustBalance: (token: string | null, userId: string, payload: AdminBalanceAdjustPayload) =>
@@ -85,6 +86,7 @@ export const adminSecurityApi = {
       method: 'POST',
       headers: authHeaders(token),
       body: JSON.stringify(payload),
+      skipGlobalError: true,
     }),
 
   blockPayouts: (token: string | null, userId: string, reason: string) =>
@@ -92,12 +94,14 @@ export const adminSecurityApi = {
       method: 'POST',
       headers: authHeaders(token),
       body: JSON.stringify({ reason }),
+      skipGlobalError: true,
     }),
 
   unblockPayouts: (token: string | null, userId: string) =>
     apiFetch(`/admin/security/users/${userId}/payout-unblock`, {
       method: 'POST',
       headers: authHeaders(token),
+      skipGlobalError: true,
     }),
 
   blockUser: (token: string | null, userId: string, payload: AdminUserBlockPayload) =>
@@ -105,11 +109,13 @@ export const adminSecurityApi = {
       method: 'POST',
       headers: authHeaders(token),
       body: JSON.stringify(payload),
+      skipGlobalError: true,
     }),
 
   unblockUser: (token: string | null, userId: string) =>
     apiFetch(`/admin/security/users/${userId}/unblock`, {
       method: 'POST',
       headers: authHeaders(token),
+      skipGlobalError: true,
     }),
 };

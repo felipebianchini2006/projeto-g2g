@@ -104,8 +104,16 @@ export const AdminSecurityContent = () => {
     if (!accessToken) {
       return;
     }
-    const data = await adminSecurityApi.listPayouts(accessToken, { take: 50 });
-    setPayouts(data.items);
+    try {
+      const data = await adminSecurityApi.listPayouts(accessToken, { take: 50 });
+      setPayouts(data.items);
+    } catch (error) {
+      const message =
+        error instanceof ApiClientError
+          ? error.message
+          : 'Nao foi possivel carregar os registros.';
+      setError(message);
+    }
   };
 
   if (loading) {
