@@ -195,6 +195,7 @@ const adminNav = (logout: () => Promise<void>, goHome: () => void): MenuSection[
       { label: 'Disputas', href: '/admin/disputas' },
       { label: 'Denúncias', href: '/admin/denuncias' },
       { label: 'Moderação', href: '/admin/anuncios' },
+      { label: 'Segurança', href: '/admin/seguranca' },
       { label: 'Confirmar Anúncio', href: '/admin/confirmar-anuncio' },
       { label: 'Usuarios', href: '/admin/usuarios' },
       { label: 'Verificação RG', href: '/admin/rg' },

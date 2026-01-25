@@ -14,6 +14,7 @@ type ListingCardProps = {
   currency: string;
   image: string;
   isAuto?: boolean;
+  autoTag?: string | null;
   href: string;
   variant?: 'red' | 'dark';
   showFavorite?: boolean;
@@ -28,6 +29,7 @@ export const ListingCard = ({
   title,
   image,
   isAuto,
+  autoTag,
   href,
   variant = 'red',
   id,
@@ -62,10 +64,17 @@ export const ListingCard = ({
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
         </div>
         {isAuto ? (
-          <span className="absolute left-8 top-8 inline-flex items-center gap-2 rounded-full bg-emerald-500 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.3px] text-white shadow-cute">
-            <Zap size={12} aria-hidden />
-            Entrega auto
-          </span>
+          <div className="absolute left-8 top-8 flex flex-col gap-2">
+            <span className="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.3px] text-white shadow-cute">
+              <Zap size={12} aria-hidden />
+              Entrega auto
+            </span>
+            {autoTag ? (
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.3px] text-slate-900 shadow-cute">
+                {autoTag}
+              </span>
+            ) : null}
+          </div>
         ) : null}
         {showFavorite ? (
           <button

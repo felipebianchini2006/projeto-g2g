@@ -33,7 +33,7 @@ export class DiscordAuthService {
     const profile = await this.discordOAuthService.fetchDiscordUser(tokens.accessToken);
     const user = await this.discordAccountService.findOrCreateUser(profile, tokens);
 
-    if (user.blockedAt) {
+    if (user.blockedAt && (!user.blockedUntil || user.blockedUntil > new Date())) {
       throw new ForbiddenException('User is blocked.');
     }
 

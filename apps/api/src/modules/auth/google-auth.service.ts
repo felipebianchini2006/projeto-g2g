@@ -35,7 +35,7 @@ export class GoogleAuthService {
     const profile = await this.googleOAuthService.fetchGoogleUser(tokens.accessToken);
     const user = await this.googleAccountService.findOrCreateUser(profile, tokens, role);
 
-    if (user.blockedAt) {
+    if (user.blockedAt && (!user.blockedUntil || user.blockedUntil > new Date())) {
       throw new ForbiddenException('User is blocked.');
     }
 

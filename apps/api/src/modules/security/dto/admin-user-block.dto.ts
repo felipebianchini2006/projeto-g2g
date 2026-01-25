@@ -1,0 +1,11 @@
+﻿import { IsInt, IsString, Min, MinLength } from 'class-validator';
+
+export class AdminUserBlockDto {
+  @IsString()
+  @MinLength(3)
+  reason!: string;
+
+  @IsInt()
+  @Min(1)
+  durationDays!: number;
+}

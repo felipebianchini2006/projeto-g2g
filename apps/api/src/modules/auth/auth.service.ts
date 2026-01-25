@@ -69,7 +69,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials.');
     }
 
-    if (user.blockedAt) {
+    if (this.isUserBlocked(user)) {
       throw new ForbiddenException('User is blocked.');
     }
 
@@ -104,7 +104,7 @@ export class AuthService {
       throw new UnauthorizedException('Session expired.');
     }
 
-    if (existing.user.blockedAt) {
+    if (this.isUserBlocked(existing.user)) {
       throw new ForbiddenException('User is blocked.');
     }
 
@@ -122,6 +122,10 @@ export class AuthService {
       accessToken,
       refreshToken: rotated.refreshToken,
     };
+  }
+
+  private isUserBlocked(user: Pick<User, 'blockedAt' | 'blockedUntil'>) {
+    return Boolean(user.blockedAt && (!user.blockedUntil || user.blockedUntil > new Date()));
   }
 
   async logout(dto: LogoutDto): Promise<{ success: true }> {

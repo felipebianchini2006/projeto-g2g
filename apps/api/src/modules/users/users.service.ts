@@ -19,6 +19,7 @@ const USER_SELECT = {
   email: true,
   role: true,
   blockedAt: true,
+  blockedUntil: true,
   blockedReason: true,
   payoutBlockedAt: true,
   payoutBlockedReason: true,
@@ -82,7 +83,15 @@ export class UsersService {
     }
 
     if (typeof query.blocked === 'boolean') {
-      where.blockedAt = query.blocked ? { not: null } : null;
+      const now = new Date();
+      if (query.blocked) {
+        where.AND = [
+          { blockedAt: { not: null } },
+          { OR: [{ blockedUntil: null }, { blockedUntil: { gt: now } }] },
+        ];
+      } else {
+        where.OR = [{ blockedAt: null }, { blockedUntil: { lte: now } }];
+      }
     }
 
     if (query.search) {

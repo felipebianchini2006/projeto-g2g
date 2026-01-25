@@ -999,7 +999,7 @@ export const AccountListingEditorContent = ({ listingId }: { listingId: string }
                     </div>
                   ) : null}
 
-                  <div className="grid gap-8 md:grid-cols-2">
+                  <div className="grid gap-8 md:grid-cols-2 md:items-end">
                     {/* Price */}
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">

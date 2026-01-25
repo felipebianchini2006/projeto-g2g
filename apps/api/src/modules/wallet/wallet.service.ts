@@ -364,7 +364,11 @@ export class WalletService {
     return summary;
   }
 
-  async createUserPayout(userId: string, dto: CreatePayoutDto) {
+  async createUserPayout(
+    userId: string,
+    dto: CreatePayoutDto,
+    meta?: { ip?: string; userAgent?: string | string[] },
+  ) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { id: true, payoutBlockedAt: true, payoutBlockedReason: true },
@@ -422,6 +426,10 @@ export class WalletService {
             payoutSpeed: dto.payoutSpeed,
             providerStatus: response?.status ?? null,
             providerRef: resolveProviderRef(response),
+            requestIp: meta?.ip ?? null,
+            requestUserAgent: Array.isArray(meta?.userAgent)
+              ? meta?.userAgent.join('; ')
+              : meta?.userAgent ?? null,
           },
         });
 
@@ -469,6 +477,10 @@ export class WalletService {
           beneficiaryType: dto.beneficiaryType,
           payoutSpeed: dto.payoutSpeed,
           providerStatus: error instanceof Error ? error.message : null,
+          requestIp: meta?.ip ?? null,
+          requestUserAgent: Array.isArray(meta?.userAgent)
+            ? meta?.userAgent.join('; ')
+            : meta?.userAgent ?? null,
         },
       });
       throw error;

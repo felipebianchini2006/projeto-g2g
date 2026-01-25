@@ -131,6 +131,7 @@ enum LedgerEntrySource {
   PAYOUT
   WALLET_TOPUP
   WALLET_PAYMENT
+  MANUAL_ADJUSTMENT
 }
 
 enum PayoutScope {
@@ -248,6 +249,7 @@ model User {
   payoutPixKey String?
   payoutBlockedAt DateTime?
   payoutBlockedReason String?
+  blockedUntil DateTime?
   blockedAt    DateTime?
   blockedReason String?
   createdAt    DateTime @default(now())
@@ -913,6 +915,8 @@ model Payout {
   provider        String           @default("EFI")
   providerStatus  String?
   providerRef     String?
+  requestIp       String?
+  requestUserAgent String?
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
 

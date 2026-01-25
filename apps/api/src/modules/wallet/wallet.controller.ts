@@ -42,7 +42,10 @@ export class WalletController {
   @Roles(UserRole.SELLER, UserRole.ADMIN)
   createPayout(@Req() req: AuthenticatedRequest, @Body() dto: CreatePayoutDto) {
     const userId = this.getUserId(req);
-    return this.walletService.createUserPayout(userId, dto);
+    return this.walletService.createUserPayout(userId, dto, {
+      ip: req.ip,
+      userAgent: req.headers['user-agent'],
+    });
   }
 
   @Post('pay-order')

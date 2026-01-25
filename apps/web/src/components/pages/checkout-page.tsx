@@ -364,9 +364,10 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
       : null;
 
   const baseFeeCents = 95;
+  const premiumFeeCents = 450;
   const serviceFeeCents =
     selectedPackage.id === 'premium'
-      ? baseFeeCents + Math.round(selectedPriceCents * quantity * 0.035)
+      ? baseFeeCents + premiumFeeCents
       : baseFeeCents;
   const subtotalCents = selectedPriceCents * quantity + serviceFeeCents;
 
@@ -1035,7 +1036,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                     </span>
                   </div>
                   <p className="mt-2 text-[10px] text-center text-meow-muted">
-                    O valor do produto e somado a uma taxa operacional de 0,95 centavos
+                    O valor do produto e somado a uma taxa operacional de R$ 0,95. Premium adiciona R$ 4,50.
                   </p>
                 </div>
 

@@ -7,6 +7,7 @@ export type AdminUser = {
   email: string;
   role: AdminUserRole;
   blockedAt?: string | null;
+  blockedUntil?: string | null;
   blockedReason?: string | null;
   payoutBlockedAt?: string | null;
   payoutBlockedReason?: string | null;

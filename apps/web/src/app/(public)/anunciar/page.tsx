@@ -73,6 +73,7 @@ const emptyListing: ListingInput = {
 
 const MAX_PRICE_CENTS = 300000;
 const MIN_PRICE_CENTS = 250;
+const AUTO_TAG_OPTIONS = ['Sem tag', 'Exclusivo', 'Novidade', 'Imperdivel'];
 
 const parsePriceToCentsRaw = (value: string) => {
   const trimmed = value.trim();
@@ -185,6 +186,7 @@ export default function Page() {
   const [productKind, setProductKind] = useState('Conta');
   const [categoryQuery, setCategoryQuery] = useState('');
   const [categoryOpen, setCategoryOpen] = useState(false);
+  const [autoDeliveryTag, setAutoDeliveryTag] = useState('Sem tag');
   const [dynamicItems, setDynamicItems] = useState<DynamicItem[]>([
     { id: `item-${Date.now()}`, title: '', priceCents: 0, quantity: '1' },
   ]);
@@ -829,7 +831,7 @@ export default function Page() {
                     </div>
                   ) : null}
 
-                  <div className="grid gap-8 md:grid-cols-2">
+                  <div className="grid gap-8 md:grid-cols-2 md:items-end">
                     {/* Price */}
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
@@ -883,6 +885,25 @@ export default function Page() {
                         className="self-start data-[state=on]:bg-meow-500 sm:self-center"
                       />
                     </div>
+
+                    {autoDelivery ? (
+                      <div className="mb-4 space-y-2">
+                        <label className="text-xs font-bold uppercase tracking-wide text-emerald-700">
+                          Tag da entrega auto
+                        </label>
+                        <Select
+                          value={autoDeliveryTag}
+                          onChange={(event) => setAutoDeliveryTag(event.target.value)}
+                          className="h-12 rounded-xl border-emerald-200 bg-white text-slate-800"
+                        >
+                          {AUTO_TAG_OPTIONS.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </Select>
+                      </div>
+                    ) : null}
 
                     {autoDelivery && !isDynamic && (
                       <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
@@ -1019,6 +1040,7 @@ export default function Page() {
                 description={formState.description}
                 variant={listingType === 'deluxe' ? 'red' : 'dark'}
                 isAuto={autoDelivery}
+                autoTag={autoDeliveryTag !== 'Sem tag' ? autoDeliveryTag : null}
                 showFavorite={false}
               />
 
