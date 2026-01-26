@@ -71,7 +71,7 @@ export class AdminAuditInterceptor implements NestInterceptor {
     const pathParts = path.split('/').filter(Boolean);
     const adminIndex = pathParts.indexOf('admin');
     const entityType = pathParts[adminIndex + 1] ?? 'admin';
-    const entityId = request.params?.id;
+    const entityId = request.params?.['id'];
 
     const payloadRaw = request.body;
     const payload =

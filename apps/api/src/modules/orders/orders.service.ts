@@ -757,11 +757,12 @@ export class OrdersService {
     });
 
     await Promise.all(emailOutboxIds.map((id) => this.emailQueue.enqueueEmail(id)));
-    if (whatsappTarget) {
+    const whatsappTargetToSend = whatsappTarget as { to: string; orderId: string } | null;
+    if (whatsappTargetToSend) {
       try {
         await this.twilioMessaging.sendWhatsApp(
-          whatsappTarget.to,
-          `Seu produto chegou! Pedido ${whatsappTarget.orderId}. Obrigado pela compra.`,
+          whatsappTargetToSend.to,
+          `Seu produto chegou! Pedido ${whatsappTargetToSend.orderId}. Obrigado pela compra.`,
         );
       } catch (error) {
         const message =
@@ -1067,11 +1068,12 @@ export class OrdersService {
     });
 
     await Promise.all(emailOutboxIds.map((id) => this.emailQueue.enqueueEmail(id)));
-    if (whatsappTarget) {
+    const whatsappTargetToSend = whatsappTarget as { to: string; orderId: string } | null;
+    if (whatsappTargetToSend) {
       try {
         await this.twilioMessaging.sendWhatsApp(
-          whatsappTarget.to,
-          `Seu produto chegou! Pedido ${whatsappTarget.orderId}. Obrigado pela compra.`,
+          whatsappTargetToSend.to,
+          `Seu produto chegou! Pedido ${whatsappTargetToSend.orderId}. Obrigado pela compra.`,
         );
       } catch (error) {
         const message =

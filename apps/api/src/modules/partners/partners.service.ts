@@ -44,7 +44,7 @@ export class PartnersService {
           slug,
           commissionBps: dto.commissionBps ?? undefined,
           active: dto.active ?? true,
-          ownerUserId: ownerUserId ?? undefined,
+          owner: ownerUserId ? { connect: { id: ownerUserId } } : undefined,
           ownerEmail: ownerEmail ?? undefined,
         },
       });
@@ -99,7 +99,7 @@ export class PartnersService {
         throw new BadRequestException('User not found for the provided owner email.');
       }
       ownerUserId = owner.id;
-      data.ownerUserId = ownerUserId;
+      data.owner = { connect: { id: ownerUserId } };
       data.ownerEmail = ownerEmail;
     }
     if (Object.keys(data).length === 0) {
