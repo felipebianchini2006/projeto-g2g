@@ -4,6 +4,9 @@ export type AuthUser = {
   role: 'USER' | 'SELLER' | 'ADMIN' | 'AJUDANTE';
   adminPermissions: string[];
   avatarUrl?: string | null;
+  mfaEnabled: boolean;
+  mfaLastVerifiedAt?: string | null;
+  mfaLastVerifiedIp?: string | null;
   createdAt: string;
   updatedAt: string;
 };

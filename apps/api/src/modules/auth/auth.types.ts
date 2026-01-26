@@ -12,6 +12,9 @@ export type AuthUser = {
   role: UserRole;
   adminPermissions: string[];
   avatarUrl?: string | null;
+  mfaEnabled: boolean;
+  mfaLastVerifiedAt?: Date | null;
+  mfaLastVerifiedIp?: string | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -23,6 +26,11 @@ export type AuthTokens = {
 
 export type AuthResponse = AuthTokens & {
   user: AuthUser;
+};
+
+export type MfaRequiredResponse = {
+  mfaRequired: true;
+  challengeId: string;
 };
 
 export type AuthRequestMeta = {

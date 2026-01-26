@@ -14,6 +14,7 @@ vi.mock('../../lib/auth-api', () => ({
     logout: vi.fn(),
     forgotPassword: vi.fn(),
     resetPassword: vi.fn(),
+    mfaVerify: vi.fn(),
   },
 }));
 
@@ -42,6 +43,10 @@ describe('AuthProvider', () => {
         id: 'user-1',
         email: 'user@email.com',
         role: 'USER',
+        adminPermissions: [],
+        mfaEnabled: false,
+        mfaLastVerifiedAt: null,
+        mfaLastVerifiedIp: null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },

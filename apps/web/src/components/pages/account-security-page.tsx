@@ -9,6 +9,7 @@ import { accountSecurityApi } from '../../lib/account-security-api';
 import { useAuth } from '../auth/auth-provider';
 import { AccountShell } from '../account/account-shell';
 import { Skeleton } from '../ui/skeleton';
+import { Toggle } from '../ui/toggle';
 
 type SecurityState = {
   error?: string;
@@ -23,10 +24,15 @@ type FormState = {
 };
 
 export const AccountSecurityContent = () => {
-  const { user, accessToken, loading, logout } = useAuth();
+  const { user, accessToken, loading, logout, refresh } = useAuth();
   const router = useRouter();
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [state, setState] = useState<SecurityState>({ busy: false });
+  const [mfaState, setMfaState] = useState<{ busy: boolean; error?: string; success?: string }>({
+    busy: false,
+  });
+  const [mfaChallengeId, setMfaChallengeId] = useState<string | null>(null);
+  const [mfaCode, setMfaCode] = useState('');
   const [form, setForm] = useState<FormState>({
     currentPassword: '',
     newPassword: '',
@@ -40,6 +46,13 @@ export const AccountSecurityContent = () => {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (user?.mfaEnabled) {
+      setMfaChallengeId(null);
+      setMfaCode('');
+    }
+  }, [user?.mfaEnabled]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -85,6 +98,60 @@ export const AccountSecurityContent = () => {
     }
   };
 
+  const handleMfaToggle = async () => {
+    if (!accessToken || mfaState.busy || user?.mfaEnabled) {
+      return;
+    }
+    setMfaState({ busy: true });
+    try {
+      const response = await accountSecurityApi.requestMfaEnable(accessToken);
+      setMfaChallengeId(response.challengeId);
+      setMfaState({
+        busy: false,
+        success: 'Enviamos um codigo de verificacao para o seu e-mail.',
+      });
+    } catch (error) {
+      const message =
+        error instanceof ApiClientError
+          ? error.message
+          : error instanceof Error
+            ? error.message
+            : 'Nao foi possivel iniciar a verificacao MFA.';
+      setMfaState({ busy: false, error: message });
+    }
+  };
+
+  const handleMfaConfirm = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!accessToken || !mfaChallengeId || mfaState.busy) {
+      return;
+    }
+    if (!mfaCode || mfaCode.trim().length !== 6) {
+      setMfaState({ busy: false, error: 'Informe o codigo de 6 digitos enviado ao seu e-mail.' });
+      return;
+    }
+
+    setMfaState({ busy: true });
+    try {
+      await accountSecurityApi.confirmMfaEnable(accessToken, {
+        challengeId: mfaChallengeId,
+        code: mfaCode.trim(),
+      });
+      setMfaCode('');
+      setMfaChallengeId(null);
+      await refresh();
+      setMfaState({ busy: false, success: 'MFA ativado com sucesso.' });
+    } catch (error) {
+      const message =
+        error instanceof ApiClientError
+          ? error.message
+          : error instanceof Error
+            ? error.message
+            : 'Nao foi possivel confirmar o codigo MFA.';
+      setMfaState({ busy: false, error: message });
+    }
+  };
+
   if (loading) {
     return (
       <section className="bg-white px-6 py-12">
@@ -125,6 +192,66 @@ export const AccountSecurityContent = () => {
           <p className="mt-2 text-sm text-meow-muted">
             Atualize sua senha para manter sua conta segura.
           </p>
+        </div>
+
+        <div className="mt-6 rounded-2xl border border-meow-red/20 bg-meow-ice px-5 py-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 className="text-sm font-bold text-meow-charcoal">MFA por IP</h2>
+              <p className="mt-1 text-xs text-meow-muted">
+                Confirme novos acessos por e-mail. Revalidacao obrigatoria a cada 21 dias.
+              </p>
+              {user.mfaEnabled ? (
+                <p className="mt-2 text-xs font-semibold text-emerald-600">
+                  Ativo. Ultima verificacao:{' '}
+                  {user.mfaLastVerifiedAt
+                    ? new Date(user.mfaLastVerifiedAt).toLocaleString('pt-BR')
+                    : 'Nao informada'}
+                </p>
+              ) : (
+                <p className="mt-2 text-xs font-semibold text-meow-deep">Desativado</p>
+              )}
+            </div>
+            <Toggle
+              checked={Boolean(user.mfaEnabled || mfaChallengeId)}
+              disabled={mfaState.busy || Boolean(user.mfaEnabled || mfaChallengeId)}
+              onCheckedChange={handleMfaToggle}
+            />
+          </div>
+
+          {mfaState.error ? (
+            <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700">
+              {mfaState.error}
+            </div>
+          ) : null}
+          {mfaState.success ? (
+            <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-700">
+              {mfaState.success}
+            </div>
+          ) : null}
+
+          {mfaChallengeId && !user.mfaEnabled ? (
+            <form onSubmit={handleMfaConfirm} className="mt-4 grid gap-3">
+              <label className="grid gap-1 text-xs font-semibold text-meow-muted">
+                Codigo recebido por e-mail
+                <input
+                  className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-center text-sm font-semibold tracking-[0.3em] text-meow-charcoal"
+                  value={mfaCode}
+                  onChange={(event) => setMfaCode(event.target.value.replace(/\\s/g, ''))}
+                  maxLength={6}
+                  inputMode="numeric"
+                  placeholder="000000"
+                />
+              </label>
+              <button
+                type="submit"
+                className="w-fit rounded-full bg-meow-linear px-6 py-2 text-xs font-bold text-white"
+                disabled={mfaState.busy}
+              >
+                {mfaState.busy ? 'Confirmando...' : 'Confirmar codigo'}
+              </button>
+            </form>
+          ) : null}
         </div>
 
         {state.error ? (

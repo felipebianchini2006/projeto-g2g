@@ -29,11 +29,13 @@ type FormState = z.infer<typeof schema>;
 
 export default function Page() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, verifyMfa } = useAuth();
   const [formData, setFormData] = useState<FormState>({ email: '', password: '' });
   const [errors, setErrors] = useState<Partial<Record<keyof FormState | 'form', string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [mfaChallengeId, setMfaChallengeId] = useState<string | null>(null);
+  const [mfaCode, setMfaCode] = useState('');
 
   const nextPath = '/';
   const googleStartUrl = `/api/auth/google/start?next=${encodeURIComponent(nextPath)}`;
@@ -56,13 +58,43 @@ export default function Page() {
 
     setIsSubmitting(true);
     try {
-      await login(result.data);
+      const response = await login(result.data);
+      if ('mfaRequired' in response) {
+        setMfaChallengeId(response.challengeId);
+        return;
+      }
       router.push(nextPath);
     } catch (error) {
       if (error instanceof AuthApiError) {
         setErrors({ form: error.message });
       } else {
         setErrors({ form: 'Não foi possível autenticar. Tente novamente.' });
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleMfaSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setErrors({});
+    if (!mfaChallengeId) {
+      return;
+    }
+    if (!mfaCode || mfaCode.trim().length !== 6) {
+      setErrors({ form: 'Informe o codigo de 6 digitos enviado ao seu e-mail.' });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await verifyMfa({ challengeId: mfaChallengeId, code: mfaCode.trim() });
+      router.push(nextPath);
+    } catch (error) {
+      if (error instanceof AuthApiError) {
+        setErrors({ form: error.message });
+      } else {
+        setErrors({ form: 'Nao foi possivel verificar o codigo. Tente novamente.' });
       }
     } finally {
       setIsSubmitting(false);
@@ -132,7 +164,7 @@ export default function Page() {
             <div className="h-px flex-1 bg-slate-200" />
           </div>
 
-          <form className="grid gap-5" onSubmit={handleSubmit}>
+          <form className="grid gap-5" onSubmit={mfaChallengeId ? handleMfaSubmit : handleSubmit}>
             <div className="space-y-1.5">
               <label htmlFor="email" className="ml-1 text-xs font-bold uppercase tracking-wide text-slate-500">
                 E-mail
@@ -148,6 +180,7 @@ export default function Page() {
                   onChange={handleChange('email')}
                   autoComplete="email"
                   required
+                  disabled={Boolean(mfaChallengeId)}
                 />
               </div>
               {errors.email && <p className="ml-1 text-xs font-semibold text-red-500">{errors.email}</p>}
@@ -168,11 +201,13 @@ export default function Page() {
                   onChange={handleChange('password')}
                   autoComplete="current-password"
                   required
+                  disabled={Boolean(mfaChallengeId)}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-600"
+                  disabled={Boolean(mfaChallengeId)}
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -180,21 +215,42 @@ export default function Page() {
               {errors.password && <p className="ml-1 text-xs font-semibold text-red-500">{errors.password}</p>}
             </div>
 
-            <div className="flex items-center justify-between">
-              <label className="flex cursor-pointer items-center gap-2">
-                <input
-                  type="checkbox"
-                  className="h-5 w-5 rounded border-slate-300 text-pink-500 focus:ring-pink-500/20"
+            {mfaChallengeId ? (
+              <div className="space-y-1.5">
+                <label htmlFor="mfa-code" className="ml-1 text-xs font-bold uppercase tracking-wide text-slate-500">
+                  Codigo de verificacao
+                </label>
+                <Input
+                  id="mfa-code"
+                  className="h-12 rounded-xl border-slate-200 bg-slate-50 text-center text-lg font-semibold tracking-[0.3em] text-slate-900"
+                  placeholder="000000"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={mfaCode}
+                  onChange={(event) => setMfaCode(event.target.value.replace(/\\s/g, ''))}
+                  required
                 />
-                <span className="text-sm font-semibold text-slate-600">Lembrar de mim</span>
-              </label>
-              <Link
-                href="/forgot"
-                className="text-sm font-bold text-pink-500 hover:underline hover:text-pink-600"
-              >
-                Esqueceu a senha?
-              </Link>
-            </div>
+                <p className="ml-1 text-xs text-slate-500">
+                  Enviamos um codigo para seu e-mail. Ele expira em 10 minutos.
+                </p>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between">
+                <label className="flex cursor-pointer items-center gap-2">
+                  <input
+                    type="checkbox"
+                    className="h-5 w-5 rounded border-slate-300 text-pink-500 focus:ring-pink-500/20"
+                  />
+                  <span className="text-sm font-semibold text-slate-600">Lembrar de mim</span>
+                </label>
+                <Link
+                  href="/forgot"
+                  className="text-sm font-bold text-pink-500 hover:underline hover:text-pink-600"
+                >
+                  Esqueceu a senha?
+                </Link>
+              </div>
+            )}
 
             {errors.form && (
               <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
@@ -207,8 +263,21 @@ export default function Page() {
               disabled={isSubmitting}
               className="h-12 w-full rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 text-lg font-bold text-white shadow-lg shadow-pink-500/25 transition-all hover:opacity-90 hover:shadow-pink-500/40"
             >
-              {isSubmitting ? 'Entrando...' : 'Entrar na Conta'}
+              {isSubmitting ? 'Entrando...' : mfaChallengeId ? 'Confirmar codigo' : 'Entrar na Conta'}
             </Button>
+
+            {mfaChallengeId && (
+              <button
+                type="button"
+                className="text-sm font-semibold text-slate-500 hover:text-slate-700"
+                onClick={() => {
+                  setMfaChallengeId(null);
+                  setMfaCode('');
+                }}
+              >
+                Voltar para login
+              </button>
+            )}
           </form>
 
           <div className="mt-2 border-t border-slate-100 pt-6 text-center text-sm font-semibold text-slate-600">

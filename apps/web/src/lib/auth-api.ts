@@ -15,6 +15,16 @@ export type AuthResetInput = {
   password: string;
 };
 
+export type MfaRequiredResponse = {
+  mfaRequired: true;
+  challengeId: string;
+};
+
+export type MfaVerifyInput = {
+  challengeId: string;
+  code: string;
+};
+
 export type AuthErrorPayload = {
   message?: string;
 };
@@ -71,7 +81,8 @@ const postJson = async <T>(path: string, body?: Record<string, unknown>): Promis
 };
 
 export const authApi = {
-  login: (input: AuthLoginInput) => postJson<AuthSession>('/api/auth/login', input),
+  login: (input: AuthLoginInput) =>
+    postJson<AuthSession | MfaRequiredResponse>('/api/auth/login', input),
   register: (input: AuthRegisterInput) => postJson<AuthSession>('/api/auth/register', input),
   refresh: () => postJson<AuthSession>('/api/auth/refresh'),
   logout: () => postJson<{ success: true }>('/api/auth/logout'),
@@ -79,4 +90,5 @@ export const authApi = {
     postJson<ForgotPasswordResponse>('/api/auth/forgot', { email }),
   resetPassword: (input: AuthResetInput) =>
     postJson<ResetPasswordResponse>('/api/auth/reset', input),
+  mfaVerify: (input: MfaVerifyInput) => postJson<AuthSession>('/api/auth/mfa/verify', input),
 };

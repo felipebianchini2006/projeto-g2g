@@ -10,15 +10,22 @@ import {
   useState,
 } from 'react';
 
-import { authApi, type AuthLoginInput, type AuthRegisterInput } from '../../lib/auth-api';
+import {
+  authApi,
+  type AuthLoginInput,
+  type AuthRegisterInput,
+  type MfaVerifyInput,
+  type MfaRequiredResponse,
+} from '../../lib/auth-api';
 import type { AuthSession, AuthUser } from '../../lib/auth-types';
 
 type AuthContextValue = {
   user: AuthUser | null;
   accessToken: string | null;
   loading: boolean;
-  login: (input: AuthLoginInput) => Promise<AuthSession>;
+  login: (input: AuthLoginInput) => Promise<AuthSession | MfaRequiredResponse>;
   register: (input: AuthRegisterInput) => Promise<AuthSession>;
+  verifyMfa: (input: MfaVerifyInput) => Promise<AuthSession>;
   refresh: () => Promise<AuthSession | null>;
   logout: () => Promise<void>;
 };
@@ -44,7 +51,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const login = useCallback(
     async (input: AuthLoginInput) => {
       const session = await authApi.login(input);
-      applySession(session);
+      if (!('mfaRequired' in session)) {
+        applySession(session);
+      }
       return session;
     },
     [applySession],
@@ -53,6 +62,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const register = useCallback(
     async (input: AuthRegisterInput) => {
       const session = await authApi.register(input);
+      applySession(session);
+      return session;
+    },
+    [applySession],
+  );
+
+  const verifyMfa = useCallback(
+    async (input: MfaVerifyInput) => {
+      const session = await authApi.mfaVerify(input);
       applySession(session);
       return session;
     },
@@ -107,10 +125,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       loading,
       login,
       register,
+      verifyMfa,
       refresh,
       logout,
     }),
-    [user, accessToken, loading, login, register, refresh, logout],
+    [user, accessToken, loading, login, register, verifyMfa, refresh, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

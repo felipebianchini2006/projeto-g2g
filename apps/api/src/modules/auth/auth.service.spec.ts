@@ -5,6 +5,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
 import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
+import { createHash } from 'crypto';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailQueueService } from '../email/email.service';
@@ -35,6 +36,11 @@ describe('AuthService', () => {
         updateMany: jest.fn(),
       },
       passwordResetToken: {
+        findUnique: jest.fn(),
+        create: jest.fn(),
+        updateMany: jest.fn(),
+      },
+      mfaChallenge: {
         findUnique: jest.fn(),
         create: jest.fn(),
         updateMany: jest.fn(),
@@ -94,6 +100,9 @@ describe('AuthService', () => {
         email: data.email,
         role: data.role,
         passwordHash: data.passwordHash,
+        mfaEnabled: false,
+        mfaLastVerifiedAt: null,
+        mfaLastVerifiedIp: null,
         createdAt: now,
         updatedAt: now,
       }),
@@ -126,6 +135,9 @@ describe('AuthService', () => {
       email: 'user@email.com',
       passwordHash,
       role: UserRole.USER,
+      mfaEnabled: false,
+      mfaLastVerifiedAt: null,
+      mfaLastVerifiedIp: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -146,6 +158,9 @@ describe('AuthService', () => {
       passwordHash,
       role: UserRole.USER,
       blockedAt: new Date(),
+      mfaEnabled: false,
+      mfaLastVerifiedAt: null,
+      mfaLastVerifiedIp: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -158,6 +173,105 @@ describe('AuthService', () => {
     ).rejects.toThrow(ForbiddenException);
   });
 
+  it('logs in when MFA is disabled', async () => {
+    const passwordHash = await bcrypt.hash('correct-pass', 12);
+    (prismaService.user.findUnique as jest.Mock).mockResolvedValue({
+      id: 'user-1',
+      email: 'user@email.com',
+      passwordHash,
+      role: UserRole.USER,
+      mfaEnabled: false,
+      mfaLastVerifiedAt: null,
+      mfaLastVerifiedIp: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    (prismaService.session.create as jest.Mock).mockResolvedValue({ id: 'session-1' });
+    (prismaService.refreshToken.create as jest.Mock).mockResolvedValue({ id: 'refresh-1' });
+    (jwtService.signAsync as jest.Mock).mockResolvedValue('access-token');
+
+    const response = await authService.login(
+      { email: 'user@email.com', password: 'correct-pass' },
+      { ip: '127.0.0.1', userAgent: 'jest' },
+    );
+
+    expect(response.accessToken).toBe('access-token');
+    expect(response.refreshToken).toBeDefined();
+  });
+
+  it('requires MFA on new IP and sends a challenge', async () => {
+    const passwordHash = await bcrypt.hash('correct-pass', 12);
+    (prismaService.user.findUnique as jest.Mock).mockResolvedValue({
+      id: 'user-1',
+      email: 'user@email.com',
+      passwordHash,
+      role: UserRole.USER,
+      mfaEnabled: true,
+      mfaLastVerifiedAt: new Date(),
+      mfaLastVerifiedIp: '10.0.0.1',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    (prismaService.mfaChallenge.create as jest.Mock).mockResolvedValue({ id: 'challenge-1' });
+    (prismaService.emailOutbox.create as jest.Mock).mockResolvedValue({ id: 'outbox-1' });
+
+    const response = await authService.login(
+      { email: 'user@email.com', password: 'correct-pass' },
+      { ip: '10.0.0.2', userAgent: 'jest' },
+    );
+
+    expect(response).toEqual({ mfaRequired: true, challengeId: 'challenge-1' });
+    expect(emailQueue.enqueueEmail).toHaveBeenCalledWith('outbox-1');
+  });
+
+  it('verifies MFA challenge and issues tokens', async () => {
+    const code = '123456';
+    const codeHash = createHash('sha256').update(code).digest('hex');
+    const user = {
+      id: 'user-1',
+      email: 'user@email.com',
+      passwordHash: 'hash',
+      role: UserRole.USER,
+      mfaEnabled: true,
+      mfaLastVerifiedAt: null,
+      mfaLastVerifiedIp: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    (prismaService.mfaChallenge.findUnique as jest.Mock).mockResolvedValue({
+      id: 'challenge-1',
+      userId: user.id,
+      email: user.email,
+      ip: '127.0.0.1',
+      userAgent: 'jest',
+      codeHash,
+      attempts: 0,
+      expiresAt: new Date(Date.now() + 600 * 1000),
+      usedAt: null,
+      createdAt: new Date(),
+      user,
+    });
+    (prismaService.mfaChallenge.updateMany as jest.Mock).mockResolvedValue({ count: 1 });
+    (prismaService.user.update as jest.Mock).mockResolvedValue({
+      ...user,
+      mfaLastVerifiedAt: new Date(),
+      mfaLastVerifiedIp: '127.0.0.1',
+    });
+    (prismaService.session.create as jest.Mock).mockResolvedValue({ id: 'session-1' });
+    (prismaService.refreshToken.create as jest.Mock).mockResolvedValue({ id: 'refresh-1' });
+    (jwtService.signAsync as jest.Mock).mockResolvedValue('access-token');
+
+    const response = await authService.verifyMfaLogin('challenge-1', code, {
+      ip: '127.0.0.1',
+      userAgent: 'jest',
+    });
+
+    expect(response.accessToken).toBe('access-token');
+    expect(response.refreshToken).toBeDefined();
+    expect(prismaService.user.update).toHaveBeenCalled();
+  });
+
   it('rotates refresh tokens', async () => {
     const now = new Date();
     const user = {
@@ -165,6 +279,9 @@ describe('AuthService', () => {
       email: 'user@email.com',
       role: UserRole.USER,
       passwordHash: 'hash',
+      mfaEnabled: false,
+      mfaLastVerifiedAt: null,
+      mfaLastVerifiedIp: null,
       createdAt: now,
       updatedAt: now,
     };
@@ -213,6 +330,9 @@ describe('AuthService', () => {
         email: 'user@email.com',
         role: UserRole.USER,
         passwordHash: 'hash',
+        mfaEnabled: false,
+        mfaLastVerifiedAt: null,
+        mfaLastVerifiedIp: null,
         createdAt: now,
         updatedAt: now,
       },
@@ -244,6 +364,9 @@ describe('AuthService', () => {
         email: 'user@email.com',
         role: UserRole.USER,
         passwordHash: 'hash',
+        mfaEnabled: false,
+        mfaLastVerifiedAt: null,
+        mfaLastVerifiedIp: null,
         createdAt: now,
         updatedAt: now,
       },
@@ -275,6 +398,9 @@ describe('AuthService', () => {
         email: 'user@email.com',
         role: UserRole.USER,
         passwordHash: 'hash',
+        mfaEnabled: false,
+        mfaLastVerifiedAt: null,
+        mfaLastVerifiedIp: null,
         createdAt: now,
         updatedAt: now,
       },
@@ -290,6 +416,40 @@ describe('AuthService', () => {
     );
   });
 
+  it('rejects refresh when session is expired', async () => {
+    const now = new Date();
+    (prismaService.refreshToken.findUnique as jest.Mock).mockResolvedValue({
+      id: 'refresh-1',
+      userId: 'user-1',
+      sessionId: 'session-1',
+      tokenHash: 'hash',
+      createdAt: now,
+      updatedAt: now,
+      expiresAt: new Date(Date.now() + 3600 * 1000),
+      revokedAt: null,
+      user: {
+        id: 'user-1',
+        email: 'user@email.com',
+        role: UserRole.USER,
+        passwordHash: 'hash',
+        mfaEnabled: true,
+        mfaLastVerifiedAt: new Date(Date.now() - 22 * 24 * 60 * 60 * 1000),
+        mfaLastVerifiedIp: '127.0.0.1',
+        createdAt: now,
+        updatedAt: now,
+      },
+      session: {
+        id: 'session-1',
+        revokedAt: null,
+        expiresAt: new Date(Date.now() - 1000),
+      },
+    });
+
+    await expect(authService.refresh({ refreshToken: 'refresh-token' })).rejects.toThrow(
+      UnauthorizedException,
+    );
+  });
+
   it('changes password and revokes sessions', async () => {
     const passwordHash = await bcrypt.hash('current-pass', 12);
     const user = {
@@ -297,6 +457,9 @@ describe('AuthService', () => {
       email: 'user@email.com',
       role: UserRole.USER,
       passwordHash,
+      mfaEnabled: false,
+      mfaLastVerifiedAt: null,
+      mfaLastVerifiedIp: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -342,6 +505,9 @@ describe('AuthService', () => {
       email: 'user@email.com',
       role: UserRole.USER,
       passwordHash,
+      mfaEnabled: false,
+      mfaLastVerifiedAt: null,
+      mfaLastVerifiedIp: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     });

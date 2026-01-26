@@ -9,12 +9,18 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { User, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
-import { createHash, randomBytes } from 'crypto';
+import { createHash, randomBytes, randomInt } from 'crypto';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailQueueService } from '../email/email.service';
-import { BCRYPT_SALT_ROUNDS, PASSWORD_RESET_TTL_SECONDS } from './auth.constants';
-import type { AuthRequestMeta, AuthResponse, AuthUser } from './auth.types';
+import {
+  BCRYPT_SALT_ROUNDS,
+  MFA_CODE_TTL_SECONDS,
+  MFA_MAX_ATTEMPTS,
+  MFA_REVERIFY_DAYS,
+  PASSWORD_RESET_TTL_SECONDS,
+} from './auth.constants';
+import type { AuthRequestMeta, AuthResponse, AuthUser, MfaRequiredResponse } from './auth.types';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { LogoutDto } from './dto/logout.dto';
@@ -58,7 +64,7 @@ export class AuthService {
     return this.issueTokens(user, meta);
   }
 
-  async login(dto: LoginDto, meta: AuthRequestMeta): Promise<AuthResponse> {
+  async login(dto: LoginDto, meta: AuthRequestMeta): Promise<AuthResponse | MfaRequiredResponse> {
     const email = this.normalizeEmail(dto.email);
     const user = await this.prismaService.user.findUnique({ where: { email } });
 
@@ -73,6 +79,11 @@ export class AuthService {
 
     if (this.isUserBlocked(user)) {
       throw new ForbiddenException('User is blocked.');
+    }
+
+    if (user.mfaEnabled && this.requiresMfa(user, meta)) {
+      const challenge = await this.createMfaChallenge(user, meta);
+      return { mfaRequired: true, challengeId: challenge.id };
     }
 
     return this.issueTokens(user, meta);
@@ -110,12 +121,15 @@ export class AuthService {
       throw new ForbiddenException('User is blocked.');
     }
 
+    const sessionExpiryCap =
+      existing.user.mfaEnabled && existing.session?.expiresAt ? existing.session.expiresAt : undefined;
     const rotated = await this.rotateRefreshToken(
       {
         userId: existing.userId,
         sessionId: existing.sessionId,
       },
       existing.id,
+      sessionExpiryCap,
     );
 
     const accessToken = await this.signAccessToken(existing.user, existing.sessionId);
@@ -378,6 +392,9 @@ export class AuthService {
       role: user.role,
       adminPermissions: user.adminPermissions ?? [],
       avatarUrl: user.avatarUrl ?? null,
+      mfaEnabled: user.mfaEnabled ?? false,
+      mfaLastVerifiedAt: user.mfaLastVerifiedAt ?? null,
+      mfaLastVerifiedIp: user.mfaLastVerifiedIp ?? null,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
@@ -388,8 +405,7 @@ export class AuthService {
   }
 
   private async issueTokens(user: User, meta: AuthRequestMeta): Promise<AuthResponse> {
-    const refreshTtlSeconds = this.getRefreshTtlSeconds();
-    const expiresAt = new Date(Date.now() + refreshTtlSeconds * 1000);
+    const expiresAt = this.computeSessionExpiresAt(user);
     const { refreshToken, refreshTokenHash } = this.generateRefreshToken();
     let sessionId: string | null = null;
 
@@ -425,9 +441,13 @@ export class AuthService {
   private async rotateRefreshToken(
     payload: RefreshRotationPayload,
     tokenId: string,
+    sessionExpiresAtCap?: Date,
   ): Promise<{ refreshToken: string }> {
     const refreshTtlSeconds = this.getRefreshTtlSeconds();
-    const expiresAt = new Date(Date.now() + refreshTtlSeconds * 1000);
+    let expiresAt = new Date(Date.now() + refreshTtlSeconds * 1000);
+    if (sessionExpiresAtCap && sessionExpiresAtCap < expiresAt) {
+      expiresAt = sessionExpiresAtCap;
+    }
     const { refreshToken, refreshTokenHash } = this.generateRefreshToken();
     const now = new Date();
 
@@ -451,9 +471,11 @@ export class AuthService {
       });
 
       if (payload.sessionId) {
+        const sessionExpiresAt =
+          sessionExpiresAtCap && sessionExpiresAtCap < expiresAt ? sessionExpiresAtCap : expiresAt;
         await tx.session.updateMany({
           where: { id: payload.sessionId, revokedAt: null },
-          data: { expiresAt },
+          data: { expiresAt: sessionExpiresAt },
         });
       }
     });
@@ -476,5 +498,172 @@ export class AuthService {
   private generateRefreshToken(): { refreshToken: string; refreshTokenHash: string } {
     const refreshToken = randomBytes(48).toString('hex');
     return { refreshToken, refreshTokenHash: this.hashToken(refreshToken) };
+  }
+
+  private computeSessionExpiresAt(user: User) {
+    const refreshTtlSeconds = this.getRefreshTtlSeconds();
+    const refreshExpiry = new Date(Date.now() + refreshTtlSeconds * 1000);
+    if (!user.mfaEnabled) {
+      return refreshExpiry;
+    }
+    const mfaExpiry = new Date(Date.now() + MFA_REVERIFY_DAYS * 24 * 60 * 60 * 1000);
+    return mfaExpiry < refreshExpiry ? mfaExpiry : refreshExpiry;
+  }
+
+  private requiresMfa(user: User, meta: AuthRequestMeta) {
+    const now = Date.now();
+    const lastVerifiedAt = user.mfaLastVerifiedAt?.getTime();
+    const stale =
+      !lastVerifiedAt ||
+      now - lastVerifiedAt > MFA_REVERIFY_DAYS * 24 * 60 * 60 * 1000;
+    const ipChanged =
+      !meta.ip || !user.mfaLastVerifiedIp || meta.ip !== user.mfaLastVerifiedIp;
+    return stale || ipChanged;
+  }
+
+  private hashCode(value: string) {
+    return createHash('sha256').update(value).digest('hex');
+  }
+
+  private generateMfaCode() {
+    return randomInt(0, 1_000_000).toString().padStart(6, '0');
+  }
+
+  private async createMfaChallenge(user: User, meta: AuthRequestMeta) {
+    const code = this.generateMfaCode();
+    const expiresAt = new Date(Date.now() + MFA_CODE_TTL_SECONDS * 1000);
+
+    const challenge = await this.prismaService.mfaChallenge.create({
+      data: {
+        userId: user.id,
+        email: user.email,
+        ip: meta.ip ?? null,
+        userAgent: meta.userAgent ?? null,
+        codeHash: this.hashCode(code),
+        expiresAt,
+      },
+    });
+
+    const subject = 'Seu codigo de verificacao';
+    const ipInfo = meta.ip ? `IP: ${meta.ip}` : 'IP desconhecido';
+    const body = `Seu codigo para confirmar o acesso e: ${code}\n\n${ipInfo}\nEste codigo expira em 10 minutos.`;
+    const outbox = await this.prismaService.emailOutbox.create({
+      data: { to: user.email, subject, body },
+    });
+    await this.emailQueue.enqueueEmail(outbox.id);
+
+    return challenge;
+  }
+
+  async requestMfaEnable(userId: string, meta: AuthRequestMeta): Promise<{ challengeId: string }> {
+    const user = await this.prismaService.user.findUnique({ where: { id: userId } });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found.');
+    }
+
+    if (user.mfaEnabled) {
+      throw new BadRequestException('MFA already enabled.');
+    }
+
+    const challenge = await this.createMfaChallenge(user, meta);
+    return { challengeId: challenge.id };
+  }
+
+  async confirmMfaEnable(
+    userId: string,
+    code: string,
+    challengeId: string,
+    meta: AuthRequestMeta,
+  ): Promise<{ success: true }> {
+    const challenge = await this.prismaService.mfaChallenge.findUnique({
+      where: { id: challengeId },
+    });
+    const now = new Date();
+
+    if (!challenge || challenge.userId !== userId) {
+      throw new BadRequestException('Invalid or expired verification code.');
+    }
+
+    await this.ensureChallengeValid(challenge, code, now);
+
+    await this.prismaService.$transaction(async (tx) => {
+      await tx.mfaChallenge.updateMany({
+        where: { id: challengeId, usedAt: null },
+        data: { usedAt: now },
+      });
+      await tx.user.update({
+        where: { id: userId },
+        data: {
+          mfaEnabled: true,
+          mfaLastVerifiedAt: now,
+          mfaLastVerifiedIp: meta.ip ?? null,
+        },
+      });
+    });
+
+    return { success: true };
+  }
+
+  async verifyMfaLogin(
+    challengeId: string,
+    code: string,
+    meta: AuthRequestMeta,
+  ): Promise<AuthResponse> {
+    const challenge = await this.prismaService.mfaChallenge.findUnique({
+      where: { id: challengeId },
+      include: { user: true },
+    });
+    const now = new Date();
+
+    if (!challenge || !challenge.user) {
+      throw new BadRequestException('Invalid or expired verification code.');
+    }
+
+    await this.ensureChallengeValid(challenge, code, now);
+
+    let user = challenge.user;
+    await this.prismaService.$transaction(async (tx) => {
+      const updatedChallenge = await tx.mfaChallenge.updateMany({
+        where: { id: challengeId, usedAt: null },
+        data: { usedAt: now },
+      });
+      if (updatedChallenge.count === 0) {
+        throw new BadRequestException('Verification code already used.');
+      }
+      user = await tx.user.update({
+        where: { id: challenge.userId },
+        data: {
+          mfaLastVerifiedAt: now,
+          mfaLastVerifiedIp: meta.ip ?? null,
+        },
+      });
+    });
+
+    return this.issueTokens(user, meta);
+  }
+
+  private async ensureChallengeValid(
+    challenge: { id: string; codeHash: string; attempts: number; expiresAt: Date; usedAt: Date | null },
+    code: string,
+    now: Date,
+  ) {
+    if (challenge.usedAt || challenge.expiresAt <= now) {
+      throw new BadRequestException('Invalid or expired verification code.');
+    }
+
+    if (challenge.attempts >= MFA_MAX_ATTEMPTS) {
+      throw new BadRequestException('Too many attempts. Request a new code.');
+    }
+
+    const codeHash = this.hashCode(code);
+    if (codeHash !== challenge.codeHash) {
+      const reachedLimit = challenge.attempts + 1 >= MFA_MAX_ATTEMPTS;
+      await this.prismaService.mfaChallenge.updateMany({
+        where: { id: challenge.id, usedAt: null },
+        data: { attempts: { increment: 1 }, ...(reachedLimit ? { usedAt: now } : {}) },
+      });
+      throw new BadRequestException('Invalid verification code.');
+    }
   }
 }

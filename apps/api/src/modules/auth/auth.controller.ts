@@ -7,11 +7,12 @@ import {
   Param,
   Post,
   Req,
+  Res,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
 
 import type { AuthRequestMeta, JwtPayload } from './auth.types';
 import { AuthService } from './auth.service';
@@ -23,6 +24,7 @@ import { GoogleExchangeDto } from './dto/google-exchange.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { LogoutDto } from './dto/logout.dto';
+import { MfaVerifyDto } from './dto/mfa-verify.dto';
 import { RefreshDto } from './dto/refresh.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
@@ -50,8 +52,12 @@ export class AuthController {
   @UseGuards(ThrottlerGuard)
   @Throttle(AUTH_THROTTLE)
   @HttpCode(200)
-  login(@Body() dto: LoginDto, @Req() request: Request) {
-    return this.authService.login(dto, this.getRequestMeta(request));
+  async login(@Body() dto: LoginDto, @Req() request: Request, @Res({ passthrough: true }) response: Response) {
+    const result = await this.authService.login(dto, this.getRequestMeta(request));
+    if ('mfaRequired' in result && result.mfaRequired) {
+      response.status(202);
+    }
+    return result;
   }
 
   @Post('discord/exchange')
@@ -83,6 +89,14 @@ export class AuthController {
   @HttpCode(200)
   refresh(@Body() dto: RefreshDto) {
     return this.authService.refresh(dto);
+  }
+
+  @Post('mfa/verify')
+  @UseGuards(ThrottlerGuard)
+  @Throttle(AUTH_THROTTLE)
+  @HttpCode(200)
+  verifyMfa(@Body() dto: MfaVerifyDto, @Req() request: Request) {
+    return this.authService.verifyMfaLogin(dto.challengeId, dto.code, this.getRequestMeta(request));
   }
 
   @Post('logout')

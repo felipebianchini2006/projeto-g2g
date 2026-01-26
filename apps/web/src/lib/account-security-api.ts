@@ -22,6 +22,19 @@ export type LogoutAllResponse = {
   revokedTokens: number;
 };
 
+export type MfaChallengeResponse = {
+  challengeId: string;
+};
+
+export type MfaConfirmPayload = {
+  challengeId: string;
+  code: string;
+};
+
+export type MfaConfirmResponse = {
+  success: true;
+};
+
 const authHeaders = (token: string | null) =>
   token ? { Authorization: `Bearer ${token}` } : {};
 
@@ -48,5 +61,18 @@ export const accountSecurityApi = {
     apiFetch<LogoutAllResponse>('/auth/logout-all', {
       method: 'POST',
       headers: authHeaders(token),
+    }),
+
+  requestMfaEnable: (token: string | null) =>
+    apiFetch<MfaChallengeResponse>('/security/mfa/enable-request', {
+      method: 'POST',
+      headers: authHeaders(token),
+    }),
+
+  confirmMfaEnable: (token: string | null, payload: MfaConfirmPayload) =>
+    apiFetch<MfaConfirmResponse>('/security/mfa/enable-confirm', {
+      method: 'POST',
+      headers: authHeaders(token),
+      body: JSON.stringify(payload),
     }),
 };

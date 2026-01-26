@@ -16,11 +16,20 @@ type ApiAuthResponse = {
   user: {
     id: string;
     email: string;
-    role: 'USER' | 'SELLER' | 'ADMIN';
+    role: 'USER' | 'SELLER' | 'ADMIN' | 'AJUDANTE';
+    adminPermissions: string[];
     avatarUrl?: string | null;
+    mfaEnabled: boolean;
+    mfaLastVerifiedAt?: string | null;
+    mfaLastVerifiedIp?: string | null;
     createdAt: string;
     updatedAt: string;
   };
+};
+
+type ApiMfaRequiredResponse = {
+  mfaRequired: true;
+  challengeId: string;
 };
 
 type ApiErrorPayload = {
@@ -82,6 +91,10 @@ export const buildAuthResponse = (payload: ApiAuthResponse) => {
   });
   setRefreshCookie(response, payload.refreshToken);
   return response;
+};
+
+export const buildMfaRequiredResponse = (payload: ApiMfaRequiredResponse) => {
+  return NextResponse.json(payload, { status: 202 });
 };
 
 export const buildErrorResponse = (payload: unknown, fallback: string, status: number) => {
