@@ -39,6 +39,9 @@ describe('WebhooksProcessor (Wallet Top-up)', () => {
         findFirst: jest.fn(),
         create: jest.fn(),
       },
+      user: {
+        findFirst: jest.fn(),
+      },
       notification: {
         create: jest.fn(),
       },

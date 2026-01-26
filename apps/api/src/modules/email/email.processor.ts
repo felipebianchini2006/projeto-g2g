@@ -6,6 +6,7 @@ import { AppLogger } from '../logger/logger.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { RequestContextService } from '../request-context/request-context.service';
 import { EmailJobName, EMAIL_QUEUE } from './email.queue';
+import { EmailSenderService } from './email-sender.service';
 
 type EmailJobData = {
   emailOutboxId: string;
@@ -18,6 +19,7 @@ export class EmailProcessor extends WorkerHost {
     private readonly prisma: PrismaService,
     private readonly logger: AppLogger,
     private readonly requestContext: RequestContextService,
+    private readonly emailSender: EmailSenderService,
   ) {
     super();
   }
@@ -47,10 +49,11 @@ export class EmailProcessor extends WorkerHost {
     }
 
     try {
-      this.logger.log(
-        `Mock email send: ${outbox.to} | ${outbox.subject}`,
-        `Email:${emailOutboxId}`,
-      );
+      await this.emailSender.send({
+        to: outbox.to,
+        subject: outbox.subject,
+        body: outbox.body,
+      });
 
       await this.prisma.emailOutbox.update({
         where: { id: outbox.id },

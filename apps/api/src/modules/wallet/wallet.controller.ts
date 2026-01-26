@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Query, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  Req,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { UserRole } from '@prisma/client';
 import { Request } from 'express';
 
@@ -10,9 +20,12 @@ import { WalletEntriesQueryDto } from './dto/wallet-entries-query.dto';
 import { PayOrderWithWalletDto } from './dto/pay-order-with-wallet.dto';
 import { TopupWalletDto } from './dto/topup-wallet.dto';
 import { CreatePayoutDto } from './dto/create-payout.dto';
+import { RequestPayoutVerificationDto } from './dto/request-payout-verification.dto';
+import { ConfirmPayoutVerificationDto } from './dto/confirm-payout-verification.dto';
 import { WalletService } from './wallet.service';
 
 type AuthenticatedRequest = Request & { user?: JwtPayload };
+const PAYOUT_THROTTLE = { default: { ttl: 60, limit: 5 } };
 
 @Controller('wallet')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -40,9 +53,29 @@ export class WalletController {
 
   @Post('payouts')
   @Roles(UserRole.SELLER, UserRole.ADMIN)
+  @UseGuards(ThrottlerGuard)
+  @Throttle(PAYOUT_THROTTLE)
   createPayout(@Req() req: AuthenticatedRequest, @Body() dto: CreatePayoutDto) {
     const userId = this.getUserId(req);
-    return this.walletService.createUserPayout(userId, dto, {
+    return this.walletService.requestPayoutVerification(userId, dto);
+  }
+
+  @Post('payouts/request')
+  @Roles(UserRole.SELLER, UserRole.ADMIN)
+  @UseGuards(ThrottlerGuard)
+  @Throttle(PAYOUT_THROTTLE)
+  requestPayout(@Req() req: AuthenticatedRequest, @Body() dto: RequestPayoutVerificationDto) {
+    const userId = this.getUserId(req);
+    return this.walletService.requestPayoutVerification(userId, dto);
+  }
+
+  @Post('payouts/confirm')
+  @Roles(UserRole.SELLER, UserRole.ADMIN)
+  @UseGuards(ThrottlerGuard)
+  @Throttle(PAYOUT_THROTTLE)
+  confirmPayout(@Req() req: AuthenticatedRequest, @Body() dto: ConfirmPayoutVerificationDto) {
+    const userId = this.getUserId(req);
+    return this.walletService.confirmPayoutVerification(userId, dto, {
       ip: req.ip,
       userAgent: req.headers['user-agent'],
     });

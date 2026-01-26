@@ -12,12 +12,18 @@ import { PrismaService } from '../prisma/prisma.service';
 import { PaymentsService } from '../payments/payments.service';
 import { OrdersQueueService } from '../orders/orders.queue.service';
 import { OrderStatus } from '@prisma/client';
+import { TwilioVerifyService } from '../twilio/twilio-verify.service';
+import { OrdersService } from '../orders/orders.service';
+import { SettlementService } from '../settlement/settlement.service';
 
 describe('WalletService', () => {
   let service: WalletService;
   let prismaService: PrismaService;
   let paymentsService: PaymentsService;
   let ordersQueueService: OrdersQueueService;
+  let twilioVerifyService: TwilioVerifyService;
+  let ordersService: OrdersService;
+  let settlementService: SettlementService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -43,6 +49,12 @@ describe('WalletService', () => {
               create: jest.fn(),
               aggregate: jest.fn(),
             },
+            payoutDraft: {
+              create: jest.fn(),
+              findUnique: jest.fn(),
+              update: jest.fn(),
+              updateMany: jest.fn(),
+            },
             $transaction: jest.fn((input) => {
               if (typeof input === 'function') {
                 return input(prismaService);
@@ -64,6 +76,28 @@ describe('WalletService', () => {
             scheduleOrderExpiration: jest.fn(),
           },
         },
+        {
+          provide: OrdersService,
+          useValue: {
+            applyPaymentConfirmation: jest.fn(),
+            handlePaymentSideEffects: jest.fn(),
+          },
+        },
+        {
+          provide: SettlementService,
+          useValue: {
+            createHeldEntry: jest.fn(),
+            scheduleRelease: jest.fn(),
+            cancelRelease: jest.fn(),
+          },
+        },
+        {
+          provide: TwilioVerifyService,
+          useValue: {
+            sendVerification: jest.fn(),
+            checkVerification: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
@@ -71,6 +105,9 @@ describe('WalletService', () => {
     prismaService = module.get<PrismaService>(PrismaService);
     paymentsService = module.get<PaymentsService>(PaymentsService);
     ordersQueueService = module.get<OrdersQueueService>(OrdersQueueService);
+    twilioVerifyService = module.get<TwilioVerifyService>(TwilioVerifyService);
+    ordersService = module.get<OrdersService>(OrdersService);
+    settlementService = module.get<SettlementService>(SettlementService);
   });
 
   it('keeps summary consistent with entry totals', async () => {
@@ -129,8 +166,12 @@ describe('WalletService', () => {
 
     (prismaService.user.findUnique as jest.Mock).mockResolvedValue({
       id: userId,
+      createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
       payoutBlockedAt: null,
       payoutBlockedReason: null,
+      email: 'user@test.com',
+      phoneE164: '+5511999999999',
+      phoneVerifiedAt: new Date(),
     });
 
     (prismaService.ledgerEntry.groupBy as jest.Mock).mockResolvedValue([
@@ -174,6 +215,7 @@ describe('WalletService', () => {
   it('rejects payout when user is blocked', async () => {
     (prismaService.user.findUnique as jest.Mock).mockResolvedValue({
       id: 'user-1',
+      createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
       payoutBlockedAt: new Date(),
       payoutBlockedReason: 'Bloqueado',
     });
@@ -223,5 +265,95 @@ describe('WalletService', () => {
       }),
     );
     expect(result).toEqual(expect.objectContaining({ scope: PayoutScope.PLATFORM }));
+  });
+
+  it('creates payout draft and sends verify codes', async () => {
+    const userId = 'user-1';
+    const now = new Date();
+
+    (prismaService.user.findUnique as jest.Mock).mockResolvedValue({
+      id: userId,
+      createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+      payoutBlockedAt: null,
+      payoutBlockedReason: null,
+      email: 'user@test.com',
+      phoneE164: '+5511999999999',
+      phoneVerifiedAt: new Date(),
+    });
+
+    (prismaService.ledgerEntry.groupBy as jest.Mock).mockResolvedValue([
+      { state: 'AVAILABLE', type: 'CREDIT', currency: 'BRL', _sum: { amountCents: 12000 } },
+    ]);
+
+    (prismaService.payoutDraft.create as jest.Mock).mockResolvedValue({
+      id: 'draft-1',
+      expiresAt: now,
+    });
+
+    const result = await service.requestPayoutVerification(userId, {
+      amountCents: 8000,
+      pixKey: 'user-pix',
+      pixKeyType: 'CPF',
+      beneficiaryName: 'User Seller',
+      beneficiaryType: 'PF',
+      payoutSpeed: 'NORMAL',
+    });
+
+    expect(prismaService.payoutDraft.create).toHaveBeenCalled();
+    expect(twilioVerifyService.sendVerification).toHaveBeenCalledTimes(2);
+    expect(result).toEqual({
+      status: 'verificationRequired',
+      payoutDraftId: 'draft-1',
+      expiresAt: now,
+    });
+  });
+
+  it('confirms payout when verification succeeds', async () => {
+    const userId = 'user-1';
+    const payoutSpy = jest
+      .spyOn(service, 'createUserPayout')
+      .mockResolvedValue({ id: 'payout-1' } as any);
+
+    (prismaService.payoutDraft.findUnique as jest.Mock).mockResolvedValue({
+      id: 'draft-1',
+      userId,
+      status: 'PENDING',
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+      payload: {
+        amountCents: 8000,
+        pixKey: 'user-pix',
+        pixKeyType: 'CPF',
+        beneficiaryName: 'User Seller',
+        beneficiaryType: 'PF',
+        payoutSpeed: 'NORMAL',
+        phoneChannel: 'whatsapp',
+      },
+      user: {
+        id: userId,
+        email: 'user@test.com',
+        phoneE164: '+5511999999999',
+        phoneVerifiedAt: new Date(),
+      },
+    });
+
+    (twilioVerifyService.checkVerification as jest.Mock).mockResolvedValue({ status: 'approved' });
+    (prismaService.payoutDraft.updateMany as jest.Mock).mockResolvedValue({ count: 1 });
+
+    const result = await service.confirmPayoutVerification(userId, {
+      payoutDraftId: 'draft-1',
+      codeEmail: '111111',
+      codeWhatsapp: '222222',
+    });
+
+    expect(twilioVerifyService.checkVerification).toHaveBeenCalledTimes(2);
+    expect(payoutSpy).toHaveBeenCalledWith(
+      userId,
+      expect.objectContaining({
+        amountCents: 8000,
+        pixKey: 'user-pix',
+      }),
+      undefined,
+    );
+    expect(result).toEqual({ id: 'payout-1' });
   });
 });

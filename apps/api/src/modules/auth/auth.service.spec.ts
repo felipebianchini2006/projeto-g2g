@@ -7,12 +7,14 @@ import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 
 import { PrismaService } from '../prisma/prisma.service';
+import { EmailQueueService } from '../email/email.service';
 import { AuthService } from './auth.service';
 
 describe('AuthService', () => {
   let authService: AuthService;
   let prismaService: PrismaService;
   let jwtService: JwtService;
+  let emailQueue: EmailQueueService;
 
   beforeEach(async () => {
     const prismaMock = {
@@ -37,6 +39,9 @@ describe('AuthService', () => {
         create: jest.fn(),
         updateMany: jest.fn(),
       },
+      emailOutbox: {
+        create: jest.fn(),
+      },
       $transaction: jest.fn(),
     } as unknown as PrismaService;
 
@@ -48,6 +53,12 @@ describe('AuthService', () => {
       get: jest.fn((key: string) => {
         if (key === 'REFRESH_TTL') {
           return 3600;
+        }
+        if (key === 'NEXT_PUBLIC_APP_URL') {
+          return 'http://localhost:3000';
+        }
+        if (key === 'NODE_ENV') {
+          return 'test';
         }
         return undefined;
       }),
@@ -63,12 +74,14 @@ describe('AuthService', () => {
         { provide: PrismaService, useValue: prismaMock },
         { provide: JwtService, useValue: jwtMock },
         { provide: ConfigService, useValue: configMock },
+        { provide: EmailQueueService, useValue: { enqueueEmail: jest.fn() } },
       ],
     }).compile();
 
     authService = moduleRef.get(AuthService);
     prismaService = moduleRef.get(PrismaService);
     jwtService = moduleRef.get(JwtService);
+    emailQueue = moduleRef.get(EmailQueueService);
   });
 
   it('registers a user and issues tokens', async () => {
@@ -404,5 +417,36 @@ describe('AuthService', () => {
     await expect(
       authService.revokeSession('session-1', { id: 'user-2', role: UserRole.USER }),
     ).rejects.toThrow(ForbiddenException);
+  });
+
+  it('creates reset email when user exists', async () => {
+    (prismaService.user.findUnique as jest.Mock).mockResolvedValue({
+      id: 'user-1',
+      email: 'user@test.com',
+    });
+    (prismaService.passwordResetToken.create as jest.Mock).mockResolvedValue({ id: 'token-1' });
+    (prismaService.emailOutbox.create as jest.Mock).mockResolvedValue({ id: 'outbox-1' });
+
+    const response = await authService.forgotPassword({ email: 'user@test.com' });
+
+    expect(response.success).toBe(true);
+    expect(prismaService.emailOutbox.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          to: 'user@test.com',
+          subject: 'Recuperação de senha',
+        }),
+      }),
+    );
+    expect(emailQueue.enqueueEmail).toHaveBeenCalledWith('outbox-1');
+  });
+
+  it('does not reveal missing email on forgot password', async () => {
+    (prismaService.user.findUnique as jest.Mock).mockResolvedValue(null);
+
+    const response = await authService.forgotPassword({ email: 'missing@test.com' });
+
+    expect(response.success).toBe(true);
+    expect(prismaService.emailOutbox.create).not.toHaveBeenCalled();
   });
 });

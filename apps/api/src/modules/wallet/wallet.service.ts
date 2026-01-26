@@ -7,6 +7,7 @@ import {
   OrderStatus,
   PaymentProvider,
   PaymentStatus,
+  PayoutDraftStatus,
   PayoutScope,
   PayoutStatus,
   Prisma,
@@ -19,6 +20,7 @@ import { PaymentsService } from '../payments/payments.service';
 import { OrdersService } from '../orders/orders.service';
 import { OrdersQueueService } from '../orders/orders.queue.service';
 import { SettlementService } from '../settlement/settlement.service';
+import { TwilioVerifyService } from '../twilio/twilio-verify.service';
 import { WalletEntriesQueryDto } from './dto/wallet-entries-query.dto';
 import { TopupWalletDto } from './dto/topup-wallet.dto';
 import { buildWalletSummary, type WalletSummaryRow } from './wallet.utils';
@@ -74,6 +76,7 @@ export class WalletService {
     private readonly ordersService: OrdersService,
     private readonly ordersQueue: OrdersQueueService,
     private readonly settlementService: SettlementService,
+    private readonly twilioVerify: TwilioVerifyService,
   ) { }
 
   async getSummary(userId: string) {
@@ -369,39 +372,8 @@ export class WalletService {
     dto: CreatePayoutDto,
     meta?: { ip?: string; userAgent?: string | string[] },
   ) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true, createdAt: true, payoutBlockedAt: true, payoutBlockedReason: true },
-    });
-    if (!user) {
-      throw new BadRequestException('User not found.');
-    }
-    if (user.payoutBlockedAt) {
-      throw new ForbiddenException(
-        user.payoutBlockedReason || 'Payout is blocked for this account.',
-      );
-    }
-    const accountAgeMs = Date.now() - user.createdAt.getTime();
-    const minAgeMs = 5 * 24 * 60 * 60 * 1000;
-    if (accountAgeMs < minAgeMs) {
-      throw new ForbiddenException('Conta nova: saque liberado após 5 dias.');
-    }
-
-    const summary = await this.getSummary(userId);
-    const pixKey = dto.pixKey.trim();
-    const beneficiaryName = dto.beneficiaryName.trim();
-    if (!pixKey) {
-      throw new BadRequestException('Chave Pix obrigatoria.');
-    }
-    if (!beneficiaryName) {
-      throw new BadRequestException('Nome do favorecido obrigatorio.');
-    }
-    const isInstant = dto.payoutSpeed === 'INSTANT';
-    const feeCents = isInstant ? 100 : 0;
-
-    if (dto.amountCents + feeCents > summary.availableCents) {
-      throw new BadRequestException('Saldo insuficiente para saque (incluindo taxas).');
-    }
+    const { summary, pixKey, beneficiaryName, feeCents } =
+      await this.getUserPayoutContext(userId, dto);
 
     const payoutId = randomUUID();
     const description = `Saque carteira #${payoutId.slice(0, 8)}`;
@@ -492,6 +464,191 @@ export class WalletService {
     }
   }
 
+  async requestPayoutVerification(
+    userId: string,
+    dto: CreatePayoutDto & { useSmsFallback?: boolean },
+  ) {
+    const { user, summary } = await this.getUserPayoutContext(userId, dto);
+
+    if (!user.email) {
+      throw new BadRequestException('Email do usuario indisponivel.');
+    }
+    if (!user.phoneE164 || !user.phoneVerifiedAt) {
+      throw new BadRequestException('Telefone nao verificado para saque.');
+    }
+
+    const phoneChannel = dto.useSmsFallback ? 'sms' : 'whatsapp';
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+    const draft = await this.prisma.payoutDraft.create({
+      data: {
+        userId,
+        payload: {
+          amountCents: dto.amountCents,
+          pixKey: dto.pixKey,
+          pixKeyType: dto.pixKeyType ?? null,
+          beneficiaryName: dto.beneficiaryName,
+          beneficiaryType: dto.beneficiaryType ?? null,
+          payoutSpeed: dto.payoutSpeed ?? null,
+          phoneChannel,
+          currency: summary.currency,
+        },
+        expiresAt,
+      },
+    });
+
+    try {
+      await Promise.all([
+        this.twilioVerify.sendVerification(user.email, 'email'),
+        this.twilioVerify.sendVerification(user.phoneE164, phoneChannel),
+      ]);
+    } catch (error) {
+      await this.prisma.payoutDraft.update({
+        where: { id: draft.id },
+        data: { status: PayoutDraftStatus.EXPIRED },
+      });
+      throw error;
+    }
+
+    return {
+      status: 'verificationRequired' as const,
+      payoutDraftId: draft.id,
+      expiresAt: draft.expiresAt,
+    };
+  }
+
+  async confirmPayoutVerification(
+    userId: string,
+    dto: {
+      payoutDraftId: string;
+      codeEmail: string;
+      codeWhatsapp?: string;
+      codeSms?: string;
+    },
+    meta?: { ip?: string; userAgent?: string | string[] },
+  ) {
+    const draft = await this.prisma.payoutDraft.findUnique({
+      where: { id: dto.payoutDraftId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            phoneE164: true,
+            phoneVerifiedAt: true,
+            createdAt: true,
+            payoutBlockedAt: true,
+            payoutBlockedReason: true,
+          },
+        },
+      },
+    });
+
+    if (!draft || draft.userId !== userId) {
+      throw new NotFoundException('Payout draft not found.');
+    }
+
+    if (draft.status === PayoutDraftStatus.CONFIRMED) {
+      throw new BadRequestException('Payout already confirmed.');
+    }
+    if (draft.status === PayoutDraftStatus.EXPIRED) {
+      throw new BadRequestException('Payout verification expired.');
+    }
+
+    if (draft.expiresAt.getTime() <= Date.now()) {
+      await this.prisma.payoutDraft.update({
+        where: { id: draft.id },
+        data: { status: PayoutDraftStatus.EXPIRED },
+      });
+      throw new BadRequestException('Payout verification expired.');
+    }
+
+    if (!draft.user?.email || !draft.user.phoneE164 || !draft.user.phoneVerifiedAt) {
+      throw new BadRequestException('Missing verified contact.');
+    }
+
+    const payload = draft.payload as Prisma.JsonObject;
+    const phoneChannel = payload['phoneChannel'] === 'sms' ? 'sms' : 'whatsapp';
+    const phoneCode = phoneChannel === 'sms' ? dto.codeSms : dto.codeWhatsapp;
+    if (!phoneCode) {
+      throw new BadRequestException('Missing phone verification code.');
+    }
+
+    const [emailCheck, phoneCheck] = await Promise.all([
+      this.twilioVerify.checkVerification(draft.user.email, dto.codeEmail),
+      this.twilioVerify.checkVerification(draft.user.phoneE164, phoneCode),
+    ]);
+
+    if (emailCheck.status !== 'approved' || phoneCheck.status !== 'approved') {
+      throw new ForbiddenException('Verification failed.');
+    }
+
+    const updated = await this.prisma.payoutDraft.updateMany({
+      where: { id: draft.id, status: PayoutDraftStatus.PENDING },
+      data: { status: PayoutDraftStatus.CONFIRMED },
+    });
+
+    if (updated.count === 0) {
+      throw new BadRequestException('Payout already used.');
+    }
+
+    const payoutDto: CreatePayoutDto = {
+      amountCents: Number(payload['amountCents']),
+      pixKey: String(payload['pixKey']),
+      pixKeyType: (payload['pixKeyType'] as any) ?? undefined,
+      beneficiaryName: String(payload['beneficiaryName']),
+      beneficiaryType: (payload['beneficiaryType'] as any) ?? undefined,
+      payoutSpeed: (payload['payoutSpeed'] as any) ?? undefined,
+    };
+
+    return this.createUserPayout(userId, payoutDto, meta);
+  }
+
+  private async getUserPayoutContext(userId: string, dto: CreatePayoutDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        phoneE164: true,
+        phoneVerifiedAt: true,
+        createdAt: true,
+        payoutBlockedAt: true,
+        payoutBlockedReason: true,
+      },
+    });
+    if (!user) {
+      throw new BadRequestException('User not found.');
+    }
+    if (user.payoutBlockedAt) {
+      throw new ForbiddenException(
+        user.payoutBlockedReason || 'Payout is blocked for this account.',
+      );
+    }
+    const accountAgeMs = Date.now() - user.createdAt.getTime();
+    const minAgeMs = 5 * 24 * 60 * 60 * 1000;
+    if (accountAgeMs < minAgeMs) {
+      throw new ForbiddenException('Conta nova: saque liberado apos 5 dias.');
+    }
+
+    const summary = await this.getSummary(userId);
+    const pixKey = dto.pixKey.trim();
+    const beneficiaryName = dto.beneficiaryName.trim();
+    if (!pixKey) {
+      throw new BadRequestException('Chave Pix obrigatoria.');
+    }
+    if (!beneficiaryName) {
+      throw new BadRequestException('Nome do favorecido obrigatorio.');
+    }
+    const isInstant = dto.payoutSpeed === 'INSTANT';
+    const feeCents = isInstant ? 100 : 0;
+
+    if (dto.amountCents + feeCents > summary.availableCents) {
+      throw new BadRequestException('Saldo insuficiente para saque (incluindo taxas).');
+    }
+
+    return { user, summary, pixKey, beneficiaryName, feeCents };
+  }
   async createPlatformPayout(adminId: string, dto: CreatePayoutDto) {
     const pixKey = dto.pixKey.trim();
     const beneficiaryName = dto.beneficiaryName.trim();

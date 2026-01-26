@@ -27,6 +27,8 @@ describe('OrdersService (manual delivery)', () => {
   let service: OrdersService;
   let prismaService: PrismaService;
   let ordersQueue: { scheduleAutoComplete: jest.Mock };
+  let twilioMessaging: { sendWhatsApp: jest.Mock };
+  let emailQueue: { enqueueEmail: jest.Mock };
 
   beforeEach(() => {
     const prismaMock = {
@@ -54,6 +56,12 @@ describe('OrdersService (manual delivery)', () => {
     ordersQueue = {
       scheduleAutoComplete: jest.fn(),
     };
+    twilioMessaging = {
+      sendWhatsApp: jest.fn(),
+    };
+    emailQueue = {
+      enqueueEmail: jest.fn(),
+    };
 
     const configMock = {
       get: jest.fn((key: string) => {
@@ -71,13 +79,14 @@ describe('OrdersService (manual delivery)', () => {
       configMock,
       { scheduleRelease: jest.fn(), cancelRelease: jest.fn() } as unknown as SettlementService,
       { error: jest.fn() } as unknown as AppLogger,
-      { enqueueEmail: jest.fn() } as unknown as EmailQueueService,
+      emailQueue as unknown as EmailQueueService,
       { getSettings: jest.fn() } as unknown as SettingsService,
       {
         getValidCoupon: jest.fn(),
         consumeCouponUsage: jest.fn(),
       } as unknown as CouponsService,
       { findActiveBySlug: jest.fn() } as unknown as PartnersService,
+      twilioMessaging as any,
     );
 
     prismaService = prismaMock;
@@ -197,9 +206,14 @@ describe('OrdersService (manual delivery)', () => {
           sellerId: 'seller-1',
         },
       ],
-      buyer: { email: 'buyer@test.com' },
+      buyer: {
+        email: 'buyer@test.com',
+        phoneE164: '+5511999999999',
+        phoneVerifiedAt: new Date(),
+      },
       seller: { email: 'seller@test.com' },
     });
+    (twilioMessaging.sendWhatsApp as jest.Mock).mockResolvedValue({ sid: 'msg-1' });
     (prismaService.order.update as jest.Mock).mockResolvedValue({
       id: 'order-1',
       status: OrderStatus.DELIVERED,
@@ -226,6 +240,10 @@ describe('OrdersService (manual delivery)', () => {
     const eventCall = orderEventCreate.mock.calls[0] as [{ data: { type: OrderEventType } }];
     expect(eventCall[0].data.type).toBe(OrderEventType.DELIVERED);
     expect(ordersQueue.scheduleAutoComplete).toHaveBeenCalledWith('order-1', 24 * 60 * 60 * 1000);
+    expect(twilioMessaging.sendWhatsApp).toHaveBeenCalledWith(
+      '+5511999999999',
+      'Seu produto chegou! Pedido order-1. Obrigado pela compra.',
+    );
     expect(result.status).toBe(OrderStatus.DELIVERED);
   });
 
@@ -263,5 +281,42 @@ describe('OrdersService (manual delivery)', () => {
     await expect(service.confirmReceipt('order-1', 'buyer-1', { note: 'ok' }, {})).rejects.toThrow(
       BadRequestException,
     );
+  });
+
+  it('creates receipt email when payment side effects run', async () => {
+    (prismaService.order.findUnique as jest.Mock).mockResolvedValue({
+      id: 'order-1',
+      status: OrderStatus.IN_DELIVERY,
+      totalAmountCents: 8000,
+      buyer: { email: 'buyer@test.com' },
+      items: [
+        {
+          title: 'Produto A',
+          quantity: 1,
+          unitPriceCents: 8000,
+          currency: 'BRL',
+        },
+      ],
+    });
+    (prismaService.emailOutbox.create as jest.Mock).mockResolvedValue({ id: 'outbox-2' });
+
+    await service.handlePaymentSideEffects(
+      {
+        id: 'order-1',
+        items: [{ id: 'item-1', listingId: 'listing-1', deliveryType: DeliveryType.MANUAL }],
+      },
+      'buyer-1',
+      {},
+    );
+
+    expect(prismaService.emailOutbox.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          to: 'buyer@test.com',
+          subject: 'Comprovante de compra - Pedido order-1',
+        }),
+      }),
+    );
+    expect(emailQueue.enqueueEmail).toHaveBeenCalledWith('outbox-2');
   });
 });

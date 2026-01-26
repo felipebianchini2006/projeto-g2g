@@ -12,6 +12,7 @@ import * as bcrypt from 'bcryptjs';
 import { createHash, randomBytes } from 'crypto';
 
 import { PrismaService } from '../prisma/prisma.service';
+import { EmailQueueService } from '../email/email.service';
 import { BCRYPT_SALT_ROUNDS, PASSWORD_RESET_TTL_SECONDS } from './auth.constants';
 import type { AuthRequestMeta, AuthResponse, AuthUser } from './auth.types';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
@@ -33,6 +34,7 @@ export class AuthService {
     private readonly prismaService: PrismaService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly emailQueue: EmailQueueService,
   ) {}
 
   async register(dto: RegisterDto, meta: AuthRequestMeta): Promise<AuthResponse> {
@@ -158,8 +160,9 @@ export class AuthService {
     const email = this.normalizeEmail(dto.email);
     const user = await this.prismaService.user.findUnique({ where: { email } });
 
+    const response: { success: true; resetToken?: string } = { success: true };
     if (!user) {
-      return { success: true };
+      return response;
     }
 
     const resetToken = randomBytes(32).toString('hex');
@@ -170,7 +173,17 @@ export class AuthService {
       data: { userId: user.id, tokenHash, expiresAt },
     });
 
-    const response: { success: true; resetToken?: string } = { success: true };
+    const appUrl = this.configService.get<string>('NEXT_PUBLIC_APP_URL') ?? 'http://localhost:3000';
+    const resetLink = `${appUrl}/conta/recuperar?token=${resetToken}`;
+    const outbox = await this.prismaService.emailOutbox.create({
+      data: {
+        to: user.email,
+        subject: 'Recuperação de senha',
+        body: `Use o link para recuperar sua senha: ${resetLink}`,
+      },
+    });
+    await this.emailQueue.enqueueEmail(outbox.id);
+
     if (this.configService.get<string>('NODE_ENV') !== 'production') {
       response.resetToken = resetToken;
     }

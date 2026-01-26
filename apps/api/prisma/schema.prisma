@@ -144,6 +144,12 @@ enum PayoutStatus {
   FAILED
 }
 
+enum PayoutDraftStatus {
+  PENDING
+  CONFIRMED
+  EXPIRED
+}
+
 enum PixKeyType {
   CPF
   CNPJ
@@ -231,6 +237,8 @@ model User {
   passwordHash String
   role         UserRole @default(USER)
   fullName     String?
+  phoneE164    String?
+  phoneVerifiedAt DateTime?
   cpf          String?  @unique
   birthDate    String?
   addressZip   String?
@@ -295,6 +303,7 @@ model User {
   rgReviewsAsAdmin         RgVerification[]  @relation("RgVerificationAdmin")
   payoutsReceived          Payout[]          @relation("PayoutUser")
   payoutsRequested         Payout[]          @relation("PayoutRequestedBy")
+  payoutDrafts             PayoutDraft[]
 
   @@map("users")
 }
@@ -928,6 +937,22 @@ model Payout {
   @@index([scope])
   @@index([status])
   @@map("payouts")
+}
+
+model PayoutDraft {
+  id        String           @id @default(uuid())
+  userId    String
+  payload   Json
+  status    PayoutDraftStatus @default(PENDING)
+  createdAt DateTime         @default(now())
+  expiresAt DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([expiresAt])
+  @@map("payout_drafts")
 }
 
 model CommunityPostLike {

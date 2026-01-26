@@ -7,6 +7,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { EmailProcessor } from './email.processor';
 import { EMAIL_QUEUE } from './email.queue';
 import { EmailQueueService } from './email.service';
+import { EmailSenderService } from './email-sender.service';
 
 @Module({
   imports: [
@@ -22,7 +23,7 @@ import { EmailQueueService } from './email.service';
     }),
     BullModule.registerQueue({ name: EMAIL_QUEUE }),
   ],
-  providers: [EmailQueueService, EmailProcessor],
-  exports: [EmailQueueService],
+  providers: [EmailQueueService, EmailSenderService, EmailProcessor],
+  exports: [EmailQueueService, EmailSenderService],
 })
 export class EmailModule {}

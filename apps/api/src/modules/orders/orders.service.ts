@@ -25,6 +25,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { SettlementService } from '../settlement/settlement.service';
 import { SettingsService } from '../settings/settings.service';
 import { OrdersQueueService } from './orders.queue.service';
+import { TwilioMessagingService } from '../twilio/twilio-messaging.service';
 import { CancelOrderDto } from './dto/cancel-order.dto';
 import { ConfirmReceiptDto } from './dto/confirm-receipt.dto';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -69,6 +70,7 @@ export class OrdersService {
     private readonly settingsService: SettingsService,
     private readonly couponsService: CouponsService,
     private readonly partnersService: PartnersService,
+    private readonly twilioMessaging: TwilioMessagingService,
   ) { }
 
   async createOrder(buyerId: string, dto: CreateOrderDto, meta: AuthRequestMeta) {
@@ -671,11 +673,16 @@ export class OrdersService {
   ) {
     const emailOutboxIds: string[] = [];
     const eventMeta: OrderMeta = { ...meta, reason: dto.note };
+    let whatsappTarget: { to: string; orderId: string } | null = null;
 
     const updated = await this.prisma.$transaction(async (tx) => {
       const order = await tx.order.findUnique({
         where: { id: orderId },
-        include: { items: true, buyer: true, seller: true },
+        include: {
+          items: true,
+          buyer: { select: { id: true, email: true, phoneE164: true, phoneVerifiedAt: true } },
+          seller: true,
+        },
       });
       if (!order) {
         throw new NotFoundException('Order not found.');
@@ -742,10 +749,26 @@ export class OrdersService {
         emailOutboxIds.push(outbox.id);
       }
 
+      if (order.buyer?.phoneE164 && order.buyer.phoneVerifiedAt) {
+        whatsappTarget = { to: order.buyer.phoneE164, orderId: order.id };
+      }
+
       return updated;
     });
 
     await Promise.all(emailOutboxIds.map((id) => this.emailQueue.enqueueEmail(id)));
+    if (whatsappTarget) {
+      try {
+        await this.twilioMessaging.sendWhatsApp(
+          whatsappTarget.to,
+          `Seu produto chegou! Pedido ${whatsappTarget.orderId}. Obrigado pela compra.`,
+        );
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : 'Failed to send WhatsApp delivery notice.';
+        this.logger.error(message, error instanceof Error ? error.stack : undefined);
+      }
+    }
     await this.ordersQueue.scheduleAutoComplete(updated.id, this.getAutoCompleteDelayMs());
     return updated;
   }
@@ -828,6 +851,51 @@ export class OrdersService {
   ) {
     await this.reserveInventoryForOrder(order);
     await this.handleAutoDelivery(order, actorId ?? undefined, meta);
+
+    const orderDetails = await this.prisma.order.findUnique({
+      where: { id: order.id },
+      include: {
+        buyer: { select: { email: true } },
+        items: {
+          select: {
+            title: true,
+            quantity: true,
+            unitPriceCents: true,
+            currency: true,
+          },
+        },
+      },
+    });
+
+    if (orderDetails?.buyer?.email) {
+      const itemsDescription = orderDetails.items
+        .map(
+          (item) =>
+            `- ${item.title} x${item.quantity} (R$ ${(item.unitPriceCents / 100).toFixed(
+              2,
+            )})`,
+        )
+        .join('\n');
+      const total = (orderDetails.totalAmountCents / 100).toFixed(2);
+      const body = [
+        `Pedido ${orderDetails.id} confirmado.`,
+        `Total: R$ ${total}`,
+        `Status: ${orderDetails.status}`,
+        `Data: ${new Date().toISOString()}`,
+        '',
+        'Itens:',
+        itemsDescription || '-',
+      ].join('\n');
+
+      const outbox = await this.prisma.emailOutbox.create({
+        data: {
+          to: orderDetails.buyer.email,
+          subject: `Comprovante de compra - Pedido ${orderDetails.id}`,
+          body,
+        },
+      });
+      await this.emailQueue.enqueueEmail(outbox.id);
+    }
   }
 
   async handleOrderExpiration(orderId: string) {
@@ -934,10 +1002,14 @@ export class OrdersService {
     const delayMs = this.getAutoCompleteDelayMs();
 
     const emailOutboxIds: string[] = [];
+    let whatsappTarget: { to: string; orderId: string } | null = null;
     await this.prisma.$transaction(async (tx) => {
       const current = await tx.order.findUnique({
         where: { id: order.id },
-        include: { buyer: true, seller: true },
+        include: {
+          buyer: { select: { id: true, email: true, phoneE164: true, phoneVerifiedAt: true } },
+          seller: true,
+        },
       });
       if (!current || current.status !== OrderStatus.IN_DELIVERY) {
         return;
@@ -988,9 +1060,25 @@ export class OrdersService {
         });
         emailOutboxIds.push(outbox.id);
       }
+
+      if (current.buyer?.phoneE164 && current.buyer.phoneVerifiedAt) {
+        whatsappTarget = { to: current.buyer.phoneE164, orderId: current.id };
+      }
     });
 
     await Promise.all(emailOutboxIds.map((id) => this.emailQueue.enqueueEmail(id)));
+    if (whatsappTarget) {
+      try {
+        await this.twilioMessaging.sendWhatsApp(
+          whatsappTarget.to,
+          `Seu produto chegou! Pedido ${whatsappTarget.orderId}. Obrigado pela compra.`,
+        );
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : 'Failed to send WhatsApp delivery notice.';
+        this.logger.error(message, error instanceof Error ? error.stack : undefined);
+      }
+    }
 
     await this.ordersQueue.scheduleAutoComplete(order.id, delayMs);
   }

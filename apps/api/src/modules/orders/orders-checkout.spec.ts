@@ -63,6 +63,7 @@ describe('OrdersService (checkout)', () => {
         consumeCouponUsage: jest.fn(),
       } as unknown as CouponsService,
       { findActiveBySlug: jest.fn() } as unknown as PartnersService,
+      { sendWhatsApp: jest.fn() } as any,
     );
 
     prisma = prismaMock;

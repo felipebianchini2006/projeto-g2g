@@ -45,6 +45,7 @@ describe('OrdersService (dispute)', () => {
       { getSettings: jest.fn() } as unknown as SettingsService,
       { getValidCoupon: jest.fn(), consumeCouponUsage: jest.fn() } as unknown as CouponsService,
       { findActiveBySlug: jest.fn() } as unknown as PartnersService,
+      { sendWhatsApp: jest.fn() } as any,
     );
 
     await expect(

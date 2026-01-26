@@ -17,6 +17,7 @@ import { SettlementModule } from '../settlement/settlement.module';
 import { SettingsModule } from '../settings/settings.module';
 import { CouponsModule } from '../coupons/coupons.module';
 import { PartnersModule } from '../partners/partners.module';
+import { TwilioModule } from '../twilio/twilio.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { PartnersModule } from '../partners/partners.module';
     SettingsModule,
     CouponsModule,
     PartnersModule,
+    TwilioModule,
   ],
   controllers: [OrdersController, CheckoutController, AdminOrdersController],
   providers: [OrdersService, OrdersQueueService, OrdersProcessor, OrderAccessGuard],
