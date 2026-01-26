@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 
 import { ApiClientError } from '../../lib/api-client';
 import { adminWalletApi, type AdminWalletSummary } from '../../lib/admin-wallet-api';
+import { hasAdminPermission } from '../../lib/admin-permissions';
 import { useAuth } from '../auth/auth-provider';
 import { AdminShell } from '../admin/admin-shell';
 
@@ -29,7 +30,7 @@ export const AdminProfitsContent = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!accessToken || user?.role !== 'ADMIN') {
+    if (!accessToken || !hasAdminPermission(user, 'admin.wallet')) {
       setIsLoading(false);
       return;
     }
@@ -50,7 +51,7 @@ export const AdminProfitsContent = () => {
     };
 
     load();
-  }, [accessToken, user?.role]);
+  }, [accessToken, user?.role, user?.adminPermissions]);
 
   if (loading) {
     return (
@@ -62,7 +63,7 @@ export const AdminProfitsContent = () => {
     );
   }
 
-  if (!user || user.role !== 'ADMIN') {
+  if (!user || !hasAdminPermission(user, 'admin.wallet')) {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center">

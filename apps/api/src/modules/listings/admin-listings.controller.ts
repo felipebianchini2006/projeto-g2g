@@ -14,7 +14,9 @@ import {
 import { UserRole } from '@prisma/client';
 import { Request } from 'express';
 
+import { AdminPermission } from '../auth/decorators/admin-permission.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { AdminPermissionsGuard } from '../auth/guards/admin-permissions.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import type { JwtPayload } from '../auth/auth.types';
@@ -27,8 +29,9 @@ import { ListingsService } from './listings.service';
 type AuthenticatedRequest = Request & { user?: JwtPayload };
 
 @Controller('admin/listings')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.ADMIN)
+@UseGuards(JwtAuthGuard, RolesGuard, AdminPermissionsGuard)
+@Roles(UserRole.ADMIN, UserRole.AJUDANTE)
+@AdminPermission('admin.listings')
 export class AdminListingsController {
   constructor(private readonly listingsService: ListingsService) { }
 

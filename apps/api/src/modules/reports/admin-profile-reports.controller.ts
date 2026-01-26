@@ -10,8 +10,13 @@ import {
     UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
+import { UserRole } from '@prisma/client';
 
+import { AdminPermission } from '../auth/decorators/admin-permission.decorator';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { AdminPermissionsGuard } from '../auth/guards/admin-permissions.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
 import type { JwtPayload } from '../auth/auth.types';
 import { ReportQueryDto } from './dto/report-query.dto';
 import { UpdateReportDto } from './dto/update-report.dto';
@@ -20,7 +25,9 @@ import { ReportsService } from './reports.service';
 type AuthenticatedRequest = Request & { user?: JwtPayload };
 
 @Controller('admin/reports/profiles')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, AdminPermissionsGuard)
+@Roles(UserRole.ADMIN, UserRole.AJUDANTE)
+@AdminPermission('admin.reports.profiles')
 export class AdminProfileReportsController {
     constructor(private readonly reportsService: ReportsService) { }
 

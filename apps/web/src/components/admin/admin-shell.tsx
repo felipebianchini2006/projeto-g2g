@@ -27,6 +27,7 @@ import {
 
 import { useAuth } from '../auth/auth-provider';
 import { useDashboardLayout } from '../layout/dashboard-layout';
+import { hasAdminPermission } from '../../lib/admin-permissions';
 
 type Breadcrumb = {
   label: string;
@@ -38,6 +39,7 @@ type MenuItem = {
   href?: string;
   onClick?: () => void;
   tone?: 'danger';
+  permission?: string;
 };
 
 type MenuSection = {
@@ -58,7 +60,7 @@ const isActivePath = (pathname: string, href?: string) => {
 };
 
 export const AdminShell = ({ breadcrumbs, children }: AdminShellProps) => {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname() ?? '';
   const { inDashboardLayout } = useDashboardLayout();
@@ -68,25 +70,25 @@ export const AdminShell = ({ breadcrumbs, children }: AdminShellProps) => {
       {
         title: 'Admin',
         items: [
-          { label: 'Atendimento', href: '/admin/atendimento' },
-          { label: 'Chats', href: '/admin/chats' },
-          { label: 'Disputas', href: '/admin/disputas' },
-          { label: 'Moderação', href: '/admin/anuncios' },
-          { label: 'Seguranca', href: '/admin/seguranca' },
-          { label: 'Usuarios', href: '/admin/usuarios' },
-          { label: 'Parceiros', href: '/admin/parceiros' },
-          { label: 'Cupons', href: '/admin/cupons' },
-          { label: 'Pedidos', href: '/admin/pedidos' },
-          { label: 'Lucros', href: '/admin/lucros' },
-          { label: 'Carteira', href: '/admin/carteira' },
+          { label: 'Atendimento', href: '/admin/atendimento', permission: 'admin.disputes' },
+          { label: 'Chats', href: '/admin/chats', permission: 'admin.chats' },
+          { label: 'Disputas', href: '/admin/disputas', permission: 'admin.disputes' },
+          { label: 'Moderação', href: '/admin/anuncios', permission: 'admin.listings' },
+          { label: 'Seguranca', href: '/admin/seguranca', permission: 'admin.security' },
+          { label: 'Usuarios', href: '/admin/usuarios', permission: 'admin.users' },
+          { label: 'Parceiros', href: '/admin/parceiros', permission: 'admin.partners' },
+          { label: 'Cupons', href: '/admin/cupons', permission: 'admin.coupons' },
+          { label: 'Pedidos', href: '/admin/pedidos', permission: 'admin.orders' },
+          { label: 'Lucros', href: '/admin/lucros', permission: 'admin.wallet' },
+          { label: 'Carteira', href: '/admin/carteira', permission: 'admin.wallet' },
           { label: 'Webhooks', href: '/admin/webhooks' },
           { label: 'Sistema', href: '/admin/sistema' },
-          { label: 'Parametros', href: '/admin/parametros' },
+          { label: 'Parametros', href: '/admin/parametros', permission: 'admin.settings' },
         ],
       },
       {
         title: 'Cadastros',
-        items: [{ label: 'Cadastros', href: '/admin/cadastros' }],
+        items: [{ label: 'Cadastros', href: '/admin/cadastros', permission: 'admin.catalog' }],
       },
       {
         title: 'Conta',
@@ -106,6 +108,22 @@ export const AdminShell = ({ breadcrumbs, children }: AdminShellProps) => {
     ],
     [logout, router],
   );
+
+  const canSeeItem = (item: MenuItem) => {
+    if (item.onClick) {
+      return true;
+    }
+    if (user?.role === 'ADMIN') {
+      return true;
+    }
+    if (user?.role !== 'AJUDANTE') {
+      return false;
+    }
+    if (!item.permission) {
+      return false;
+    }
+    return hasAdminPermission(user, item.permission);
+  };
 
   const sectionIcons: Record<string, React.ReactNode> = {
     Admin: <ShieldAlert size={14} aria-hidden />,
@@ -197,7 +215,12 @@ export const AdminShell = ({ breadcrumbs, children }: AdminShellProps) => {
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
           <aside className="rounded-xl border border-slate-200 bg-white p-5 shadow-card">
-            {menuSections.map((section) => (
+            {menuSections.map((section) => {
+              const visibleItems = section.items.filter(canSeeItem);
+              if (visibleItems.length === 0) {
+                return null;
+              }
+              return (
               <div key={section.title} className="mb-6 last:mb-0">
                 <button
                   type="button"
@@ -216,7 +239,7 @@ export const AdminShell = ({ breadcrumbs, children }: AdminShellProps) => {
                 </button>
                 {openSections.includes(section.title) ? (
                   <div className="mt-3 grid gap-1 text-sm">
-                    {section.items.map((item) => {
+                    {visibleItems.map((item) => {
                       const baseClasses =
                         'flex items-center gap-3 rounded-xl border border-transparent px-3 py-2 text-sm font-semibold transition';
                       const activeClasses = isActivePath(pathname, item.href)
@@ -273,7 +296,8 @@ export const AdminShell = ({ breadcrumbs, children }: AdminShellProps) => {
                   </div>
                 ) : null}
               </div>
-            ))}
+              );
+            })}
           </aside>
 
           <div className="space-y-6">{children}</div>

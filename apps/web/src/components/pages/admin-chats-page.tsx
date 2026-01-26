@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { Calendar, MessageCircle, Search, UserRound, X } from 'lucide-react';
 
+import { hasAdminPermission } from '../../lib/admin-permissions';
 import { useAuth } from '../auth/auth-provider';
 import { AdminShell } from '../admin/admin-shell';
 import { Card } from '../ui/card';
@@ -36,7 +37,7 @@ export const AdminChatsContent = () => {
   const [dateTo, setDateTo] = useState('');
 
   useEffect(() => {
-    if (!accessToken || user?.role !== 'ADMIN') {
+    if (!accessToken || !hasAdminPermission(user, 'admin.chats')) {
       return;
     }
     setRoomsStatus('loading');
@@ -51,7 +52,7 @@ export const AdminChatsContent = () => {
         setError(err.message || 'Nao foi possivel carregar os chats.');
         setRoomsStatus('ready');
       });
-  }, [accessToken, user?.role]);
+  }, [accessToken, user?.role, user?.adminPermissions]);
 
   useEffect(() => {
     if (!accessToken || !selectedRoom) {
@@ -111,7 +112,7 @@ export const AdminChatsContent = () => {
     );
   }
 
-  if (!user || user.role !== 'ADMIN') {
+  if (!user || !hasAdminPermission(user, 'admin.chats')) {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center">

@@ -20,6 +20,7 @@ import {
     type UpdateReportInput,
 } from '../../lib/admin-reports-api';
 import type { ListingReport, ProfileReport, ReportStatus, ReportReason } from '../../lib/reports-api';
+import { hasAdminPermission } from '../../lib/admin-permissions';
 import { useAuth } from '../auth/auth-provider';
 import { AdminShell } from '../admin/admin-shell';
 import { Card } from '../ui/card';
@@ -68,6 +69,9 @@ export const AdminReportsContent = () => {
     const [busyAction, setBusyAction] = useState<string | null>(null);
     const [error, setError] = useState('');
     const [notice, setNotice] = useState('');
+    const canAccessListings = hasAdminPermission(user, 'admin.reports.listings');
+    const canAccessProfiles = hasAdminPermission(user, 'admin.reports.profiles');
+    const canAccessReports = canAccessListings || canAccessProfiles;
 
     const handleError = (err: unknown, fallback: string) => {
         if (err instanceof ApiClientError) {
@@ -106,10 +110,16 @@ export const AdminReportsContent = () => {
     };
 
     useEffect(() => {
-        if (accessToken && user?.role === 'ADMIN') {
+        if (!accessToken) {
+            return;
+        }
+        if (reportScope === 'listings' && canAccessListings) {
             loadReports();
         }
-    }, [accessToken, reportScope, user?.role, statusFilter]);
+        if (reportScope === 'profiles' && canAccessProfiles) {
+            loadReports();
+        }
+    }, [accessToken, reportScope, user?.role, user?.adminPermissions, statusFilter, canAccessListings, canAccessProfiles]);
 
     const handleStatusUpdate = async (newStatus: ReportStatus) => {
         if (!selectedReport || !accessToken) return;
@@ -173,7 +183,7 @@ export const AdminReportsContent = () => {
         );
     }
 
-    if (!user || user.role !== 'ADMIN') {
+    if (!user || !canAccessReports) {
         return (
             <section className="bg-white px-6 py-12">
                 <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center">
@@ -237,6 +247,7 @@ export const AdminReportsContent = () => {
                         setSelectedReport(null);
                         setAdminNote('');
                     }}
+                    disabled={!canAccessListings}
                 >
                     Anúncios
                 </button>
@@ -251,6 +262,7 @@ export const AdminReportsContent = () => {
                         setSelectedReport(null);
                         setAdminNote('');
                     }}
+                    disabled={!canAccessProfiles}
                 >
                     Perfis
                 </button>

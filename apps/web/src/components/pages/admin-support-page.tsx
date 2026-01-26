@@ -13,6 +13,7 @@ import {
 import { ApiClientError } from '../../lib/api-client';
 import { disputesApi, type Dispute, type DisputeStatus } from '../../lib/disputes-api';
 import { ticketsApi, type Ticket, type TicketStatus } from '../../lib/tickets-api';
+import { hasAdminPermission } from '../../lib/admin-permissions';
 import { useAuth } from '../auth/auth-provider';
 import { AdminShell } from '../admin/admin-shell';
 import { Badge } from '../ui/badge';
@@ -113,7 +114,7 @@ export const AdminSupportContent = () => {
   const [slaFilter, setSlaFilter] = useState<SlaFilter>('all');
 
   const loadTickets = async () => {
-    if (!accessToken || user?.role !== 'ADMIN') {
+    if (!accessToken || !hasAdminPermission(user, 'admin.disputes')) {
       return;
     }
     setTicketState((prev) => ({ ...prev, status: 'loading', error: undefined }));
@@ -132,7 +133,7 @@ export const AdminSupportContent = () => {
   };
 
   const loadDisputes = async () => {
-    if (!accessToken || user?.role !== 'ADMIN') {
+    if (!accessToken || !hasAdminPermission(user, 'admin.disputes')) {
       return;
     }
     setDisputeState((prev) => ({ ...prev, status: 'loading', error: undefined }));
@@ -155,11 +156,11 @@ export const AdminSupportContent = () => {
   };
 
   useEffect(() => {
-    if (!accessToken || user?.role !== 'ADMIN') {
+    if (!accessToken || !hasAdminPermission(user, 'admin.disputes')) {
       return;
     }
     refreshQueue();
-  }, [accessToken, user?.role]);
+  }, [accessToken, user?.role, user?.adminPermissions]);
 
   const filteredTickets = useMemo(
     () =>
@@ -218,7 +219,7 @@ export const AdminSupportContent = () => {
     );
   }
 
-  if (!user || user.role !== 'ADMIN') {
+  if (!user || !hasAdminPermission(user, 'admin.disputes')) {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-xl border border-slate-200 bg-white px-6 py-6 text-center">

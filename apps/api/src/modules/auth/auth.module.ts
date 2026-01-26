@@ -12,6 +12,7 @@ import { GoogleAccountService } from './google-account.service';
 import { GoogleAuthService } from './google-auth.service';
 import { GoogleOAuthService } from './google-oauth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { AdminPermissionsGuard } from './guards/admin-permissions.guard';
 import { RolesGuard } from './guards/roles.guard';
 
 @Module({
@@ -38,7 +39,8 @@ import { RolesGuard } from './guards/roles.guard';
     GoogleAuthService,
     JwtAuthGuard,
     RolesGuard,
+    AdminPermissionsGuard,
   ],
-  exports: [AuthService, JwtAuthGuard, RolesGuard, JwtModule],
+  exports: [AuthService, JwtAuthGuard, RolesGuard, AdminPermissionsGuard, JwtModule],
 })
 export class AuthModule {}

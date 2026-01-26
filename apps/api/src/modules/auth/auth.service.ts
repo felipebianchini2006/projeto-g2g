@@ -376,6 +376,7 @@ export class AuthService {
       id: user.id,
       email: user.email,
       role: user.role,
+      adminPermissions: user.adminPermissions ?? [],
       avatarUrl: user.avatarUrl ?? null,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,

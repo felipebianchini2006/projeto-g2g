@@ -19,7 +19,9 @@ import { extname, join } from 'path';
 import { diskStorage } from 'multer';
 import fs from 'fs';
 
+import { AdminPermission } from '../auth/decorators/admin-permission.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { AdminPermissionsGuard } from '../auth/guards/admin-permissions.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { CatalogService } from './catalog.service';
@@ -37,8 +39,9 @@ import {
 const uploadRoot = join(process.cwd(), 'uploads', 'categories');
 
 @Controller('admin/catalog')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.ADMIN)
+@UseGuards(JwtAuthGuard, RolesGuard, AdminPermissionsGuard)
+@Roles(UserRole.ADMIN, UserRole.AJUDANTE)
+@AdminPermission('admin.catalog')
 export class AdminCatalogController {
   constructor(private readonly catalogService: CatalogService) {}
 

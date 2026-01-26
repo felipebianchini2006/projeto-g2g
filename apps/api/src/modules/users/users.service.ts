@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { AuditAction, OrderStatus, PaymentStatus, Prisma } from '@prisma/client';
+import { AuditAction, OrderStatus, PaymentStatus, Prisma, UserRole } from '@prisma/client';
 
 import { PaymentsService } from '../payments/payments.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -18,6 +18,7 @@ const USER_SELECT = {
   id: true,
   email: true,
   role: true,
+  adminPermissions: true,
   blockedAt: true,
   blockedUntil: true,
   blockedReason: true,
@@ -431,7 +432,7 @@ export class UsersService {
   }
 
   async updateUser(userId: string, adminId: string, dto: UserUpdateDto, meta: AuditMeta) {
-    if (!dto.email && !dto.role) {
+    if (!dto.email && !dto.role && !dto.adminPermissions) {
       throw new BadRequestException('No fields to update.');
     }
 
@@ -449,8 +450,51 @@ export class UsersService {
       if (dto.email && dto.email !== current.email) {
         data.email = dto.email;
       }
-      if (dto.role && dto.role !== current.role) {
+
+      const normalizePermissions = (permissions?: string[]) => {
+        if (!Array.isArray(permissions)) {
+          return [];
+        }
+        const unique = new Set<string>();
+        const result: string[] = [];
+        for (const permission of permissions) {
+          if (typeof permission !== 'string') {
+            continue;
+          }
+          const cleaned = permission.trim();
+          if (!cleaned || unique.has(cleaned)) {
+            continue;
+          }
+          unique.add(cleaned);
+          result.push(cleaned);
+        }
+        return result;
+      };
+
+      const currentPermissions = current.adminPermissions ?? [];
+      const targetRole = dto.role ?? current.role;
+      let nextPermissions = currentPermissions;
+
+      if (targetRole === UserRole.AJUDANTE) {
+        if (dto.adminPermissions !== undefined) {
+          nextPermissions = normalizePermissions(dto.adminPermissions);
+        } else if (current.role !== UserRole.AJUDANTE) {
+          nextPermissions = [];
+        }
+      } else {
+        nextPermissions = [];
+      }
+
+      const roleChanged = dto.role !== undefined && dto.role !== current.role;
+      if (roleChanged) {
         data.role = dto.role;
+      }
+
+      const permissionsChanged =
+        nextPermissions.length !== currentPermissions.length ||
+        nextPermissions.some((permission, index) => permission !== currentPermissions[index]);
+      if (permissionsChanged) {
+        data.adminPermissions = nextPermissions;
       }
 
       if (Object.keys(data).length === 0) {
@@ -474,27 +518,23 @@ export class UsersService {
         throw error;
       }
 
-      await tx.auditLog.create({
-        data: {
-          adminId,
-          action: AuditAction.PERMISSION_CHANGE,
-          entityType: 'user',
-          entityId: userId,
-          ip: meta.ip,
-          userAgent: meta.userAgent,
-          payload: {
-            action: 'update',
-            previous: {
-              email: current.email,
-              role: current.role,
-            },
-            next: {
-              email: updated.email,
-              role: updated.role,
+      if (roleChanged || permissionsChanged) {
+        await tx.auditLog.create({
+          data: {
+            adminId,
+            action: AuditAction.PERMISSION_CHANGE,
+            entityType: 'User',
+            entityId: userId,
+            ip: meta.ip,
+            userAgent: meta.userAgent,
+            payload: {
+              fromRole: current.role,
+              toRole: updated.role,
+              permissions: updated.adminPermissions ?? [],
             },
           },
-        },
-      });
+        });
+      }
 
       return updated;
     });

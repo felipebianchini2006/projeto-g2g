@@ -24,6 +24,7 @@ import {
   type AdminUserRole,
   type AdminUserUpdatePayload,
 } from '../../lib/admin-users-api';
+import { hasAdminPermission } from '../../lib/admin-permissions';
 import { useAuth } from '../auth/auth-provider';
 import { AdminShell } from '../admin/admin-shell';
 import { Card } from '../ui/card';
@@ -36,13 +37,33 @@ const roleLabel: Record<AdminUserRole, string> = {
   USER: 'Buyer',
   SELLER: 'Seller',
   ADMIN: 'Admin',
+  AJUDANTE: 'Ajudante',
 };
 
-const roleBadgeVariant: Record<AdminUserRole, 'info' | 'pink' | 'success'> = {
+const roleBadgeVariant: Record<AdminUserRole, 'info' | 'pink' | 'success' | 'warning'> = {
   USER: 'info',
   SELLER: 'pink',
   ADMIN: 'success',
+  AJUDANTE: 'warning',
 };
+
+const ADMIN_PERMISSIONS = [
+  { value: 'admin.users', label: 'Usuarios' },
+  { value: 'admin.orders', label: 'Pedidos' },
+  { value: 'admin.partners', label: 'Parceiros' },
+  { value: 'admin.coupons', label: 'Cupons' },
+  { value: 'admin.listings', label: 'Moderacao de anuncios' },
+  { value: 'admin.catalog', label: 'Cadastros' },
+  { value: 'admin.disputes', label: 'Disputas' },
+  { value: 'admin.chats', label: 'Chats' },
+  { value: 'admin.security', label: 'Seguranca' },
+  { value: 'admin.settings', label: 'Parametros' },
+  { value: 'admin.wallet', label: 'Carteira/Lucros' },
+  { value: 'admin.reports.listings', label: 'Denuncias de anuncios' },
+  { value: 'admin.reports.profiles', label: 'Denuncias de perfis' },
+  { value: 'admin.rg', label: 'RG' },
+  { value: 'admin.audit', label: 'Auditoria' },
+];
 
 export const AdminUsersContent = () => {
   const { user, accessToken, loading } = useAuth();
@@ -55,9 +76,10 @@ export const AdminUsersContent = () => {
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<{ email: string; role: AdminUserRole }>({
+  const [editForm, setEditForm] = useState<{ email: string; role: AdminUserRole; adminPermissions: string[] }>({
     email: '',
     role: 'USER',
+    adminPermissions: [],
   });
 
   const handleError = (error: unknown, fallback: string) => {
@@ -99,10 +121,10 @@ export const AdminUsersContent = () => {
   };
 
   useEffect(() => {
-    if (accessToken && user?.role === 'ADMIN') {
+    if (accessToken && hasAdminPermission(user, 'admin.users')) {
       loadUsers();
     }
-  }, [accessToken, roleFilter, blockedFilter, search, user?.role]);
+  }, [accessToken, roleFilter, blockedFilter, search, user?.role, user?.adminPermissions]);
 
   const applyUserUpdate = (updated: AdminUser) => {
     const matchesBlockedFilter =
@@ -135,12 +157,13 @@ export const AdminUsersContent = () => {
 
   useEffect(() => {
     if (!selectedUser) {
-      setEditForm({ email: '', role: 'USER' });
+      setEditForm({ email: '', role: 'USER', adminPermissions: [] });
       return;
     }
     setEditForm({
       email: selectedUser.email,
       role: selectedUser.role,
+      adminPermissions: selectedUser.adminPermissions ?? [],
     });
   }, [selectedUser]);
 
@@ -155,6 +178,14 @@ export const AdminUsersContent = () => {
     }
     if (editForm.role !== selectedUser.role) {
       payload.role = editForm.role;
+    }
+    const nextPermissions = editForm.role === 'AJUDANTE' ? editForm.adminPermissions : [];
+    const currentPermissions = selectedUser.adminPermissions ?? [];
+    const permissionsChanged =
+      nextPermissions.length !== currentPermissions.length ||
+      nextPermissions.some((permission, index) => permission !== currentPermissions[index]);
+    if (permissionsChanged) {
+      payload.adminPermissions = nextPermissions;
     }
     if (Object.keys(payload).length === 0) {
       setError(null);
@@ -232,7 +263,7 @@ export const AdminUsersContent = () => {
     );
   }
 
-  if (!user || user.role !== 'ADMIN') {
+  if (!user || !hasAdminPermission(user, 'admin.users')) {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center">
@@ -304,6 +335,7 @@ export const AdminUsersContent = () => {
                     <option value="USER">Compradores</option>
                     <option value="SELLER">Vendedores</option>
                     <option value="ADMIN">Admins</option>
+                    <option value="AJUDANTE">Ajudantes</option>
                   </select>
                   <Filter size={14} className="absolute right-3 top-3 text-slate-400 pointer-events-none" />
                 </div>
@@ -433,6 +465,7 @@ export const AdminUsersContent = () => {
                           {selectedUser.blockedAt ? 'Bloqueado' : 'Conta Ativa'}
                         </Badge>
                         {selectedUser.role === 'ADMIN' && <Badge variant="pink">Admin Access</Badge>}
+                        {selectedUser.role === 'AJUDANTE' && <Badge variant="warning">Ajudante</Badge>}
                       </div>
                     </div>
                   </div>
@@ -461,8 +494,42 @@ export const AdminUsersContent = () => {
                           <option value="USER">Comprador (Padrão)</option>
                           <option value="SELLER">Vendedor</option>
                           <option value="ADMIN">Administrador</option>
+                          <option value="AJUDANTE">Ajudante</option>
                         </select>
                       </label>
+                      {editForm.role === 'AJUDANTE' ? (
+                        <div className="space-y-2">
+                          <span className="text-xs font-semibold text-slate-600">Permissoes do painel</span>
+                          <div className="grid gap-2 rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600">
+                            {ADMIN_PERMISSIONS.map((permission) => (
+                              <label key={permission.value} className="flex items-center gap-2">
+                                <input
+                                  type="checkbox"
+                                  className="h-4 w-4 rounded border-slate-300 text-meow-deep focus:ring-meow-red/30"
+                                  checked={editForm.adminPermissions.includes(permission.value)}
+                                  onChange={(event) => {
+                                    setEditForm((prev) => {
+                                      if (event.target.checked) {
+                                        return {
+                                          ...prev,
+                                          adminPermissions: [...prev.adminPermissions, permission.value],
+                                        };
+                                      }
+                                      return {
+                                        ...prev,
+                                        adminPermissions: prev.adminPermissions.filter(
+                                          (item) => item !== permission.value,
+                                        ),
+                                      };
+                                    });
+                                  }}
+                                />
+                                <span>{permission.label}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
                     </div>
                     <div className="flex gap-3">
                       <Button
@@ -479,6 +546,7 @@ export const AdminUsersContent = () => {
                           setEditForm({
                             email: selectedUser.email,
                             role: selectedUser.role,
+                            adminPermissions: selectedUser.adminPermissions ?? [],
                           });
                         }}
                         disabled={busyAction === 'update'}

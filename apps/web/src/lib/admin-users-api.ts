@@ -1,11 +1,12 @@
 import { apiFetch } from './api-client';
 
-export type AdminUserRole = 'USER' | 'SELLER' | 'ADMIN';
+export type AdminUserRole = 'USER' | 'SELLER' | 'ADMIN' | 'AJUDANTE';
 
 export type AdminUser = {
   id: string;
   email: string;
   role: AdminUserRole;
+  adminPermissions?: string[];
   blockedAt?: string | null;
   blockedUntil?: string | null;
   blockedReason?: string | null;
@@ -44,6 +45,7 @@ export type AdminUsersQuery = {
 export type AdminUserUpdatePayload = {
   email?: string;
   role?: AdminUserRole;
+  adminPermissions?: string[];
 };
 
 const authHeaders = (token: string | null) =>

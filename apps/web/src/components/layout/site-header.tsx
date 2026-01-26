@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 
 import { useAuth } from '../auth/auth-provider';
+import { canAccessAdmin } from '../../lib/admin-permissions';
 import { notificationsApi, type Notification } from '../../lib/notifications-api';
 import { fetchPublicCategories, type CatalogCategory } from '../../lib/marketplace-public';
 import { useSite } from '../site-context';
@@ -327,7 +328,7 @@ export const SiteHeader = () => {
   const menuCardClass = darkMode
     ? 'border-white/10 bg-white/5 text-white'
     : 'border-meow-red/10 bg-white text-meow-charcoal';
-  const isAdmin = user?.role === 'ADMIN';
+  const isAdmin = canAccessAdmin(user);
   const balanceLabel = 'R$ 0,00';
   const menuLinks = [
     {

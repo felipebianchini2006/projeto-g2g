@@ -30,6 +30,7 @@ import { ListingQuestionsModule } from './modules/listing-questions/listing-ques
 import { ReportsModule } from './modules/reports/reports.module';
 import { RgVerificationModule } from './modules/rg-verification/rg-verification.module';
 import { SecurityModule } from './modules/security/security.module';
+import { AuditModule } from './modules/audit/audit.module';
 
 @Module({
   imports: [
@@ -73,6 +74,7 @@ import { SecurityModule } from './modules/security/security.module';
     ReportsModule,
     RgVerificationModule,
     SecurityModule,
+    AuditModule,
   ],
 })
 export class AppModule { }

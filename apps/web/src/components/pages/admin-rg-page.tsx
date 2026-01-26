@@ -19,6 +19,7 @@ import {
 import { ApiClientError } from '../../lib/api-client';
 import { adminRgApi } from '../../lib/admin-rg-api';
 import type { RgVerification, RgStatus } from '../../lib/rg-api';
+import { hasAdminPermission } from '../../lib/admin-permissions';
 import { useAuth } from '../auth/auth-provider';
 import { AdminShell } from '../admin/admin-shell';
 import { Card } from '../ui/card';
@@ -89,10 +90,10 @@ export const AdminRgContent = () => {
     };
 
     useEffect(() => {
-        if (accessToken && user?.role === 'ADMIN') {
+        if (accessToken && hasAdminPermission(user, 'admin.rg')) {
             loadVerifications();
         }
-    }, [accessToken, user?.role, statusFilter]);
+    }, [accessToken, user?.role, user?.adminPermissions, statusFilter]);
 
     const handleApprove = async () => {
         if (!selectedVerification || !accessToken) return;
@@ -143,7 +144,7 @@ export const AdminRgContent = () => {
         );
     }
 
-    if (!user || user.role !== 'ADMIN') {
+    if (!user || !hasAdminPermission(user, 'admin.rg')) {
         return (
             <section className="bg-white px-6 py-12">
                 <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center">

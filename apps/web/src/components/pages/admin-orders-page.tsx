@@ -7,6 +7,7 @@ import { Activity, ChevronLeft, Search } from 'lucide-react';
 import { ApiClientError } from '../../lib/api-client';
 import { adminOrdersApi } from '../../lib/admin-orders-api';
 import { ordersApi, type Order } from '../../lib/orders-api';
+import { hasAdminPermission } from '../../lib/admin-permissions';
 import { useAuth } from '../auth/auth-provider';
 import { AdminShell } from '../admin/admin-shell';
 import { Badge } from '../ui/badge';
@@ -132,7 +133,7 @@ export const AdminOrdersContent = () => {
     );
   }
 
-  if (!user || user.role !== 'ADMIN') {
+  if (!user || !hasAdminPermission(user, 'admin.orders')) {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center">

@@ -1,7 +1,8 @@
 export type AuthUser = {
   id: string;
   email: string;
-  role: 'USER' | 'SELLER' | 'ADMIN';
+  role: 'USER' | 'SELLER' | 'ADMIN' | 'AJUDANTE';
+  adminPermissions: string[];
   avatarUrl?: string | null;
   createdAt: string;
   updatedAt: string;

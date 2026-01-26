@@ -1,7 +1,9 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { UserRole } from '@prisma/client';
 
+import { AdminPermission } from '../auth/decorators/admin-permission.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { AdminPermissionsGuard } from '../auth/guards/admin-permissions.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { CreatePartnerDto } from './dto/create-partner.dto';
@@ -9,8 +11,9 @@ import { UpdatePartnerDto } from './dto/update-partner.dto';
 import { PartnersService } from './partners.service';
 
 @Controller('admin/partners')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.ADMIN)
+@UseGuards(JwtAuthGuard, RolesGuard, AdminPermissionsGuard)
+@Roles(UserRole.ADMIN, UserRole.AJUDANTE)
+@AdminPermission('admin.partners')
 export class AdminPartnersController {
   constructor(private readonly partnersService: PartnersService) { }
 

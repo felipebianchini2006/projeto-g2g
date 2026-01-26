@@ -12,7 +12,9 @@ import {
 import { UserRole } from '@prisma/client';
 import { Request } from 'express';
 
+import { AdminPermission } from '../auth/decorators/admin-permission.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { AdminPermissionsGuard } from '../auth/guards/admin-permissions.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import type { JwtPayload } from '../auth/auth.types';
@@ -23,8 +25,9 @@ import { ReportsService } from './reports.service';
 type AuthenticatedRequest = Request & { user?: JwtPayload };
 
 @Controller('admin/reports/listings')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.ADMIN)
+@UseGuards(JwtAuthGuard, RolesGuard, AdminPermissionsGuard)
+@Roles(UserRole.ADMIN, UserRole.AJUDANTE)
+@AdminPermission('admin.reports.listings')
 export class AdminReportsController {
     constructor(private readonly reportsService: ReportsService) { }
 

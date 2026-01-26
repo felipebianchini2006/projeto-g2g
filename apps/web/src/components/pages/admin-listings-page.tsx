@@ -32,6 +32,7 @@ import {
   type AdminListingStatus,
   type AdminCreateListingInput,
 } from '../../lib/admin-listings-api';
+import { hasAdminPermission } from '../../lib/admin-permissions';
 import {
   adminCatalogApi,
   type CatalogCategory,
@@ -181,16 +182,16 @@ export const AdminListingsContent = ({
   };
 
   useEffect(() => {
-    if (accessToken && user?.role === 'ADMIN') {
+    if (accessToken && hasAdminPermission(user, 'admin.listings')) {
       loadListings();
     }
-  }, [accessToken, statusFilter, user?.role]);
+  }, [accessToken, statusFilter, user?.role, user?.adminPermissions]);
 
   useEffect(() => {
-    if (accessToken && user?.role === 'ADMIN') {
+    if (accessToken && hasAdminPermission(user, 'admin.listings')) {
       loadCatalogOptions();
     }
-  }, [accessToken, user?.role]);
+  }, [accessToken, user?.role, user?.adminPermissions]);
 
   // --- Sub-components (Inventory & Media) ---
 
@@ -545,7 +546,7 @@ export const AdminListingsContent = ({
     );
   }
 
-  if (!user || user.role !== 'ADMIN') {
+  if (!user || !hasAdminPermission(user, 'admin.listings')) {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center">

@@ -11,6 +11,7 @@ enum UserRole {
   USER
   SELLER
   ADMIN
+  AJUDANTE
 }
 
 enum OAuthProvider {
@@ -236,6 +237,7 @@ model User {
   email        String   @unique
   passwordHash String
   role         UserRole @default(USER)
+  adminPermissions String[] @default([])
   fullName     String?
   phoneE164    String?
   phoneVerifiedAt DateTime?

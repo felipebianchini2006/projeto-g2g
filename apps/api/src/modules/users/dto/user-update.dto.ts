@@ -1,6 +1,6 @@
 import { UserRole } from '@prisma/client';
 import { Transform } from 'class-transformer';
-import { IsEmail, IsEnum, IsOptional } from 'class-validator';
+import { IsArray, IsEmail, IsEnum, IsOptional, IsString } from 'class-validator';
 
 export class UserUpdateDto {
   @IsOptional()
@@ -13,4 +13,9 @@ export class UserUpdateDto {
   @IsOptional()
   @IsEnum(UserRole)
   role?: UserRole;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  adminPermissions?: string[];
 }

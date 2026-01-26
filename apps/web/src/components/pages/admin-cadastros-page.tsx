@@ -13,6 +13,7 @@ import {
   type CatalogOption,
   type CatalogSection,
 } from '../../lib/admin-catalog-api';
+import { hasAdminPermission } from '../../lib/admin-permissions';
 import { useAuth } from '../auth/auth-provider';
 import { AdminShell } from '../admin/admin-shell';
 import { Badge } from '../ui/badge';
@@ -140,10 +141,10 @@ export const AdminCadastrosContent = () => {
   };
 
   useEffect(() => {
-    if (accessToken && user?.role === 'ADMIN') {
+    if (accessToken && hasAdminPermission(user, 'admin.catalog')) {
       loadCatalog();
     }
-  }, [accessToken, user?.role]);
+  }, [accessToken, user?.role, user?.adminPermissions]);
 
   const filteredGroups = useMemo(() => {
     if (!groupFilterCategoryId) {
@@ -225,7 +226,7 @@ export const AdminCadastrosContent = () => {
     );
   }
 
-  if (!user || user.role !== 'ADMIN') {
+  if (!user || !hasAdminPermission(user, 'admin.catalog')) {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center">
