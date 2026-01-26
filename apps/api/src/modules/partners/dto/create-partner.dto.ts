@@ -1,5 +1,5 @@
 import { Transform, Type } from 'class-transformer';
-import { IsBoolean, IsInt, IsOptional, IsString, Matches, Max, Min } from 'class-validator';
+import { IsBoolean, IsEmail, IsInt, IsOptional, IsString, Matches, Max, Min } from 'class-validator';
 
 const normalizeSlug = (value: unknown) =>
   typeof value === 'string' ? value.trim().toLowerCase() : value;
@@ -24,4 +24,11 @@ export class CreatePartnerDto {
   @Type(() => Boolean)
   @IsBoolean()
   active?: boolean;
+
+  @IsOptional()
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.trim().toLowerCase() : value,
+  )
+  @IsEmail()
+  ownerEmail?: string;
 }

@@ -6,6 +6,8 @@ export type Partner = {
   slug: string;
   commissionBps: number;
   active: boolean;
+  ownerUserId?: string | null;
+  ownerEmail?: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -22,6 +24,7 @@ export type PartnerPayload = {
   slug: string;
   commissionBps?: number;
   active?: boolean;
+  ownerEmail?: string;
 };
 
 export type PartnerUpdatePayload = Partial<PartnerPayload>;

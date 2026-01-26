@@ -41,6 +41,12 @@ enum PartnerCommissionEventType {
   REVERSED
 }
 
+enum PartnerPayoutStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
 enum ListingStatus {
   DRAFT
   PENDING
@@ -310,6 +316,8 @@ model User {
   payoutsReceived          Payout[]          @relation("PayoutUser")
   payoutsRequested         Payout[]          @relation("PayoutRequestedBy")
   payoutDrafts             PayoutDraft[]
+  partnersOwned            Partner[]         @relation("PartnerOwner")
+  partnerPayoutsRequested  PartnerPayout[]   @relation("PartnerPayoutRequester")
 
   @@map("users")
 }
@@ -342,14 +350,19 @@ model Partner {
   slug           String   @unique
   commissionBps  Int      @default(6500)
   active         Boolean  @default(true)
+  ownerUserId    String?
+  ownerEmail     String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
+  owner               User?                 @relation("PartnerOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
   coupons             Coupon[]
   attributions        OrderAttribution[]
   clicks              PartnerClick[]
   commissionEvents    PartnerCommissionEvent[]
+  payouts             PartnerPayout[]
 
+  @@index([ownerUserId])
   @@index([active])
   @@map("partners")
 }
@@ -428,6 +441,29 @@ model PartnerCommissionEvent {
   @@index([partnerId])
   @@index([orderId])
   @@map("partner_commission_events")
+}
+
+model PartnerPayout {
+  id                  String              @id @default(uuid())
+  partnerId           String
+  requestedByUserId   String
+  amountCents         Int
+  status              PartnerPayoutStatus @default(PENDING)
+  pixKey              String
+  pixKeyType          PixKeyType?
+  requestIp           String?
+  requestUserAgent    String?
+  paidAt              DateTime?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  partner      Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  requestedBy  User    @relation("PartnerPayoutRequester", fields: [requestedByUserId], references: [id], onDelete: Cascade)
+
+  @@index([partnerId])
+  @@index([requestedByUserId])
+  @@index([status])
+  @@map("partner_payouts")
 }
 
 model OAuthAccount {

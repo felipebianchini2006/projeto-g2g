@@ -1,11 +1,17 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, Partner } from '@prisma/client';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { AuditAction, PartnerCommissionEventType, PartnerPayoutStatus, Prisma, UserRole } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePartnerDto } from './dto/create-partner.dto';
+import { RequestPartnerPayoutDto } from './dto/request-partner-payout.dto';
 import { UpdatePartnerDto } from './dto/update-partner.dto';
 
 type PartnerClickMeta = {
+  ip?: string;
+  userAgent?: string;
+};
+
+type AuditMeta = {
   ip?: string;
   userAgent?: string;
 };
@@ -18,15 +24,49 @@ export class PartnersService {
     return value.trim().toLowerCase();
   }
 
-  async createPartner(dto: CreatePartnerDto) {
+  async createPartner(dto: CreatePartnerDto, adminId?: string, meta?: AuditMeta) {
     const slug = this.normalizeSlug(dto.slug);
-    return this.prisma.partner.create({
-      data: {
-        name: dto.name.trim(),
-        slug,
-        commissionBps: dto.commissionBps ?? undefined,
-        active: dto.active ?? true,
-      },
+    const ownerEmail = dto.ownerEmail?.trim().toLowerCase();
+
+    return this.prisma.$transaction(async (tx) => {
+      let ownerUserId: string | null = null;
+      if (ownerEmail) {
+        const owner = await tx.user.findUnique({ where: { email: ownerEmail } });
+        if (!owner) {
+          throw new BadRequestException('User not found for the provided owner email.');
+        }
+        ownerUserId = owner.id;
+      }
+
+      const partner = await tx.partner.create({
+        data: {
+          name: dto.name.trim(),
+          slug,
+          commissionBps: dto.commissionBps ?? undefined,
+          active: dto.active ?? true,
+          ownerUserId: ownerUserId ?? undefined,
+          ownerEmail: ownerEmail ?? undefined,
+        },
+      });
+
+      if (ownerEmail && adminId) {
+        await tx.auditLog.create({
+          data: {
+            adminId,
+            action: AuditAction.PERMISSION_CHANGE,
+            entityType: 'Partner',
+            entityId: partner.id,
+            ip: meta?.ip,
+            userAgent: meta?.userAgent,
+            payload: {
+              ownerEmail,
+              ownerUserId,
+            },
+          },
+        });
+      }
+
+      return partner;
     });
   }
 
@@ -37,8 +77,10 @@ export class PartnersService {
     });
   }
 
-  async updatePartner(id: string, dto: UpdatePartnerDto) {
+  async updatePartner(id: string, dto: UpdatePartnerDto, adminId?: string, meta?: AuditMeta) {
     const data: Prisma.PartnerUpdateInput = {};
+    const ownerEmail = dto.ownerEmail?.trim().toLowerCase();
+    let ownerUserId: string | null = null;
     if (dto.name !== undefined) {
       data.name = dto.name.trim();
     }
@@ -51,10 +93,38 @@ export class PartnersService {
     if (dto.active !== undefined) {
       data.active = dto.active;
     }
+    if (ownerEmail) {
+      const owner = await this.prisma.user.findUnique({ where: { email: ownerEmail } });
+      if (!owner) {
+        throw new BadRequestException('User not found for the provided owner email.');
+      }
+      ownerUserId = owner.id;
+      data.ownerUserId = ownerUserId;
+      data.ownerEmail = ownerEmail;
+    }
     if (Object.keys(data).length === 0) {
       throw new BadRequestException('No fields to update.');
     }
-    return this.prisma.partner.update({ where: { id }, data });
+    return this.prisma.$transaction(async (tx) => {
+      const partner = await tx.partner.update({ where: { id }, data });
+      if (ownerEmail && adminId) {
+        await tx.auditLog.create({
+          data: {
+            adminId,
+            action: AuditAction.PERMISSION_CHANGE,
+            entityType: 'Partner',
+            entityId: id,
+            ip: meta?.ip,
+            userAgent: meta?.userAgent,
+            payload: {
+              ownerEmail,
+              ownerUserId,
+            },
+          },
+        });
+      }
+      return partner;
+    });
   }
 
   async getPartnerStats(id: string) {
@@ -77,6 +147,59 @@ export class PartnersService {
       clicks,
       orders,
       commissionCents: commission._sum.amountCents ?? 0,
+    };
+  }
+
+  async listOwnedPartners(userId: string) {
+    return this.prisma.partner.findMany({
+      where: { ownerUserId: userId },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async getPartnerStatsForUser(partnerId: string, userId: string, role: UserRole) {
+    const partner = await this.prisma.partner.findUnique({
+      where: { id: partnerId },
+      include: { coupons: true },
+    });
+    if (!partner) {
+      throw new NotFoundException('Partner not found.');
+    }
+    this.assertPartnerAccess(partner.ownerUserId, userId, role);
+
+    const [clicks, orders, earned, reversed, paid] = await Promise.all([
+      this.prisma.partnerClick.count({ where: { partnerId } }),
+      this.prisma.orderAttribution.count({ where: { partnerId } }),
+      this.prisma.partnerCommissionEvent.aggregate({
+        where: { partnerId, type: PartnerCommissionEventType.EARNED },
+        _sum: { amountCents: true },
+      }),
+      this.prisma.partnerCommissionEvent.aggregate({
+        where: { partnerId, type: PartnerCommissionEventType.REVERSED },
+        _sum: { amountCents: true },
+      }),
+      this.prisma.partnerPayout.aggregate({
+        where: { partnerId, status: PartnerPayoutStatus.PAID },
+        _sum: { amountCents: true },
+      }),
+    ]);
+
+    const earnedCents = earned._sum.amountCents ?? 0;
+    const reversedCents = Math.abs(reversed._sum.amountCents ?? 0);
+    const paidCents = paid._sum.amountCents ?? 0;
+    const commissionCents = earnedCents - reversedCents;
+    const balanceCents = commissionCents - paidCents;
+
+    return {
+      partnerId,
+      clicks,
+      orders,
+      earnedCents,
+      reversedCents,
+      paidCents,
+      commissionCents,
+      balanceCents,
+      coupons: partner.coupons,
     };
   }
 
@@ -119,5 +242,71 @@ export class PartnersService {
       data: { active: false },
     });
     return { success: true };
+  }
+
+  async requestPartnerPayout(
+    partnerId: string,
+    userId: string,
+    role: UserRole,
+    dto: RequestPartnerPayoutDto,
+    meta?: AuditMeta,
+  ) {
+    return this.prisma.$transaction(async (tx) => {
+      const partner = await tx.partner.findUnique({ where: { id: partnerId } });
+      if (!partner) {
+        throw new NotFoundException('Partner not found.');
+      }
+      this.assertPartnerAccess(partner.ownerUserId, userId, role);
+
+      const balanceCents = await this.getPartnerBalance(partnerId, tx);
+      if (dto.amountCents > balanceCents) {
+        throw new BadRequestException('Saldo insuficiente para este saque.');
+      }
+
+      return tx.partnerPayout.create({
+        data: {
+          partnerId,
+          requestedByUserId: userId,
+          amountCents: dto.amountCents,
+          status: PartnerPayoutStatus.PENDING,
+          pixKey: dto.pixKey.trim(),
+          pixKeyType: dto.pixKeyType,
+          requestIp: meta?.ip,
+          requestUserAgent: meta?.userAgent,
+        },
+      });
+    });
+  }
+
+  private assertPartnerAccess(ownerUserId: string | null, userId: string, role: UserRole) {
+    if (role === UserRole.ADMIN) {
+      return;
+    }
+    if (!ownerUserId || ownerUserId !== userId) {
+      throw new ForbiddenException('You do not have access to this partner.');
+    }
+  }
+
+  private async getPartnerBalance(partnerId: string, tx?: Prisma.TransactionClient) {
+    const client = tx ?? this.prisma;
+    const [earned, reversed, paid] = await Promise.all([
+      client.partnerCommissionEvent.aggregate({
+        where: { partnerId, type: PartnerCommissionEventType.EARNED },
+        _sum: { amountCents: true },
+      }),
+      client.partnerCommissionEvent.aggregate({
+        where: { partnerId, type: PartnerCommissionEventType.REVERSED },
+        _sum: { amountCents: true },
+      }),
+      client.partnerPayout.aggregate({
+        where: { partnerId, status: PartnerPayoutStatus.PAID },
+        _sum: { amountCents: true },
+      }),
+    ]);
+
+    const earnedCents = earned._sum.amountCents ?? 0;
+    const reversedCents = Math.abs(reversed._sum.amountCents ?? 0);
+    const paidCents = paid._sum.amountCents ?? 0;
+    return earnedCents - reversedCents - paidCents;
   }
 }
