@@ -5,5 +5,5 @@ import { CreatePayoutDto } from './create-payout.dto';
 export class RequestPayoutVerificationDto extends CreatePayoutDto {
   @IsOptional()
   @IsBoolean()
-  useSmsFallback?: boolean;
+  useWhatsappFallback?: boolean;
 }

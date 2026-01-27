@@ -466,7 +466,7 @@ export class WalletService {
 
   async requestPayoutVerification(
     userId: string,
-    dto: CreatePayoutDto & { useSmsFallback?: boolean },
+    dto: CreatePayoutDto & { useWhatsappFallback?: boolean },
   ) {
     const { user, summary } = await this.getUserPayoutContext(userId, dto);
 
@@ -477,7 +477,7 @@ export class WalletService {
       throw new BadRequestException('Telefone nao verificado para saque.');
     }
 
-    const phoneChannel = dto.useSmsFallback ? 'sms' : 'whatsapp';
+    const phoneChannel = dto.useWhatsappFallback ? 'whatsapp' : 'sms';
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
     const draft = await this.prisma.payoutDraft.create({
@@ -568,7 +568,7 @@ export class WalletService {
     }
 
     const payload = draft.payload as Prisma.JsonObject;
-    const phoneChannel = payload['phoneChannel'] === 'sms' ? 'sms' : 'whatsapp';
+    const phoneChannel = payload['phoneChannel'] === 'whatsapp' ? 'whatsapp' : 'sms';
     const phoneCode = phoneChannel === 'sms' ? dto.codeSms : dto.codeWhatsapp;
     if (!phoneCode) {
       throw new BadRequestException('Missing phone verification code.');

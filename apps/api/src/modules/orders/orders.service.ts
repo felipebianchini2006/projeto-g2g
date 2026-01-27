@@ -673,7 +673,7 @@ export class OrdersService {
   ) {
     const emailOutboxIds: string[] = [];
     const eventMeta: OrderMeta = { ...meta, reason: dto.note };
-    let whatsappTarget: { to: string; orderId: string } | null = null;
+    let smsTarget: { to: string; orderId: string } | null = null;
 
     const updated = await this.prisma.$transaction(async (tx) => {
       const order = await tx.order.findUnique({
@@ -750,23 +750,23 @@ export class OrdersService {
       }
 
       if (order.buyer?.phoneE164 && order.buyer.phoneVerifiedAt) {
-        whatsappTarget = { to: order.buyer.phoneE164, orderId: order.id };
+        smsTarget = { to: order.buyer.phoneE164, orderId: order.id };
       }
 
       return updated;
     });
 
     await Promise.all(emailOutboxIds.map((id) => this.emailQueue.enqueueEmail(id)));
-    const whatsappTargetToSend = whatsappTarget as { to: string; orderId: string } | null;
-    if (whatsappTargetToSend) {
+    const smsTargetToSend = smsTarget as { to: string; orderId: string } | null;
+    if (smsTargetToSend) {
       try {
-        await this.twilioMessaging.sendWhatsApp(
-          whatsappTargetToSend.to,
-          `Seu produto chegou! Pedido ${whatsappTargetToSend.orderId}. Obrigado pela compra.`,
+        await this.twilioMessaging.sendSms(
+          smsTargetToSend.to,
+          `Seu produto chegou! Pedido ${smsTargetToSend.orderId}. Obrigado pela compra.`,
         );
       } catch (error) {
         const message =
-          error instanceof Error ? error.message : 'Failed to send WhatsApp delivery notice.';
+          error instanceof Error ? error.message : 'Failed to send SMS delivery notice.';
         this.logger.error(message, error instanceof Error ? error.stack : undefined);
       }
     }
@@ -1003,7 +1003,7 @@ export class OrdersService {
     const delayMs = this.getAutoCompleteDelayMs();
 
     const emailOutboxIds: string[] = [];
-    let whatsappTarget: { to: string; orderId: string } | null = null;
+    let smsTarget: { to: string; orderId: string } | null = null;
     await this.prisma.$transaction(async (tx) => {
       const current = await tx.order.findUnique({
         where: { id: order.id },
@@ -1063,21 +1063,21 @@ export class OrdersService {
       }
 
       if (current.buyer?.phoneE164 && current.buyer.phoneVerifiedAt) {
-        whatsappTarget = { to: current.buyer.phoneE164, orderId: current.id };
+        smsTarget = { to: current.buyer.phoneE164, orderId: current.id };
       }
     });
 
     await Promise.all(emailOutboxIds.map((id) => this.emailQueue.enqueueEmail(id)));
-    const whatsappTargetToSend = whatsappTarget as { to: string; orderId: string } | null;
-    if (whatsappTargetToSend) {
+    const smsTargetToSend = smsTarget as { to: string; orderId: string } | null;
+    if (smsTargetToSend) {
       try {
-        await this.twilioMessaging.sendWhatsApp(
-          whatsappTargetToSend.to,
-          `Seu produto chegou! Pedido ${whatsappTargetToSend.orderId}. Obrigado pela compra.`,
+        await this.twilioMessaging.sendSms(
+          smsTargetToSend.to,
+          `Seu produto chegou! Pedido ${smsTargetToSend.orderId}. Obrigado pela compra.`,
         );
       } catch (error) {
         const message =
-          error instanceof Error ? error.message : 'Failed to send WhatsApp delivery notice.';
+          error instanceof Error ? error.message : 'Failed to send SMS delivery notice.';
         this.logger.error(message, error instanceof Error ? error.stack : undefined);
       }
     }

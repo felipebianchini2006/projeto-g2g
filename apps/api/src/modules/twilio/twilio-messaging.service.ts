@@ -5,18 +5,32 @@ import { TwilioClientService } from './twilio-client.service';
 
 @Injectable()
 export class TwilioMessagingService {
-  private readonly whatsappFrom: string;
-  private readonly smsFrom: string;
+  private readonly whatsappFrom?: string;
+  private readonly smsFrom?: string;
+  private readonly messagingServiceSid?: string;
 
   constructor(
     private readonly configService: ConfigService,
     private readonly twilioClient: TwilioClientService,
   ) {
-    this.whatsappFrom = this.configService.getOrThrow<string>('TWILIO_WHATSAPP_FROM');
-    this.smsFrom = this.configService.get<string>('TWILIO_SMS_FROM') ?? this.whatsappFrom.replace('whatsapp:', '');
+    this.whatsappFrom = this.configService.get<string>('TWILIO_WHATSAPP_FROM');
+    this.smsFrom = this.configService.get<string>('TWILIO_SMS_FROM');
+    this.messagingServiceSid = this.configService.get<string>('TWILIO_MESSAGING_SERVICE_SID');
   }
 
   async sendSms(toE164: string, body: string) {
+    if (!this.messagingServiceSid && !this.smsFrom) {
+      throw new Error(
+        'Twilio SMS sender not configured. Set TWILIO_MESSAGING_SERVICE_SID or TWILIO_SMS_FROM.',
+      );
+    }
+    if (this.messagingServiceSid) {
+      return this.twilioClient.client.messages.create({
+        messagingServiceSid: this.messagingServiceSid,
+        to: toE164,
+        body,
+      });
+    }
     return this.twilioClient.client.messages.create({
       from: this.smsFrom,
       to: toE164,
@@ -25,6 +39,9 @@ export class TwilioMessagingService {
   }
 
   async sendWhatsApp(toE164: string, body: string) {
+    if (!this.whatsappFrom) {
+      throw new Error('Twilio WhatsApp sender not configured. Set TWILIO_WHATSAPP_FROM.');
+    }
     const from = this.normalizeWhatsAppAddress(this.whatsappFrom);
     const to = this.normalizeWhatsAppAddress(toE164);
 

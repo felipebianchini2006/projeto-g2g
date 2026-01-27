@@ -29,7 +29,9 @@ export const envSchema = Joi.object({
   TWILIO_ACCOUNT_SID: Joi.string().required(),
   TWILIO_AUTH_TOKEN: Joi.string().required(),
   TWILIO_VERIFY_SERVICE_SID: Joi.string().required(),
-  TWILIO_WHATSAPP_FROM: Joi.string().required(),
+  TWILIO_SMS_FROM: Joi.string(),
+  TWILIO_MESSAGING_SERVICE_SID: Joi.string(),
+  TWILIO_WHATSAPP_FROM: Joi.string(),
   DISCORD_CLIENT_ID: Joi.string().required(),
   DISCORD_CLIENT_SECRET: Joi.string().required(),
   DISCORD_REDIRECT_URI: Joi.string().required(),
@@ -39,4 +41,4 @@ export const envSchema = Joi.object({
   GEMINI_API_KEY: Joi.string().required(),
   GEMINI_MODEL: Joi.string().default('gemini-2.5-flash'),
   SUPPORT_AI_ENABLED: Joi.string().valid('true', 'false').default('true'),
-});
+}).or('TWILIO_SMS_FROM', 'TWILIO_MESSAGING_SERVICE_SID');
