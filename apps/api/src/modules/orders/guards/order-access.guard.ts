@@ -17,7 +17,7 @@ type AuthenticatedRequest = Request & {
 
 @Injectable()
 export class OrderAccessGuard implements CanActivate {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
@@ -25,7 +25,7 @@ export class OrderAccessGuard implements CanActivate {
     const orderId = request.params['id'];
 
     if (!user) {
-      throw new UnauthorizedException('Missing user context.');
+      throw new UnauthorizedException('Contexto de usuário ausente.');
     }
 
     if (!orderId) {

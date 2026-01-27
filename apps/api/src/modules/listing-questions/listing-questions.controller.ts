@@ -28,7 +28,7 @@ type AuthenticatedRequest = Request & { user?: JwtPayload };
 @Controller()
 @UseGuards(JwtAuthGuard)
 export class ListingQuestionsController {
-  constructor(private readonly listingQuestionsService: ListingQuestionsService) {}
+  constructor(private readonly listingQuestionsService: ListingQuestionsService) { }
 
   @Post('listings/:id/questions')
   create(
@@ -71,7 +71,7 @@ export class ListingQuestionsController {
 
   private getUser(request: AuthenticatedRequest) {
     if (!request.user?.sub) {
-      throw new UnauthorizedException('Missing user context.');
+      throw new UnauthorizedException('Contexto de usuário ausente.');
     }
     return request.user;
   }

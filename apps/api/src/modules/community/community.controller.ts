@@ -37,7 +37,7 @@ const uploadRoot = join(process.cwd(), 'uploads', 'community');
 @Controller('community')
 @UseGuards(JwtAuthGuard)
 export class CommunityController {
-  constructor(private readonly communityService: CommunityService) {}
+  constructor(private readonly communityService: CommunityService) { }
 
   @Post('posts')
   @UseGuards(RolesGuard)
@@ -132,7 +132,7 @@ export class CommunityController {
 
   private getUserId(request: AuthenticatedRequest) {
     if (!request.user?.sub) {
-      throw new UnauthorizedException('Missing user context.');
+      throw new UnauthorizedException('Contexto de usuário ausente.');
     }
     return request.user.sub;
   }

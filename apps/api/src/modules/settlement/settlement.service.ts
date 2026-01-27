@@ -62,7 +62,7 @@ export class SettlementService {
     private readonly settingsService: SettingsService,
     private readonly requestContext: RequestContextService,
     @InjectQueue(SETTLEMENT_QUEUE) private readonly queue: Queue,
-  ) {}
+  ) { }
 
   async scheduleRelease(orderId: string, delayMs?: number) {
     const settings = await this.settingsService.getSettings();
@@ -145,7 +145,7 @@ export class SettlementService {
       });
 
       if (!order) {
-        throw new NotFoundException('Order not found.');
+        throw new NotFoundException('Pedido não encontrado.');
       }
       if (order.status !== OrderStatus.COMPLETED) {
         throw new BadRequestException('Order is not completed.');
@@ -164,7 +164,7 @@ export class SettlementService {
 
       const payment = order.payments[0];
       if (!payment) {
-        throw new BadRequestException('Payment not found for order.');
+        throw new BadRequestException('Pagamento não encontrado para o pedido.');
       }
 
       const existingRelease = await tx.ledgerEntry.findFirst({

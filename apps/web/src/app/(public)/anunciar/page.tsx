@@ -977,8 +977,11 @@ export default function Page() {
                             Nome da tag
                             <Input
                               value={customTagLabel}
-                              onChange={(event) => setCustomTagLabel(event.target.value)}
+                              onChange={(event) =>
+                                setCustomTagLabel(event.target.value.slice(0, 10))
+                              }
                               placeholder="Ex: Novidade"
+                              maxLength={10}
                               className="mt-2 h-12 rounded-xl border-slate-200 bg-white"
                               aria-invalid={tagIncomplete}
                             />

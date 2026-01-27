@@ -14,7 +14,7 @@ type AuthenticatedRequest = Request & { user?: JwtPayload };
 @Controller('security')
 @UseGuards(JwtAuthGuard, ThrottlerGuard)
 export class AccountSecurityController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Post('mfa/enable-request')
   @Throttle(MFA_THROTTLE)
@@ -39,7 +39,7 @@ export class AccountSecurityController {
 
   private getUserId(request: AuthenticatedRequest) {
     if (!request.user?.sub) {
-      throw new UnauthorizedException('Missing user context.');
+      throw new UnauthorizedException('Contexto de usuário ausente.');
     }
     return request.user.sub;
   }

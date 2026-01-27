@@ -18,7 +18,7 @@ type AuthenticatedRequest = Request & { user?: JwtPayload };
 @Roles(UserRole.ADMIN, UserRole.AJUDANTE)
 @AdminPermission('admin.settings')
 export class AdminSettingsController {
-  constructor(private readonly settingsService: SettingsService) {}
+  constructor(private readonly settingsService: SettingsService) { }
 
   @Get()
   getSettings() {
@@ -34,7 +34,7 @@ export class AdminSettingsController {
 
   private getUserId(request: AuthenticatedRequest) {
     if (!request.user?.sub) {
-      throw new UnauthorizedException('Missing user context.');
+      throw new UnauthorizedException('Contexto de usuário ausente.');
     }
     return request.user.sub;
   }

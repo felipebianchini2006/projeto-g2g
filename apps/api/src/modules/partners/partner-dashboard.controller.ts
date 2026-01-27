@@ -21,7 +21,7 @@ type AuthenticatedRequest = Request & { user?: JwtPayload };
 @Controller('partner')
 @UseGuards(JwtAuthGuard)
 export class PartnerDashboardController {
-  constructor(private readonly partnersService: PartnersService) {}
+  constructor(private readonly partnersService: PartnersService) { }
 
   @Get('me')
   listOwned(@Req() req: AuthenticatedRequest) {
@@ -55,7 +55,7 @@ export class PartnerDashboardController {
 
   private getUserId(request: AuthenticatedRequest) {
     if (!request.user?.sub) {
-      throw new UnauthorizedException('Missing user context.');
+      throw new UnauthorizedException('Contexto de usuário ausente.');
     }
     return request.user.sub;
   }

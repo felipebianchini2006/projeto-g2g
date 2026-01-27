@@ -16,7 +16,7 @@ export class AdminPermissionsGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     private readonly prisma: PrismaService,
-  ) {}
+  ) { }
 
   async canActivate(context: ExecutionContext) {
     const permission = this.reflector.getAllAndOverride<string>(ADMIN_PERMISSION_KEY, [
@@ -32,7 +32,7 @@ export class AdminPermissionsGuard implements CanActivate {
     const user = request.user;
 
     if (!user) {
-      throw new ForbiddenException('Missing user context.');
+      throw new ForbiddenException('Contexto de usuário ausente.');
     }
 
     if (user.role === UserRole.ADMIN) {

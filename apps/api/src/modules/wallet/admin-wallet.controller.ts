@@ -18,7 +18,7 @@ type AuthenticatedRequest = Request & { user?: JwtPayload };
 @Roles(UserRole.ADMIN, UserRole.AJUDANTE)
 @AdminPermission('admin.wallet')
 export class AdminWalletController {
-  constructor(private readonly walletService: WalletService) {}
+  constructor(private readonly walletService: WalletService) { }
 
   @Get('summary')
   getSummary() {
@@ -33,7 +33,7 @@ export class AdminWalletController {
 
   private getUserId(request: AuthenticatedRequest) {
     if (!request.user?.sub) {
-      throw new UnauthorizedException('Missing user context.');
+      throw new UnauthorizedException('Contexto de usuário ausente.');
     }
     return request.user.sub;
   }

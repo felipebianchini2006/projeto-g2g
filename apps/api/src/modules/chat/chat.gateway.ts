@@ -89,7 +89,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     private readonly jwtService: JwtService,
     private readonly chatService: ChatService,
     private readonly rateLimiter: ChatRateLimiter,
-  ) {}
+  ) { }
 
   afterInit(server: Server) {
     server.use(async (socket, next) => {
@@ -264,7 +264,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   private getUser(client: ChatSocket): JwtPayload {
     const user = client.data.user;
     if (!user) {
-      throw new WsException('Missing user context.');
+      throw new WsException('Contexto de usuário ausente.');
     }
     return user;
   }

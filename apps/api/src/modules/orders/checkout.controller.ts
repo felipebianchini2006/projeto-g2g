@@ -15,7 +15,7 @@ export class CheckoutController {
   constructor(
     private readonly ordersService: OrdersService,
     private readonly paymentsService: PaymentsService,
-  ) {}
+  ) { }
 
   @Post()
   async create(@Req() req: AuthenticatedRequest, @Body() dto: CreateOrderDto) {
@@ -30,7 +30,7 @@ export class CheckoutController {
 
   private getUserId(request: AuthenticatedRequest) {
     if (!request.user?.sub) {
-      throw new UnauthorizedException('Missing user context.');
+      throw new UnauthorizedException('Contexto de usuário ausente.');
     }
     return request.user.sub;
   }

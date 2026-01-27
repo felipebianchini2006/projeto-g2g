@@ -26,7 +26,7 @@ type AuthenticatedRequest = Request & { user?: JwtPayload };
 @Roles(UserRole.ADMIN, UserRole.AJUDANTE)
 @AdminPermission('admin.orders')
 export class AdminOrdersController {
-  constructor(private readonly settlementService: SettlementService) {}
+  constructor(private readonly settlementService: SettlementService) { }
 
   @Post(':id/release')
   async releaseOrder(
@@ -50,7 +50,7 @@ export class AdminOrdersController {
 
   private getUserId(request: AuthenticatedRequest) {
     if (!request.user?.sub) {
-      throw new UnauthorizedException('Missing user context.');
+      throw new UnauthorizedException('Contexto de usuário ausente.');
     }
     return request.user.sub;
   }

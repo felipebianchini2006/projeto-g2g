@@ -38,7 +38,7 @@ export class SupportChatController {
     private readonly supportAiService: SupportAiService,
     private readonly rateLimiter: SupportChatRateLimiter,
     private readonly logger: AppLogger,
-  ) {}
+  ) { }
 
   @Post('sessions')
   @Throttle({ chat: { ttl: 60, limit: 10 } })
@@ -121,7 +121,7 @@ export class SupportChatController {
 
   private getUser(request: AuthenticatedRequest) {
     if (!request.user?.sub) {
-      throw new UnauthorizedException('Missing user context.');
+      throw new UnauthorizedException('Contexto de usuário ausente.');
     }
     return request.user;
   }

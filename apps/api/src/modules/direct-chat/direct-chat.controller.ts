@@ -13,7 +13,7 @@ type AuthenticatedRequest = Request & { user?: JwtPayload };
 @Controller('direct-chats')
 @UseGuards(JwtAuthGuard)
 export class DirectChatController {
-  constructor(private readonly directChatService: DirectChatService) {}
+  constructor(private readonly directChatService: DirectChatService) { }
 
   @Get('threads')
   listThreads(@Req() req: AuthenticatedRequest) {
@@ -45,7 +45,7 @@ export class DirectChatController {
 
   private getUserId(request: AuthenticatedRequest) {
     if (!request.user?.sub) {
-      throw new Error('Missing user context.');
+      throw new Error('Contexto de usuário ausente.');
     }
     return request.user.sub;
   }

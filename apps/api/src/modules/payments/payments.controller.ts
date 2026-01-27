@@ -11,7 +11,7 @@ type AuthenticatedRequest = Request & { user?: JwtPayload };
 @Controller('payments')
 @UseGuards(JwtAuthGuard)
 export class PaymentsController {
-  constructor(private readonly paymentsService: PaymentsService) {}
+  constructor(private readonly paymentsService: PaymentsService) { }
 
   @Post('pix/create')
   async createPix(@Req() req: AuthenticatedRequest, @Body() dto: CreatePixPaymentDto) {
@@ -21,7 +21,7 @@ export class PaymentsController {
 
   private getUserId(request: AuthenticatedRequest) {
     if (!request.user?.sub) {
-      throw new UnauthorizedException('Missing user context.');
+      throw new UnauthorizedException('Contexto de usuário ausente.');
     }
     return request.user.sub;
   }

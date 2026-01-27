@@ -31,7 +31,7 @@ type AuthenticatedRequest = Request & { user?: JwtPayload };
 @Roles(UserRole.ADMIN, UserRole.AJUDANTE)
 @AdminPermission('admin.users')
 export class AdminUsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   @Get()
   list(@Query() query: UsersQueryDto) {
@@ -65,7 +65,7 @@ export class AdminUsersController {
 
   private getUserId(request: AuthenticatedRequest) {
     if (!request.user?.sub) {
-      throw new UnauthorizedException('Missing user context.');
+      throw new UnauthorizedException('Contexto de usuário ausente.');
     }
     return request.user.sub;
   }

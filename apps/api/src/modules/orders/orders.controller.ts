@@ -33,7 +33,7 @@ type AuthenticatedRequest = Request & { user?: JwtPayload };
 @Controller('orders')
 @UseGuards(JwtAuthGuard)
 export class OrdersController {
-  constructor(private readonly ordersService: OrdersService) {}
+  constructor(private readonly ordersService: OrdersService) { }
 
   @Post()
   create(@Req() req: AuthenticatedRequest, @Body() dto: CreateOrderDto) {
@@ -158,7 +158,7 @@ export class OrdersController {
 
   private getUserId(request: AuthenticatedRequest) {
     if (!request.user?.sub) {
-      throw new UnauthorizedException('Missing user context.');
+      throw new UnauthorizedException('Contexto de usuário ausente.');
     }
     return request.user.sub;
   }

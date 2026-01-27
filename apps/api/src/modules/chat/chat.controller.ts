@@ -20,7 +20,7 @@ type AuthenticatedRequest = Request & { user?: JwtPayload };
 @Controller('chat')
 @UseGuards(JwtAuthGuard, ThrottlerGuard)
 export class ChatController {
-  constructor(private readonly chatService: ChatService) {}
+  constructor(private readonly chatService: ChatService) { }
 
   @Get('orders/:id/messages')
   @Throttle({ chat: { ttl: 60, limit: 30 } })
@@ -36,7 +36,7 @@ export class ChatController {
 
   private getUser(request: AuthenticatedRequest) {
     if (!request.user?.sub) {
-      throw new UnauthorizedException('Missing user context.');
+      throw new UnauthorizedException('Contexto de usuário ausente.');
     }
     return request.user;
   }

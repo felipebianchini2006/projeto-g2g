@@ -128,11 +128,11 @@ export class WalletService {
       });
 
       if (!order) {
-        throw new NotFoundException('Order not found.');
+        throw new NotFoundException('Pedido não encontrado.');
       }
 
       if (order.buyerId !== userId) {
-        throw new ForbiddenException('Only the buyer can pay with wallet balance.');
+        throw new ForbiddenException('Apenas o comprador pode pagar com saldo da carteira.');
       }
 
       if (
@@ -545,7 +545,7 @@ export class WalletService {
     });
 
     if (!draft || draft.userId !== userId) {
-      throw new NotFoundException('Payout draft not found.');
+      throw new NotFoundException('Rascunho de saque não encontrado.');
     }
 
     if (draft.status === PayoutDraftStatus.CONFIRMED) {
@@ -580,7 +580,7 @@ export class WalletService {
     ]);
 
     if (emailCheck.status !== 'approved' || phoneCheck.status !== 'approved') {
-      throw new ForbiddenException('Verification failed.');
+      throw new ForbiddenException('Verificação falhou.');
     }
 
     const updated = await this.prisma.payoutDraft.updateMany({
@@ -618,7 +618,7 @@ export class WalletService {
       },
     });
     if (!user) {
-      throw new BadRequestException('User not found.');
+      throw new BadRequestException('Usuário não encontrado.');
     }
     if (user.payoutBlockedAt) {
       throw new ForbiddenException(
@@ -628,7 +628,7 @@ export class WalletService {
     const accountAgeMs = Date.now() - user.createdAt.getTime();
     const minAgeMs = 5 * 24 * 60 * 60 * 1000;
     if (accountAgeMs < minAgeMs) {
-      throw new ForbiddenException('Conta nova: saque liberado apos 5 dias.');
+      throw new ForbiddenException('Conta nova: saque liberado após 5 dias.');
     }
 
     const summary = await this.getSummary(userId);

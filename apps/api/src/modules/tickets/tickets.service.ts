@@ -13,20 +13,20 @@ import { TicketQueryDto } from './dto/ticket-query.dto';
 
 @Injectable()
 export class TicketsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async listTickets(userId: string, role: UserRole, query: TicketQueryDto) {
     const where =
       role === 'ADMIN'
         ? { status: query.status }
         : {
-            status: query.status,
-            OR: [
-              { openedById: userId },
-              { order: { buyerId: userId } },
-              { order: { sellerId: userId } },
-            ],
-          };
+          status: query.status,
+          OR: [
+            { openedById: userId },
+            { order: { buyerId: userId } },
+            { order: { sellerId: userId } },
+          ],
+        };
 
     return this.prisma.ticket.findMany({
       where,
@@ -47,7 +47,7 @@ export class TicketsService {
     });
 
     if (!ticket) {
-      throw new NotFoundException('Ticket not found.');
+      throw new NotFoundException('Ticket não encontrado.');
     }
 
     this.assertAccess(ticket, userId, role);
@@ -65,10 +65,10 @@ export class TicketsService {
         select: { id: true, buyerId: true, sellerId: true },
       });
       if (!order) {
-        throw new NotFoundException('Order not found.');
+        throw new NotFoundException('Pedido não encontrado.');
       }
       if (role !== 'ADMIN' && order.buyerId !== userId && order.sellerId !== userId) {
-        throw new ForbiddenException('Ticket access denied.');
+        throw new ForbiddenException('Acesso ao ticket negado.');
       }
 
       const existing = await this.prisma.ticket.findUnique({ where: { orderId } });
@@ -105,7 +105,7 @@ export class TicketsService {
       include: { order: { select: { id: true, buyerId: true, sellerId: true } } },
     });
     if (!ticket) {
-      throw new NotFoundException('Ticket not found.');
+      throw new NotFoundException('Ticket não encontrado.');
     }
 
     this.assertAccess(ticket, userId, role);

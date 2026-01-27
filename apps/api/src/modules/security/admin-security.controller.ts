@@ -31,7 +31,7 @@ type AuthenticatedRequest = Request & { user?: JwtPayload };
 @Roles(UserRole.ADMIN, UserRole.AJUDANTE)
 @AdminPermission('admin.security')
 export class AdminSecurityController {
-  constructor(private readonly securityService: SecurityService) {}
+  constructor(private readonly securityService: SecurityService) { }
 
   @Get('payouts')
   listPayouts(@Query() query: AdminSecurityPayoutsQueryDto) {
@@ -88,7 +88,7 @@ export class AdminSecurityController {
 
   private ensureAdmin(request: AuthenticatedRequest) {
     if (!request.user?.sub) {
-      throw new UnauthorizedException('Missing user context.');
+      throw new UnauthorizedException('Contexto de usuário ausente.');
     }
   }
 }

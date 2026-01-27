@@ -5,7 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class SupportChatService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(private readonly prismaService: PrismaService) { }
 
   createSession(userId: string) {
     return this.prismaService.supportChatSession.create({
@@ -19,7 +19,7 @@ export class SupportChatService {
     });
 
     if (!session) {
-      throw new NotFoundException('Support chat session not found.');
+      throw new NotFoundException('Sessão de chat de suporte não encontrada.');
     }
 
     if (user.role === UserRole.ADMIN) {
@@ -27,7 +27,7 @@ export class SupportChatService {
     }
 
     if (!session.userId || session.userId !== user.id) {
-      throw new ForbiddenException('Support chat access denied.');
+      throw new ForbiddenException('Acesso ao chat de suporte negado.');
     }
 
     return session;

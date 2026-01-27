@@ -69,12 +69,12 @@ export class AuthService {
     const user = await this.prismaService.user.findUnique({ where: { email } });
 
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials.');
+      throw new UnauthorizedException('Credenciais inválidas.');
     }
 
     const validPassword = await bcrypt.compare(dto.password, user.passwordHash);
     if (!validPassword) {
-      throw new UnauthorizedException('Invalid credentials.');
+      throw new UnauthorizedException('Credenciais inválidas.');
     }
 
     if (this.isUserBlocked(user)) {

@@ -29,7 +29,7 @@ type AuthenticatedRequest = Request & { user?: JwtPayload };
 @Roles(UserRole.ADMIN, UserRole.AJUDANTE)
 @AdminPermission('admin.disputes')
 export class DisputesController {
-  constructor(private readonly disputesService: DisputesService) {}
+  constructor(private readonly disputesService: DisputesService) { }
 
   @Get()
   list(@Query() query: DisputeQueryDto) {
@@ -53,7 +53,7 @@ export class DisputesController {
 
   private getUserId(request: AuthenticatedRequest) {
     if (!request.user?.sub) {
-      throw new UnauthorizedException('Missing user context.');
+      throw new UnauthorizedException('Contexto de usuário ausente.');
     }
     return request.user.sub;
   }

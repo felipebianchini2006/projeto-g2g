@@ -131,7 +131,7 @@ export class UsersService {
       select: USER_PROFILE_SELECT,
     });
     if (!user) {
-      throw new NotFoundException('User not found.');
+      throw new NotFoundException('Usuário não encontrado.');
     }
     return user;
   }
@@ -272,7 +272,7 @@ export class UsersService {
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2025') {
-          throw new NotFoundException('User not found.');
+          throw new NotFoundException('Usuário não encontrado.');
         }
         if (error.code === 'P2002') {
           const target = Array.isArray(error.meta?.['target'])
@@ -299,7 +299,7 @@ export class UsersService {
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === 'P2025'
       ) {
-        throw new NotFoundException('User not found.');
+        throw new NotFoundException('Usuário não encontrado.');
       }
       throw error;
     }
@@ -325,7 +325,7 @@ export class UsersService {
       select: { id: true },
     });
     if (!target) {
-      throw new NotFoundException('User not found.');
+      throw new NotFoundException('Usuário não encontrado.');
     }
     const existing = await this.prisma.userFollow.findUnique({
       where: { followerId_followingId: { followerId: userId, followingId: targetId } },
@@ -353,7 +353,7 @@ export class UsersService {
     return this.prisma.$transaction(async (tx) => {
       const user = await tx.user.findUnique({ where: { id: userId } });
       if (!user) {
-        throw new NotFoundException('User not found.');
+        throw new NotFoundException('Usuário não encontrado.');
       }
 
       const blockedAt = user.blockedAt ?? now;
@@ -404,7 +404,7 @@ export class UsersService {
     return this.prisma.$transaction(async (tx) => {
       const user = await tx.user.findUnique({ where: { id: userId } });
       if (!user) {
-        throw new NotFoundException('User not found.');
+        throw new NotFoundException('Usuário não encontrado.');
       }
 
       const updated = await tx.user.update({
@@ -451,7 +451,7 @@ export class UsersService {
       });
 
       if (!current) {
-        throw new NotFoundException('User not found.');
+        throw new NotFoundException('Usuário não encontrado.');
       }
 
       const data: Prisma.UserUpdateInput = {};
@@ -556,7 +556,7 @@ export class UsersService {
       });
 
       if (!current) {
-        throw new NotFoundException('User not found.');
+        throw new NotFoundException('Usuário não encontrado.');
       }
 
       if (current.role !== 'USER') {
@@ -600,7 +600,7 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found.');
+      throw new NotFoundException('Usuário não encontrado.');
     }
 
     if (user.verificationFeePaidAt) {
@@ -661,7 +661,7 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found.');
+      throw new NotFoundException('Usuário não encontrado.');
     }
 
     if (user.verificationFeePaidAt) {

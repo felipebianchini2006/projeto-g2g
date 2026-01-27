@@ -21,7 +21,7 @@ type AuthenticatedRequest = Request & { user?: JwtPayload };
 @Controller('notifications')
 @UseGuards(JwtAuthGuard)
 export class NotificationsController {
-  constructor(private readonly notificationsService: NotificationsService) {}
+  constructor(private readonly notificationsService: NotificationsService) { }
 
   @Get()
   list(@Req() req: AuthenticatedRequest, @Query() query: NotificationQueryDto) {
@@ -55,7 +55,7 @@ export class NotificationsController {
 
   private getUserId(request: AuthenticatedRequest) {
     if (!request.user?.sub) {
-      throw new UnauthorizedException('Missing user context.');
+      throw new UnauthorizedException('Contexto de usuário ausente.');
     }
     return request.user.sub;
   }
