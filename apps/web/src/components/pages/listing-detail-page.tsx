@@ -201,7 +201,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
         const message =
           error instanceof ApiClientError
             ? error.message
-            : 'Nao foi possivel carregar as duvidas.';
+            : 'Não foi possível carregar as dúvidas.';
         setQuestionsState({ status: 'ready', items: [], total: 0, error: message });
       }
     };
@@ -328,6 +328,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
       }))
       : [{ id: 'fallback', url: fallbackImage, type: 'IMAGE' }];
   const thumbnailItems = mediaItems.slice(0, 4);
+  const illustrativeItems = mediaItems.slice(1, 7);
   const remainingCount = Math.max(0, mediaItems.length - thumbnailItems.length);
   const editionDeltaCents = 1000;
   const editionLabel = selectedEdition === 'deluxe' ? 'Deluxe (+1k V)' : 'Padrao';
@@ -461,7 +462,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
       const message =
         error instanceof ApiClientError
           ? error.message
-          : 'Nao foi possivel enviar sua pergunta.';
+          : 'Não foi possível enviar sua pergunta.';
       setQuestionError(message);
     } finally {
       setQuestionSending(false);
@@ -508,7 +509,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
       const message =
         error instanceof ApiClientError
           ? error.message
-          : 'Nao foi possivel enviar sua avaliação.';
+          : 'Não foi possível enviar sua avaliação.';
       setReviewError(message);
     } finally {
       setReviewSending(false);
@@ -655,13 +656,14 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
               </div>
             </div>
             <div className="mt-5 flex flex-wrap gap-3">
-              {thumbnailItems.map((media) => (
+              {thumbnailItems.map((media, index) => (
                 <button
                   key={media.id}
                   type="button"
-                  className={`grid h-20 w-20 place-items-center rounded-2xl border bg-slate-50 ${activeMedia === media.url
-                    ? 'border-meow-300 shadow-cute'
-                    : 'border-slate-100'
+                  className={`h-20 w-20 place-items-center rounded-2xl border bg-slate-50 ${index > 0 ? 'hidden sm:grid' : 'grid'
+                    } ${activeMedia === media.url
+                      ? 'border-meow-300 shadow-cute'
+                      : 'border-slate-100'
                     }`}
                   onClick={() => setActiveMedia(media.url)}
                 >
@@ -669,11 +671,29 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
                 </button>
               ))}
               {remainingCount > 0 ? (
-                <div className="grid h-20 w-20 place-items-center rounded-2xl border border-slate-100 bg-white text-sm font-bold text-meow-muted">
+                <div className="hidden h-20 w-20 place-items-center rounded-2xl border border-slate-100 bg-white text-sm font-bold text-meow-muted sm:grid">
                   +{remainingCount}
                 </div>
               ) : null}
             </div>
+            {illustrativeItems.length > 0 ? (
+              <div className="mt-6 hidden grid-cols-2 gap-4 lg:grid">
+                {illustrativeItems.map((media) => (
+                  <button
+                    key={`illustrative-${media.id}`}
+                    type="button"
+                    className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition hover:border-meow-200"
+                    onClick={() => setActiveMedia(media.url)}
+                  >
+                    <img
+                      src={media.url}
+                      alt={media.type}
+                      className="h-32 w-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </div>
 
           <div className="space-y-6">
@@ -785,65 +805,65 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
                 </div>
               </div>
 
-                <div className="mt-6 space-y-3">
+              <div className="mt-6 space-y-3">
+                {isSuspended ? (
+                  <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-amber-700">
+                    Anúncio pausado. Compras desativadas, mas você pode tirar dúvidas abaixo.
+                  </div>
+                ) : null}
+                <div className="grid gap-3">
                   {isSuspended ? (
-                    <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-amber-700">
-                      Anúncio pausado. Compras desativadas, mas você pode tirar dúvidas abaixo.
-                    </div>
-                  ) : null}
-                  <div className="grid gap-3">
-                    {isSuspended ? (
-                      <button
-                        type="button"
-                        className={buttonVariants({
-                          variant: 'primary',
-                          size: 'lg',
-                          className: 'w-full gap-2 text-xs sm:text-sm opacity-60',
-                        })}
-                        disabled
-                      >
-                        <ShoppingBag size={18} aria-hidden />
-                        COMPRAR AGORA
-                      </button>
-                    ) : (
-                      <Link
-                        className={buttonVariants({
-                          variant: 'primary',
-                          size: 'lg',
-                          className: 'w-full gap-2 text-xs sm:text-sm',
-                        })}
-                        href={`/checkout/${listing.id}?variant=${selectedEdition}`}
-                      >
-                        <ShoppingBag size={18} aria-hidden />
-                        COMPRAR AGORA
-                      </Link>
-                    )}
                     <button
                       type="button"
                       className={buttonVariants({
-                        variant: 'secondary',
+                        variant: 'primary',
+                        size: 'lg',
+                        className: 'w-full gap-2 text-xs sm:text-sm opacity-60',
+                      })}
+                      disabled
+                    >
+                      <ShoppingBag size={18} aria-hidden />
+                      COMPRAR AGORA
+                    </button>
+                  ) : (
+                    <Link
+                      className={buttonVariants({
+                        variant: 'primary',
                         size: 'lg',
                         className: 'w-full gap-2 text-xs sm:text-sm',
                       })}
-                      disabled={isSuspended}
-                      onClick={() => {
-                        if (isSuspended) {
-                          return;
-                        }
-                        addToCart({
-                          id: listing.id,
-                          title: `${listing.title} - ${editionLabel}`,
-                          priceCents,
-                          currency: listing.currency,
-                          image: listing.media?.[0]?.url ?? null,
-                        });
-                      }}
+                      href={`/checkout/${listing.id}?variant=${selectedEdition}`}
                     >
-                      <ShoppingCart size={18} aria-hidden />
-                      Adicionar ao Carrinho
-                    </button>
-                  </div>
+                      <ShoppingBag size={18} aria-hidden />
+                      COMPRAR AGORA
+                    </Link>
+                  )}
+                  <button
+                    type="button"
+                    className={buttonVariants({
+                      variant: 'secondary',
+                      size: 'lg',
+                      className: 'w-full gap-2 text-xs sm:text-sm',
+                    })}
+                    disabled={isSuspended}
+                    onClick={() => {
+                      if (isSuspended) {
+                        return;
+                      }
+                      addToCart({
+                        id: listing.id,
+                        title: `${listing.title} - ${editionLabel}`,
+                        priceCents,
+                        currency: listing.currency,
+                        image: listing.media?.[0]?.url ?? null,
+                      });
+                    }}
+                  >
+                    <ShoppingCart size={18} aria-hidden />
+                    Adicionar ao Carrinho
+                  </button>
                 </div>
+              </div>
             </div>
 
             {sellerProfile ? (<>
@@ -922,9 +942,8 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
                     <span>Último acesso</span>
                     <span className="inline-flex items-center gap-2 font-semibold text-meow-charcoal">
                       <span
-                        className={`h-2 w-2 rounded-full ${
-                          sellerProfile.isOnline ? 'bg-emerald-500' : 'bg-slate-300'
-                        }`}
+                        className={`h-2 w-2 rounded-full ${sellerProfile.isOnline ? 'bg-emerald-500' : 'bg-slate-300'
+                          }`}
                         aria-hidden
                       />
                       {lastSeenLabel}
@@ -953,7 +972,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
                           }`}
                       >
                         <CheckCircle size={14} aria-hidden />
-                        {item.active ? 'Verificado' : 'Nao verificado'}
+                        {item.active ? 'Verificado' : 'Não verificado'}
                       </span>
                     </div>
                   ))}
@@ -1023,7 +1042,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
                     </div>
                   ) : eligibilityState.status === 'loading' ? (
                     <div className="mt-4 text-xs text-slate-400">
-                      Verificando se voce pode avaliar...
+                      Verificando se você pode avaliar...
                     </div>
                   ) : reviewSubmitted ? (
                     <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-700">
@@ -1075,7 +1094,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
                     </form>
                   ) : (
                     <div className="mt-4 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-4 text-sm text-meow-muted">
-                      <p>{reviewEligibility?.reason ?? 'Voce nao pode avaliar este produto.'}</p>
+                      <p>{reviewEligibility?.reason ?? 'Você não pode avaliar este produto.'}</p>
                       <Link
                         href="/conta/pedidos"
                         className="mt-3 inline-flex rounded-full bg-meow-linear px-4 py-2 text-xs font-bold text-white"
@@ -1108,7 +1127,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
 
                 {reviewsState.status === 'error' ? (
                   <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                    {reviewsState.error || 'Nao foi possivel carregar as avaliacoes.'}
+                    {reviewsState.error || 'Não foi possível carregar as avaliações.'}
                   </div>
                 ) : null}
 

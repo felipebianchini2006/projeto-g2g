@@ -82,7 +82,7 @@ export const AdminSecurityContent = () => {
         const message =
           error instanceof ApiClientError
             ? error.message
-            : 'Nao foi possivel carregar os registros.';
+            : 'Não foi possível carregar os registros.';
         setError(message);
       } finally {
         setIsLoading(false);
@@ -98,7 +98,7 @@ export const AdminSecurityContent = () => {
   );
 
   const selectedUser = selectedPayout?.user ?? null;
-  const cpfUsedLabel = selectedPayout?.cpfUsedBefore ? 'Sim' : 'Nao';
+  const cpfUsedLabel = selectedPayout?.cpfUsedBefore ? 'Sim' : 'Não';
   const deviceLabel = detectDevice(selectedPayout?.requestUserAgent);
 
   const refreshPayouts = async () => {
@@ -112,7 +112,7 @@ export const AdminSecurityContent = () => {
       const message =
         error instanceof ApiClientError
           ? error.message
-          : 'Nao foi possivel carregar os registros.';
+          : 'Não foi possível carregar os registros.';
       setError(message);
     }
   };
@@ -202,18 +202,17 @@ export const AdminSecurityContent = () => {
                   key={payout.id}
                   type="button"
                   onClick={() => setSelectedId(payout.id)}
-                  className={`w-full rounded-2xl border px-4 py-3 text-left transition ${
-                    payout.id === selectedId
+                  className={`w-full rounded-2xl border px-4 py-3 text-left transition ${payout.id === selectedId
                       ? 'border-meow-red/40 bg-meow-red/10'
                       : 'border-slate-100 hover:border-meow-red/20'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="text-sm font-bold text-meow-charcoal">
-                        {payout.user?.fullName ?? payout.user?.email ?? 'Usuario'}
+                        {payout.user?.fullName ?? payout.user?.email ?? 'Usuário'}
                       </p>
-                      <p className="text-xs text-meow-muted">CPF: {payout.user?.cpf ?? 'Nao informado'}</p>
+                      <p className="text-xs text-meow-muted">CPF: {payout.user?.cpf ?? 'Não informado'}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-bold text-meow-charcoal">
@@ -229,7 +228,7 @@ export const AdminSecurityContent = () => {
                       Status: {payout.status}
                     </span>
                     <span className="rounded-full border border-slate-200 px-2 py-0.5">
-                      CPF ja usado: {payout.cpfUsedBefore ? 'Sim' : 'Nao'}
+                      CPF já usado: {payout.cpfUsedBefore ? 'Sim' : 'Não'}
                     </span>
                     <span className="rounded-full border border-slate-200 px-2 py-0.5">
                       Saques: {payout.payoutCount}
@@ -249,21 +248,21 @@ export const AdminSecurityContent = () => {
           ) : (
             <div className="mt-4 space-y-6">
               <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                <p className="text-sm font-bold text-meow-charcoal">{selectedUser?.fullName ?? 'Usuario'}</p>
+                <p className="text-sm font-bold text-meow-charcoal">{selectedUser?.fullName ?? 'Usuário'}</p>
                 <p className="text-xs text-meow-muted">{selectedUser?.email}</p>
                 <div className="mt-3 grid gap-2 text-xs text-meow-muted">
-                  <div>CPF: {selectedUser?.cpf ?? 'Nao informado'}</div>
+                  <div>CPF: {selectedUser?.cpf ?? 'Não informado'}</div>
                   <div>CPF ja usado antes: {cpfUsedLabel}</div>
                   <div>Payouts anteriores: {selectedPayout.payoutCount}</div>
                   <div>
                     Bloqueio de saque:{' '}
-                    {selectedUser?.payoutBlockedAt ? 'Ativo' : 'Nao'}
+                    {selectedUser?.payoutBlockedAt ? 'Ativo' : 'Não'}
                   </div>
                   <div>
                     Banimento:{' '}
                     {selectedUser?.blockedAt && (!selectedUser.blockedUntil || new Date(selectedUser.blockedUntil) > new Date())
                       ? `Ativo ate ${selectedUser.blockedUntil ? new Date(selectedUser.blockedUntil).toLocaleDateString('pt-BR') : 'indefinido'}`
-                      : 'Nao'}
+                      : 'Não'}
                   </div>
                 </div>
               </div>
@@ -281,7 +280,7 @@ export const AdminSecurityContent = () => {
               <div className="rounded-xl border border-slate-100 bg-white p-4">
                 <p className="text-sm font-bold text-meow-charcoal">Origem da solicitacao</p>
                 <div className="mt-2 grid gap-2 text-xs text-meow-muted">
-                  <div>IP: {selectedPayout.requestIp ?? 'Nao registrado'}</div>
+                  <div>IP: {selectedPayout.requestIp ?? 'Não registrado'}</div>
                   <div>Dispositivo: {deviceLabel}</div>
                   <div className="break-words">User-Agent: {selectedPayout.requestUserAgent ?? 'Nao registrado'}</div>
                 </div>

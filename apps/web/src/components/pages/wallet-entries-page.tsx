@@ -194,7 +194,7 @@ export const WalletEntriesContent = () => {
       <div className="grid gap-4 lg:grid-cols-[1.2fr_repeat(2,1fr)]">
         <Card className="rounded-2xl border border-meow-red/20 p-5 shadow-[0_10px_24px_rgba(216,107,149,0.12)]">
           <p className="text-xs font-semibold uppercase tracking-[0.4px] text-meow-muted">
-            Transacoes de credito
+            Transações de crédito
           </p>
           <p className="mt-2 text-sm text-meow-muted">{summaryText}</p>
         </Card>

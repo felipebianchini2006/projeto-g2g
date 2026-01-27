@@ -62,7 +62,7 @@ export const AdminWalletContent = () => {
         const message =
           error instanceof ApiClientError
             ? error.message
-            : 'Nao foi possivel carregar a carteira.';
+            : 'Não foi possível carregar a carteira.';
         setError(message);
       } finally {
         setIsLoading(false);
@@ -213,7 +213,7 @@ export const AdminWalletContent = () => {
               setWithdrawError(
                 error instanceof Error
                   ? error.message
-                  : 'Nao foi possivel solicitar o saque.',
+                  : 'Não foi possível solicitar o saque.',
               );
             } finally {
               setWithdrawLoading(false);

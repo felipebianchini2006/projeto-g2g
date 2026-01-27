@@ -258,7 +258,7 @@ const ProfileHeaderCard = ({
             Editar Perfil
           </Link>
         ) : null}
-        
+
       </div>
     </div>
   </Card>
@@ -820,7 +820,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
       setComposerImageUrl(response.url);
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'Nao foi possivel enviar a imagem.';
+        error instanceof Error ? error.message : 'Não foi possível enviar a imagem.';
       setComposerImageError(message);
     } finally {
       setComposerImageUploading(false);

@@ -74,7 +74,7 @@ export const PartnerDashboardPage = () => {
           ? error.message
           : error instanceof Error
             ? error.message
-            : 'Nao foi possivel carregar seus parceiros.';
+            : 'Não foi possível carregar seus parceiros.';
       setPartnersState({ status: 'ready', items: [], error: message });
     }
   };
@@ -91,7 +91,7 @@ export const PartnerDashboardPage = () => {
           ? error.message
           : error instanceof Error
             ? error.message
-            : 'Nao foi possivel carregar os dados do parceiro.';
+            : 'Não foi possível carregar os dados do parceiro.';
       setStatsState({ status: 'ready', stats: null, error: message });
     }
   };
@@ -217,11 +217,10 @@ export const PartnerDashboardPage = () => {
                   key={partner.id}
                   type="button"
                   onClick={() => setSelectedPartnerId(partner.id)}
-                  className={`flex w-full items-center justify-between gap-2 rounded-xl border px-3 py-2 text-left text-sm font-semibold transition ${
-                    isSelected
+                  className={`flex w-full items-center justify-between gap-2 rounded-xl border px-3 py-2 text-left text-sm font-semibold transition ${isSelected
                       ? 'border-meow-red/40 bg-meow-red/10 text-meow-deep'
                       : 'border-slate-100 text-meow-charcoal hover:bg-slate-50'
-                  }`}
+                    }`}
                 >
                   <span className="flex items-center gap-2">
                     <Building2 size={16} aria-hidden />
@@ -394,7 +393,7 @@ export const PartnerDashboardPage = () => {
                   await loadStats(selectedPartnerId);
                 } catch (error) {
                   setPayoutError(
-                    error instanceof Error ? error.message : 'Nao foi possivel solicitar o saque.',
+                    error instanceof Error ? error.message : 'Não foi possível solicitar o saque.',
                   );
                 } finally {
                   setPayoutLoading(false);

@@ -87,7 +87,7 @@ export const AccountQuestionsContent = ({ scope }: AccountQuestionsContentProps)
         const message =
           error instanceof ApiClientError
             ? error.message
-            : 'Nao foi possivel carregar as perguntas.';
+            : 'Não foi possível carregar as perguntas.';
         setState({ status: 'ready', questions: [], error: message });
       }
     };
@@ -133,7 +133,7 @@ export const AccountQuestionsContent = ({ scope }: AccountQuestionsContentProps)
       const message =
         error instanceof ApiClientError
           ? error.message
-          : 'Nao foi possivel responder a pergunta.';
+          : 'Não foi possível responder a pergunta.';
       setNotice(message);
     } finally {
       setActionBusy(null);
@@ -157,7 +157,7 @@ export const AccountQuestionsContent = ({ scope }: AccountQuestionsContentProps)
       const message =
         error instanceof ApiClientError
           ? error.message
-          : 'Nao foi possivel remover a pergunta.';
+          : 'Não foi possível remover a pergunta.';
       setNotice(message);
     } finally {
       setActionBusy(null);
@@ -195,7 +195,7 @@ export const AccountQuestionsContent = ({ scope }: AccountQuestionsContentProps)
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center">
           <p className="text-sm text-meow-muted">
-            Seu perfil nao possui acesso as perguntas recebidas.
+            Seu perfil não possui acesso as perguntas recebidas.
           </p>
           <Link
             href="/conta"
@@ -255,7 +255,7 @@ export const AccountQuestionsContent = ({ scope }: AccountQuestionsContentProps)
           <div className="rounded-2xl border border-slate-100 bg-meow-50 px-4 py-3 text-sm text-meow-muted">
             {scope === 'received'
               ? 'Nenhuma pergunta recebida ate agora.'
-              : 'Voce ainda nao enviou perguntas.'}
+              : 'Você ainda não enviou perguntas.'}
           </div>
         ) : null}
 

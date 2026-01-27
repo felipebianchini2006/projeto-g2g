@@ -95,7 +95,7 @@ export const OrderPaymentContent = ({ orderId }: { orderId: string }) => {
     }
     try {
       await navigator.clipboard.writeText(activePayment.copyPaste);
-      setCopyStatus('Codigo copiado.');
+      setCopyStatus('Código copiado.');
     } catch {
       setCopyStatus('Não foi possível copiar o código.');
     }
@@ -160,7 +160,7 @@ export const OrderPaymentContent = ({ orderId }: { orderId: string }) => {
           <Card className="rounded-2xl border border-slate-100 p-6 shadow-card">
             <h2 className="text-base font-bold text-meow-charcoal">Resumo</h2>
             <p className="mt-2 text-sm text-meow-muted">
-              Codigo do pedido: <strong className="text-meow-charcoal">{orderCode}</strong>
+              Código do pedido: <strong className="text-meow-charcoal">{orderCode}</strong>
             </p>
             <div className="mt-4 grid gap-3 text-sm text-meow-muted">
               <div className="flex items-center justify-between">
@@ -211,9 +211,9 @@ export const OrderPaymentContent = ({ orderId }: { orderId: string }) => {
             <p className="mt-2 text-sm text-meow-muted">
               {activePayment
                 ? `Valor final do pedido: ${formatCurrency(
-                    order?.totalAmountCents ?? 0,
-                    order?.currency ?? 'BRL',
-                  )}`
+                  order?.totalAmountCents ?? 0,
+                  order?.currency ?? 'BRL',
+                )}`
                 : 'Pagamento pendente.'}
             </p>
 

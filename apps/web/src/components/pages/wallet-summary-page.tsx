@@ -776,7 +776,7 @@ export const WalletSummaryContent = () => {
                   setWithdrawError(
                     error instanceof Error
                       ? error.message
-                      : 'Nao foi possivel solicitar o saque.',
+                      : 'Não foi possível solicitar o saque.',
                   );
                 } finally {
                   setWithdrawLoading(false);

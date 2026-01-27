@@ -241,7 +241,7 @@ export default function Page() {
           return;
         }
         setProfile(null);
-        setProfileError(err instanceof Error ? err.message : 'Nao foi possivel carregar seus dados.');
+        setProfileError(err instanceof Error ? err.message : 'Não foi possível carregar seus dados.');
       })
       .finally(() => {
         if (active) {
@@ -355,7 +355,7 @@ export default function Page() {
 
   const normalizedNumber = profile?.addressNumber?.trim().toLowerCase() ?? '';
   const addressNumberOk =
-    (normalizedNumber === 's/n' || normalizedNumber === 'sem numero') ||
+    (normalizedNumber === 's/n' || normalizedNumber === 'sem número') ||
     Boolean(profile?.addressNumber?.trim());
   const profileMissingFields = profile ? [
     { label: 'Nome completo', valid: Boolean(profile.fullName?.trim()) },
@@ -363,7 +363,7 @@ export default function Page() {
     { label: 'Nascimento', valid: Boolean(profile.birthDate?.trim()) },
     { label: 'CEP', valid: Boolean(profile.addressZip?.trim()) },
     { label: 'Endereço', valid: Boolean(profile.addressStreet?.trim()) },
-    { label: 'Numero', valid: addressNumberOk },
+    { label: 'Número', valid: addressNumberOk },
     { label: 'Bairro', valid: Boolean(profile.addressDistrict?.trim()) },
     { label: 'Cidade', valid: Boolean(profile.addressCity?.trim()) },
     { label: 'Estado', valid: Boolean(profile.addressState?.trim()) },
@@ -379,7 +379,7 @@ export default function Page() {
 
   const handlePublish = async () => {
     if (profileLoading) return setError('Aguarde o carregamento dos seus dados.');
-    if (!profile) return setError('Nao foi possivel verificar seus dados. Tente novamente.');
+    if (!profile) return setError('Não foi possível verificar seus dados. Tente novamente.');
     if (profileMissingFields.length > 0) {
       return setError('Complete seus dados antes de publicar um anuncio.');
     }
@@ -587,7 +587,7 @@ export default function Page() {
         )}
         {user && user.role !== 'SELLER' && user.role !== 'ADMIN' && (
           <div className="mb-6 flex items-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-6 py-4 text-sm font-bold text-red-600">
-            <AlertCircle size={18} /> Voce precisa ser um vendedor verificado para publicar anuncios.
+            <AlertCircle size={18} /> Você precisa ser um vendedor verificado para publicar anúncios.
           </div>
         )}
         {profileError && (
@@ -996,11 +996,10 @@ export default function Page() {
                                 type="button"
                                 onClick={() => setCustomTagColor(option.value)}
                                 aria-pressed={customTagColor === option.value}
-                                className={`rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-wide transition ${
-                                  customTagColor === option.value
+                                className={`rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-wide transition ${customTagColor === option.value
                                     ? option.className
                                     : 'border-slate-200 bg-white text-slate-500'
-                                }`}
+                                  }`}
                               >
                                 {option.label}
                               </button>

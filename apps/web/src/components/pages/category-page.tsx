@@ -162,7 +162,7 @@ export const CategoryContent = ({ slug }: CategoryContentProps) => {
           <Button variant="secondary" disabled={page <= 1} onClick={() => setPage(page - 1)}>
             Anterior
           </Button>
-          <span className="text-xs font-semibold text-meow-muted">Pagina {page}</span>
+          <span className="text-xs font-semibold text-meow-muted">Página {page}</span>
           <Button
             variant="secondary"
             disabled={!hasNextPage}

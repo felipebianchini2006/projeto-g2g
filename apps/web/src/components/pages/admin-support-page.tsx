@@ -127,7 +127,7 @@ export const AdminSupportContent = () => {
           ? error.message
           : error instanceof Error
             ? error.message
-            : 'Nao foi possivel carregar tickets.';
+            : 'Não foi possível carregar tickets.';
       setTicketState({ status: 'ready', items: [], error: message });
     }
   };
@@ -146,7 +146,7 @@ export const AdminSupportContent = () => {
           ? error.message
           : error instanceof Error
             ? error.message
-            : 'Nao foi possivel carregar disputas.';
+            : 'Não foi possível carregar disputas.';
       setDisputeState({ status: 'ready', items: [], error: message });
     }
   };
@@ -357,8 +357,8 @@ export const AdminSupportContent = () => {
               <div
                 key={dispute.id}
                 className={`flex flex-wrap items-center justify-between gap-4 rounded-xl border px-4 py-3 ${dispute.status === 'OPEN'
-                    ? 'border-meow-red/30 bg-meow-red/5'
-                    : 'border-slate-100 bg-white'
+                  ? 'border-meow-red/30 bg-meow-red/5'
+                  : 'border-slate-100 bg-white'
                   }`}
               >
                 <div className="flex flex-1 items-start gap-3">
@@ -429,8 +429,8 @@ export const AdminSupportContent = () => {
               <div
                 key={ticket.id}
                 className={`flex flex-wrap items-center justify-between gap-4 rounded-xl border px-4 py-3 ${ticket.status === 'OPEN'
-                    ? 'border-meow-red/30 bg-meow-red/5'
-                    : 'border-slate-100 bg-white'
+                  ? 'border-meow-red/30 bg-meow-red/5'
+                  : 'border-slate-100 bg-white'
                   }`}
               >
                 <div className="flex flex-1 items-start gap-3">

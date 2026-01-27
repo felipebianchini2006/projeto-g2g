@@ -149,7 +149,7 @@ export const TicketsListContent = ({ initialOrderId }: TicketsListContentProps) 
             ? error.message
             : error instanceof Error
               ? error.message
-              : 'Nao foi possivel carregar tickets.';
+              : 'Não foi possível carregar tickets.';
         setState({ status: 'ready', tickets: [], error: message });
       }
     };
@@ -326,7 +326,7 @@ export const TicketsListContent = ({ initialOrderId }: TicketsListContentProps) 
           ? error.message
           : error instanceof Error
             ? error.message
-            : 'Nao foi possivel abrir o ticket.';
+            : 'Não foi possível abrir o ticket.';
       setNotice(message);
     } finally {
       setBusy(false);

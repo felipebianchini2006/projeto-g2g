@@ -277,7 +277,7 @@ export const ProdutosContent = () => {
           <div>
             <h2 className="text-xl font-black text-meow-charcoal">Resultados</h2>
             <p className="text-sm text-meow-muted">
-              {state.listings.length} anúncios nesta pagina.
+              {state.listings.length} anúncios nesta página.
             </p>
           </div>
           {state.error ? (
@@ -331,7 +331,7 @@ export const ProdutosContent = () => {
           >
             Anterior
           </Button>
-          <span className="text-xs font-semibold text-meow-muted">Pagina {page}</span>
+          <span className="text-xs font-semibold text-meow-muted">Página {page}</span>
           <Button
             variant="secondary"
             disabled={!hasNextPage}
