@@ -108,7 +108,7 @@ export const AccountSecurityContent = () => {
       setMfaChallengeId(response.challengeId);
       setMfaState({
         busy: false,
-        success: 'Enviamos um codigo de verificacao para o seu e-mail.',
+        success: 'Enviamos um código de verificação para o seu e-mail.',
       });
     } catch (error) {
       const message =
@@ -116,7 +116,7 @@ export const AccountSecurityContent = () => {
           ? error.message
           : error instanceof Error
             ? error.message
-            : 'Nao foi possivel iniciar a verificacao MFA.';
+            : 'Não foi possível iniciar a verificação MFA.';
       setMfaState({ busy: false, error: message });
     }
   };
@@ -127,7 +127,7 @@ export const AccountSecurityContent = () => {
       return;
     }
     if (!mfaCode || mfaCode.trim().length !== 6) {
-      setMfaState({ busy: false, error: 'Informe o codigo de 6 digitos enviado ao seu e-mail.' });
+      setMfaState({ busy: false, error: 'Informe o código de 6 dígitos enviado ao seu e-mail.' });
       return;
     }
 
@@ -147,7 +147,7 @@ export const AccountSecurityContent = () => {
           ? error.message
           : error instanceof Error
             ? error.message
-            : 'Nao foi possivel confirmar o codigo MFA.';
+            : 'Não foi possível confirmar o código MFA.';
       setMfaState({ busy: false, error: message });
     }
   };
@@ -166,7 +166,7 @@ export const AccountSecurityContent = () => {
     return (
       <section className="bg-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-meow-red/20 bg-white px-6 py-6 text-center">
-          <p className="text-sm text-meow-muted">Entre para acessar a seguranca da conta.</p>
+          <p className="text-sm text-meow-muted">Entre para acessar a segurança da conta.</p>
           <Link
             href="/login"
             className="mt-4 inline-flex rounded-full bg-meow-linear px-6 py-2 text-sm font-bold text-white"
@@ -197,16 +197,16 @@ export const AccountSecurityContent = () => {
         <div className="mt-6 rounded-2xl border border-meow-red/20 bg-meow-ice px-5 py-4">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h2 className="text-sm font-bold text-meow-charcoal">MFA por IP</h2>
+              <h2 className="text-sm font-bold text-meow-charcoal">Verificação por IP</h2>
               <p className="mt-1 text-xs text-meow-muted">
-                Confirme novos acessos por e-mail. Revalidacao obrigatoria a cada 21 dias.
+                Confirme novos acessos por e-mail. Revalidação obrigatória a cada 21 dias.
               </p>
               {user.mfaEnabled ? (
                 <p className="mt-2 text-xs font-semibold text-emerald-600">
-                  Ativo. Ultima verificacao:{' '}
+                  Ativo. Última verificação:{' '}
                   {user.mfaLastVerifiedAt
                     ? new Date(user.mfaLastVerifiedAt).toLocaleString('pt-BR')
-                    : 'Nao informada'}
+                    : 'Não informada'}
                 </p>
               ) : (
                 <p className="mt-2 text-xs font-semibold text-meow-deep">Desativado</p>
@@ -233,7 +233,7 @@ export const AccountSecurityContent = () => {
           {mfaChallengeId && !user.mfaEnabled ? (
             <form onSubmit={handleMfaConfirm} className="mt-4 grid gap-3">
               <label className="grid gap-1 text-xs font-semibold text-meow-muted">
-                Codigo recebido por e-mail
+                Código recebido por e-mail
                 <input
                   className="rounded-xl border border-meow-red/20 bg-white px-3 py-2 text-center text-sm font-semibold tracking-[0.3em] text-meow-charcoal"
                   value={mfaCode}
@@ -248,7 +248,7 @@ export const AccountSecurityContent = () => {
                 className="w-fit rounded-full bg-meow-linear px-6 py-2 text-xs font-bold text-white"
                 disabled={mfaState.busy}
               >
-                {mfaState.busy ? 'Confirmando...' : 'Confirmar codigo'}
+                {mfaState.busy ? 'Confirmando...' : 'Confirmar código'}
               </button>
             </form>
           ) : null}
