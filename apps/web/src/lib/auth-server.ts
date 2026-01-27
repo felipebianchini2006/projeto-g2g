@@ -1,4 +1,4 @@
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 const RAW_API_URL =
@@ -54,10 +54,45 @@ const parseJson = async (response: Response) => {
   return null;
 };
 
+/**
+ * Get the client IP from the incoming request headers.
+ * In Next.js App Router, we read x-forwarded-for from incoming headers.
+ */
+export const getClientIp = async (): Promise<string | null> => {
+  const headersList = await headers();
+  // Check various headers that proxies use
+  const xForwardedFor = headersList.get('x-forwarded-for');
+  if (xForwardedFor) {
+    // x-forwarded-for can have multiple IPs, the first is the client
+    return xForwardedFor.split(',')[0].trim();
+  }
+  const xRealIp = headersList.get('x-real-ip');
+  if (xRealIp) {
+    return xRealIp;
+  }
+  const cfConnectingIp = headersList.get('cf-connecting-ip');
+  if (cfConnectingIp) {
+    return cfConnectingIp;
+  }
+  return null;
+};
+
 export const apiPost = async (path: string, body?: Record<string, unknown>) => {
+  const clientIp = await getClientIp();
+
+  const requestHeaders: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  // Forward the client IP to the API
+  if (clientIp) {
+    requestHeaders['X-Forwarded-For'] = clientIp;
+    requestHeaders['X-Real-IP'] = clientIp;
+  }
+
   const response = await fetch(`${API_URL}${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: requestHeaders,
     body: body ? JSON.stringify(body) : undefined,
   });
   const payload = await parseJson(response);
@@ -105,4 +140,3 @@ export const getRefreshCookie = async () => {
   const cookieStore = await cookies();
   return cookieStore.get(REFRESH_COOKIE)?.value ?? null;
 };
-

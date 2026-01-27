@@ -7,7 +7,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Package,
-  RefreshCw,
+  RefreshCcw,
   ShieldCheck,
   Truck,
 } from 'lucide-react';
@@ -29,7 +29,7 @@ type BenefitIconProps = {
 };
 
 const PackageLoopIcon = ({ size = 22, ...props }: BenefitIconProps) => {
-  const innerSize = Math.round(size * 0.7);
+  const innerSize = Math.round(size * 0.68);
   const offset = Math.round((size - innerSize) / 2);
 
   return (
@@ -42,7 +42,7 @@ const PackageLoopIcon = ({ size = 22, ...props }: BenefitIconProps) => {
         display: 'inline-flex',
       }}
     >
-      <RefreshCw size={size} className="absolute inset-0" aria-hidden />
+      <RefreshCcw size={size} className="absolute inset-0" aria-hidden />
       <Package
         size={innerSize}
         className="absolute"

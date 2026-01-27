@@ -39,7 +39,7 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly discordAuthService: DiscordAuthService,
     private readonly googleAuthService: GoogleAuthService,
-  ) {}
+  ) { }
 
   @Post('register')
   @UseGuards(ThrottlerGuard)

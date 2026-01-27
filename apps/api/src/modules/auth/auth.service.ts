@@ -519,6 +519,7 @@ export class AuthService {
       now - lastVerifiedAt > MFA_REVERIFY_DAYS * 24 * 60 * 60 * 1000;
     const ipChanged =
       !meta.ip || !user.mfaLastVerifiedIp || meta.ip !== user.mfaLastVerifiedIp;
+
     return stale || ipChanged;
   }
 
