@@ -33,6 +33,21 @@ npm run lint
 
 Estrategia e checklists: `TESTING.md`.
 
+### E2E (API)
+
+Suba Postgres + Redis de teste e rode o suite E2E da API:
+
+```bash
+npm run test:setup
+npm run test:int:api
+```
+
+Ou diretamente na workspace:
+
+```bash
+npm run test:e2e -w apps/api
+```
+
 ## Web (Next.js)
 
 Para apontar o frontend para a API local, ajuste o `.env.local`:

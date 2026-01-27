@@ -21,6 +21,8 @@ describe('Partners and Coupons Delete (e2e)', () => {
     let userToken: string;
     let partnerId: string;
     let couponId: string;
+    let adminEmail: string;
+    let userEmail: string;
 
     beforeAll(async () => {
         applyTestEnv();
@@ -44,6 +46,7 @@ describe('Partners and Coupons Delete (e2e)', () => {
             },
         });
         adminToken = await jwtService.signAsync({ sub: admin.id, role: admin.role });
+        adminEmail = admin.email;
 
         // Create user
         const user = await prisma.user.create({
@@ -54,6 +57,7 @@ describe('Partners and Coupons Delete (e2e)', () => {
             },
         });
         userToken = await jwtService.signAsync({ sub: user.id, role: user.role });
+        userEmail = user.email;
     });
 
     afterAll(async () => {
@@ -69,6 +73,7 @@ describe('Partners and Coupons Delete (e2e)', () => {
                     name: 'Test Partner',
                     slug: `test-partner-${randomUUID()}`,
                     commissionBps: 500,
+                    ownerEmail: userEmail,
                 })
                 .expect(201);
 
@@ -112,6 +117,7 @@ describe('Partners and Coupons Delete (e2e)', () => {
                     name: 'Another Partner',
                     slug: `another-partner-${randomUUID()}`,
                     commissionBps: 300,
+                    ownerEmail: userEmail,
                 });
 
             await request(app.getHttpServer())

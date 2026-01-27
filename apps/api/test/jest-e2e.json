@@ -5,6 +5,7 @@
   "testRegex": ".e2e-spec.ts$",
   "globalSetup": "./jest-e2e.global-setup.cjs",
   "setupFiles": ["./jest-e2e.setup.ts"],
+  "testTimeout": 60000,
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
   }

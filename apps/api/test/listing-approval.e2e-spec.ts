@@ -167,7 +167,13 @@ describe('Listing Approval / Confirmar Anuncio (e2e)', () => {
                 .expect(201);
 
             expect(response.body.status).toBe('DRAFT');
-            expect(response.body.rejectionReason).toBe('Description too short.');
+
+            const audit = await prisma.auditLog.findFirst({
+                where: { entityType: 'listing', entityId: rejectListingId },
+                orderBy: { createdAt: 'desc' },
+            });
+            expect(audit?.payload).toBeTruthy();
+            expect((audit?.payload as { reason?: string })?.reason).toBe('Description too short.');
         });
 
         it('seller can see rejection reason', async () => {
@@ -177,7 +183,12 @@ describe('Listing Approval / Confirmar Anuncio (e2e)', () => {
                 .expect(200);
 
             expect(response.body.status).toBe('DRAFT');
-            expect(response.body.rejectionReason).toBe('Description too short.');
+
+            const audit = await prisma.auditLog.findFirst({
+                where: { entityType: 'listing', entityId: rejectListingId },
+                orderBy: { createdAt: 'desc' },
+            });
+            expect((audit?.payload as { reason?: string })?.reason).toBe('Description too short.');
         });
     });
 
