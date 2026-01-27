@@ -12,8 +12,11 @@ export function FormTitleSection({
     onChange,
     maxLength = 80,
 }: FormTitleSectionProps) {
+    const sanitizeTitle = (input: string) =>
+        input.replace(/[^0-9A-Za-zÀ-ÖØ-öø-ÿ ]+/g, '');
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        onChange(e.target.value);
+        onChange(sanitizeTitle(e.target.value));
     };
 
     const isNearLimit = value.length >= maxLength * 0.9;

@@ -36,7 +36,10 @@ export class GoogleAuthService {
     const user = await this.googleAccountService.findOrCreateUser(profile, tokens, role);
 
     if (user.blockedAt && (!user.blockedUntil || user.blockedUntil > new Date())) {
-      throw new ForbiddenException('User is blocked.');
+      const reason = user.blockedReason?.trim();
+      throw new ForbiddenException(
+        reason ? `Usuário Bloqueado: ${reason}` : 'Usuário Bloqueado.',
+      );
     }
 
     return this.authService.issueTokensForUser(user, meta);

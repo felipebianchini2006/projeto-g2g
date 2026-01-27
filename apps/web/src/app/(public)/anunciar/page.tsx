@@ -115,6 +115,8 @@ const parseInventoryItems = (payload: string) =>
     .map((value) => value.trim())
     .filter(Boolean);
 const stripDigits = (value: string) => value.replace(/\D/g, '');
+const sanitizeTitle = (input: string) =>
+  input.replace(/[^0-9A-Za-zÀ-ÖØ-öø-ÿ ]+/g, '');
 
 type DynamicItem = {
   id: string;
@@ -799,7 +801,7 @@ export default function Page() {
                                 <Input
                                   value={item.title}
                                   onChange={(event) =>
-                                    updateDynamicItem(item.id, { title: event.target.value })
+                                    updateDynamicItem(item.id, { title: sanitizeTitle(event.target.value) })
                                   }
                                   placeholder="Ex: Conta com 4.8k de vbucks"
                                   className="h-12 rounded-xl border-slate-200 bg-white font-semibold text-slate-700"

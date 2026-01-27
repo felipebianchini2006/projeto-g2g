@@ -1,6 +1,6 @@
 import { UserRole } from '@prisma/client';
 import { Transform } from 'class-transformer';
-import { IsArray, IsEmail, IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsEmail, IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class UserUpdateDto {
   @IsOptional()
@@ -13,6 +13,11 @@ export class UserUpdateDto {
   @IsOptional()
   @IsEnum(UserRole)
   role?: UserRole;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  phone?: string;
 
   @IsOptional()
   @IsArray()

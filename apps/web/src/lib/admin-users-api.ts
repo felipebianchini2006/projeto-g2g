@@ -23,6 +23,8 @@ export type AdminUser = {
   addressCity?: string | null;
   addressState?: string | null;
   addressCountry?: string | null;
+  phoneE164?: string | null;
+  phoneVerifiedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -45,6 +47,7 @@ export type AdminUsersQuery = {
 export type AdminUserUpdatePayload = {
   email?: string;
   role?: AdminUserRole;
+  phone?: string;
   adminPermissions?: string[];
 };
 
@@ -81,11 +84,14 @@ export const adminUsersApi = {
       headers: authHeaders(token),
     }),
 
-  blockUser: (token: string | null, userId: string, reason: string) =>
+  blockUser: (token: string | null, userId: string, reason: string, durationDays?: number) =>
     apiFetch<AdminUser>(`/admin/users/${userId}/block`, {
       method: 'POST',
       headers: authHeaders(token),
-      body: JSON.stringify({ reason }),
+      body: JSON.stringify({
+        reason,
+        ...(typeof durationDays === 'number' ? { durationDays } : {}),
+      }),
     }),
 
   unblockUser: (token: string | null, userId: string) =>

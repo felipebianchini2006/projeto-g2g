@@ -349,6 +349,10 @@ export class UsersService {
     }
 
     const now = new Date();
+    const blockedUntil =
+      typeof dto.durationDays === 'number'
+        ? new Date(now.getTime() + dto.durationDays * 24 * 60 * 60 * 1000)
+        : null;
 
     return this.prisma.$transaction(async (tx) => {
       const user = await tx.user.findUnique({ where: { id: userId } });
@@ -361,6 +365,7 @@ export class UsersService {
         where: { id: userId },
         data: {
           blockedAt,
+          blockedUntil,
           blockedReason: dto.reason,
         },
         select: USER_SELECT,
@@ -411,6 +416,7 @@ export class UsersService {
         where: { id: userId },
         data: {
           blockedAt: null,
+          blockedUntil: null,
           blockedReason: null,
         },
         select: USER_SELECT,
@@ -440,7 +446,7 @@ export class UsersService {
   }
 
   async updateUser(userId: string, adminId: string, dto: UserUpdateDto, meta: AuditMeta) {
-    if (!dto.email && !dto.role && !dto.adminPermissions) {
+    if (!dto.email && !dto.role && !dto.adminPermissions && dto.phone === undefined) {
       throw new BadRequestException('No fields to update.');
     }
 
@@ -457,6 +463,10 @@ export class UsersService {
       const data: Prisma.UserUpdateInput = {};
       if (dto.email && dto.email !== current.email) {
         data.email = dto.email;
+      }
+      if (dto.phone !== undefined) {
+        const digits = typeof dto.phone === 'string' ? dto.phone.replace(/\D/g, '') : '';
+        data.phoneE164 = digits.length ? digits : null;
       }
 
       const normalizePermissions = (permissions?: string[]) => {

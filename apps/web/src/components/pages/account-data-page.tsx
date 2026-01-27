@@ -834,15 +834,6 @@ export const AccountDataContent = () => {
                         <span className="flex items-center gap-1 text-[10px] text-emerald-600">
                           <Check size={12} /> Verificado
                         </span>
-                      ) : profile?.phoneE164 && !isFormLocked && phoneVerifyStep === 'idle' ? (
-                        <button
-                          type="button"
-                          onClick={handlePhoneVerify}
-                          className="text-[10px] text-meow-deep underline hover:text-meow-red disabled:opacity-50"
-                          disabled={phoneVerifyLoading}
-                        >
-                          {phoneVerifyLoading ? 'Enviando...' : 'Verificar'}
-                        </button>
                       ) : null}
                     </div>
                     {phoneVerifyStep === 'code' ? (
@@ -897,6 +888,12 @@ export const AccountDataContent = () => {
                 </div>
               </div>
             </div>
+
+            <p className="text-xs text-slate-500">
+              Verifique cuidadosamente se o seu número de telefone está totalmente correto, pois
+              será necessário confirmar via SMS para solicitar o saque. Não informe um número falso
+              ou que você não utilize.
+            </p>
 
             <div className="border-t border-slate-100 pt-6">
               <SectionTitle icon={<Info size={14} aria-hidden />} label="Perfil publico" />

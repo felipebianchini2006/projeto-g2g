@@ -78,7 +78,7 @@ export class AuthService {
     }
 
     if (this.isUserBlocked(user)) {
-      throw new ForbiddenException('User is blocked.');
+      throw new ForbiddenException(this.buildBlockedMessage(user.blockedReason));
     }
 
     if (user.mfaEnabled && this.requiresMfa(user, meta)) {
@@ -119,7 +119,7 @@ export class AuthService {
     }
 
     if (this.isUserBlocked(existing.user)) {
-      throw new ForbiddenException('User is blocked.');
+      throw new ForbiddenException(this.buildBlockedMessage(existing.user.blockedReason));
     }
 
     const sessionExpiryCap =
@@ -143,6 +143,11 @@ export class AuthService {
 
   private isUserBlocked(user: Pick<User, 'blockedAt' | 'blockedUntil'>) {
     return Boolean(user.blockedAt && (!user.blockedUntil || user.blockedUntil > new Date()));
+  }
+
+  private buildBlockedMessage(reason?: string | null) {
+    const cleaned = typeof reason === 'string' ? reason.trim() : '';
+    return cleaned ? `Usuário Bloqueado: ${cleaned}` : 'Usuário Bloqueado.';
   }
 
   async logout(dto: LogoutDto): Promise<{ success: true }> {

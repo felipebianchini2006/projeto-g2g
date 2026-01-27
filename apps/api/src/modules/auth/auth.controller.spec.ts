@@ -79,7 +79,7 @@ describe('AuthController (discord exchange)', () => {
 
   it('returns 403 when user is blocked', async () => {
     discordAuthService.exchangeCodeForSession.mockRejectedValue(
-      new ForbiddenException('User is blocked.'),
+      new ForbiddenException('Usuário Bloqueado: teste'),
     );
 
     await request(app.getHttpServer())

@@ -34,7 +34,10 @@ export class DiscordAuthService {
     const user = await this.discordAccountService.findOrCreateUser(profile, tokens);
 
     if (user.blockedAt && (!user.blockedUntil || user.blockedUntil > new Date())) {
-      throw new ForbiddenException('User is blocked.');
+      const reason = user.blockedReason?.trim();
+      throw new ForbiddenException(
+        reason ? `Usuário Bloqueado: ${reason}` : 'Usuário Bloqueado.',
+      );
     }
 
     return this.authService.issueTokensForUser(user, meta);

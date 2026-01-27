@@ -73,11 +73,19 @@ export const AdminUsersContent = () => {
   const [blockedFilter, setBlockedFilter] = useState<'all' | 'blocked' | 'active'>('all');
   const [search, setSearch] = useState('');
   const [actionReason, setActionReason] = useState('');
+  const [blockMode, setBlockMode] = useState<'permanent' | 'temporary'>('permanent');
+  const [blockDays, setBlockDays] = useState('');
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<{ email: string; role: AdminUserRole; adminPermissions: string[] }>({
+  const [editForm, setEditForm] = useState<{
+    email: string;
+    phone: string;
+    role: AdminUserRole;
+    adminPermissions: string[];
+  }>({
     email: '',
+    phone: '',
     role: 'USER',
     adminPermissions: [],
   });
@@ -157,24 +165,40 @@ export const AdminUsersContent = () => {
 
   useEffect(() => {
     if (!selectedUser) {
-      setEditForm({ email: '', role: 'USER', adminPermissions: [] });
+      setEditForm({ email: '', phone: '', role: 'USER', adminPermissions: [] });
+      setBlockMode('permanent');
+      setBlockDays('');
       return;
     }
     setEditForm({
       email: selectedUser.email,
+      phone: selectedUser.phoneE164 ?? '',
       role: selectedUser.role,
       adminPermissions: selectedUser.adminPermissions ?? [],
     });
+    setBlockMode('permanent');
+    setBlockDays('');
   }, [selectedUser]);
 
   const handleUpdate = async () => {
     if (!accessToken || !selectedUser) {
       return;
     }
+    const normalizeDigits = (value?: string) => {
+      if (typeof value !== 'string') {
+        return '';
+      }
+      return value.replace(/\D/g, '');
+    };
     const email = editForm.email.trim();
     const payload: AdminUserUpdatePayload = {};
     if (email && email !== selectedUser.email) {
       payload.email = email;
+    }
+    const nextPhone = normalizeDigits(editForm.phone);
+    const currentPhone = normalizeDigits(selectedUser.phoneE164 ?? '');
+    if (nextPhone !== currentPhone) {
+      payload.phone = editForm.phone.trim();
     }
     if (editForm.role !== selectedUser.role) {
       payload.role = editForm.role;
@@ -215,6 +239,15 @@ export const AdminUsersContent = () => {
       setError('Informe o motivo do bloqueio.');
       return;
     }
+    let durationDays: number | undefined;
+    if (blockMode === 'temporary') {
+      const parsed = Number(blockDays);
+      if (!Number.isFinite(parsed) || parsed <= 0) {
+        setError('Informe a dura??o do bloqueio em dias.');
+        return;
+      }
+      durationDays = Math.floor(parsed);
+    }
     setBusyAction('block');
     setError(null);
     setNotice(null);
@@ -223,16 +256,20 @@ export const AdminUsersContent = () => {
         accessToken,
         selectedUser.id,
         actionReason.trim(),
+        durationDays,
       );
       applyUserUpdate(updated);
       setNotice('Usuario bloqueado.');
       setActionReason('');
+      setBlockMode('permanent');
+      setBlockDays('');
     } catch (error) {
-      handleError(error, 'Não foi possível bloquear o usuário.');
+      handleError(error, 'N?o foi poss?vel bloquear o usu?rio.');
     } finally {
       setBusyAction(null);
     }
   };
+
 
   const handleUnblock = async () => {
     if (!accessToken || !selectedUser) {
@@ -485,6 +522,15 @@ export const AdminUsersContent = () => {
                         />
                       </label>
                       <label className="space-y-1.5">
+                        <span className="text-xs font-semibold text-slate-600">Telefone</span>
+                        <Input
+                          value={editForm.phone}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
+                          placeholder="Ex: 11999999999"
+                          className="bg-slate-50"
+                        />
+                      </label>
+                      <label className="space-y-1.5">
                         <span className="text-xs font-semibold text-slate-600">Função</span>
                         <select
                           className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-700 outline-none focus:border-meow-red/60 focus:ring-4 focus:ring-meow-red/15"
@@ -545,6 +591,7 @@ export const AdminUsersContent = () => {
                         onClick={() => {
                           setEditForm({
                             email: selectedUser.email,
+                            phone: selectedUser.phoneE164 ?? '',
                             role: selectedUser.role,
                             adminPermissions: selectedUser.adminPermissions ?? [],
                           });
@@ -581,7 +628,15 @@ export const AdminUsersContent = () => {
                           </span>
                         </div>
                       </div>
+                      
                       <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                        <span className="block text-[10px] font-semibold uppercase text-slate-400">Telefone</span>
+                        <span className="mt-1 block text-sm font-bold text-meow-charcoal">
+                          {selectedUser.phoneE164 ?? 'Nao informado'}
+                        </span>
+                      </div>
+
+<div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
                         <span className="block text-[10px] font-semibold uppercase text-slate-400">Endereco</span>
                         <span className="mt-1 block text-sm font-bold text-meow-charcoal">
                           {selectedUser.addressStreet ? (
@@ -653,6 +708,42 @@ export const AdminUsersContent = () => {
                         <p className="text-xs text-red-700 opacity-80">
                           O usuário será desconectado e impedido de fazer login.
                         </p>
+                        <div className="grid gap-2 rounded-lg border border-red-200 bg-white/70 p-3 text-xs text-red-800">
+                          <span className="font-semibold text-red-800">Tipo de bloqueio</span>
+                          <div className="flex flex-wrap items-center gap-3">
+                            <label className="flex items-center gap-2">
+                              <input
+                                type="radio"
+                                name="block-mode"
+                                checked={blockMode === 'permanent'}
+                                onChange={() => setBlockMode('permanent')}
+                              />
+                              <span>Permanente</span>
+                            </label>
+                            <label className="flex items-center gap-2">
+                              <input
+                                type="radio"
+                                name="block-mode"
+                                checked={blockMode === 'temporary'}
+                                onChange={() => setBlockMode('temporary')}
+                              />
+                              <span>Temporário</span>
+                            </label>
+                          </div>
+                          {blockMode === 'temporary' ? (
+                            <div className="flex items-center gap-2">
+                              <Input
+                                value={blockDays}
+                                onChange={(e) => setBlockDays(e.target.value)}
+                                placeholder="Ex: 7"
+                                inputMode="numeric"
+                                className="h-9 w-24 bg-white"
+                              />
+                              <span>dias</span>
+                            </div>
+                          ) : null}
+                        </div>
+
                         <Textarea
                           placeholder="Descreva o motivo do bloqueio..."
                           className="bg-white border-red-200 focus:border-red-400 focus:ring-red-200"
