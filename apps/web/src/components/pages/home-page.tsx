@@ -29,20 +29,21 @@ type BenefitIconProps = {
 };
 
 const PackageLoopIcon = ({ size = 22, ...props }: BenefitIconProps) => {
-  const innerSize = Math.round(size * 0.68);
-  const offset = Math.round((size - innerSize) / 2);
+  const outerSize = Math.round(size * 1.15);
+  const innerSize = Math.round(outerSize * 0.68);
+  const offset = Math.round((outerSize - innerSize) / 2);
 
   return (
     <span
       {...props}
       style={{
-        width: size,
-        height: size,
+        width: outerSize,
+        height: outerSize,
         position: 'relative',
         display: 'inline-flex',
       }}
     >
-      <RefreshCcw size={size} className="absolute inset-0" aria-hidden />
+      <RefreshCcw size={outerSize} className="absolute inset-0" aria-hidden />
       <Package
         size={innerSize}
         className="absolute"
