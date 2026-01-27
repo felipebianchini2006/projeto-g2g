@@ -25,10 +25,9 @@ export class CreatePartnerDto {
   @IsBoolean()
   active?: boolean;
 
-  @IsOptional()
   @Transform(({ value }) =>
     typeof value === 'string' ? value.trim().toLowerCase() : value,
   )
   @IsEmail()
-  ownerEmail?: string;
+  ownerEmail!: string;
 }

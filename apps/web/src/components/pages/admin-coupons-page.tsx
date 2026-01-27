@@ -37,6 +37,7 @@ import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
 type CouponForm = {
   code: string;
   partnerId: string;
+  partnerEmail: string;
   active: boolean;
   discountType: 'percent' | 'fixed';
   discountPercent: string;
@@ -49,6 +50,7 @@ type CouponForm = {
 const emptyForm: CouponForm = {
   code: '',
   partnerId: '',
+  partnerEmail: '',
   active: true,
   discountType: 'percent',
   discountPercent: '5',
@@ -133,9 +135,11 @@ export const AdminCouponsContent = () => {
   const startEditing = (coupon: Coupon) => {
     setEditingId(coupon.id);
     setViewingStatsId(null);
+    const partner = partners.find((item) => item.id === coupon.partnerId);
     setForm({
       code: coupon.code,
       partnerId: coupon.partnerId ?? '',
+      partnerEmail: partner?.ownerEmail ?? '',
       active: coupon.active,
       discountType: coupon.discountBps ? 'percent' : 'fixed',
       discountPercent: coupon.discountBps ? String(coupon.discountBps / 100) : '',
@@ -428,13 +432,34 @@ export const AdminCouponsContent = () => {
                   <select
                     className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-medium text-slate-700 outline-none focus:border-meow-red/50"
                     value={form.partnerId}
-                    onChange={e => setForm(prev => ({ ...prev, partnerId: e.target.value }))}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      const selected = partners.find((item) => item.id === value);
+                      setForm((prev) => ({
+                        ...prev,
+                        partnerId: value,
+                        partnerEmail: selected?.ownerEmail ?? '',
+                      }));
+                    }}
                   >
                     <option value="">Nenhum (Cupom Global)</option>
                     {partners.map(p => (
-                      <option key={p.id} value={p.id}>{p.name} ({p.slug})</option>
+                      <option key={p.id} value={p.id}>
+                        {p.name} ({p.slug})
+                      </option>
                     ))}
                   </select>
+                </label>
+
+                <label className="grid gap-1.5 text-xs font-semibold text-slate-600">
+                  Email do parceiro (opcional)
+                  <Input
+                    type="email"
+                    placeholder="dono@exemplo.com"
+                    value={form.partnerEmail}
+                    onChange={(e) => setForm(prev => ({ ...prev, partnerEmail: e.target.value }))}
+                  />
+                  <span className="text-[10px] text-slate-400">Se preenchido, o email prevalece sobre a seleção acima.</span>
                 </label>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -528,9 +553,22 @@ export const AdminCouponsContent = () => {
                   disabled={!canSave || busyAction === 'coupon-save'}
                   onClick={() =>
                     runAction('coupon-save', async () => {
+                      const normalizedEmail = form.partnerEmail.trim().toLowerCase();
+                      let resolvedPartnerId = form.partnerId || null;
+                      if (normalizedEmail) {
+                        const match = partners.find(
+                          (partner) =>
+                            partner.ownerEmail?.toLowerCase() === normalizedEmail,
+                        );
+                        if (!match) {
+                          throw new Error('Parceiro não encontrado para o email informado.');
+                        }
+                        resolvedPartnerId = match.id;
+                      }
+
                       const payload = {
                         code: form.code.trim().toUpperCase(),
-                        partnerId: form.partnerId || null,
+                        partnerId: resolvedPartnerId,
                         active: form.active,
                         discountBps:
                           form.discountType === 'percent' ? Math.round(discountPercent * 100) : null,

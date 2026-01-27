@@ -72,6 +72,7 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
   const pathname = usePathname() ?? '';
   const { inDashboardLayout } = useDashboardLayout();
   const isSeller = user?.role === 'SELLER' || user?.role === 'ADMIN';
+  const showPartnerDashboard = true;
 
   const menuSections = useMemo<MenuSection[]>(() => {
     const sections: MenuSection[] = [
@@ -93,6 +94,8 @@ export const AccountShell = ({ breadcrumbs, children }: AccountShellProps) => {
         title: 'Vendedor',
         items: [
           { label: 'Carteira', href: '/conta/carteira' },
+          { label: 'Parceiros', href: '/conta/parceiros' },
+          ...(showPartnerDashboard ? [{ label: 'Painel do parceiro', href: '/parceiro' }] : []),
           { label: 'Meus anúncios', href: '/conta/anuncios' },
           { label: 'Minhas vendas', href: '/conta/vendas' },
           { label: 'Painel do vendedor', href: '/conta/vendedor' },

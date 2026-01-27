@@ -151,8 +151,19 @@ export class PartnersService {
   }
 
   async listOwnedPartners(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
     return this.prisma.partner.findMany({
-      where: { ownerUserId: userId },
+      where: user?.email
+        ? {
+            OR: [
+              { ownerUserId: userId },
+              { ownerEmail: { equals: user.email, mode: 'insensitive' } },
+            ],
+          }
+        : { ownerUserId: userId },
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -165,7 +176,7 @@ export class PartnersService {
     if (!partner) {
       throw new NotFoundException('Partner not found.');
     }
-    this.assertPartnerAccess(partner.ownerUserId, userId, role);
+    await this.assertPartnerAccess(partner.ownerUserId, partner.ownerEmail, userId, role);
 
     const [clicks, orders, earned, reversed, paid] = await Promise.all([
       this.prisma.partnerClick.count({ where: { partnerId } }),
@@ -256,7 +267,7 @@ export class PartnersService {
       if (!partner) {
         throw new NotFoundException('Partner not found.');
       }
-      this.assertPartnerAccess(partner.ownerUserId, userId, role);
+      await this.assertPartnerAccess(partner.ownerUserId, partner.ownerEmail, userId, role);
 
       const balanceCents = await this.getPartnerBalance(partnerId, tx);
       if (dto.amountCents > balanceCents) {
@@ -278,13 +289,28 @@ export class PartnersService {
     });
   }
 
-  private assertPartnerAccess(ownerUserId: string | null, userId: string, role: UserRole) {
+  private async assertPartnerAccess(
+    ownerUserId: string | null,
+    ownerEmail: string | null | undefined,
+    userId: string,
+    role: UserRole,
+  ) {
     if (role === UserRole.ADMIN) {
       return;
     }
-    if (!ownerUserId || ownerUserId !== userId) {
-      throw new ForbiddenException('You do not have access to this partner.');
+    if (ownerUserId && ownerUserId === userId) {
+      return;
     }
+    if (ownerEmail) {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { email: true },
+      });
+      if (user?.email && user.email.toLowerCase() === ownerEmail.toLowerCase()) {
+        return;
+      }
+    }
+    throw new ForbiddenException('You do not have access to this partner.');
   }
 
   private async getPartnerBalance(partnerId: string, tx?: Prisma.TransactionClient) {

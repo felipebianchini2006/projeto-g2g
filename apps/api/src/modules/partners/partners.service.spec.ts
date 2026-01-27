@@ -73,6 +73,7 @@ describe('PartnersService', () => {
       mockPrisma.partner.findUnique.mockResolvedValue({
         id: 'partner-1',
         ownerUserId: 'user-1',
+        ownerEmail: null,
         coupons: [{ id: 'coupon-1' }],
       });
       mockPrisma.partnerClick.count.mockResolvedValue(5);
@@ -107,12 +108,42 @@ describe('PartnersService', () => {
       mockPrisma.partner.findUnique.mockResolvedValue({
         id: 'partner-1',
         ownerUserId: 'user-2',
+        ownerEmail: null,
         coupons: [],
       });
 
       await expect(
         service.getPartnerStatsForUser('partner-1', 'user-1', UserRole.USER),
       ).rejects.toBeInstanceOf(ForbiddenException);
+    });
+
+    it('allows access when owner email matches user email', async () => {
+      mockPrisma.partner.findUnique.mockResolvedValue({
+        id: 'partner-1',
+        ownerUserId: null,
+        ownerEmail: 'admin@email.com',
+        coupons: [],
+      });
+      mockPrisma.user.findUnique.mockResolvedValue({ email: 'admin@email.com' });
+      mockPrisma.partnerClick.count.mockResolvedValue(0);
+      mockPrisma.orderAttribution.count.mockResolvedValue(0);
+      mockPrisma.partnerCommissionEvent.aggregate
+        .mockResolvedValueOnce({ _sum: { amountCents: 0 } })
+        .mockResolvedValueOnce({ _sum: { amountCents: 0 } });
+      mockPrisma.partnerPayout.aggregate.mockResolvedValue({ _sum: { amountCents: 0 } });
+
+      const result = await service.getPartnerStatsForUser(
+        'partner-1',
+        'user-1',
+        UserRole.USER,
+      );
+
+      expect(result).toEqual(
+        expect.objectContaining({
+          partnerId: 'partner-1',
+          balanceCents: 0,
+        }),
+      );
     });
   });
 

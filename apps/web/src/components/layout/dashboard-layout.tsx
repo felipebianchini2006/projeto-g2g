@@ -140,6 +140,7 @@ const accountNav = (
   logout: () => Promise<void>,
   goHome: () => void,
   isSeller: boolean,
+  showPartner: boolean,
 ): MenuSection[] => {
   const sections: MenuSection[] = [
     {
@@ -159,6 +160,7 @@ const accountNav = (
       title: 'Vendedor',
       items: [
         { label: 'Carteira', href: '/conta/carteira' },
+        ...(showPartner ? [{ label: 'Parceiros', href: '/conta/parceiros' }] : []),
         { label: 'Meus anúncios', href: '/conta/anuncios' },
         { label: 'Minhas vendas', href: '/conta/vendas' },
         { label: 'Painel do vendedor', href: '/conta/vendedor' },
@@ -544,10 +546,11 @@ type DashboardLayoutProps = {
 };
 
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
-  const { user, logout } = useAuth();
+  const { user, logout, accessToken } = useAuth();
   const router = useRouter();
   const pathname = usePathname() ?? '';
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [hasPartnerDashboard, setHasPartnerDashboard] = useState(false);
 
   const isAdminRoute = pathname.startsWith('/admin');
 
@@ -567,12 +570,45 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
   const isSeller = user?.role === 'SELLER' || user?.role === 'ADMIN';
 
+  useEffect(() => {
+    let active = true;
+    const run = async () => {
+      if (!accessToken) {
+        if (active) {
+          setHasPartnerDashboard(false);
+        }
+        return;
+      }
+      try {
+        const response = await fetch('/api/proxy/partner/me', {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        if (!response.ok) {
+          throw new Error('failed');
+        }
+        const partners = (await response.json()) as Array<{ id: string }>;
+        if (active) {
+          setHasPartnerDashboard(partners.length > 0);
+        }
+      } catch {
+        if (active) {
+          setHasPartnerDashboard(false);
+        }
+      }
+    };
+    run();
+    return () => {
+      active = false;
+    };
+  }, [accessToken]);
+
+
   const menuSections = useMemo(
     () =>
       isAdminRoute
         ? adminNav(logout, () => router.push('/'))
-        : accountNav(logout, () => router.push('/'), isSeller),
-    [isAdminRoute, isSeller, logout, router],
+        : accountNav(logout, () => router.push('/'), isSeller, hasPartnerDashboard),
+    [hasPartnerDashboard, isAdminRoute, isSeller, logout, router],
   );
 
   const canSeeAdminItem = (item: MenuItem) => {

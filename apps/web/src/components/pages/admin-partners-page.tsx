@@ -35,6 +35,7 @@ type PartnerForm = {
   slug: string;
   commissionPct: string;
   active: boolean;
+  ownerEmail: string;
 };
 
 const emptyForm: PartnerForm = {
@@ -42,6 +43,7 @@ const emptyForm: PartnerForm = {
   slug: '',
   commissionPct: '65',
   active: true,
+  ownerEmail: '',
 };
 
 const formatCurrency = (value: number) =>
@@ -125,6 +127,7 @@ export const AdminPartnersContent = () => {
       slug: partner.slug,
       commissionPct: String(partner.commissionBps / 100),
       active: partner.active,
+      ownerEmail: partner.ownerEmail ?? '',
     });
   };
 
@@ -256,6 +259,9 @@ export const AdminPartnersContent = () => {
                         <div className="flex flex-col gap-1 text-xs text-slate-500">
                           <span className="flex items-center gap-1.5"><LinkIcon size={12} /> /{partner.slug}</span>
                           <span className="flex items-center gap-1.5"><Percent size={12} /> Comissão: {(partner.commissionBps / 100).toFixed(2)}%</span>
+                          {partner.ownerEmail ? (
+                            <span className="flex items-center gap-1.5"><Users size={12} /> {partner.ownerEmail}</span>
+                          ) : null}
                         </div>
                       </div>
 
@@ -376,10 +382,20 @@ export const AdminPartnersContent = () => {
                     </select>
                   </label>
 
+                  <label className="grid gap-1.5 text-xs font-semibold text-slate-600">
+                    Email do dono *
+                    <Input
+                      type="email"
+                      placeholder="dono@exemplo.com"
+                      value={form.ownerEmail}
+                      onChange={(e) => setForm((prev) => ({ ...prev, ownerEmail: e.target.value }))}
+                    />
+                  </label>
+
                   <div className="pt-2 flex gap-2">
                     <Button
                       className="flex-1"
-                      disabled={!form.name.trim() || !form.slug.trim() || commissionBps === null || busyAction === 'partner-save'}
+                      disabled={!form.name.trim() || !form.slug.trim() || !form.ownerEmail.trim() || commissionBps === null || busyAction === 'partner-save'}
                       onClick={() =>
                         runAction('partner-save', async () => {
                           const payload = {
@@ -387,6 +403,7 @@ export const AdminPartnersContent = () => {
                             slug: form.slug.trim(),
                             commissionBps: commissionBps ?? 0,
                             active: form.active,
+                            ownerEmail: form.ownerEmail.trim(),
                           };
                           if (editingId) {
                             await adminPartnersApi.updatePartner(accessToken!, editingId, payload);

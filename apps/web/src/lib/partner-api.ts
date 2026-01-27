@@ -44,17 +44,17 @@ const authHeaders = (token: string | null): Record<string, string> =>
 
 export const partnerApi = {
   listMine: (token: string | null) =>
-    apiFetch<Partner[]>('/partner/me', { headers: authHeaders(token) }),
+    apiFetch<Partner[]>('/partner/me', { headers: authHeaders(token) }, '/api/proxy'),
 
   getStats: (token: string | null, partnerId: string) =>
     apiFetch<PartnerStats>(`/partner/me/${partnerId}/stats`, {
       headers: authHeaders(token),
-    }),
+    }, '/api/proxy'),
 
   requestPayout: (token: string | null, partnerId: string, payload: PartnerPayoutRequest) =>
     apiFetch(`/partner/me/${partnerId}/payouts/request`, {
       method: 'POST',
       headers: authHeaders(token),
       body: JSON.stringify(payload),
-    }),
+    }, '/api/proxy'),
 };
