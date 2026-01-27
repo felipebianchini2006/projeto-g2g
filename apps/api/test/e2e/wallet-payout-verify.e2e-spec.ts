@@ -112,7 +112,7 @@ describe('Wallet payout verification (e2e)', () => {
 
     expect(twilioVerify.sendCalls.length).toBe(2);
     const channels = twilioVerify.sendCalls.map((call) => call.channel).sort();
-    expect(channels).toEqual(['email', 'whatsapp']);
+    expect(channels).toEqual(['email', 'sms']);
     const targets = twilioVerify.sendCalls.map((call) => call.to).sort();
     expect(targets).toEqual([seller.email, seller.phoneE164].sort());
   });
@@ -133,7 +133,7 @@ describe('Wallet payout verification (e2e)', () => {
       .send({
         payoutDraftId: requestResponse.body.payoutDraftId,
         codeEmail: '000000',
-        codeWhatsapp: '000000',
+        codeSms: '000000',
       })
       .expect(201);
 
@@ -166,7 +166,7 @@ describe('Wallet payout verification (e2e)', () => {
       .send({
         payoutDraftId: requestResponse.body.payoutDraftId,
         codeEmail: '111111',
-        codeWhatsapp: '000000',
+        codeSms: '000000',
       })
       .expect(403);
 

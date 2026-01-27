@@ -73,7 +73,7 @@ describe('OrdersService (attribution)', () => {
       { getSettings: jest.fn().mockResolvedValue({ orderPaymentTtlSeconds: 900, platformFeeBps: 1000 }) } as any,
       couponsService as any,
       partnersService as any,
-      { sendWhatsApp: jest.fn() } as any,
+      { sendSms: jest.fn() } as any,
     );
 
     await service.createOrder(

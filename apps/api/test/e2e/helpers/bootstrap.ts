@@ -49,13 +49,13 @@ export class FakeEmailQueueService {
   }
 }
 
-export type FakeWhatsAppCall = {
+export type FakeSmsCall = {
   to: string;
   body: string;
 };
 
 export class FakeTwilioMessaging {
-  calls: FakeWhatsAppCall[] = [];
+  calls: FakeSmsCall[] = [];
   shouldFail = false;
   error = new Error('FakeTwilioMessaging failure');
 
@@ -64,12 +64,12 @@ export class FakeTwilioMessaging {
     this.shouldFail = false;
   }
 
-  async sendWhatsApp(to: string, body: string) {
+  async sendSms(to: string, body: string) {
     this.calls.push({ to, body });
     if (this.shouldFail) {
       throw this.error;
     }
-    return { sid: 'fake-whatsapp' };
+    return { sid: 'fake-sms' };
   }
 }
 

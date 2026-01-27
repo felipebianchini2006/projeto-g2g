@@ -16,7 +16,7 @@ import {
 
 jest.setTimeout(60000);
 
-describe('Orders delivered WhatsApp (e2e)', () => {
+describe('Orders delivered SMS (e2e)', () => {
   let app: INestApplication<App>;
   let prisma: PrismaService;
   let twilioMessaging: FakeTwilioMessaging;
@@ -118,7 +118,7 @@ describe('Orders delivered WhatsApp (e2e)', () => {
     return { order, seller, buyer };
   };
 
-  it('sends WhatsApp notification when order is marked delivered', async () => {
+  it('sends SMS notification when order is marked delivered', async () => {
     const { order, seller, buyer } = await setupOrder();
     const sellerToken = await getAuthToken(app, seller.email, '12345678');
 
@@ -137,7 +137,7 @@ describe('Orders delivered WhatsApp (e2e)', () => {
     expect(twilioMessaging.calls[0]?.body).toContain(order.id);
   });
 
-  it('does not fail when WhatsApp send throws an error', async () => {
+  it('does not fail when SMS send throws an error', async () => {
     const { order, seller } = await setupOrder();
     const sellerToken = await getAuthToken(app, seller.email, '12345678');
     twilioMessaging.shouldFail = true;

@@ -326,7 +326,7 @@ describe('WalletService', () => {
         beneficiaryName: 'User Seller',
         beneficiaryType: 'PF',
         payoutSpeed: 'NORMAL',
-        phoneChannel: 'whatsapp',
+        phoneChannel: 'sms',
       },
       user: {
         id: userId,
@@ -342,7 +342,7 @@ describe('WalletService', () => {
     const result = await service.confirmPayoutVerification(userId, {
       payoutDraftId: 'draft-1',
       codeEmail: '111111',
-      codeWhatsapp: '222222',
+      codeSms: '222222',
     });
 
     expect(twilioVerifyService.checkVerification).toHaveBeenCalledTimes(2);

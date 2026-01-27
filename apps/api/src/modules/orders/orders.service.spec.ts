@@ -27,7 +27,7 @@ describe('OrdersService (manual delivery)', () => {
   let service: OrdersService;
   let prismaService: PrismaService;
   let ordersQueue: { scheduleAutoComplete: jest.Mock };
-  let twilioMessaging: { sendWhatsApp: jest.Mock };
+  let twilioMessaging: { sendSms: jest.Mock };
   let emailQueue: { enqueueEmail: jest.Mock };
 
   beforeEach(() => {
@@ -57,7 +57,7 @@ describe('OrdersService (manual delivery)', () => {
       scheduleAutoComplete: jest.fn(),
     };
     twilioMessaging = {
-      sendWhatsApp: jest.fn(),
+      sendSms: jest.fn(),
     };
     emailQueue = {
       enqueueEmail: jest.fn(),
@@ -213,7 +213,7 @@ describe('OrdersService (manual delivery)', () => {
       },
       seller: { email: 'seller@test.com' },
     });
-    (twilioMessaging.sendWhatsApp as jest.Mock).mockResolvedValue({ sid: 'msg-1' });
+    (twilioMessaging.sendSms as jest.Mock).mockResolvedValue({ sid: 'msg-1' });
     (prismaService.order.update as jest.Mock).mockResolvedValue({
       id: 'order-1',
       status: OrderStatus.DELIVERED,
@@ -240,7 +240,7 @@ describe('OrdersService (manual delivery)', () => {
     const eventCall = orderEventCreate.mock.calls[0] as [{ data: { type: OrderEventType } }];
     expect(eventCall[0].data.type).toBe(OrderEventType.DELIVERED);
     expect(ordersQueue.scheduleAutoComplete).toHaveBeenCalledWith('order-1', 24 * 60 * 60 * 1000);
-    expect(twilioMessaging.sendWhatsApp).toHaveBeenCalledWith(
+    expect(twilioMessaging.sendSms).toHaveBeenCalledWith(
       '+5511999999999',
       'Seu produto chegou! Pedido order-1. Obrigado pela compra.',
     );

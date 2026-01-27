@@ -15,7 +15,7 @@ const { applyTestEnv } = require('../test-env.cjs');
 const shouldRun = process.env.E2E_TWILIO_REAL === 'true';
 const describeMaybe = shouldRun ? describe : describe.skip;
 
-describeMaybe('Twilio WhatsApp order delivered (e2e)', () => {
+describeMaybe('Twilio SMS order delivered (e2e)', () => {
   let app: INestApplication<App>;
   let prisma: PrismaService;
 
@@ -25,13 +25,17 @@ describeMaybe('Twilio WhatsApp order delivered (e2e)', () => {
     const requiredEnv = [
       'TWILIO_ACCOUNT_SID',
       'TWILIO_AUTH_TOKEN',
-      'TWILIO_WHATSAPP_FROM',
       'E2E_TWILIO_TO',
     ];
     for (const key of requiredEnv) {
       if (!process.env[key]) {
         throw new Error(`Missing env: ${key}`);
       }
+    }
+    if (!process.env.TWILIO_MESSAGING_SERVICE_SID && !process.env.TWILIO_SMS_FROM) {
+      throw new Error(
+        'Missing env: TWILIO_MESSAGING_SERVICE_SID or TWILIO_SMS_FROM',
+      );
     }
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -51,7 +55,7 @@ describeMaybe('Twilio WhatsApp order delivered (e2e)', () => {
     await resetDatabase(prisma);
   });
 
-  it('marks order delivered and triggers WhatsApp send', async () => {
+  it('marks order delivered and triggers SMS send', async () => {
     const passwordHash = await bcrypt.hash('12345678', 10);
 
     const seller = await prisma.user.create({
