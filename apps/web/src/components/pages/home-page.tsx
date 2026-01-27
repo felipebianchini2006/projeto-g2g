@@ -3,11 +3,11 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import {
+  ArrowLeftRight,
   BadgePercent,
   ChevronLeft,
   ChevronRight,
   Package,
-  RefreshCcw,
   ShieldCheck,
   Truck,
 } from 'lucide-react';
@@ -21,38 +21,6 @@ import {
   type PublicListing,
 } from '../../lib/marketplace-public';
 import { HomeListingCard } from '../listings/home-listing-card';
-
-type BenefitIconProps = {
-  size?: number;
-  'aria-hidden'?: boolean;
-  className?: string;
-};
-
-const PackageLoopIcon = ({ size = 22, ...props }: BenefitIconProps) => {
-  const outerSize = Math.round(size * 1.15);
-  const innerSize = Math.round(outerSize * 0.68);
-  const offset = Math.round((outerSize - innerSize) / 2);
-
-  return (
-    <span
-      {...props}
-      style={{
-        width: outerSize,
-        height: outerSize,
-        position: 'relative',
-        display: 'inline-flex',
-      }}
-    >
-      <RefreshCcw size={outerSize} className="absolute inset-0" aria-hidden />
-      <Package
-        size={innerSize}
-        className="absolute"
-        style={{ top: offset, left: offset }}
-        aria-hidden
-      />
-    </span>
-  );
-};
 
 const benefits = [
   {
@@ -71,7 +39,7 @@ const benefits = [
     description: 'Receba rapidamente',
   },
   {
-    icon: PackageLoopIcon,
+    icon: ArrowLeftRight,
     title: 'Variedade',
     description: 'Compre e venda',
   },

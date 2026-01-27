@@ -197,6 +197,14 @@ export const AccountDataContent = () => {
   const [phoneCode, setPhoneCode] = useState('');
   const [phoneVerifyLoading, setPhoneVerifyLoading] = useState(false);
 
+  // SMS Modal before saving data
+  const [showSmsModal, setShowSmsModal] = useState(false);
+  const [smsStep, setSmsStep] = useState<'idle' | 'sending' | 'code' | 'verifying'>('idle');
+  const [smsChallengeId, setSmsChallengeId] = useState<string | null>(null);
+  const [smsCode, setSmsCode] = useState('');
+  const [smsError, setSmsError] = useState<string | null>(null);
+  const [pendingSubmit, setPendingSubmit] = useState(false);
+
   /* Removed early returns */
 
   useEffect(() => {
@@ -303,6 +311,20 @@ export const AccountDataContent = () => {
       setError('Sessão expirada. Entre novamente.');
       return;
     }
+
+    // Se telefone foi preenchido mas não verificado, pedir SMS primeiro
+    const phoneDigits = stripDigits(form.phone);
+    if (phoneDigits.length >= 10 && !profile?.phoneVerifiedAt && !isProfileLocked) {
+      setShowSmsModal(true);
+      setPendingSubmit(true);
+      return;
+    }
+
+    await doSubmit();
+  };
+
+  const doSubmit = async () => {
+    if (!accessToken) return;
     setStatus('saving');
     setError(null);
     setSuccess(null);
@@ -342,6 +364,7 @@ export const AccountDataContent = () => {
       setError(err instanceof Error ? err.message : 'Não foi possível salvar.');
     } finally {
       setStatus('idle');
+      setPendingSubmit(false);
     }
   };
 
@@ -581,6 +604,57 @@ export const AccountDataContent = () => {
     }
   };
 
+  // SMS Modal handlers (before saving data)
+  const handleSmsSend = async () => {
+    if (!accessToken) return;
+    setSmsStep('sending');
+    setSmsError(null);
+    try {
+      const { challengeId } = await usersApi.requestPhoneVerification(accessToken);
+      setSmsChallengeId(challengeId);
+      setSmsStep('code');
+    } catch (err) {
+      setSmsError(err instanceof Error ? err.message : 'Erro ao enviar código.');
+      setSmsStep('idle');
+    }
+  };
+
+  const handleSmsConfirm = async () => {
+    if (!accessToken || !smsChallengeId || !smsCode) return;
+    setSmsStep('verifying');
+    setSmsError(null);
+    try {
+      await usersApi.confirmPhoneVerification(accessToken, smsChallengeId, smsCode);
+      // Refresh profile to update phoneVerifiedAt
+      const updated = await usersApi.getProfile(accessToken);
+      if (updated) {
+        setProfile(updated);
+        setForm(mapProfileToForm(updated));
+      }
+      // Close SMS modal and proceed with submit
+      setShowSmsModal(false);
+      setSmsStep('idle');
+      setSmsChallengeId(null);
+      setSmsCode('');
+      // Now do the actual submit
+      if (pendingSubmit) {
+        await doSubmit();
+      }
+    } catch (err) {
+      setSmsError(err instanceof Error ? err.message : 'Código inválido ou expirado.');
+      setSmsStep('code');
+    }
+  };
+
+  const handleSmsCancel = () => {
+    setShowSmsModal(false);
+    setSmsStep('idle');
+    setSmsChallengeId(null);
+    setSmsCode('');
+    setSmsError(null);
+    setPendingSubmit(false);
+  };
+
   const isProfileComplete = useMemo(() => {
     const cpfDigits = stripDigits(form.cpf);
     const phoneDigits = stripDigits(form.phone);
@@ -759,14 +833,16 @@ export const AccountDataContent = () => {
                 )}
 
                 <div className="mt-4 flex flex-wrap justify-center gap-2">
-                  <Button
-                    type="button"
-                    size="sm"
-                    onClick={handleCreateVerificationPix}
-                    disabled={verificationBusy || verificationLoading}
-                  >
-                    {verificationBusy ? 'Gerando...' : 'Gerar Pix'}
-                  </Button>
+                  {verificationState?.status !== 'PENDING' || !verificationState.payment ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={handleCreateVerificationPix}
+                      disabled={verificationBusy || verificationLoading}
+                    >
+                      {verificationBusy ? 'Gerando...' : 'Gerar Pix'}
+                    </Button>
+                  ) : null}
                   <Button
                     type="button"
                     size="sm"
@@ -777,6 +853,87 @@ export const AccountDataContent = () => {
                     {verificationLoading ? 'Atualizando...' : 'Atualizar status'}
                   </Button>
                 </div>
+              </div>
+            </div>
+          ) : null}
+
+          {/* SMS Verification Modal */}
+          {showSmsModal ? (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+              <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+                <div className="relative mb-4 flex items-center justify-center">
+                  <h3 className="text-lg font-bold text-meow-charcoal">Verificação por SMS</h3>
+                  <button
+                    type="button"
+                    onClick={handleSmsCancel}
+                    className="absolute right-0 rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                  >
+                    <XCircle size={18} />
+                  </button>
+                </div>
+
+                <p className="text-sm text-slate-500">
+                  Para sua segurança, precisamos verificar seu telefone antes de salvar seus dados pessoais.
+                </p>
+
+                {smsError ? (
+                  <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                    {smsError}
+                  </div>
+                ) : null}
+
+                {smsStep === 'idle' || smsStep === 'sending' ? (
+                  <div className="mt-4">
+                    <p className="mb-3 text-xs text-slate-400">
+                      Clique no botão abaixo para receber um código de verificação no seu telefone: {formatPhone(form.phone)}
+                    </p>
+                    <Button
+                      type="button"
+                      onClick={handleSmsSend}
+                      disabled={smsStep === 'sending'}
+                      className="w-full"
+                    >
+                      {smsStep === 'sending' ? 'Enviando...' : 'Enviar código SMS'}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="mt-4 space-y-3">
+                    <label className="block text-xs font-bold uppercase text-slate-500">
+                      Código de verificação
+                    </label>
+                    <Input
+                      value={smsCode}
+                      onChange={(e) => setSmsCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      placeholder="000000"
+                      maxLength={6}
+                      inputMode="numeric"
+                      className="h-12 text-center text-lg font-semibold tracking-[0.3em]"
+                      disabled={smsStep === 'verifying'}
+                    />
+                    <p className="text-xs text-slate-400">
+                      Digite o código de 6 dígitos enviado para seu telefone.
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={handleSmsCancel}
+                        disabled={smsStep === 'verifying'}
+                        className="flex-1"
+                      >
+                        Cancelar
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={handleSmsConfirm}
+                        disabled={smsStep === 'verifying' || smsCode.length !== 6}
+                        className="flex-1"
+                      >
+                        {smsStep === 'verifying' ? 'Verificando...' : 'Confirmar'}
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ) : null}

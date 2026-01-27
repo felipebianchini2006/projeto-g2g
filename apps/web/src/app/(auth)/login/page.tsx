@@ -82,7 +82,7 @@ export default function Page() {
       return;
     }
     if (!mfaCode || mfaCode.trim().length !== 6) {
-      setErrors({ form: 'Informe o codigo de 6 digitos enviado ao seu e-mail.' });
+      setErrors({ form: 'Informe o código de 6 dígitos enviado ao seu e-mail.' });
       return;
     }
 
@@ -94,7 +94,7 @@ export default function Page() {
       if (error instanceof AuthApiError) {
         setErrors({ form: error.message });
       } else {
-        setErrors({ form: 'Nao foi possivel verificar o codigo. Tente novamente.' });
+        setErrors({ form: 'Não foi possível verificar o código. Tente novamente.' });
       }
     } finally {
       setIsSubmitting(false);
@@ -218,7 +218,7 @@ export default function Page() {
             {mfaChallengeId ? (
               <div className="space-y-1.5">
                 <label htmlFor="mfa-code" className="ml-1 text-xs font-bold uppercase tracking-wide text-slate-500">
-                  Codigo de verificacao
+                  Código de verificação
                 </label>
                 <Input
                   id="mfa-code"
@@ -231,7 +231,7 @@ export default function Page() {
                   required
                 />
                 <p className="ml-1 text-xs text-slate-500">
-                  Enviamos um codigo para seu e-mail. Ele expira em 10 minutos.
+                  Enviamos um código para seu e-mail. Ele expira em 10 minutos.
                 </p>
               </div>
             ) : (
@@ -263,7 +263,7 @@ export default function Page() {
               disabled={isSubmitting}
               className="h-12 w-full rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 text-lg font-bold text-white shadow-lg shadow-pink-500/25 transition-all hover:opacity-90 hover:shadow-pink-500/40"
             >
-              {isSubmitting ? 'Entrando...' : mfaChallengeId ? 'Confirmar codigo' : 'Entrar na Conta'}
+              {isSubmitting ? 'Entrando...' : mfaChallengeId ? 'Confirmar código' : 'Entrar na Conta'}
             </Button>
 
             {mfaChallengeId && (

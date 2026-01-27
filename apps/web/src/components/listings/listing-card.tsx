@@ -14,7 +14,9 @@ type ListingCardProps = {
   currency: string;
   image: string;
   isAuto?: boolean;
-  autoTag?: string | null;
+  tagLabel?: string | null;
+  tagEmoji?: string | null;
+  tagTone?: 'blue' | 'green' | 'pink';
   href: string;
   variant?: 'red' | 'dark';
   showFavorite?: boolean;
@@ -25,11 +27,19 @@ const mediaVariants = {
   dark: 'bg-[radial-gradient(circle_at_top,_#30414f_0%,_#1f2937_60%,_#111827_100%)]',
 };
 
+const tagToneClasses = {
+  blue: 'border-sky-200 bg-sky-100 text-sky-700',
+  green: 'border-emerald-200 bg-emerald-100 text-emerald-700',
+  pink: 'border-pink-200 bg-pink-100 text-pink-700',
+};
+
 export const ListingCard = ({
   title,
   image,
   isAuto,
-  autoTag,
+  tagLabel,
+  tagEmoji,
+  tagTone = 'blue',
   href,
   variant = 'red',
   id,
@@ -43,6 +53,8 @@ export const ListingCard = ({
   const favorite = isFavorite(id);
   const fallbackDescription = description?.trim() || 'Entrega segura e comprovada.';
   const showOldPrice = typeof oldPriceCents === 'number' && oldPriceCents > priceCents;
+  const showCustomTag = !isAuto && Boolean(tagLabel?.trim());
+  const tagText = [tagEmoji?.trim(), tagLabel?.trim()].filter(Boolean).join(' ');
   const formatCurrency = (value: number, targetCurrency: string) =>
     new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -69,11 +81,15 @@ export const ListingCard = ({
               <Zap size={12} aria-hidden />
               Entrega auto
             </span>
-            {autoTag ? (
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.3px] text-slate-900 shadow-cute">
-                {autoTag}
-              </span>
-            ) : null}
+          </div>
+        ) : null}
+        {showCustomTag ? (
+          <div className="absolute left-8 top-8">
+            <span
+              className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.3px] shadow-cute ${tagToneClasses[tagTone]}`}
+            >
+              {tagText}
+            </span>
           </div>
         ) : null}
         {showFavorite ? (

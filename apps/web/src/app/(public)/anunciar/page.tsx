@@ -73,7 +73,13 @@ const emptyListing: ListingInput = {
 
 const MAX_PRICE_CENTS = 300000;
 const MIN_PRICE_CENTS = 250;
-const AUTO_TAG_OPTIONS = ['Sem tag', 'Exclusivo', 'Novidade', 'Imperdivel'];
+const TAG_COLOR_OPTIONS = [
+  { value: 'blue', label: 'Azul', className: 'border-sky-200 bg-sky-100 text-sky-700' },
+  { value: 'green', label: 'Verde', className: 'border-emerald-200 bg-emerald-100 text-emerald-700' },
+  { value: 'pink', label: 'Rosa claro', className: 'border-pink-200 bg-pink-100 text-pink-700' },
+] as const;
+
+type TagColorOption = (typeof TAG_COLOR_OPTIONS)[number]['value'];
 
 const parsePriceToCentsRaw = (value: string) => {
   const trimmed = value.trim();
@@ -186,7 +192,10 @@ export default function Page() {
   const [productKind, setProductKind] = useState('Conta');
   const [categoryQuery, setCategoryQuery] = useState('');
   const [categoryOpen, setCategoryOpen] = useState(false);
-  const [autoDeliveryTag, setAutoDeliveryTag] = useState('Sem tag');
+  const [customTagEnabled, setCustomTagEnabled] = useState(false);
+  const [customTagEmoji, setCustomTagEmoji] = useState('');
+  const [customTagLabel, setCustomTagLabel] = useState('');
+  const [customTagColor, setCustomTagColor] = useState<TagColorOption>('blue');
   const [dynamicItems, setDynamicItems] = useState<DynamicItem[]>([
     { id: `item-${Date.now()}`, title: '', priceCents: 0, quantity: '1' },
   ]);
@@ -338,6 +347,12 @@ export default function Page() {
     }
   }, [groups, formState.categoryGroupId]);
 
+  useEffect(() => {
+    if (autoDelivery) {
+      setCustomTagEnabled(false);
+    }
+  }, [autoDelivery]);
+
   const normalizedNumber = profile?.addressNumber?.trim().toLowerCase() ?? '';
   const addressNumberOk =
     (normalizedNumber === 's/n' || normalizedNumber === 'sem numero') ||
@@ -355,6 +370,10 @@ export default function Page() {
     { label: 'Pais', valid: Boolean(profile.addressCountry?.trim()) },
   ].filter((item) => !item.valid).map((item) => item.label) : [];
   const shouldBlockPublish = profileLoading || !profile || profileMissingFields.length > 0;
+  const tagIncomplete =
+    customTagEnabled &&
+    !autoDelivery &&
+    (!customTagEmoji.trim() || !customTagLabel.trim());
 
   // --- Handlers ---
 
@@ -369,6 +388,9 @@ export default function Page() {
     if (!formState.categoryId) return setError('Selecione uma categoria.');
     if (formState.priceCents < MIN_PRICE_CENTS) {
       return setError('O valor deve ser de pelo menos R$ 2,50.');
+    }
+    if (tagIncomplete) {
+      return setError('Preencha o emoji e o nome da tag.');
     }
 
     // Check if user has seller permission
@@ -886,25 +908,6 @@ export default function Page() {
                       />
                     </div>
 
-                    {autoDelivery ? (
-                      <div className="mb-4 space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-wide text-emerald-700">
-                          Tag da entrega auto
-                        </label>
-                        <Select
-                          value={autoDeliveryTag}
-                          onChange={(event) => setAutoDeliveryTag(event.target.value)}
-                          className="h-12 rounded-xl border-emerald-200 bg-white text-slate-800"
-                        >
-                          {AUTO_TAG_OPTIONS.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </Select>
-                      </div>
-                    ) : null}
-
                     {autoDelivery && !isDynamic && (
                       <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
                         <label className="text-xs font-bold uppercase tracking-wide text-emerald-700">DADOS PARA ENTREGA (FICA OCULTO ATÉ A VENDA)</label>
@@ -926,6 +929,103 @@ export default function Page() {
                       </p>
                     ) : null}
 
+                  </div>
+
+                  {/* Custom Tag */}
+                  <div className="rounded-2xl border border-slate-100 bg-slate-50 p-6">
+                    <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 text-white shadow-sm">
+                          <Sparkles size={16} />
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-slate-800">Tag personalizada</h4>
+                          <p className="text-xs font-bold text-slate-500">
+                            Use uma tag com emoji e cor para destacar o anúncio.
+                          </p>
+                        </div>
+                      </div>
+                      <Toggle
+                        checked={customTagEnabled}
+                        onCheckedChange={setCustomTagEnabled}
+                        className="self-start data-[state=on]:bg-slate-800 sm:self-center"
+                        disabled={autoDelivery}
+                      />
+                    </div>
+
+                    {autoDelivery ? (
+                      <p className="text-xs font-semibold text-emerald-700">
+                        Desative a entrega automática para usar a tag personalizada.
+                      </p>
+                    ) : null}
+
+                    {customTagEnabled && !autoDelivery ? (
+                      <div className="grid gap-4">
+                        <div className="grid gap-3 sm:grid-cols-[120px_1fr]">
+                          <label className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                            Emoji
+                            <Input
+                              value={customTagEmoji}
+                              onChange={(event) => setCustomTagEmoji(event.target.value)}
+                              placeholder="✨"
+                              maxLength={3}
+                              className="mt-2 h-12 rounded-xl border-slate-200 bg-white text-lg"
+                              aria-invalid={tagIncomplete}
+                            />
+                          </label>
+                          <label className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                            Nome da tag
+                            <Input
+                              value={customTagLabel}
+                              onChange={(event) => setCustomTagLabel(event.target.value)}
+                              placeholder="Ex: Novidade"
+                              className="mt-2 h-12 rounded-xl border-slate-200 bg-white"
+                              aria-invalid={tagIncomplete}
+                            />
+                          </label>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                            Cor da tag
+                          </label>
+                          <div className="flex flex-wrap gap-2">
+                            {TAG_COLOR_OPTIONS.map((option) => (
+                              <button
+                                key={option.value}
+                                type="button"
+                                onClick={() => setCustomTagColor(option.value)}
+                                aria-pressed={customTagColor === option.value}
+                                className={`rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-wide transition ${
+                                  customTagColor === option.value
+                                    ? option.className
+                                    : 'border-slate-200 bg-white text-slate-500'
+                                }`}
+                              >
+                                {option.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-3">
+                          <span className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                            Prévias
+                          </span>
+                          <span
+                            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.3px] ${TAG_COLOR_OPTIONS.find((option) => option.value === customTagColor)?.className ?? ''}`}
+                          >
+                            {(customTagEmoji || '✨').trim()} {customTagLabel || 'Sua tag'}
+                          </span>
+                        </div>
+
+                        {tagIncomplete ? (
+                          <p className="text-xs font-semibold text-rose-600">
+                            Preencha o emoji e o nome da tag.
+                          </p>
+                        ) : null}
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               </FormSection>
@@ -999,7 +1099,7 @@ export default function Page() {
             <ActionBar
               onNext={handlePublish}
               nextLabel="Publicar Anúncio"
-              nextDisabled={shouldBlockPublish}
+              nextDisabled={shouldBlockPublish || tagIncomplete}
               loading={busyAction === 'publish'}
               className="relative translate-y-0" // Reset fixed pos if needed, but ActionBar handles it
               leftContent={
@@ -1040,7 +1140,13 @@ export default function Page() {
                 description={formState.description}
                 variant={listingType === 'deluxe' ? 'red' : 'dark'}
                 isAuto={autoDelivery}
-                autoTag={autoDeliveryTag !== 'Sem tag' ? autoDeliveryTag : null}
+                tagLabel={
+                  customTagEnabled && !autoDelivery ? customTagLabel.trim() || null : null
+                }
+                tagEmoji={
+                  customTagEnabled && !autoDelivery ? customTagEmoji.trim() || null : null
+                }
+                tagTone={customTagColor}
                 showFavorite={false}
               />
 
