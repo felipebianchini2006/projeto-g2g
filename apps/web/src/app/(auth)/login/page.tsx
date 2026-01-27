@@ -36,6 +36,7 @@ export default function Page() {
   const [showPassword, setShowPassword] = useState(false);
   const [mfaChallengeId, setMfaChallengeId] = useState<string | null>(null);
   const [mfaCode, setMfaCode] = useState('');
+  const [isResending, setIsResending] = useState(false);
 
   const nextPath = '/';
   const googleStartUrl = `/api/auth/google/start?next=${encodeURIComponent(nextPath)}`;
@@ -98,6 +99,31 @@ export default function Page() {
       }
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleMfaResend = async () => {
+    if (isSubmitting || isResending) {
+      return;
+    }
+    setErrors({});
+    setIsResending(true);
+    try {
+      const response = await login({ email: formData.email, password: formData.password });
+      if ('mfaRequired' in response) {
+        setMfaChallengeId(response.challengeId);
+        setMfaCode('');
+        return;
+      }
+      router.push(nextPath);
+    } catch (error) {
+      if (error instanceof AuthApiError) {
+        setErrors({ form: error.message });
+      } else {
+        setErrors({ form: 'Não foi possível reenviar o código. Tente novamente.' });
+      }
+    } finally {
+      setIsResending(false);
     }
   };
 
@@ -233,6 +259,14 @@ export default function Page() {
                 <p className="ml-1 text-xs text-slate-500">
                   Enviamos um código para seu e-mail. Ele expira em 10 minutos.
                 </p>
+                <button
+                  type="button"
+                  onClick={handleMfaResend}
+                  disabled={isSubmitting || isResending}
+                  className="ml-1 text-xs font-semibold text-pink-500 hover:text-pink-600 disabled:cursor-not-allowed disabled:text-slate-400"
+                >
+                  {isResending ? 'Reenviando c?digo...' : 'Reenviar c?digo'}
+                </button>
               </div>
             ) : (
               <div className="flex items-center justify-between">
