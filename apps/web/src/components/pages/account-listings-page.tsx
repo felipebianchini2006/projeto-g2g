@@ -499,7 +499,7 @@ export const AccountListingsContent = () => {
                           setMenuOpenId((prev) => (prev === listing.id ? null : listing.id));
                         }}
                         onKeyDown={(event) => event.stopPropagation()}
-                        aria-label="Acoes"
+                        aria-label="Ações"
                       >
                         <MoreHorizontal size={16} aria-hidden />
                       </button>

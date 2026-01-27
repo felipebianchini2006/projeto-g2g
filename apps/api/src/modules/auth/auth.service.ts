@@ -41,7 +41,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly emailQueue: EmailQueueService,
-  ) {}
+  ) { }
 
   async register(dto: RegisterDto, meta: AuthRequestMeta): Promise<AuthResponse> {
     const email = this.normalizeEmail(dto.email);
@@ -82,7 +82,8 @@ export class AuthService {
     }
 
     if (user.mfaEnabled && this.requiresMfa(user, meta)) {
-      const challenge = await this.createMfaChallenge(user, meta);
+      const channel = user.phoneVerifiedAt && user.phoneE164 ? 'PHONE' : 'EMAIL';
+      const challenge = await this.createMfaChallenge(user, meta, channel);
       return { mfaRequired: true, challengeId: challenge.id };
     }
 
@@ -529,7 +530,7 @@ export class AuthService {
     return randomInt(0, 1_000_000).toString().padStart(6, '0');
   }
 
-  private async createMfaChallenge(user: User, meta: AuthRequestMeta) {
+  private async createMfaChallenge(user: User, meta: AuthRequestMeta, channel: 'EMAIL' | 'PHONE' = 'EMAIL') {
     const code = this.generateMfaCode();
     const expiresAt = new Date(Date.now() + MFA_CODE_TTL_SECONDS * 1000);
 
@@ -537,22 +538,74 @@ export class AuthService {
       data: {
         userId: user.id,
         email: user.email,
+        phone: channel === 'PHONE' ? user.phoneE164 : null,
+        channel,
         ip: meta.ip ?? null,
         userAgent: meta.userAgent ?? null,
         codeHash: this.hashCode(code),
         expiresAt,
-      },
+      } as any,
     });
 
-    const subject = 'Seu codigo de verificacao';
-    const ipInfo = meta.ip ? `IP: ${meta.ip}` : 'IP desconhecido';
-    const body = `Seu codigo para confirmar o acesso e: ${code}\n\n${ipInfo}\nEste codigo expira em 10 minutos.`;
-    const outbox = await this.prismaService.emailOutbox.create({
-      data: { to: user.email, subject, body },
-    });
-    await this.emailQueue.enqueueEmail(outbox.id);
+    if (channel === 'PHONE' && user.phoneE164) {
+      // TODO: Integrate SMS provider
+      console.log(`[MFA] Sending SMS to ${user.phoneE164}: ${code}`);
+    } else {
+      const subject = 'Seu codigo de verificacao';
+      const ipInfo = meta.ip ? `IP: ${meta.ip}` : 'IP desconhecido';
+      const body = `Seu codigo para confirmar o acesso e: ${code}\n\n${ipInfo}\nEste codigo expira em 10 minutos.`;
+      const outbox = await this.prismaService.emailOutbox.create({
+        data: { to: user.email, subject, body },
+      });
+      await this.emailQueue.enqueueEmail(outbox.id);
+    }
 
     return challenge;
+  }
+
+  async requestPhoneVerification(userId: string, meta: AuthRequestMeta) {
+    const user = await this.prismaService.user.findUnique({ where: { id: userId } });
+    if (!user || !user.phoneE164) {
+      throw new BadRequestException('Telefone não cadastrado.');
+    }
+    if (user.phoneVerifiedAt) {
+      throw new BadRequestException('Telefone já verificado.');
+    }
+
+    const challenge = await this.createMfaChallenge(user, meta, 'PHONE');
+    return { challengeId: challenge.id };
+  }
+
+  async confirmPhoneVerification(
+    userId: string,
+    challengeId: string,
+    code: string,
+  ): Promise<{ success: true }> {
+    const challenge = await this.prismaService.mfaChallenge.findUnique({
+      where: { id: challengeId },
+    });
+    const now = new Date();
+
+    if (!challenge || challenge.userId !== userId) {
+      throw new BadRequestException('Código inválido ou expirado.');
+    }
+
+    await this.ensureChallengeValid(challenge, code, now);
+
+    await this.prismaService.$transaction(async (tx) => {
+      await tx.mfaChallenge.updateMany({
+        where: { id: challengeId, usedAt: null },
+        data: { usedAt: now },
+      });
+      await tx.user.update({
+        where: { id: userId },
+        data: {
+          phoneVerifiedAt: now,
+        },
+      });
+    });
+
+    return { success: true };
   }
 
   async requestMfaEnable(userId: string, meta: AuthRequestMeta): Promise<{ challengeId: string }> {

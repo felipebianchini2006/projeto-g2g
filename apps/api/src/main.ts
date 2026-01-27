@@ -17,6 +17,8 @@ import { RequestContextService } from './modules/request-context/request-context
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, { bufferLogs: true });
+  // Trust proxy headers (e.g. X-Forwarded-For) to get real client IP
+  app.set('trust proxy', 1);
 
   const logger = app.get(AppLogger);
   app.useLogger(logger);

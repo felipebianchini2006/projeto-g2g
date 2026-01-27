@@ -491,7 +491,7 @@ export const AccountSalesContent = () => {
                           left: Math.max(10, rect.right - 160),
                         });
                       }}
-                      aria-label="Acoes"
+                      aria-label="Ações"
                     >
                       <MoreHorizontal size={16} />
                     </button>
@@ -510,7 +510,7 @@ export const AccountSalesContent = () => {
                   <th className="px-3 py-2">Data</th>
                   <th className="px-3 py-2">Valor</th>
                   <th className="px-3 py-2">Status</th>
-                  <th className="px-3 py-2 text-right">Acoes</th>
+                  <th className="px-3 py-2 text-right">Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -557,7 +557,7 @@ export const AccountSalesContent = () => {
                                 left: Math.max(10, rect.right - 160),
                               });
                             }}
-                            aria-label="Acoes"
+                            aria-label="Ações"
                           >
                             <MoreHorizontal size={16} aria-hidden />
                           </button>

@@ -16,6 +16,8 @@ export type UserProfile = {
   addressCity: string | null;
   addressState: string | null;
   addressCountry: string | null;
+  phoneE164: string | null;
+  phoneVerifiedAt: string | null;
   avatarUrl: string | null;
   bio?: string | null;
   gameTags?: string[] | null;
@@ -24,11 +26,13 @@ export type UserProfile = {
 };
 
 export type UserProfileUpdate = Partial<
-  Omit<UserProfile, 'id' | 'email' | 'avatarUrl' | 'verificationFeeOrderId' | 'verificationFeePaidAt'>
->;
+  Omit<UserProfile, 'id' | 'email' | 'avatarUrl' | 'verificationFeeOrderId' | 'verificationFeePaidAt' | 'phoneE164' | 'phoneVerifiedAt'>
+> & {
+  phone?: string;
+};
 
 const authHeaders = (token: string | null) =>
-  token ? { Authorization: `Bearer ${token}` } : {};
+  token ? { Authorization: `Bearer ${token}` } : ({} as Record<string, string>);
 
 const resolveBaseUrl = () =>
   process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:3001';
@@ -71,6 +75,17 @@ export const usersApi = {
       method: 'PATCH',
       headers: authHeaders(token),
       body: JSON.stringify(payload),
+    }),
+  requestPhoneVerification: (token: string | null) =>
+    apiFetch<{ challengeId: string }>('/users/me/phone/verify', {
+      method: 'POST',
+      headers: authHeaders(token),
+    }),
+  confirmPhoneVerification: (token: string | null, challengeId: string, code: string) =>
+    apiFetch<{ success: true }>('/users/me/phone/confirm', {
+      method: 'POST',
+      headers: authHeaders(token),
+      body: JSON.stringify({ challengeId, code }),
     }),
   uploadAvatar: async (token: string | null, file: File) => {
     try {

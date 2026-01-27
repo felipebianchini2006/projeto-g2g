@@ -18,6 +18,11 @@ export class UpdateUserProfileDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(20)
+  phone?: string;
+
+  @IsOptional()
+  @IsString()
   @MaxLength(12)
   addressZip?: string;
 

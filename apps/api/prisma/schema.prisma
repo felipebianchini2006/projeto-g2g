@@ -566,6 +566,8 @@ model MfaChallenge {
   id        String   @id @default(uuid())
   userId    String
   email     String
+  phone     String?
+  channel   String   @default("EMAIL") // EMAIL or PHONE
   ip        String?
   userAgent String?
   codeHash  String

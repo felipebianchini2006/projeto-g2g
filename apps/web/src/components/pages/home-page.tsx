@@ -7,6 +7,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Package,
+  RefreshCw,
   ShieldCheck,
   Truck,
 } from 'lucide-react';
@@ -20,6 +21,37 @@ import {
   type PublicListing,
 } from '../../lib/marketplace-public';
 import { HomeListingCard } from '../listings/home-listing-card';
+
+type BenefitIconProps = {
+  size?: number;
+  'aria-hidden'?: boolean;
+  className?: string;
+};
+
+const PackageLoopIcon = ({ size = 22, ...props }: BenefitIconProps) => {
+  const innerSize = Math.round(size * 0.7);
+  const offset = Math.round((size - innerSize) / 2);
+
+  return (
+    <span
+      {...props}
+      style={{
+        width: size,
+        height: size,
+        position: 'relative',
+        display: 'inline-flex',
+      }}
+    >
+      <RefreshCw size={size} className="absolute inset-0" aria-hidden />
+      <Package
+        size={innerSize}
+        className="absolute"
+        style={{ top: offset, left: offset }}
+        aria-hidden
+      />
+    </span>
+  );
+};
 
 const benefits = [
   {
@@ -38,7 +70,7 @@ const benefits = [
     description: 'Receba rapidamente',
   },
   {
-    icon: ShieldCheck,
+    icon: PackageLoopIcon,
     title: 'Variedade',
     description: 'Compre e venda',
   },

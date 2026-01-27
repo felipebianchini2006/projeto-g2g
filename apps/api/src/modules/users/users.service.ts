@@ -37,6 +37,8 @@ const USER_SELECT = {
   addressCity: true,
   addressState: true,
   addressCountry: true,
+  phoneE164: true,
+  phoneVerifiedAt: true,
 };
 
 const USER_PROFILE_SELECT = {
@@ -56,6 +58,8 @@ const USER_PROFILE_SELECT = {
   avatarUrl: true,
   bio: true,
   gameTags: true,
+  phoneE164: true,
+  phoneVerifiedAt: true,
   verificationFeeOrderId: true,
   verificationFeePaidAt: true,
 };
@@ -141,6 +145,7 @@ export class UsersService {
       'fullName',
       'cpf',
       'birthDate',
+      'phone',
       'addressZip',
       'addressStreet',
       'addressNumber',
@@ -219,6 +224,9 @@ export class UsersService {
     }
     if (dto.birthDate !== undefined) {
       data.birthDate = normalizeText(dto.birthDate);
+    }
+    if (dto.phone !== undefined) {
+      data.phoneE164 = normalizeDigits(dto.phone);
     }
     if (dto.addressZip !== undefined) {
       data.addressZip = normalizeDigits(dto.addressZip);

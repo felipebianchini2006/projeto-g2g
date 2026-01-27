@@ -508,7 +508,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
       const message =
         error instanceof ApiClientError
           ? error.message
-          : 'Nao foi possivel enviar sua avaliacao.';
+          : 'Nao foi possivel enviar sua avaliação.';
       setReviewError(message);
     } finally {
       setReviewSending(false);
@@ -1027,7 +1027,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
                     </div>
                   ) : reviewSubmitted ? (
                     <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-700">
-                      Obrigado! Sua avaliacao foi enviada.
+                      Obrigado! Sua avaliação foi enviada.
                     </div>
                   ) : canReview ? (
                     <form className="mt-4 space-y-4" onSubmit={handleSubmitReview}>
@@ -1050,7 +1050,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
                       </div>
                       <Textarea
                         rows={4}
-                        placeholder="Escreva sua avaliacao..."
+                        placeholder="Escreva sua avaliação..."
                         value={reviewComment}
                         onChange={(event) => setReviewComment(event.target.value)}
                       />
@@ -1066,10 +1066,10 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
                           size="sm"
                           disabled={reviewSending || reviewComment.trim().length < 5}
                         >
-                          {reviewSending ? 'Enviando...' : 'Enviar avaliacao'}
+                          {reviewSending ? 'Enviando...' : 'Enviar avaliação'}
                         </Button>
                         <span className="text-xs text-slate-400">
-                          Sua avaliacao fica vinculada ao vendedor.
+                          Sua avaliação fica vinculada ao vendedor.
                         </span>
                       </div>
                     </form>
@@ -1114,7 +1114,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
 
                 {reviewsState.status === 'ready' && reviewsState.total === 0 ? (
                   <div className="rounded-2xl border border-slate-100 bg-meow-50 px-5 py-4 text-sm text-meow-muted">
-                    Nenhuma avaliacao encontrada para este produto.
+                    Nenhuma avaliação encontrada para este produto.
                   </div>
                 ) : null}
 
@@ -1133,7 +1133,7 @@ export const ListingDetailContent = ({ listingId }: { listingId: string }) => {
                           </div>
                         </div>
                         <div className="text-xs text-slate-500">
-                          Baseado em {reviewsState.total} avaliacao
+                          Baseado em {reviewsState.total} avaliação
                           {reviewsState.total === 1 ? '' : 'es'}
                         </div>
                       </div>

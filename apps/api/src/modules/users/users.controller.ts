@@ -21,6 +21,7 @@ import fs from 'fs';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import type { JwtPayload } from '../auth/auth.types';
+import { AuthService } from '../auth/auth.service';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { UsersService } from './users.service';
 
@@ -31,7 +32,30 @@ const uploadRoot = join(process.cwd(), 'uploads', 'avatars');
 @Controller('users')
 @UseGuards(JwtAuthGuard)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly authService: AuthService,
+  ) { }
+
+  @Post('me/phone/verify')
+  requestPhoneVerification(@Req() req: AuthenticatedRequest) {
+    const userId = this.getUserId(req);
+    const meta = this.getRequestMeta(req);
+    return this.authService.requestPhoneVerification(userId, meta);
+  }
+
+  @Post('me/phone/confirm')
+  confirmPhoneVerification(
+    @Req() req: AuthenticatedRequest,
+    @Body('challengeId') challengeId: string,
+    @Body('code') code: string,
+  ) {
+    const userId = this.getUserId(req);
+    if (!challengeId || !code) {
+      throw new BadRequestException('Missing challengeId or code.');
+    }
+    return this.authService.confirmPhoneVerification(userId, challengeId, code);
+  }
 
   @Get('me')
   getProfile(@Req() req: AuthenticatedRequest) {

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import {
   AlertTriangle,
   Calendar,
+  Check,
   CheckCircle2,
   Clock,
   FileCheck,
@@ -32,6 +33,7 @@ import { Textarea } from '../ui/textarea';
 type ProfileForm = {
   fullName: string;
   cpf: string;
+  phone: string;
   birthDate: string;
   addressZip: string;
   addressStreet: string;
@@ -49,6 +51,9 @@ type InputWithIconProps = React.InputHTMLAttributes<HTMLInputElement> & {
   icon: React.ReactNode;
 };
 
+
+
+
 type SectionTitleProps = {
   icon: React.ReactNode;
   label: string;
@@ -57,6 +62,7 @@ type SectionTitleProps = {
 const emptyForm: ProfileForm = {
   fullName: '',
   cpf: '',
+  phone: '',
   birthDate: '',
   addressZip: '',
   addressStreet: '',
@@ -73,6 +79,7 @@ const emptyForm: ProfileForm = {
 const mapProfileToForm = (profile: UserProfile): ProfileForm => ({
   fullName: profile.fullName ?? '',
   cpf: profile.cpf ?? '',
+  phone: profile.phoneE164 ?? '',
   birthDate: profile.birthDate ?? '',
   addressZip: profile.addressZip ?? '',
   addressStreet: profile.addressStreet ?? '',
@@ -115,6 +122,14 @@ const formatCpf = (value: string) => {
     .replace(/(\d{3})(\d)/, '$1.$2')
     .replace(/(\d{3})(\d{1,2})/, '$1-$2')
     .replace(/(-\d{2})\d+?$/, '$1');
+};
+
+const formatPhone = (value: string) => {
+  const digits = stripDigits(value).slice(0, 11);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
 };
 
 const formatCep = (value: string) => {
@@ -176,6 +191,12 @@ export const AccountDataContent = () => {
   const [verificationCopied, setVerificationCopied] = useState(false);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
 
+  // Phone Verification
+  const [phoneVerifyStep, setPhoneVerifyStep] = useState<'idle' | 'code'>('idle');
+  const [phoneChallengeId, setPhoneChallengeId] = useState<string | null>(null);
+  const [phoneCode, setPhoneCode] = useState('');
+  const [phoneVerifyLoading, setPhoneVerifyLoading] = useState(false);
+
   /* Removed early returns */
 
   useEffect(() => {
@@ -226,6 +247,10 @@ export const AccountDataContent = () => {
 
   const handleCpfChange = (event: ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({ ...prev, cpf: formatCpf(event.target.value) }));
+  };
+
+  const handlePhoneChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setForm((prev) => ({ ...prev, phone: formatPhone(event.target.value) }));
   };
 
   const handleDateChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -287,6 +312,7 @@ export const AccountDataContent = () => {
         : {
           fullName: form.fullName,
           cpf: stripDigits(form.cpf),
+          phone: stripDigits(form.phone),
           birthDate: form.birthDate,
           addressZip: stripDigits(form.addressZip),
           addressStreet: form.addressStreet,
@@ -516,13 +542,54 @@ export const AccountDataContent = () => {
     }
   };
 
+  const handlePhoneVerify = async () => {
+    if (!accessToken) return;
+    try {
+      setPhoneVerifyLoading(true);
+      setError(null);
+      const { challengeId } = await usersApi.requestPhoneVerification(accessToken);
+      setPhoneChallengeId(challengeId);
+      setPhoneVerifyStep('code');
+      setSuccess('Código de verificação enviado para seu telefone.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao enviar código.');
+    } finally {
+      setPhoneVerifyLoading(false);
+    }
+  };
+
+  const handlePhoneConfirm = async () => {
+    if (!accessToken || !phoneChallengeId || !phoneCode) return;
+    try {
+      setPhoneVerifyLoading(true);
+      setError(null);
+      await usersApi.confirmPhoneVerification(accessToken, phoneChallengeId, phoneCode);
+      setSuccess('Telefone verificado com sucesso!');
+      setPhoneVerifyStep('idle');
+      setPhoneChallengeId(null);
+      setPhoneCode('');
+      // Refresh profile
+      const updated = await usersApi.getProfile(accessToken);
+      if (updated) {
+        setProfile(updated);
+        setForm(mapProfileToForm(updated));
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Código inválido ou expirado.');
+    } finally {
+      setPhoneVerifyLoading(false);
+    }
+  };
+
   const isProfileComplete = useMemo(() => {
     const cpfDigits = stripDigits(form.cpf);
+    const phoneDigits = stripDigits(form.phone);
     const birthOk = Boolean(form.birthDate.trim());
     const numberOk = noNumber || Boolean(form.addressNumber.trim());
     return (
       Boolean(form.fullName.trim()) &&
       cpfDigits.length === 11 &&
+      phoneDigits.length >= 10 &&
       birthOk &&
       Boolean(form.addressZip.trim()) &&
       Boolean(form.addressStreet.trim()) &&
@@ -538,6 +605,7 @@ export const AccountDataContent = () => {
       return false;
     }
     const cpfDigits = stripDigits(profile.cpf ?? '');
+    const phoneDigits = stripDigits(profile.phoneE164 ?? '');
     const normalizedNumber = profile.addressNumber?.trim().toLowerCase() ?? '';
     const numberOk =
       normalizedNumber === 's/n' ||
@@ -546,6 +614,7 @@ export const AccountDataContent = () => {
     return (
       Boolean(profile.fullName?.trim()) &&
       cpfDigits.length === 11 &&
+      phoneDigits.length >= 10 &&
       Boolean(profile.birthDate?.trim()) &&
       Boolean(profile.addressZip?.trim()) &&
       Boolean(profile.addressStreet?.trim()) &&
@@ -734,7 +803,7 @@ export const AccountDataContent = () => {
                     disabled={isFormLocked}
                   />
                 </label>
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4 md:grid-cols-3">
                   <label className="grid gap-1 text-xs font-semibold uppercase text-meow-muted">
                     CPF
                     <InputWithIcon
@@ -746,6 +815,61 @@ export const AccountDataContent = () => {
                       inputMode="numeric"
                       disabled={isFormLocked}
                     />
+                  </label>
+                  <label className="grid gap-1 text-xs font-semibold uppercase text-meow-muted">
+                    <div className="flex items-center justify-between">
+                      <span>Telefone</span>
+                      {profile?.phoneVerifiedAt ? (
+                        <span className="flex items-center gap-1 text-[10px] text-emerald-600">
+                          <Check size={12} /> Verificado
+                        </span>
+                      ) : profile?.phoneE164 && !isFormLocked && phoneVerifyStep === 'idle' ? (
+                        <button
+                          type="button"
+                          onClick={handlePhoneVerify}
+                          className="text-[10px] text-meow-deep underline hover:text-meow-red disabled:opacity-50"
+                          disabled={phoneVerifyLoading}
+                        >
+                          {phoneVerifyLoading ? 'Enviando...' : 'Verificar'}
+                        </button>
+                      ) : null}
+                    </div>
+                    {phoneVerifyStep === 'code' ? (
+                      <div className="flex items-center gap-2">
+                        <Input
+                          value={phoneCode}
+                          onChange={(e) => setPhoneCode(e.target.value)}
+                          placeholder="Código"
+                          maxLength={6}
+                          className="h-9 w-24 text-center tracking-widest"
+                        />
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={handlePhoneConfirm}
+                          disabled={phoneVerifyLoading || phoneCode.length < 6}
+                        >
+                          {phoneVerifyLoading ? '...' : 'OK'}
+                        </Button>
+                        <button
+                          type="button"
+                          onClick={() => setPhoneVerifyStep('idle')}
+                          className="text-xs text-meow-muted hover:text-meow-deep"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ) : (
+                      <InputWithIcon
+                        icon={<UserRound size={16} aria-hidden />}
+                        placeholder="(00) 00000-0000"
+                        value={form.phone}
+                        onChange={handlePhoneChange}
+                        maxLength={15}
+                        inputMode="tel"
+                        disabled={isFormLocked || phoneVerifyLoading}
+                      />
+                    )}
                   </label>
                   <label className="grid gap-1 text-xs font-semibold uppercase text-meow-muted">
                     Nascimento

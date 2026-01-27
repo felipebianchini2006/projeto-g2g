@@ -327,7 +327,7 @@ export const AdminOrdersContent = () => {
 
           <Card className="overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
             <div className="border-b border-slate-100 bg-slate-50 px-5 py-4">
-              <h2 className="text-sm font-bold text-meow-charcoal">Acoes</h2>
+              <h2 className="text-sm font-bold text-meow-charcoal">Ações</h2>
               <p className="text-xs text-meow-muted">
                 Informe um motivo antes de liberar ou reembolsar.
               </p>
