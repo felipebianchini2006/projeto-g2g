@@ -284,7 +284,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
       })
       .catch(() => {
         if (active) {
-          setBuyerError('Nao foi possivel carregar seus dados.');
+        setBuyerError('Não foi possível carregar seus dados.');
         }
       });
     return () => {
@@ -390,13 +390,13 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
 
   const checkoutBlockedReason = useMemo(() => {
     if (!listing) {
-      return 'Anúncio indisponivel.';
+      return 'Anúncio indisponível.';
     }
     if (listingState.source === 'fallback') {
-      return 'Checkout indisponivel no modo offline.';
+      return 'Checkout indisponível no modo offline.';
     }
     if (listing.status !== 'PUBLISHED') {
-      return 'Anúncio não esta publicado.';
+      return 'Anúncio não está publicado.';
     }
     return null;
   }, [listing, listingState.source]);
@@ -407,7 +407,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
   const handleApplyCoupon = async () => {
     const code = couponCode.trim();
     if (!code) {
-      setCouponError('Digite um cupom valido.');
+      setCouponError('Digite um cupom válido.');
       return;
     }
     const result = await validateCoupon(code);
@@ -444,7 +444,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
         return;
       }
       if (cpfDigits.length !== 11) {
-        setBuyerError('Informe um CPF valido com 11 digitos.');
+        setBuyerError('Informe um CPF válido com 11 dígitos.');
         setPaymentState({ status: 'idle' });
         setBuyerBusy(false);
         return;
@@ -460,7 +460,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
             ? error.message
             : error instanceof Error
               ? error.message
-              : 'Nao foi possivel salvar seus dados.';
+              : 'Não foi possível salvar seus dados.';
         setBuyerError(message);
         setPaymentState({ status: 'idle', error: message });
         setBuyerBusy(false);
@@ -482,7 +482,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
           ? error.message
           : error instanceof Error
             ? error.message
-            : 'Nao foi possivel iniciar o pagamento.';
+            : 'Não foi possível iniciar o pagamento.';
       try {
         const createdOrder = await ordersApi.createOrder(accessToken, listingId, quantity, {
           couponCode: appliedCoupon ?? undefined,
@@ -745,7 +745,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                         {
                           id: 'pix',
                           label: 'Pix',
-                          helper: 'Instant?neo',
+                          helper: 'Instantâneo',
                           icon: QrCode,
                           enabled: true,
                         },
@@ -756,16 +756,16 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                             walletStatus === 'loading'
                               ? 'Carregando saldo...'
                               : walletStatus === 'error'
-                                ? 'Saldo indispon?vel'
-                                : `Dispon?vel ${formatCurrency(walletAvailableCents, listing?.currency ?? 'BRL')}`,
+                                ? 'Saldo indisponível'
+                                : `Disponível ${formatCurrency(walletAvailableCents, listing?.currency ?? 'BRL')}`,
                           icon: Wallet,
                           enabled: walletStatus === 'ready',
                           insufficient: walletStatus === 'ready' && walletAvailableCents < paymentTotalCents,
                         },
                         {
                           id: 'card',
-                          label: 'Cartao',
-                          helper: 'Ate 12x',
+                          label: 'Cartão',
+                          helper: 'Até 12x',
                           icon: CreditCard,
                           enabled: false,
                         },
@@ -829,7 +829,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                         </span>
                         <div>
                           <h2 className="text-base font-bold text-meow-charcoal">
-                            Pix - Pagamento r?pido
+                            Pix - Pagamento rápido
                           </h2>
                           <p className="text-sm text-meow-muted">
                             Pague com Pix e receba seu produto na hora.
@@ -872,7 +872,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                           disabled={!activePayment?.copyPaste}
                         >
                           <Copy size={14} aria-hidden />
-                          Copiar Codigo Pix
+                          Copiar Código Pix
                         </button>
                       </div>
 
@@ -918,7 +918,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
 
                       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
                         <div>
-                          <p className="text-xs text-meow-muted">Saldo dispon?vel</p>
+                          <p className="text-xs text-meow-muted">Saldo disponível</p>
                           <p className="text-lg font-black text-meow-charcoal">
                             {formatCurrency(walletAvailableCents, listing?.currency ?? 'BRL')}
                           </p>
@@ -1021,7 +1021,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                     </strong>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span>Taxa de Servico</span>
+                    <span>Taxa de Serviço</span>
                     <strong className="text-meow-charcoal">
                       {formatCurrency(serviceFeeCents, listing.currency)}
                     </strong>
@@ -1036,7 +1036,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                     </span>
                   </div>
                   <p className="mt-2 text-[10px] text-center text-meow-muted">
-                    O valor do produto e somado a uma taxa operacional de R$ 0,95. Premium adiciona R$ 4,50.
+                    O valor do produto é somado a uma taxa operacional de R$ 0,95. Premium adiciona R$ 4,50.
                   </p>
                 </div>
 
@@ -1089,7 +1089,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
                     disabled={buyerBusy || step !== 'produto'}
                   />
                   <Input
-                    placeholder="CPF (11 digitos)"
+                    placeholder="CPF (11 dígitos)"
                     value={formatCpf(buyerCpf)}
                     onChange={(event) => setBuyerCpf(stripDigits(event.target.value).slice(0, 11))}
                     disabled={buyerBusy || step !== 'produto'}
@@ -1107,7 +1107,7 @@ export const CheckoutContent = ({ listingId }: { listingId: string }) => {
 
                 {!loading && !user ? (
                   <div className="mt-4 rounded-xl border border-meow-red/20 bg-meow-50 px-4 py-3 text-sm text-meow-muted">
-                    Faca login para concluir o pedido.
+                    Faça login para concluir o pedido.
                   </div>
                 ) : null}
 

@@ -10,6 +10,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { TicketMessageDto } from './dto/ticket-message.dto';
 import { TicketQueryDto } from './dto/ticket-query.dto';
+import { UpdateTicketStatusDto } from './dto/update-ticket-status.dto';
 
 @Injectable()
 export class TicketsService {
@@ -51,6 +52,9 @@ export class TicketsService {
     }
 
     this.assertAccess(ticket, userId, role);
+    if (ticket.status === TicketStatus.RESOLVED || ticket.status === TicketStatus.CLOSED) {
+      throw new BadRequestException('Ticket encerrado. NÃ£o Ã© possÃ­vel enviar novas mensagens.');
+    }
     return ticket;
   }
 
@@ -116,6 +120,36 @@ export class TicketsService {
         senderId: userId,
         message: dto.message.trim(),
       },
+    });
+  }
+
+  async updateStatus(
+    ticketId: string,
+    userId: string,
+    role: UserRole,
+    dto: UpdateTicketStatusDto,
+  ) {
+    if (role !== UserRole.ADMIN && role !== UserRole.AJUDANTE) {
+      throw new ForbiddenException('Ticket status update not allowed.');
+    }
+
+    const ticket = await this.prisma.ticket.findUnique({
+      where: { id: ticketId },
+      include: { order: { select: { id: true, buyerId: true, sellerId: true } } },
+    });
+
+    if (!ticket) {
+      throw new NotFoundException('Ticket nÃ£o encontrado.');
+    }
+
+    if (ticket.status === dto.status) {
+      return ticket;
+    }
+
+    return this.prisma.ticket.update({
+      where: { id: ticketId },
+      data: { status: dto.status },
+      include: { order: { select: { id: true, buyerId: true, sellerId: true } } },
     });
   }
 

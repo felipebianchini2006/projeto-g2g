@@ -30,6 +30,7 @@ export type PartnerStats = {
   paidCents: number;
   commissionCents: number;
   balanceCents: number;
+  blockedCents: number;
   coupons: PartnerCoupon[];
 };
 

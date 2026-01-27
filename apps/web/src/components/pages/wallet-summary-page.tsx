@@ -201,6 +201,19 @@ export const WalletSummaryContent = () => {
   }, [copied]);
 
   useEffect(() => {
+    if (!isWithdrawOpen) {
+      return;
+    }
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        closeWithdraw();
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [isWithdrawOpen]);
+
+  useEffect(() => {
     if (!isWithdrawOpen || !accessToken || profileLoading) {
       return;
     }
@@ -302,7 +315,7 @@ export const WalletSummaryContent = () => {
 
   const closeWithdraw = () => {
     setIsWithdrawOpen(false);
-    setWithdrawAmount('');
+    setWithdrawAmountCents(0);
     setWithdrawPixKey('');
     setWithdrawBeneficiaryName('');
     setWithdrawError(null);
@@ -701,14 +714,31 @@ export const WalletSummaryContent = () => {
       }
 
       {isWithdrawOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="max-h-[85vh] w-full max-w-[420px] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95 scrollbar-thin scrollbar-thumb-meow-200 scrollbar-track-transparent">
-            <h2 className="text-lg font-black text-meow-charcoal">Preencha</h2>
-            <p className="mt-2 text-sm text-meow-muted">
-              Solicite seu saque via Pix. Saldo disponivel:{' '}
-              {formatCurrency(state.summary?.availableCents ?? 0, state.summary?.currency ?? 'BRL')}
-            </p>
-
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+          onClick={closeWithdraw}
+        >
+          <div
+            className="max-h-[85vh] w-full max-w-[420px] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95 scrollbar-thin scrollbar-thumb-meow-200 scrollbar-track-transparent"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-black text-meow-charcoal">Preencha</h2>
+                <p className="mt-2 text-sm text-meow-muted">
+                  Solicite seu saque via Pix. Saldo disponivel:{' '}
+                  {formatCurrency(state.summary?.availableCents ?? 0, state.summary?.currency ?? 'BRL')}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={closeWithdraw}
+                className="grid h-9 w-9 place-items-center rounded-full border border-slate-200 text-slate-400 transition hover:border-meow-red/40 hover:text-meow-deep"
+                aria-label="Fechar saque"
+              >
+                ×
+              </button>
+            </div>
             <form
               className="mt-6 grid gap-4"
               onSubmit={async (event) => {

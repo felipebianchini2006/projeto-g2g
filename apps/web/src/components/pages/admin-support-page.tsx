@@ -112,6 +112,14 @@ export const AdminSupportContent = () => {
     items: [],
   });
   const [slaFilter, setSlaFilter] = useState<SlaFilter>('all');
+  const [menuState, setMenuState] = useState<{
+    kind: 'ticket' | 'dispute';
+    id: string;
+    status: TicketStatus | DisputeStatus;
+    top: number;
+    left: number;
+  } | null>(null);
+  const [actionBusy, setActionBusy] = useState(false);
 
   const loadTickets = async () => {
     if (!accessToken || !hasAdminPermission(user, 'admin.disputes')) {
@@ -155,12 +163,79 @@ export const AdminSupportContent = () => {
     await Promise.all([loadTickets(), loadDisputes()]);
   };
 
+  const handleTicketStatusChange = async (ticketId: string, status: TicketStatus) => {
+    if (!accessToken) {
+      return;
+    }
+    setActionBusy(true);
+    try {
+      const updated = await ticketsApi.updateStatus(accessToken, ticketId, status);
+      setTicketState((prev) => ({
+        ...prev,
+        items: prev.items.map((ticket) => (ticket.id === ticketId ? updated : ticket)),
+      }));
+    } catch (error) {
+      const message =
+        error instanceof ApiClientError
+          ? error.message
+          : error instanceof Error
+            ? error.message
+            : 'Não foi possível atualizar o ticket.';
+      setTicketState((prev) => ({ ...prev, error: message }));
+    } finally {
+      setActionBusy(false);
+      setMenuState(null);
+    }
+  };
+
+  const handleDisputeAction = async (disputeId: string, action: 'release' | 'refund') => {
+    if (!accessToken) {
+      return;
+    }
+    setActionBusy(true);
+    try {
+      await disputesApi.resolveDispute(accessToken, disputeId, { action });
+      await refreshQueue();
+    } catch (error) {
+      const message =
+        error instanceof ApiClientError
+          ? error.message
+          : error instanceof Error
+            ? error.message
+            : 'Não foi possível atualizar a disputa.';
+      setDisputeState((prev) => ({ ...prev, error: message }));
+    } finally {
+      setActionBusy(false);
+      setMenuState(null);
+    }
+  };
+
   useEffect(() => {
     if (!accessToken || !hasAdminPermission(user, 'admin.disputes')) {
       return;
     }
     refreshQueue();
   }, [accessToken, user?.role, user?.adminPermissions]);
+
+  useEffect(() => {
+    if (!menuState) {
+      return;
+    }
+    const closeMenu = () => setMenuState(null);
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMenuState(null);
+      }
+    };
+    window.addEventListener('scroll', closeMenu, true);
+    window.addEventListener('resize', closeMenu);
+    window.addEventListener('keydown', handleKey);
+    return () => {
+      window.removeEventListener('scroll', closeMenu, true);
+      window.removeEventListener('resize', closeMenu);
+      window.removeEventListener('keydown', handleKey);
+    };
+  }, [menuState]);
 
   const filteredTickets = useMemo(
     () =>
@@ -324,6 +399,93 @@ export const AdminSupportContent = () => {
         </div>
       </Card>
 
+      {menuState ? (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setMenuState(null)} />
+          <div
+            className="fixed z-50 w-56 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_18px_40px_-16px_rgba(15,23,42,0.35)]"
+            style={{ top: `${menuState.top}px`, left: `${menuState.left}px` }}
+          >
+            <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white px-3 py-2">
+              <p className="text-[10px] font-bold uppercase tracking-[0.3px] text-slate-400">
+                Ações rápidas
+              </p>
+              <p className="text-xs font-semibold text-meow-charcoal">
+                {menuState.kind === 'ticket' ? 'Ticket' : 'Disputa'} {menuState.id.slice(0, 6)}
+              </p>
+            </div>
+            <div className="p-2">
+              {menuState.kind === 'ticket' ? (
+                <>
+                  {menuState.status === 'OPEN' ? (
+                    <button
+                      type="button"
+                      className="w-full rounded-xl px-3 py-2 text-left text-sm font-semibold text-meow-charcoal hover:bg-meow-50"
+                      disabled={actionBusy}
+                      onClick={() => handleTicketStatusChange(menuState.id, 'IN_PROGRESS')}
+                    >
+                      Marcar em andamento
+                    </button>
+                  ) : null}
+                  {menuState.status !== 'RESOLVED' ? (
+                    <button
+                      type="button"
+                      className="w-full rounded-xl px-3 py-2 text-left text-sm font-semibold text-meow-charcoal hover:bg-meow-50"
+                      disabled={actionBusy}
+                      onClick={() => handleTicketStatusChange(menuState.id, 'RESOLVED')}
+                    >
+                      Marcar como resolvido
+                    </button>
+                  ) : null}
+                  {menuState.status !== 'CLOSED' ? (
+                    <button
+                      type="button"
+                      className="w-full rounded-xl px-3 py-2 text-left text-sm font-semibold text-meow-charcoal hover:bg-meow-50"
+                      disabled={actionBusy}
+                      onClick={() => handleTicketStatusChange(menuState.id, 'CLOSED')}
+                    >
+                      Fechar ticket
+                    </button>
+                  ) : null}
+                  {menuState.status === 'CLOSED' ? (
+                    <span className="block px-3 py-2 text-xs font-semibold text-slate-400">
+                      Ticket fechado
+                    </span>
+                  ) : null}
+                </>
+              ) : (
+                <>
+                  {menuState.status === 'OPEN' || menuState.status === 'REVIEW' ? (
+                    <>
+                      <button
+                        type="button"
+                        className="w-full rounded-xl px-3 py-2 text-left text-sm font-semibold text-meow-charcoal hover:bg-meow-50"
+                        disabled={actionBusy}
+                        onClick={() => handleDisputeAction(menuState.id, 'release')}
+                      >
+                        Liberar seller
+                      </button>
+                      <button
+                        type="button"
+                        className="w-full rounded-xl px-3 py-2 text-left text-sm font-semibold text-meow-charcoal hover:bg-meow-50"
+                        disabled={actionBusy}
+                        onClick={() => handleDisputeAction(menuState.id, 'refund')}
+                      >
+                        Reembolsar comprador
+                      </button>
+                    </>
+                  ) : (
+                    <span className="block px-3 py-2 text-xs font-semibold text-slate-400">
+                      Disputa já resolvida
+                    </span>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        </>
+      ) : null}
+
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="border border-slate-200 p-6">
           <div className="flex items-center justify-between">
@@ -387,7 +549,18 @@ export const AdminSupportContent = () => {
                   <button
                     type="button"
                     className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-500 hover:border-meow-red/30 hover:text-meow-deep"
-                    aria-label="Mais acoes"
+                    aria-label="Mais ações"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      const rect = event.currentTarget.getBoundingClientRect();
+                      setMenuState({
+                        kind: 'dispute',
+                        id: dispute.id,
+                        status: dispute.status,
+                        top: rect.bottom + 6,
+                        left: Math.max(10, rect.right - 220),
+                      });
+                    }}
                   >
                     <MoreHorizontal size={16} />
                   </button>
@@ -457,7 +630,18 @@ export const AdminSupportContent = () => {
                   <button
                     type="button"
                     className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-500 hover:border-meow-red/30 hover:text-meow-deep"
-                    aria-label="Mais acoes"
+                    aria-label="Mais ações"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      const rect = event.currentTarget.getBoundingClientRect();
+                      setMenuState({
+                        kind: 'ticket',
+                        id: ticket.id,
+                        status: ticket.status,
+                        top: rect.bottom + 6,
+                        left: Math.max(10, rect.right - 220),
+                      });
+                    }}
                   >
                     <MoreHorizontal size={16} />
                   </button>

@@ -61,4 +61,11 @@ export const ticketsApi = {
       headers: authHeaders(token),
       body: JSON.stringify(input),
     }),
+
+  updateStatus: (token: string | null, ticketId: string, status: TicketStatus) =>
+    apiFetch<Ticket>(`/tickets/${ticketId}/status`, {
+      method: 'POST',
+      headers: authHeaders(token),
+      body: JSON.stringify({ status }),
+    }),
 };

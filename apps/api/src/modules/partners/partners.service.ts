@@ -178,7 +178,7 @@ export class PartnersService {
     }
     await this.assertPartnerAccess(partner.ownerUserId, partner.ownerEmail, userId, role);
 
-    const [clicks, orders, earned, reversed, paid] = await Promise.all([
+    const [clicks, orders, earned, reversed, paid, pending] = await Promise.all([
       this.prisma.partnerClick.count({ where: { partnerId } }),
       this.prisma.orderAttribution.count({ where: { partnerId } }),
       this.prisma.partnerCommissionEvent.aggregate({
@@ -193,6 +193,10 @@ export class PartnersService {
         where: { partnerId, status: PartnerPayoutStatus.PAID },
         _sum: { amountCents: true },
       }),
+      this.prisma.partnerPayout.aggregate({
+        where: { partnerId, status: PartnerPayoutStatus.PENDING },
+        _sum: { amountCents: true },
+      }),
     ]);
 
     const earnedCents = earned._sum.amountCents ?? 0;
@@ -200,6 +204,7 @@ export class PartnersService {
     const paidCents = paid._sum.amountCents ?? 0;
     const commissionCents = earnedCents - reversedCents;
     const balanceCents = commissionCents - paidCents;
+    const blockedCents = pending._sum.amountCents ?? 0;
 
     return {
       partnerId,
@@ -210,6 +215,7 @@ export class PartnersService {
       paidCents,
       commissionCents,
       balanceCents,
+      blockedCents,
       coupons: partner.coupons,
     };
   }

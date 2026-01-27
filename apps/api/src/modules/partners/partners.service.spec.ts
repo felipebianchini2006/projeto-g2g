@@ -81,7 +81,9 @@ describe('PartnersService', () => {
       mockPrisma.partnerCommissionEvent.aggregate
         .mockResolvedValueOnce({ _sum: { amountCents: 1000 } })
         .mockResolvedValueOnce({ _sum: { amountCents: -200 } });
-      mockPrisma.partnerPayout.aggregate.mockResolvedValue({ _sum: { amountCents: 300 } });
+      mockPrisma.partnerPayout.aggregate
+        .mockResolvedValueOnce({ _sum: { amountCents: 300 } })
+        .mockResolvedValueOnce({ _sum: { amountCents: 150 } });
 
       const result = await service.getPartnerStatsForUser(
         'partner-1',
@@ -99,6 +101,7 @@ describe('PartnersService', () => {
           paidCents: 300,
           commissionCents: 800,
           balanceCents: 500,
+          blockedCents: 150,
         }),
       );
       expect(result.coupons).toHaveLength(1);
@@ -130,7 +133,9 @@ describe('PartnersService', () => {
       mockPrisma.partnerCommissionEvent.aggregate
         .mockResolvedValueOnce({ _sum: { amountCents: 0 } })
         .mockResolvedValueOnce({ _sum: { amountCents: 0 } });
-      mockPrisma.partnerPayout.aggregate.mockResolvedValue({ _sum: { amountCents: 0 } });
+      mockPrisma.partnerPayout.aggregate
+        .mockResolvedValueOnce({ _sum: { amountCents: 0 } })
+        .mockResolvedValueOnce({ _sum: { amountCents: 0 } });
 
       const result = await service.getPartnerStatsForUser(
         'partner-1',
@@ -142,6 +147,7 @@ describe('PartnersService', () => {
         expect.objectContaining({
           partnerId: 'partner-1',
           balanceCents: 0,
+          blockedCents: 0,
         }),
       );
     });

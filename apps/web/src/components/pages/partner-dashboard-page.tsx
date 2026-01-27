@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { BadgeCheck, BadgeDollarSign, Building2, RefreshCw, Wallet } from 'lucide-react';
+import { BadgeCheck, BadgeDollarSign, Building2, Lock, RefreshCw, Wallet } from 'lucide-react';
 
 import { ApiClientError } from '../../lib/api-client';
 import { partnerApi, type Partner, type PartnerStats } from '../../lib/partner-api';
@@ -20,6 +20,52 @@ const formatCurrency = (value: number, currency = 'BRL') =>
     currency,
     maximumFractionDigits: 2,
   }).format(value / 100);
+
+const stripDigits = (value: string) => value.replace(/\D/g, '');
+
+const formatCpf = (value: string) => {
+  const digits = stripDigits(value).slice(0, 11);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+  if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+};
+
+const formatCnpj = (value: string) => {
+  const digits = stripDigits(value).slice(0, 14);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 5) return `${digits.slice(0, 2)}.${digits.slice(2)}`;
+  if (digits.length <= 8) return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5)}`;
+  if (digits.length <= 12) {
+    return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8)}`;
+  }
+  return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
+};
+
+const formatPhone = (value: string) => {
+  const digits = stripDigits(value).slice(0, 11);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  if (digits.length <= 10) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  }
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+};
+
+const formatPixKey = (value: string, type: 'CPF' | 'CNPJ' | 'EMAIL' | 'PHONE' | 'EVP') => {
+  if (type === 'CPF') return formatCpf(value);
+  if (type === 'CNPJ') return formatCnpj(value);
+  if (type === 'PHONE') return formatPhone(value);
+  return value;
+};
+
+const pixKeyPlaceholder: Record<'CPF' | 'CNPJ' | 'EMAIL' | 'PHONE' | 'EVP', string> = {
+  CPF: '000.000.000-00',
+  CNPJ: '00.000.000/0000-00',
+  EMAIL: 'email@exemplo.com',
+  PHONE: '(00) 00000-0000',
+  EVP: 'Chave aleatória',
+};
 
 type PartnersState = {
   status: 'loading' | 'ready';
@@ -266,7 +312,7 @@ export const PartnerDashboardPage = () => {
             ) : null}
 
             {statsState.stats ? (
-              <div className="mt-6 grid gap-4 md:grid-cols-3">
+              <div className="mt-6 grid gap-4 md:grid-cols-4">
                 {[
                   {
                     label: 'Saldo disponivel',
@@ -279,6 +325,12 @@ export const PartnerDashboardPage = () => {
                     value: formatCurrency(statsState.stats.commissionCents),
                     icon: <BadgeDollarSign size={16} aria-hidden />,
                     className: 'from-blue-500 to-blue-600',
+                  },
+                  {
+                    label: 'Bloqueado/retido',
+                    value: formatCurrency(statsState.stats.blockedCents ?? 0),
+                    icon: <Lock size={16} aria-hidden />,
+                    className: 'from-amber-500 to-orange-500',
                   },
                   {
                     label: 'Cliques',
@@ -416,7 +468,11 @@ export const PartnerDashboardPage = () => {
                 <Select
                   className="h-11 rounded-xl border-slate-200 bg-white px-4 text-sm font-semibold text-meow-charcoal"
                   value={payoutPixKeyType}
-                  onChange={(event) => setPayoutPixKeyType(event.target.value as typeof payoutPixKeyType)}
+                  onChange={(event) => {
+                    const nextType = event.target.value as typeof payoutPixKeyType;
+                    setPayoutPixKeyType(nextType);
+                    setPayoutPixKey((current) => formatPixKey(current, nextType));
+                  }}
                 >
                   <option value="CPF">CPF</option>
                   <option value="CNPJ">CNPJ</option>
@@ -431,9 +487,11 @@ export const PartnerDashboardPage = () => {
                 <input
                   type="text"
                   className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-meow-charcoal outline-none focus:border-meow-red/60 focus:ring-4 focus:ring-meow-red/10"
-                  placeholder="Digite sua chave"
+                  placeholder={pixKeyPlaceholder[payoutPixKeyType]}
                   value={payoutPixKey}
-                  onChange={(event) => setPayoutPixKey(event.target.value)}
+                  onChange={(event) =>
+                    setPayoutPixKey(formatPixKey(event.target.value, payoutPixKeyType))
+                  }
                   required
                 />
               </label>

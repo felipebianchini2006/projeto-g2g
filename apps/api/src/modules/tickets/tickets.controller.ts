@@ -10,12 +10,18 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
+import { UserRole } from '@prisma/client';
 
 import type { JwtPayload } from '../auth/auth.types';
+import { AdminPermission } from '../auth/decorators/admin-permission.decorator';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { AdminPermissionsGuard } from '../auth/guards/admin-permissions.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { TicketMessageDto } from './dto/ticket-message.dto';
 import { TicketQueryDto } from './dto/ticket-query.dto';
+import { UpdateTicketStatusDto } from './dto/update-ticket-status.dto';
 import { TicketsService } from './tickets.service';
 
 type AuthenticatedRequest = Request & { user?: JwtPayload };
@@ -51,6 +57,19 @@ export class TicketsController {
   ) {
     const user = this.getUser(req);
     return this.ticketsService.addMessage(ticketId, user.sub, user.role, dto);
+  }
+
+  @Post(':id/status')
+  @UseGuards(RolesGuard, AdminPermissionsGuard)
+  @Roles(UserRole.ADMIN, UserRole.AJUDANTE)
+  @AdminPermission('admin.disputes')
+  updateStatus(
+    @Req() req: AuthenticatedRequest,
+    @Param('id') ticketId: string,
+    @Body() dto: UpdateTicketStatusDto,
+  ) {
+    const user = this.getUser(req);
+    return this.ticketsService.updateStatus(ticketId, user.sub, user.role, dto);
   }
 
   private getUser(request: AuthenticatedRequest) {

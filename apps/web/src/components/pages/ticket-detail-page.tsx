@@ -50,6 +50,7 @@ export const TicketDetailContent = ({ ticketId }: TicketDetailContentProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const ticketCode = ticketId ? ticketId.slice(0, 8) : '--';
+  const isLocked = ticket?.status === 'RESOLVED' || ticket?.status === 'CLOSED';
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -88,6 +89,10 @@ export const TicketDetailContent = ({ ticketId }: TicketDetailContentProps) => {
   const handleSendMessage = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!accessToken || !ticket) {
+      return;
+    }
+    if (isLocked) {
+      setNotice('Este ticket estÃ¡ encerrado e nÃ£o aceita novas mensagens.');
       return;
     }
     if (!draft.trim()) {
@@ -228,6 +233,11 @@ export const TicketDetailContent = ({ ticketId }: TicketDetailContentProps) => {
                 {notice}
               </div>
             ) : null}
+            {isLocked ? (
+              <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs text-slate-600">
+                Ticket {ticket?.status === 'RESOLVED' ? 'resolvido' : 'fechado'} â€” chat desabilitado.
+              </div>
+            ) : null}
 
             {showAttachments && (
               <div className="mb-4 animate-in slide-in-from-bottom-2 fade-in duration-200">
@@ -239,6 +249,7 @@ export const TicketDetailContent = ({ ticketId }: TicketDetailContentProps) => {
                   onChange={(e) => setAttachmentsInput(e.target.value)}
                   placeholder="https://exemplo.com/imagem.png, https://..."
                   className="bg-slate-50 text-xs"
+                  disabled={isLocked}
                 />
                 <p className="mt-1 text-[10px] text-slate-400">
                   Separe múltiplos links por vírgula.
@@ -255,6 +266,7 @@ export const TicketDetailContent = ({ ticketId }: TicketDetailContentProps) => {
                     : 'border-slate-200 text-slate-400 hover:border-meow-red/30 hover:bg-meow-cream hover:text-meow-deep'
                   }`}
                 aria-label="Anexar arquivos"
+                disabled={isLocked}
               >
                 <Paperclip size={20} />
               </button>
@@ -264,10 +276,11 @@ export const TicketDetailContent = ({ ticketId }: TicketDetailContentProps) => {
                 placeholder="Digite sua mensagem..."
                 className="h-12 flex-1 rounded-xl border-slate-200 bg-slate-50 px-4 text-sm font-medium transition-all focus:border-meow-red/30 focus:bg-white focus:ring-4 focus:ring-meow-red/10"
                 autoFocus
+                disabled={isLocked}
               />
               <Button
                 type="submit"
-                disabled={busy || !draft.trim()}
+                disabled={busy || !draft.trim() || isLocked}
                 className="h-12 w-12 shrink-0 rounded-xl bg-meow-linear p-0 shadow-lg shadow-meow-red/20 transition-all hover:scale-105 hover:shadow-meow-red/30 active:scale-95 disabled:opacity-50"
               >
                 <Send size={20} className="ml-0.5" />
