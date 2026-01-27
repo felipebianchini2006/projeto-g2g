@@ -46,6 +46,7 @@ import {
 import { cn } from '../../lib/utils';
 import { ProfileAvatar } from '../account/profile-avatar';
 import { useAuth } from '../auth/auth-provider';
+import { hasAdminPermission } from '../../lib/admin-permissions';
 import { SiteHeader } from './site-header';
 import { buttonVariants } from '../ui/button';
 import { Card } from '../ui/card';
@@ -55,6 +56,7 @@ type MenuItem = {
   href?: string;
   onClick?: () => void;
   tone?: 'danger';
+  permission?: string;
 };
 
 type MenuSection = {
@@ -190,29 +192,27 @@ const adminNav = (logout: () => Promise<void>, goHome: () => void): MenuSection[
   {
     title: 'Admin',
     items: [
-      { label: 'Atendimento', href: '/admin/atendimento' },
-      { label: 'Chats', href: '/admin/chats' },
-      { label: 'Disputas', href: '/admin/disputas' },
-      { label: 'Denúncias', href: '/admin/denuncias' },
-      { label: 'Moderação', href: '/admin/anuncios' },
-      { label: 'Segurança', href: '/admin/seguranca' },
-      { label: 'Confirmar Anúncio', href: '/admin/confirmar-anuncio' },
-      { label: 'Usuarios', href: '/admin/usuarios' },
-      { label: 'Verificação RG', href: '/admin/rg' },
-      { label: 'Parceiros', href: '/admin/parceiros' },
-      { label: 'Cupons', href: '/admin/cupons' },
-      { label: 'Pedidos', href: '/admin/pedidos' },
-      { label: 'Carteira', href: '/admin/carteira' },
-      { label: 'Webhooks', href: '/admin/webhooks' },
-      { label: 'Sistema', href: '/admin/sistema' },
-      { label: 'Parametros', href: '/admin/parametros' },
+      { label: 'Atendimento', href: '/admin/atendimento', permission: 'admin.disputes' },
+      { label: 'Chats', href: '/admin/chats', permission: 'admin.chats' },
+      { label: 'Disputas', href: '/admin/disputas', permission: 'admin.disputes' },
+      { label: 'Denuncias', href: '/admin/denuncias', permission: 'admin.reports.listings|admin.reports.profiles' },
+      { label: 'Moderacao', href: '/admin/anuncios', permission: 'admin.listings' },
+      { label: 'Seguranca', href: '/admin/seguranca', permission: 'admin.security' },
+      { label: 'Confirmar Anuncio', href: '/admin/confirmar-anuncio', permission: 'admin.listings' },
+      { label: 'Usuarios', href: '/admin/usuarios', permission: 'admin.users' },
+      { label: 'Verificacao RG', href: '/admin/rg', permission: 'admin.rg' },
+      { label: 'Parceiros', href: '/admin/parceiros', permission: 'admin.partners' },
+      { label: 'Cupons', href: '/admin/cupons', permission: 'admin.coupons' },
+      { label: 'Pedidos', href: '/admin/pedidos', permission: 'admin.orders' },
+      { label: 'Carteira', href: '/admin/carteira', permission: 'admin.wallet' },
+      { label: 'Webhooks', href: '/admin/webhooks', permission: 'admin.webhooks' },
+      { label: 'Sistema', href: '/admin/sistema', permission: 'admin.system' },
+      { label: 'Parametros', href: '/admin/parametros', permission: 'admin.settings' },
     ],
   },
   {
     title: 'Cadastros',
-    items: [
-      { label: 'Cadastros', href: '/admin/cadastros' },
-    ],
+    items: [{ label: 'Cadastros', href: '/admin/cadastros', permission: 'admin.catalog' }],
   },
   {
     title: 'Conta',
@@ -245,6 +245,7 @@ const iconMap: Record<string, React.ReactNode> = {
   'Minha conta': <UserRound size={16} aria-hidden />,
   'Meus dados': <UserRound size={16} aria-hidden />,
   Segurança: <ShieldCheck size={16} aria-hidden />,
+  Seguranca: <ShieldCheck size={16} aria-hidden />,
   Sessões: <Settings size={16} aria-hidden />,
   'Central de ajuda': <LifeBuoy size={16} aria-hidden />,
   Notificações: <Bell size={16} aria-hidden />,
@@ -254,10 +255,14 @@ const iconMap: Record<string, React.ReactNode> = {
   Chats: <MessageCircle size={16} aria-hidden />,
   Disputas: <Gavel size={16} aria-hidden />,
   Denúncias: <Flag size={16} aria-hidden />,
+  Denuncias: <Flag size={16} aria-hidden />,
   Moderação: <ShieldAlert size={16} aria-hidden />,
+  Moderacao: <ShieldAlert size={16} aria-hidden />,
   'Confirmar Anúncio': <FileSearch size={16} aria-hidden />,
+  'Confirmar Anuncio': <FileSearch size={16} aria-hidden />,
   Usuarios: <Users size={16} aria-hidden />,
   'Verificação RG': <FileCheck size={16} aria-hidden />,
+  'Verificacao RG': <FileCheck size={16} aria-hidden />,
   Parceiros: <Link2 size={16} aria-hidden />,
   Cupons: <BadgePercent size={16} aria-hidden />,
   Pedidos: <Receipt size={16} aria-hidden />,
@@ -570,6 +575,35 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     [isAdminRoute, isSeller, logout, router],
   );
 
+  const canSeeAdminItem = (item: MenuItem) => {
+    if (item.onClick) {
+      return true;
+    }
+    if (user?.role === 'ADMIN') {
+      return true;
+    }
+    if (user?.role !== 'AJUDANTE') {
+      return false;
+    }
+    if (!item.permission) {
+      return false;
+    }
+    const permissions = item.permission.split('|').map((value) => value.trim()).filter(Boolean);
+    return permissions.some((permission) => hasAdminPermission(user, permission));
+  };
+
+  const visibleMenuSections = useMemo(() => {
+    if (!isAdminRoute) {
+      return menuSections;
+    }
+    return menuSections
+      .map((section) => ({
+        ...section,
+        items: section.title === 'Conta' ? section.items : section.items.filter(canSeeAdminItem),
+      }))
+      .filter((section) => section.items.length > 0);
+  }, [isAdminRoute, menuSections, user?.role, user?.adminPermissions]);
+
   const isSellerRoute =
     pathname.startsWith('/conta/vendedor') ||
     pathname.startsWith('/conta/anuncios') ||
@@ -605,7 +639,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 {isAdminRoute ? (
                   <SidebarCard
                     title={headerTitle}
-                    sections={menuSections}
+                    sections={visibleMenuSections}
                     pathname={pathname}
                     displayName={displayName}
                     initials={initials}
@@ -649,7 +683,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 {isAdminRoute ? (
                   <SidebarCard
                     title={headerTitle}
-                    sections={menuSections}
+                    sections={visibleMenuSections}
                     pathname={pathname}
                     onNavigate={() => setSidebarOpen(false)}
                     displayName={displayName}
@@ -674,3 +708,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     </DashboardLayoutContext.Provider>
   );
 };
+
+
+
+
