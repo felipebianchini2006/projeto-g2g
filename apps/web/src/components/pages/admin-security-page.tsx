@@ -252,6 +252,8 @@ export const AdminSecurityContent = () => {
                 <p className="text-xs text-meow-muted">{selectedUser?.email}</p>
                 <div className="mt-3 grid gap-2 text-xs text-meow-muted">
                   <div>CPF: {selectedUser?.cpf ?? 'Não informado'}</div>
+                  <div>Telefone: {selectedUser?.phoneE164 ?? 'Não informado'}</div>
+                  <div>Nascimento: {selectedUser?.birthDate ?? 'Não informado'}</div>
                   <div>CPF ja usado antes: {cpfUsedLabel}</div>
                   <div>Payouts anteriores: {selectedPayout.payoutCount}</div>
                   <div>
@@ -263,6 +265,24 @@ export const AdminSecurityContent = () => {
                     {selectedUser?.blockedAt && (!selectedUser.blockedUntil || new Date(selectedUser.blockedUntil) > new Date())
                       ? `Ativo ate ${selectedUser.blockedUntil ? new Date(selectedUser.blockedUntil).toLocaleDateString('pt-BR') : 'indefinido'}`
                       : 'Não'}
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-100 bg-white p-4">
+                <p className="text-sm font-bold text-meow-charcoal">Endereço do solicitante</p>
+                <div className="mt-2 grid gap-2 text-xs text-meow-muted">
+                  <div>
+                    {selectedUser?.addressStreet
+                      ? `${selectedUser.addressStreet}${selectedUser.addressNumber ? `, ${selectedUser.addressNumber}` : ''}`
+                      : 'Rua não informada'}
+                    {selectedUser?.addressComplement ? ` - ${selectedUser.addressComplement}` : ''}
+                  </div>
+                  <div>
+                    {selectedUser?.addressDistrict ?? 'Bairro não informado'} | {selectedUser?.addressCity ?? 'Cidade não informada'} - {selectedUser?.addressState ?? 'UF'}
+                  </div>
+                  <div>
+                    CEP: {selectedUser?.addressZip ?? 'Não informado'} | País: {selectedUser?.addressCountry ?? 'Não informado'}
                   </div>
                 </div>
               </div>
