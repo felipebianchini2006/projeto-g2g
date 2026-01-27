@@ -8,7 +8,7 @@ import {
   MessageSquarePlus,
   MoreHorizontal,
   Search,
-  Ticket,
+  Ticket as TicketIcon,
   TicketCheck,
 } from 'lucide-react';
 
@@ -138,7 +138,7 @@ export const TicketsListContent = ({ initialOrderId }: TicketsListContentProps) 
         }
         setState({ status: 'ready', tickets });
         if (tickets.length > 0 && !selectedTicketId) {
-          setSelectedTicketId(tickets[0].id);
+          setSelectedTicketId(tickets[0]?.id ?? null);
         }
       } catch (error) {
         if (!active) {
@@ -266,7 +266,7 @@ export const TicketsListContent = ({ initialOrderId }: TicketsListContentProps) 
       label: 'Tickets abertos',
       value: openCount,
       description: 'Aguardando resposta.',
-      icon: Ticket,
+      icon: TicketIcon,
       tone: 'from-emerald-500 via-emerald-500 to-emerald-600',
     },
     {
@@ -277,9 +277,9 @@ export const TicketsListContent = ({ initialOrderId }: TicketsListContentProps) 
       tone: 'from-blue-500 via-blue-500 to-indigo-500',
     },
     {
-      label: 'Tempo medio',
+      label: 'Tempo médio',
       value: averageResolution,
-      description: 'De abertura ate resolucao.',
+      description: 'De abertura até resolução.',
       icon: Clock,
       tone: 'from-violet-500 via-purple-500 to-indigo-500',
     },
@@ -468,11 +468,10 @@ export const TicketsListContent = ({ initialOrderId }: TicketsListContentProps) 
 
               <div className="mt-4 grid gap-3">
                 {filteredTickets.map((ticket) => {
-                  const baseClass = `w-full rounded-2xl border px-4 py-3 text-left transition ${
-                    selectedTicketId === ticket.id
-                      ? 'border-meow-200 bg-meow-50'
-                      : 'border-slate-100 bg-white hover:border-meow-100'
-                  }`;
+                  const baseClass = `w-full rounded-2xl border px-4 py-3 text-left transition ${selectedTicketId === ticket.id
+                    ? 'border-meow-200 bg-meow-50'
+                    : 'border-slate-100 bg-white hover:border-meow-100'
+                    }`;
                   const orderHref = ticket.orderId
                     ? ticket.order?.sellerId && user?.id === ticket.order.sellerId
                       ? `/conta/vendas/${ticket.orderId}`

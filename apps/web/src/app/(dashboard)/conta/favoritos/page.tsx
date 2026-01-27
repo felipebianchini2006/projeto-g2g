@@ -57,7 +57,7 @@ export default function Page() {
   return (
     <AccountShell
       breadcrumbs={[
-        { label: 'Inicio', href: '/' },
+        { label: 'Início', href: '/' },
         { label: 'Conta', href: '/conta' },
         { label: 'Favoritos' },
       ]}
@@ -177,9 +177,9 @@ export default function Page() {
         <section className="space-y-4">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <h2 className="text-xl font-black text-meow-charcoal">Destaques para voce</h2>
+              <h2 className="text-xl font-black text-meow-charcoal">Destaques para você</h2>
               <p className="text-xs text-meow-muted">
-                Recomendacoes com base nos seus interesses.
+                Recomendações com base nos seus interesses.
               </p>
             </div>
             <Link href="/produtos" className="text-xs font-bold text-meow-deep">

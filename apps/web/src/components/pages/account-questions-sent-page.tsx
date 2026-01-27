@@ -238,7 +238,7 @@ export const AccountQuestionsSentPage = () => {
               className="mt-4 inline-flex items-center gap-2 rounded-full bg-meow-linear px-5 py-2 text-xs font-bold text-white"
             >
               <ShoppingBag size={14} aria-hidden />
-              Explorar anuncios
+              Explorar anúncios
             </Link>
           </Card>
         ) : null}
@@ -246,11 +246,11 @@ export const AccountQuestionsSentPage = () => {
         <div className="grid gap-4">
           {filteredQuestions.map((question) => {
             const listing = question.listing;
-            const listingTitle = listing?.title ?? 'Anuncio';
+            const listingTitle = listing?.title ?? 'Anúncio';
             const seller =
               listing?.seller?.fullName ??
               listing?.seller?.email ??
-              'Vendedor do anuncio';
+              'Vendedor do anúncio';
             const mediaUrl =
               listing?.media?.[0]?.url ?? '/assets/meoow/highlight-02.webp';
             const answered = Boolean(question.answer);
