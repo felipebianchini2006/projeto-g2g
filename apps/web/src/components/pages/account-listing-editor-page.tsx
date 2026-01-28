@@ -1037,15 +1037,15 @@ export const AccountListingEditorContent = ({ listingId }: { listingId: string }
                   </div>
 
                   {/* Auto Delivery Input */}
-                  <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-6 dark:border-emerald-500/20 dark:bg-emerald-950/40">
+                  <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-6 dark:border-slate-700/60 dark:bg-slate-900/70">
                     <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex items-start gap-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm dark:bg-emerald-500/20 dark:text-emerald-200">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm dark:bg-emerald-500/20 dark:text-emerald-100">
                           <Zap size={18} fill="currentColor" />
                         </div>
                         <div>
-                          <h4 className="font-bold text-slate-800 dark:text-emerald-50">Entrega Automática</h4>
-                          <p className="text-xs font-bold text-slate-500 dark:text-emerald-100/70">
+                          <h4 className="font-bold text-slate-800 dark:text-slate-100">Entrega Automática</h4>
+                          <p className="text-xs font-bold text-slate-500 dark:text-slate-300">
                             O sistema entrega o produto assim que o pagamento for aprovado.
                           </p>
                         </div>
@@ -1059,21 +1059,21 @@ export const AccountListingEditorContent = ({ listingId }: { listingId: string }
 
                     {autoDelivery && !isDynamic && (
                       <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-                        <label className="text-xs font-bold uppercase tracking-wide text-emerald-700 dark:text-emerald-200">ADICIONAR NOVOS ITENS AO ESTOQUE</label>
+                        <label className="text-xs font-bold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">ADICIONAR NOVOS ITENS AO ESTOQUE</label>
                         <Textarea
                           value={inventoryPayload}
                           onChange={e => setInventoryPayload(e.target.value)}
                           placeholder={isDynamic ? "Item #1 | Acesso...\nItem #2 | Acesso..." : "Ex: Login: usuario123 | Senha: senha123\nOu Cole aqui a Key do jogo..."}
-                          className="min-h-[120px] rounded-xl border-emerald-200 bg-white font-mono text-sm focus:border-emerald-400 focus:ring-emerald-500/10 dark:border-emerald-500/40 dark:bg-emerald-950/20"
+                          className="min-h-[120px] rounded-xl border-emerald-200 bg-white font-mono text-sm focus:border-emerald-400 focus:ring-emerald-500/10 dark:border-slate-700/70 dark:bg-slate-950/70 dark:text-slate-100 dark:placeholder:text-slate-400"
                         />
-                        <p className="text-[10px] font-bold text-emerald-600 flex items-center gap-1 dark:text-emerald-200">
+                        <p className="text-[10px] font-bold text-emerald-600 flex items-center gap-1 dark:text-emerald-300">
                           <span className="w-2 h-2 rounded-full bg-emerald-500 block dark:bg-emerald-300"></span>
                           Esses dados são criptografados e enviados apenas para o comprador após o pagamento.
                         </p>
                       </div>
                     )}
                     {autoDelivery && isDynamic ? (
-                      <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-200">
+                      <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">
                         Os itens dinâmicos geram o estoque automaticamente.
                       </p>
                     ) : null}
@@ -1122,6 +1122,28 @@ export const AccountListingEditorContent = ({ listingId }: { listingId: string }
                     <ImageUploader
                       files={mediaFiles}
                       onFilesChange={setMediaFiles}
+                    />
+                  </div>
+
+                  <div className="mt-4 lg:hidden">
+                    <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
+                      PrÃ©-visualizaÃ§Ã£o
+                    </h3>
+                    <ListingCard
+                      id="preview-mobile"
+                      title={formState.title || 'Seu TÃ­tulo Aparece Aqui...'}
+                      priceCents={(formState.priceCents ?? 0) > 0 ? (formState.priceCents ?? 0) : 0}
+                      currency="BRL"
+                      image={
+                        mediaFiles.length > 0 && mediaFiles[0]
+                          ? URL.createObjectURL(mediaFiles[0])
+                          : state.listing?.media?.[0]?.url ?? '/assets/meoow/cat-01.png'
+                      }
+                      href="#"
+                      description={formState.description}
+                      variant={listingType === 'deluxe' ? 'red' : 'dark'}
+                      isAuto={autoDelivery}
+                      showFavorite={false}
                     />
                   </div>
                 </div>
@@ -1265,3 +1287,4 @@ export const AccountListingEditorContent = ({ listingId }: { listingId: string }
 
   );
 };
+

@@ -277,13 +277,13 @@ const ProfileTabs = ({ activeTab, onChange, communityCount = 2 }: ProfileTabsPro
           type="button"
           onClick={() => onChange(tab.key)}
           className={`flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-xs font-bold transition ${activeTab === tab.key
-            ? 'border border-rose-200 bg-rose-50 text-rose-600'
+            ? 'border border-pink-200 bg-pink-50 text-pink-600'
             : 'border border-transparent bg-slate-50 text-meow-muted hover:bg-slate-100'
             }`}
         >
           {tab.label}
           {tab.badge ? (
-            <span className="rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-bold text-white">
+            <span className="rounded-full bg-pink-500 px-2 py-0.5 text-[10px] font-bold text-white">
               {tab.badge}
             </span>
           ) : null}
@@ -748,9 +748,9 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
 
   if (profileState.status === 'loading') {
     return (
-      <section className="bg-gradient-to-b from-rose-100/60 via-white to-white px-6 py-12">
+      <section className="bg-gradient-to-b from-pink-100/60 via-white to-white px-6 py-12">
         <div className="mx-auto w-full max-w-[1200px] space-y-6">
-          <div className="h-32 rounded-3xl bg-rose-100" />
+          <div className="h-32 rounded-3xl bg-pink-100" />
           <SkeletonProfile />
         </div>
       </section>
@@ -760,7 +760,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
   if (profileState.status === 'error' || !profileState.profile) {
     return (
       <section className="bg-white px-6 py-12">
-        <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-rose-200 bg-rose-50 px-6 py-6 text-sm text-rose-600">
+        <div className="mx-auto w-full max-w-[1200px] rounded-2xl border border-pink-200 bg-pink-50 px-6 py-6 text-sm text-pink-600">
           {profileState.error || 'Não foi possível carregar o perfil.'}
         </div>
       </section>
@@ -831,7 +831,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
 
 
   return (
-    <section className="bg-gradient-to-b from-rose-100/60 via-white to-white px-6 py-12">
+    <section className="bg-gradient-to-b from-pink-100/60 via-white to-white px-6 py-12">
       <div className="mx-auto w-full max-w-[1200px] space-y-6">
         <div className="relative">
           <div
@@ -945,7 +945,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
                         type="button"
                         onClick={() => setActiveCategory(pill.value)}
                         className={`rounded-full px-4 py-2 text-xs font-bold transition ${isActive
-                          ? 'bg-rose-500 text-white shadow-cute'
+                          ? 'bg-pink-500 text-white shadow-cute'
                           : 'border border-slate-200 bg-white text-meow-muted hover:border-slate-300'
                           }`}
                       >
@@ -1082,7 +1082,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
                           <p className="text-xs text-meow-muted">Enviando imagem...</p>
                         ) : null}
                         {composerImageError ? (
-                          <p className="text-xs font-semibold text-rose-500">
+                          <p className="text-xs font-semibold text-pink-500">
                             {composerImageError}
                           </p>
                         ) : null}
@@ -1115,7 +1115,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
                 ) : null}
 
                 {postsState.status === 'error' ? (
-                  <Card className="rounded-[24px] border border-rose-200 bg-rose-50 p-6 text-sm text-rose-600 shadow-card">
+                  <Card className="rounded-[24px] border border-pink-200 bg-pink-50 p-6 text-sm text-pink-600 shadow-card">
                     {postsState.error || 'Não foi possível carregar os posts.'}
                   </Card>
                 ) : null}
@@ -1132,7 +1132,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
                       key={post.id}
                       className="relative overflow-hidden rounded-[24px] border border-slate-100 p-5 shadow-card"
                     >
-                      <span className="absolute left-0 top-0 h-full w-1 bg-rose-500" />
+                      <span className="absolute left-0 top-0 h-full w-1 bg-pink-500" />
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
                           <div className="h-10 w-10 overflow-hidden rounded-full bg-meow-100">
@@ -1223,7 +1223,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
                       <div className="mt-4 flex flex-wrap items-center gap-6 text-xs text-meow-muted">
                         <button
                           type="button"
-                          className={`inline-flex items-center gap-1 transition-colors ${post.likedByMe ? 'text-rose-500 font-bold' : 'hover:text-rose-500'}`}
+                          className={`inline-flex items-center gap-1 transition-colors ${post.likedByMe ? 'text-pink-500 font-bold' : 'hover:text-pink-500'}`}
                           disabled={!canInteract || likeLoading[post.id]}
                           onClick={async () => {
                             if (!accessToken) return;
@@ -1305,7 +1305,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
                         ) : null}
 
                         {commentsState.status === 'error' ? (
-                          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
+                          <div className="rounded-2xl border border-pink-200 bg-pink-50 px-4 py-3 text-sm text-pink-600">
                             {commentsState.error || 'Não foi possível carregar os comentários.'}
                           </div>
                         ) : null}
@@ -1417,7 +1417,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
                 ) : null}
 
                 {reviewsState.status === 'error' ? (
-                  <Card className="rounded-[24px] border border-rose-200 bg-rose-50 p-6 text-sm text-rose-600 shadow-card">
+                  <Card className="rounded-[24px] border border-pink-200 bg-pink-50 p-6 text-sm text-pink-600 shadow-card">
                     {reviewsState.error || 'Não foi possível carregar as avaliações.'}
                   </Card>
                 ) : null}
@@ -1430,7 +1430,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
 
                 {reviewsState.status === 'ready' && reviewsState.total > 0 ? (
                   <>
-                    <Card className="rounded-[24px] border border-slate-100 bg-gradient-to-r from-rose-500 to-pink-500 p-6 text-white shadow-card">
+                    <Card className="rounded-[24px] border border-slate-100 bg-gradient-to-r from-pink-500 to-pink-600 p-6 text-white shadow-card">
                       <div className="grid gap-6 md:grid-cols-[200px_minmax(0,1fr)]">
                         <div>
                           <div className="text-4xl font-black">
@@ -1588,7 +1588,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
                   />
 
                   {reportError ? (
-                    <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-600">
+                    <div className="rounded-2xl border border-pink-200 bg-pink-50 px-4 py-3 text-sm font-semibold text-pink-600">
                       {reportError}
                     </div>
                   ) : null}
@@ -1605,7 +1605,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
                       type="button"
                       disabled={reportLoading}
                       onClick={submitReport}
-                      className="flex-1 rounded-full bg-rose-500 hover:bg-rose-600 text-white font-bold"
+                      className="flex-1 rounded-full bg-pink-500 hover:bg-pink-600 text-white font-bold"
                     >
                       {reportLoading ? 'Enviando...' : 'Enviar Denúncia'}
                     </Button>
@@ -1678,7 +1678,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
                   />
 
                   {profileReportError ? (
-                    <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-600">
+                    <div className="rounded-2xl border border-pink-200 bg-pink-50 px-4 py-3 text-sm font-semibold text-pink-600">
                       {profileReportError}
                     </div>
                   ) : null}
@@ -1695,7 +1695,7 @@ export const PublicProfileContent = ({ profileId }: { profileId: string }) => {
                       type="button"
                       disabled={profileReportSending}
                       onClick={submitProfileReport}
-                      className="flex-1 rounded-full bg-rose-500 hover:bg-rose-600 text-white font-bold"
+                      className="flex-1 rounded-full bg-pink-500 hover:bg-pink-600 text-white font-bold"
                     >
                       {profileReportSending ? 'Enviando...' : 'Enviar den\u00fancia'}
                     </Button>

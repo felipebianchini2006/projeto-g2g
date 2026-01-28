@@ -72,10 +72,6 @@ const buildLastDays = () => {
   return days;
 };
 
-const fallbackChart: ChartPoint[] = buildLastDays().map((day, index) => ({
-  label: day.label,
-  value: [120, 160, 90, 180, 240, 210, 260][index] ?? 120,
-}));
 
 type AreaLineChartProps = {
   data: ChartPoint[];
@@ -165,7 +161,7 @@ export const WalletSummaryContent = () => {
   });
   const [chartState, setChartState] = useState<ChartState>({
     status: 'loading',
-    data: fallbackChart,
+    data: [],
   });
 
   const [isTopupOpen, setIsTopupOpen] = useState(false);
@@ -368,11 +364,10 @@ export const WalletSummaryContent = () => {
         label: day.label,
         value: Math.max(0, totals.get(day.key) ?? 0),
       }));
-      const hasData = data.some((item) => item.value > 0);
-      setChartState({ status: 'ready', data: hasData ? data : fallbackChart });
+      setChartState({ status: 'ready', data });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Não foi possível carregar o grafico.';
-      setChartState({ status: 'ready', data: fallbackChart, error: message });
+      setChartState({ status: 'ready', data: [], error: message });
     }
   };
 
@@ -582,7 +577,13 @@ export const WalletSummaryContent = () => {
               ))}
             </div>
             <div className="h-40 sm:h-52 w-full rounded-2xl bg-gradient-to-b from-pink-50 to-white p-4">
-              <AreaLineChart data={chartState.data} />
+              {chartState.data.some((item) => item.value > 0) ? (
+                <AreaLineChart data={chartState.data} />
+              ) : (
+                <div className="flex h-full items-center justify-center text-xs text-meow-muted">
+                  Sem dados reais nos últimos 7 dias.
+                </div>
+              )}
             </div>
           </div>
           {chartState.error ? (

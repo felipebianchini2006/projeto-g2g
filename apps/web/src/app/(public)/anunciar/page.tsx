@@ -892,10 +892,10 @@ export default function Page() {
                   </div>
 
                   {/* Auto Delivery Input */}
-                  <div className="rounded-2xl bg-emerald-50/50 border border-emerald-100 p-6">
+                  <div className="rounded-2xl border border-slate-100 bg-slate-50 p-6">
                     <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex items-center gap-2">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 text-white shadow-sm">
                           <Zap size={16} fill="currentColor" />
                         </div>
                         <div>
@@ -906,28 +906,27 @@ export default function Page() {
                       <Toggle
                         checked={autoDelivery}
                         onCheckedChange={setAutoDelivery}
-                        className="self-start data-[state=on]:bg-meow-500 sm:self-center"
+                        className="self-start data-[state=on]:bg-slate-800 sm:self-center"
                       />
                     </div>
 
                     {autoDelivery && !isDynamic && (
                       <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-                        <label className="text-xs font-bold uppercase tracking-wide text-emerald-700">DADOS PARA ENTREGA (FICA OCULTO ATÉ A VENDA)</label>
+                        <label className="text-xs font-bold uppercase tracking-wide text-slate-600">DADOS PARA ENTREGA (FICA OCULTO ATÉ A VENDA)</label>
                         <Textarea
                           value={inventoryPayload}
                           onChange={e => setInventoryPayload(e.target.value)}
                           placeholder={isDynamic ? "Item #1 | Acesso...\nItem #2 | Acesso..." : "Ex: Login: usuario123 | Senha: senha123\nOu Cole aqui a Key do jogo..."}
-                          className="min-h-[120px] rounded-xl border-emerald-200 bg-white font-mono text-sm focus:border-emerald-400 focus:ring-emerald-500/10"
+                          className="min-h-[120px] rounded-xl border-slate-200 bg-white font-mono text-sm focus:border-slate-300 focus:ring-slate-200/60"
                         />
-                        <p className="text-[10px] font-bold text-emerald-600 flex items-center gap-1">
-                          <span className="w-2 h-2 rounded-full bg-emerald-500 block"></span>
+                        <p className="text-[10px] font-bold text-slate-600 flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-full bg-slate-500 block"></span>
                           Esses dados são criptografados e enviados apenas para o comprador após o pagamento.
                         </p>
                       </div>
                     )}
                     {autoDelivery && isDynamic ? (
-                      <p className="text-xs font-semibold text-emerald-700">
-                        Os itens dinâmicos geram o estoque automaticamente.
+                      <p className="text-xs font-semibold text-slate-600">Os itens dinâmicos geram o estoque automaticamente.
                       </p>
                     ) : null}
 
@@ -1050,6 +1049,31 @@ export default function Page() {
                     <ImageUploader
                       files={mediaFiles}
                       onFilesChange={setMediaFiles}
+                    />
+                  </div>
+
+                  <div className="mt-4 lg:hidden">
+                    <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
+                      Pre-visualizacao
+                    </h3>
+                    <ListingCard
+                      id="preview-mobile"
+                      title={formState.title || 'Seu Titulo Aparece Aqui...'}
+                      priceCents={formState.priceCents > 0 ? formState.priceCents : 0}
+                      currency="BRL"
+                      image={
+                        mediaFiles.length > 0 && mediaFiles[0]
+                          ? URL.createObjectURL(mediaFiles[0])
+                          : '/assets/meoow/cat-01.png'
+                      }
+                      href="#"
+                      description={formState.description}
+                      variant={listingType === 'deluxe' ? 'red' : 'dark'}
+                      isAuto={autoDelivery}
+                      tagLabel={customTagEnabled && !autoDelivery ? customTagLabel.trim() || null : null}
+                      tagEmoji={customTagEnabled && !autoDelivery ? customTagEmoji.trim() || null : null}
+                      tagTone={customTagColor}
+                      showFavorite={false}
                     />
                   </div>
                 </div>
@@ -1212,3 +1236,5 @@ export default function Page() {
 
   );
 }
+
+
