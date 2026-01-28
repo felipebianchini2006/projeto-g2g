@@ -1,80 +1,122 @@
-# Guia completo do sistema (iniciante -> producao)
+# Guia do sistema do zero (para iniciantes)
 
-Este guia explica como configurar e usar o sistema do zero, e como prepara-lo
-para producao. O foco e iniciantes, com passos claros e exemplos. Para detalhes
-operacionais avancados, veja `PRODUCTION.md`, `RUNBOOK.md`, `OPERATIONS.md` e
-`SECURITY.md`.
-
----
-
-## 1) Visao geral do sistema
-
-O monorepo tem 3 apps principais e 2 dependencias:
-
-- Web (Next.js): interface do usuario.
-  - Porta local: 3000
-  - Em producao fica atras do Nginx.
-- API (NestJS): REST + WebSocket (chat) + webhooks.
-  - Porta local: 3001
-  - Em producao fica exposta como `/api`.
-- Worker (NestJS): jobs de fila (BullMQ).
-  - Processo separado, obrigatorio em producao.
-- Postgres: banco principal.
-- Redis: filas e cache.
-
-Fluxos principais:
-- Checkout Pix (mock ou EFI real) -> pagamento -> pedido.
-- Chat do pedido via WebSocket (socket.io).
-- Suporte IA (Gemini) via endpoints da API.
-- Disputas e liberacao de saldo (settlement).
+Este guia ensina a configurar o sistema do zero como se voce nunca tivesse
+programado antes. Ele e bem detalhado, passo a passo. Se voce ja tem
+experiencia, veja tambem `PRODUCTION.md`, `RUNBOOK.md`, `OPERATIONS.md` e
+`SECURITY.md` para detalhes avancados.
 
 ---
 
-## 2) Estrutura do repositorio
+## 1) O que e este sistema (em palavras simples)
 
-- `apps/api` - NestJS (backend).
-- `apps/web` - Next.js (frontend).
-- `packages/shared` - tipos e validacoes compartilhadas.
-- `packages/config` - configs base.
-- `docker-compose.dev.yml` - Postgres/Redis para dev.
-- `docker-compose.prod.yml` - stack de producao.
-- `nginx.conf` - proxy para web + api + websockets.
+Este repositorio contem um sistema completo com:
 
----
+- **Web (Next.js)**: a parte que o usuario ve no navegador.
+- **API (NestJS)**: a parte que responde as requisicoes da Web.
+- **Worker (NestJS)**: um processo separado que faz tarefas em segundo plano.
+- **Postgres**: banco de dados (onde ficam os dados).
+- **Redis**: fila e cache (para processar tarefas).
 
-## 3) Requisitos
+No computador local (seu PC), as URLs padrao sao:
 
-### 3.1) Desenvolvimento local
-
-- Node.js 20+
-- npm 10+
-- Docker Desktop (Postgres/Redis)
-
-### 3.2) Producao
-
-- Servidor/VPS com Docker e Docker Compose
-- Dominio apontado para o IP
-- TLS (HTTPS) recomendado
-- Segredos (JWT, Discord, Gemini, EFI) definidos
+- Web: http://localhost:3000
+- API: http://localhost:3001
 
 ---
 
-## 4) Setup local (dev) passo a passo
+## 2) O que voce precisa instalar no seu computador
 
-### 4.1) Instale dependencias
+Se voce nunca fez isso, siga na ordem. Cada item e um programa:
+
+1) **Node.js 20+**
+   - O Node.js permite rodar o codigo JavaScript do projeto.
+2) **npm 10+**
+   - O npm vem junto com o Node.js.
+3) **Git**
+   - O Git permite baixar o projeto do repositorio.
+4) **Docker Desktop**
+   - O Docker cria ambientes prontos com Postgres e Redis.
+
+Dica: se voce nao sabe se ja tem instalado, nao tem problema instalar de novo.
+
+---
+
+## 3) Baixar o projeto para o seu PC
+
+1) Crie uma pasta no seu computador, por exemplo:
+   - `C:\projetos`
+2) Abra o **PowerShell**.
+3) Entre na pasta:
+
+```bash
+cd C:\projetos
+```
+
+4) Baixe o repositorio (o Git precisa estar instalado):
+
+```bash
+git clone <URL_DO_REPOSITORIO>
+```
+
+5) Entre na pasta do projeto:
+
+```bash
+cd projeto-g2g
+```
+
+---
+
+## 4) Entenda a estrutura do projeto (bem simples)
+
+Dentro da pasta `projeto-g2g` voce vai ver:
+
+- `apps/api`  -> backend (API)
+- `apps/web`  -> frontend (Web)
+- `packages/shared` -> tipos compartilhados
+- `packages/config` -> configuracoes compartilhadas
+- `docker-compose.dev.yml` -> banco Postgres e Redis para dev
+
+---
+
+## 5) Instalar as dependencias do projeto
+
+Agora vamos instalar as bibliotecas do projeto. Isso pode demorar alguns
+minutos na primeira vez.
 
 ```bash
 npm install
 ```
 
-### 4.2) Crie os arquivos de ambiente
+Se aparecer alguma mensagem de erro, pare e me diga exatamente o que apareceu.
 
-Copie os templates:
+---
 
-- `apps/api/.env.example` -> `apps/api/.env`
-- `apps/web/.env.example` -> `apps/web/.env.local`
+## 6) Criar os arquivos de configuracao (.env)
 
-Preencha os valores. Alguns campos sao obrigatorios para o app subir:
+O projeto precisa de dois arquivos de configuracao:
+
+- `apps/api/.env`
+- `apps/web/.env.local`
+
+Vamos criar a partir dos exemplos:
+
+1) Copie o arquivo da API:
+
+```bash
+Copy-Item apps\api\.env.example apps\api\.env
+```
+
+2) Copie o arquivo da Web:
+
+```bash
+Copy-Item apps\web\.env.example apps\web\.env.local
+```
+
+3) Agora abra os dois arquivos e preencha os campos principais.
+
+### 6.1) API (`apps/api/.env`)
+
+Campos obrigatorios para a API iniciar:
 
 - `JWT_SECRET`
 - `DISCORD_CLIENT_ID`
@@ -82,16 +124,39 @@ Preencha os valores. Alguns campos sao obrigatorios para o app subir:
 - `DISCORD_REDIRECT_URI`
 - `GEMINI_API_KEY`
 
-Para desenvolvimento, voce pode usar valores de teste, mas em producao use
-segredos reais.
+Se voce nao tiver esses dados ainda, pode colocar valores de teste por agora.
+Exemplo:
 
-### 4.3) Suba Postgres e Redis
+- `JWT_SECRET=teste123`
+- `DISCORD_CLIENT_ID=teste`
+- `DISCORD_CLIENT_SECRET=teste`
+- `DISCORD_REDIRECT_URI=http://localhost:3000/api/auth/discord/callback`
+- `GEMINI_API_KEY=teste`
+
+### 6.2) Web (`apps/web/.env.local`)
+
+Campos principais:
+
+- `NEXT_PUBLIC_APP_URL=http://localhost:3000`
+- `NEXT_PUBLIC_API_URL=http://localhost:3001`
+- `DISCORD_CLIENT_ID=teste`
+- `DISCORD_REDIRECT_URI=http://localhost:3000/api/auth/discord/callback`
+
+Importante: tudo que comeca com `NEXT_PUBLIC_` aparece no navegador.
+
+---
+
+## 7) Subir o banco de dados (Postgres) e o Redis
+
+Agora vamos ligar os servicos de banco e fila usando Docker.
 
 ```bash
 npm run docker:up
 ```
 
-Opcional (Adminer):
+Se o Docker Desktop estiver fechado, abra ele antes.
+
+Opcional: abrir o Adminer (um painel do banco de dados):
 
 ```bash
 docker compose -f docker-compose.dev.yml --profile devtools up -d adminer
@@ -99,307 +164,104 @@ docker compose -f docker-compose.dev.yml --profile devtools up -d adminer
 
 Adminer: http://localhost:8080
 
-### 4.4) Rode migracoes e seed
+---
+
+## 8) Criar as tabelas no banco (migracoes)
+
+As migracoes criam as tabelas no banco de dados.
 
 ```bash
 npm run prisma:migrate:dev -w apps/api
+```
+
+Depois rode o seed (dados de exemplo):
+
+```bash
 npm run prisma:seed -w apps/api
 ```
 
-### 4.5) Inicie o projeto
+---
+
+## 9) Iniciar o sistema
+
+Agora vamos rodar o projeto todo:
 
 ```bash
 npm run dev
 ```
 
+Ao final, voce deve ver:
+
 - Web: http://localhost:3000
 - API: http://localhost:3001
-- Swagger (se `SWAGGER_ENABLED=true`): http://localhost:3001/docs
 
-### 4.6) Usuarios e dados seed (somente dev)
+Se o Swagger estiver habilitado:
 
-O seed cria contas e dados de exemplo:
+- Docs da API: http://localhost:3001/docs
+
+---
+
+## 10) Usuarios de teste (somente local)
+
+O seed cria usuarios de teste:
 
 - Admin: `admin@email.com` / `12345678`
 - Seller: `seller@email.com` / `12345678`
 - Buyer: `buyer@email.com` / `12345678`
 
-Nao use o seed em producao.
+Nao use isso em producao.
 
 ---
 
-## 5) Variaveis de ambiente (explicacao simples)
+## 11) Problemas comuns e como resolver
 
-### 5.1) API (`apps/api/.env`)
+1) **API nao sobe**
+   - Faltam variaveis obrigatorias no `.env`.
+2) **Web nao conecta na API**
+   - `NEXT_PUBLIC_API_URL` esta errado.
+3) **Docker nao sobe**
+   - Docker Desktop fechado ou sem permissao.
+4) **Erro de banco (P2022)**
+   - Migracoes nao rodaram.
 
-Basicas:
-
-- `NODE_ENV`: `development` | `test` | `production`
-- `PORT`: porta da API (padrao 3001)
-- `DATABASE_URL`: Postgres
-- `REDIS_URL`: Redis
-- `LOG_LEVEL`: `fatal` | `error` | `warn` | `info` | `debug` | `trace`
-- `CORS_ORIGINS`: lista separada por virgula (ex: `https://app.seudominio.com`)
-- `SWAGGER_ENABLED`: `true` para docs locais, `false` em prod
-
-Auth:
-
-- `JWT_SECRET`: chave forte
-- `TOKEN_TTL`: access token em segundos
-- `REFRESH_TTL`: refresh token em segundos
-
-Pedidos:
-
-- `ORDER_PAYMENT_TTL_SECONDS`: tempo maximo para pagamento
-- `ORDER_AUTO_COMPLETE_HOURS`: auto-complete de entrega automatica
-
-Pix (mock ou EFI):
-
-- `PIX_MOCK_MODE`: `true` em dev/test, `false` em prod
-- `PIX_MOCK_TTL_SECONDS`: TTL do Pix mock
-
-EFI (Pix real):
-
-- `EFI_CLIENT_ID`
-- `EFI_CLIENT_SECRET`
-- `EFI_CERT_PATH` (certificado mTLS, ex: `/run/secrets/efi-cert.p12`)
-- `EFI_ENV`: `sandbox` | `prod`
-- `EFI_PIX_KEY`
-- `EFI_WEBHOOK_SKIP_MTLS_CHECKING`: `true` apenas para registro de webhook se preciso
-
-Settlement:
-
-- `SETTLEMENT_MODE`: `cashout` | `split`
-- `SETTLEMENT_RELEASE_DELAY_HOURS`
-
-Discord OAuth (obrigatorio pelo schema):
-
-- `DISCORD_CLIENT_ID`
-- `DISCORD_CLIENT_SECRET`
-- `DISCORD_REDIRECT_URI`
-
-Suporte IA (Gemini) (obrigatorio pelo schema):
-
-- `GEMINI_API_KEY`
-- `GEMINI_MODEL` (padrao `gemini-2.5-flash`)
-- `SUPPORT_AI_ENABLED`: `true` | `false`
-
-Observacao: mesmo com `SUPPORT_AI_ENABLED=false`, o schema exige
-`GEMINI_API_KEY`. Se voce nao usa Gemini, defina um valor de teste ou ajuste
-`apps/api/src/config/env.schema.ts`.
-
-### 5.2) Web (`apps/web/.env.local`)
-
-- `NEXT_PUBLIC_APP_URL`: URL publica do frontend
-- `NEXT_PUBLIC_API_URL`: URL publica da API (em prod, use `/api`)
-- `DISCORD_CLIENT_ID`
-- `DISCORD_REDIRECT_URI`
-
-Importante: `NEXT_PUBLIC_*` sao injetadas no build do Next. Se mudar, rebuilde.
-
-### 5.3) `.env.prod` na raiz (Docker Compose)
-
-No deploy por Docker Compose, as variaveis sao lidas via `.env.prod`.
-Inclua tambem:
-
-- `POSTGRES_USER`
-- `POSTGRES_PASSWORD`
-- `POSTGRES_DB`
-- `DATABASE_URL` (use host `postgres`)
-
-Exemplo de `DATABASE_URL` em prod:
-
-```
-postgresql://POSTGRES_USER:POSTGRES_PASSWORD@postgres:5432/POSTGRES_DB
-```
+Se algo disso acontecer, me diga o erro exato.
 
 ---
 
-## 6) Pix: mock e producao
+## 12) Producao (resumo simples)
 
-### 6.1) Modo mock (dev/test)
+Para colocar em producao, voce usa Docker Compose e o arquivo `.env.prod`.
+Veja detalhes em `PRODUCTION.md`.
 
-```
-PIX_MOCK_MODE=true
-```
+Resumo rapido:
 
-Nao chama a EFI real. O checkout gera cobranca falsa.
-
-### 6.2) Modo real (producao)
-
-```
-PIX_MOCK_MODE=false
-EFI_CLIENT_ID=...
-EFI_CLIENT_SECRET=...
-EFI_CERT_PATH=/run/secrets/efi-cert.p12
-EFI_ENV=prod
-EFI_PIX_KEY=...
-```
-
-Webhook Pix:
-
-- Endpoint publico: `POST /api/webhooks/efi/pix`
-- Registro admin: `POST /api/webhooks/efi/register`
-
-Mais detalhes em `apps/api/docs/efi-pix.md`.
-
----
-
-## 7) Suporte IA (Gemini)
-
-Para ativar:
-
-```
-SUPPORT_AI_ENABLED=true
-GEMINI_API_KEY=...
-GEMINI_MODEL=gemini-2.5-flash
-```
-
-Tela no web: `/conta/ajuda/chat`.
-
----
-
-## 8) Discord OAuth
-
-Passos simples:
-
-1) Crie app no Discord Developer Portal.
-2) Copie `CLIENT_ID` e `CLIENT_SECRET`.
-3) Configure o Redirect URL (ex: `https://app.seudominio.com/api/auth/discord/callback`).
-4) Preencha as variaveis `DISCORD_*`.
-
----
-
-## 9) Worker e filas (obrigatorio em prod)
-
-O worker processa expiracao de pedidos, webhooks, settlement e emails.
-
-### 9.1) Producao (Docker)
-
-O `docker-compose.prod.yml` ja sobe o container `worker`.
-
-### 9.2) Local (se precisar testar jobs)
-
-1) Build da API:
-
-```bash
-npm run build -w apps/api
-```
-
-2) Rode o worker:
-
-```bash
-node apps/api/dist/worker.js
-```
-
----
-
-## 10) Deploy em producao (Docker Compose)
-
-### 10.1) Prepare `.env.prod`
-
-Use `apps/api/.env.example` e `apps/web/.env.example` como base.
-Defina todos os campos obrigatorios, incluindo `POSTGRES_*`.
-
-### 10.2) Build das imagens
+1) Crie `.env.prod` com as variaveis reais.
+2) Build das imagens:
 
 ```bash
 docker compose --env-file .env.prod -f docker-compose.prod.yml build
 ```
 
-### 10.3) Suba os servicos
+3) Suba os servicos:
 
 ```bash
 docker compose --env-file .env.prod -f docker-compose.prod.yml up -d
 ```
 
-### 10.4) Rode migracoes
+4) Rode migracoes no container da API:
 
 ```bash
 docker compose --env-file .env.prod -f docker-compose.prod.yml \
   exec api npm run prisma:migrate:deploy -w apps/api
 ```
 
-### 10.5) Healthcheck basico
-
-```bash
-curl http://localhost/health
-curl http://localhost/api/health
-```
-
 ---
 
-## 11) HTTPS e Nginx
+## 13) Links e documentos importantes
 
-O `nginx.conf` atual escuta na porta 80 e ja inclui proxy para:
-
-- `/` -> web
-- `/api/` -> API
-- `/socket.io/` e `/ws/` -> WebSocket
-
-Se usar TLS:
-
-Opcao A (mais simples):
-- Use Cloudflare ou proxy externo com HTTPS.
-- Nginx fica em HTTP interno.
-
-Opcao B:
-- Configure Nginx com certificados (LetsEncrypt).
-- Crie um bloco `server` em 443 com `ssl_certificate`.
-
-Observacao: `nginx.conf` ativa HSTS. So mantenha se HTTPS estiver garantido.
-
----
-
-## 12) Backups
-
-Postgres:
-
-```bash
-docker compose -f docker-compose.prod.yml exec -T postgres \
-  pg_dump -U $POSTGRES_USER $POSTGRES_DB > /opt/projeto-g2g/backup.sql
-```
-
-Uploads (volume `api_uploads`):
-
-```bash
-docker run --rm -v api_uploads:/data -v /opt/projeto-g2g:/backup alpine \
-  tar -czf /backup/uploads.tar.gz -C /data .
-```
-
-Mais detalhes em `RUNBOOK.md`.
-
----
-
-## 13) Validacao antes do go-live
-
-Checklist rapido:
-
-1) `.env.prod` completo e seguro.
-2) `PIX_MOCK_MODE=false` se vai usar Pix real.
-3) Certificado EFI montado e `EFI_CERT_PATH` valido.
-4) `NEXT_PUBLIC_*` com URLs finais e HTTPS.
-5) `worker` ativo (fila precisa rodar).
-6) Healthchecks ok (`/health` e `/api/health`).
-7) Testes rodaram (ver `TESTING.md`).
-
----
-
-## 14) Problemas comuns (resumo)
-
-- API nao sobe: variaveis obrigatorias ausentes (Joi bloqueia).
-- Web nao conecta na API: `NEXT_PUBLIC_API_URL` errado ou CORS.
-- Pix real nao confirma: webhook nao registrado ou TLS invalido.
-- Filas nao processam: Redis/worker indisponivel.
-
----
-
-## 15) Documentos de apoio
-
-- `README.md` (visao geral)
-- `PRODUCTION.md` (prod com Docker)
+- `PRODUCTION.md` (producao completa)
 - `RUNBOOK.md` (deploy e rollback)
 - `OPERATIONS.md` (filas e troubleshooting)
-- `SECURITY.md` (auth, rate limiting, hardening)
-- `TESTING.md` (estrategia de testes)
+- `SECURITY.md` (seguranca)
+- `TESTING.md` (testes)
 - `apps/api/docs/efi-pix.md` (Pix EFI)
