@@ -551,7 +551,7 @@ export default function Page() {
     }
     setInventoryPayload(dynamicInventoryPayload);
     if ((formState.priceCents ?? 0) <= 0 && dynamicItems.length > 0) {
-      const firstPrice = parsePriceToCents(dynamicItems[0]?.price || '');
+      const firstPrice = dynamicItems[0]?.priceCents ?? 0;
       if (firstPrice > 0) {
         setFormState((prev) => ({ ...prev, priceCents: firstPrice }));
       }
